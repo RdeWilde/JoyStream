@@ -20,6 +20,8 @@
 #include <CoinCore/CoinNodeData.h> // Transaction
 #include <CoinCore/hdkeys.h>
 
+#include <ctime>
+
 using namespace joystream::paymentchannel;
 
 void Test::redeemScript() {
