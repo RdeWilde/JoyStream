@@ -124,7 +124,7 @@ signals:
 
     void peerRemoved(const libtorrent::tcp::endpoint &);
 
-    void torrentPluginAdded(const TorrentPlugin *);
+    void torrentPluginAdded(TorrentPlugin *);
 
     void torrentPluginRemoved();
 
