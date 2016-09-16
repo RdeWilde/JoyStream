@@ -57,7 +57,7 @@ RedeemScriptHash MultisigScriptPubKey::scriptHash() const {
 */
 
 P2SHScriptPubKey MultisigScriptPubKey::toP2SHScriptPubKey() const {
-    return P2SHScriptPubKey(RedeemScriptHash(serialized()));
+    return P2SHScriptPubKey(RedeemScriptHash::fromRawScript(serialized()));
 }
 
 }

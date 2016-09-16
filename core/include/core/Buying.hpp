@@ -35,7 +35,7 @@ public:
      */
     static void registerMetaTypes();
 
-    Buying(const Coin::UnspentP2PKHOutput & funding,
+    Buying(const Coin::UnspentOutputSet & funding,
            const protocol_session::BuyingPolicy & policy,
            const protocol_session::BuyingState & state,
            const protocol_wire::BuyerTerms & terms,
@@ -45,7 +45,7 @@ public:
 
     ~Buying();
 
-    Coin::UnspentP2PKHOutput funding() const noexcept;
+    Coin::UnspentOutputSet funding() const noexcept;
 
     protocol_session::BuyingPolicy policy() const noexcept;
 
@@ -59,7 +59,7 @@ public:
 
 signals:
 
-    void fundingChanged(const Coin::UnspentP2PKHOutput &);
+    void fundingChanged(const Coin::UnspentOutputSet &);
 
     void policyChanged(const protocol_session::BuyingPolicy &);
 
@@ -86,7 +86,7 @@ private:
     void update(const protocol_session::status::Buying<libtorrent::tcp::endpoint> &);
 
     // Funding for buyer
-    Coin::UnspentP2PKHOutput _funding;
+    Coin::UnspentOutputSet _funding;
 
     // Controls behaviour of session
     protocol_session::BuyingPolicy _policy;

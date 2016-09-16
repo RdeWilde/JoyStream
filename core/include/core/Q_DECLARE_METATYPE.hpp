@@ -24,7 +24,7 @@ Q_DECLARE_METATYPE(joystream::core::CBStateMachine::InnerStateIndex)
 Q_DECLARE_METATYPE(joystream::protocol_session::SellerState)
 
 // Buying
-Q_DECLARE_METATYPE(Coin::UnspentP2PKHOutput)
+Q_DECLARE_METATYPE(Coin::UnspentOutputSet)
 Q_DECLARE_METATYPE(joystream::protocol_session::BuyingPolicy)
 Q_DECLARE_METATYPE(joystream::protocol_session::BuyingState)
 Q_DECLARE_METATYPE(joystream::protocol_wire::BuyerTerms)

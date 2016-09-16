@@ -45,11 +45,17 @@ private slots:
 
     // Unit Tests
     void walletCreation();
-    void networkMismatchOnOpeningWallet();
+    void walletNetworkMismatch();
+    void extendedPublicKey();
+    void walletEncryption();
+    void walletLocking();
     void Synching();
     void BalanceCheck();
     void Utxo();
     void BroadcastingTx();
+    void UsingOptionalDataInP2SHSpend();
+    void FinanceTxFromMultipleSets();
+    void RedeemScriptFiltering();
 
     // Will be called at the end of all tests
     void cleanupTestCase();

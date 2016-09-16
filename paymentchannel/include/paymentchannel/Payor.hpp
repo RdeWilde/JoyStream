@@ -10,12 +10,13 @@
 
 #include <common/typesafeOutPoint.hpp>
 #include <common/KeyPair.hpp>
+#include <common/RedeemScriptHash.hpp>
 #include <common/Signature.hpp>
 
 namespace Coin {
     class TransactionId;
     class typesafeOutPoint;
-    class UnspentP2PKHOutput;
+    class UnspentP2SHOutput;
     class Payment;
 }
 
@@ -41,16 +42,13 @@ namespace paymentchannel {
         Payor(quint64 price,
                 quint64 numberOfPaymentsMade,
                 quint64 funds,
-                quint64 refundFee,
                 quint64 settlementFee,
                 quint32 refundLockTime,
                 const Coin::typesafeOutPoint & anchor,
                 const Coin::KeyPair & payorContractKeyPair,
                 const Coin::PubKeyHash & payorFinalPkHash,
                 const Coin::PublicKey & payeeContractPk,
-                const Coin::PubKeyHash & payeeFinalPkHash,
-                const Coin::Signature & payorRefundSignature,
-                const Coin::Signature & payeeRefundSignature);
+                const Coin::PubKeyHash & payeeFinalPkHash);
 
         // Commitment for channel
         Commitment commitment() const;
@@ -61,18 +59,12 @@ namespace paymentchannel {
         // Payment for channel
         Settlement settlement() const;
 
-        // Generates a refund signature for payor
-        Coin::Signature generatePayorRefundSignature() const;
-
         // Generates settlement signature for payor
         Coin::Signature generatePayorSettlementSignature() const;
 
         // Increments payment counter, and generates/returns
         // settlement signature for payor
         Coin::Signature makePayment();
-
-        // Checks the payee signature
-        bool checkPayeeRefundSignature(const Coin::Signature &) const;
 
         // Amount of funds paid
         quint64 amountPaid() const;
@@ -86,9 +78,6 @@ namespace paymentchannel {
 
         quint64 funds() const;
         void setFunds(quint64 funds);
-
-        quint64 refundFee() const;
-        void setRefundFee(quint64);
 
         quint64 settlementFee() const;
         void setSettlementFee(quint64);
@@ -111,12 +100,6 @@ namespace paymentchannel {
         Coin::PubKeyHash payeeFinalPkHash() const;
         void setPayeeFinalPkHash(const Coin::PubKeyHash &);
 
-        Coin::Signature payorRefundSignature() const;
-        void setPayorRefundSignature(const Coin::Signature &);
-
-        Coin::Signature payeeRefundSignature() const;
-        void setPayeeRefundSignature(const Coin::Signature &);
-
     private:
 
         // Size of single payment
@@ -127,9 +110,6 @@ namespace paymentchannel {
 
         // Funds allocated to output
         quint64 _funds;
-
-        // Refund fee
-        quint64 _refundFee;
 
         // Settlement fee
         quint64 _settlementFee;
@@ -151,12 +131,6 @@ namespace paymentchannel {
 
         // Controls payee payments, received in sign_refund.pk
         Coin::PubKeyHash _payeeFinalPkHash;
-
-        // Controls refund for payor
-        Coin::Signature _payorRefundSignature;
-
-        // Controls refund for payee
-        Coin::Signature _payeeRefundSignature;
     };
 
 }

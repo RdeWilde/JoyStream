@@ -7,7 +7,7 @@
 
 #include <paymentchannel/Commitment.hpp>
 #include <common/P2SHScriptPubKey.hpp>
-#include <common/MultisigScriptPubKey.hpp>
+#include <paymentchannel/RedeemScript.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
 namespace joystream {
@@ -17,35 +17,37 @@ namespace paymentchannel {
         : _value(0) {
     }
 
-    Commitment::Commitment(int64_t value, const Coin::PublicKey & firstPk, const Coin::PublicKey & secondPk)
+    Commitment::Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime)
         : _value(value)
-        , _firstPk(firstPk)
-        , _secondPk(secondPk) {
+        , _payorPk(payorPk)
+        , _payeePk(payeePk)
+        , _lockTime(lockTime){
     }
 
     Commitment::Commitment(const Commitment & o)
-        : Commitment::Commitment(o.value(), o.firstPk(), o.secondPk()) {
+        : Commitment::Commitment(o.value(), o.payorPk(), o.payeePk(), o.lockTime()) {
     }
 
     Commitment & Commitment::operator=(const Commitment & o) {
 
         _value = o.value();
-        _firstPk = o.firstPk();
-        _secondPk =  o.secondPk();
+        _payorPk = o.payorPk();
+        _payeePk =  o.payeePk();
+        _lockTime = o.lockTime();
 
         return *this;
     }
 
     Coin::P2SHScriptPubKey Commitment::contractOutputScriptPubKey() const {
-        return Coin::P2SHScriptPubKey::fromMultisig(std::vector<Coin::PublicKey>({_firstPk, _secondPk}), 2);
+        return Coin::P2SHScriptPubKey(Coin::RedeemScriptHash::fromRawScript(redeemScript().serialized()));
     }
 
     Coin::TxOut Commitment::contractOutput() const {
         return Coin::TxOut(_value, contractOutputScriptPubKey().serialize());
     }
 
-    Coin::MultisigScriptPubKey Commitment::redeemScript() const {
-        return Coin::MultisigScriptPubKey(std::vector<Coin::PublicKey>({_firstPk, _secondPk}), 2);
+    RedeemScript Commitment::redeemScript() const {
+        return RedeemScript(_payorPk, _payeePk, _lockTime);
     }
 
     int64_t Commitment::value() const {
@@ -56,21 +58,28 @@ namespace paymentchannel {
         _value = value;
     }
 
-    Coin::PublicKey Commitment::firstPk() const {
-        return _firstPk;
+    Coin::PublicKey Commitment::payorPk() const {
+        return _payorPk;
     }
 
-    void Commitment::setFirstPk(const Coin::PublicKey & firstPk) {
-        _firstPk = firstPk;
+    void Commitment::setPayorPk(const Coin::PublicKey & payorPk) {
+        _payorPk = payorPk;
     }
 
-    Coin::PublicKey Commitment::secondPk() const {
-        return _secondPk;
+    Coin::PublicKey Commitment::payeePk() const {
+        return _payeePk;
     }
 
-    void Commitment::setSecondPk(const Coin::PublicKey & secondPk) {
-        _secondPk = secondPk;
+    void Commitment::setPayeePk(const Coin::PublicKey & payeePk) {
+        _payeePk = payeePk;
     }
 
+    void Commitment::setLockTime(uint32_t lockTime) {
+        _lockTime = lockTime;
+    }
+
+    uint32_t Commitment::lockTime() const {
+        return _lockTime;
+    }
 }
 }

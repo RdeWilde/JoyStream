@@ -1,9 +1,12 @@
-#include <common/UnspentP2PKHOutput.hpp>
 #include <common/P2PKHAddress.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/P2PKHScriptSig.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
 #include <common/Utilities.hpp>
+#include <common/SigHashType.hpp>
+#include <common/UnspentOutputSet.hpp>
+#include <common/UnspentOutputSet.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
 
@@ -135,40 +138,79 @@ void SPVWallet::create() {
     updateStatus(wallet_status_t::OFFLINE);
 }
 
-void SPVWallet::create(Coin::Seed seed, uint32_t timestamp) {
+void SPVWallet::create(const Coin::Entropy & entropy, uint32_t timestamp) {
 
     if(isInitialized()) {
         throw std::runtime_error("wallet already opened");
     }
 
-    if(!_store.create(_storePath, _network, seed, timestamp == 0 ? std::time(nullptr) : timestamp)){
+    if(!_store.create(_storePath, _network, entropy, timestamp == 0 ? std::time(nullptr) : timestamp)){
         throw std::runtime_error("unable to create store");
     }
 
     updateStatus(wallet_status_t::OFFLINE);
 }
 
-void SPVWallet::open() {
+void SPVWallet::open(std::string passphrase) {
 
     // Only open the store once
     if(!isInitialized()) {
-        if(!_store.open(_storePath)) {
+        if(!_store.open(_storePath, _network)) {
             throw std::runtime_error("failed to open wallet");
         }
 
-        if(_network != _store.network()){
-            throw std::runtime_error("store network type mistmatch");
+        if(_store.locked() && passphrase != "") {
+            try {
+                _store.unlock(passphrase);
+            } catch(std::exception & e) {
+                // wrong passphrase
+                _store.close();
+                return;
+            }
         }
 
         updateStatus(wallet_status_t::OFFLINE);
 
         recalculateBalance();
 
-        updateBloomFilter(_store.listPrivateKeys());
+        auto scripts = _store.listRedeemScripts();
+        auto recvKeys = _store.listPublicKeys(Store::KeychainType::External);
+        auto changeKeys = _store.listPublicKeys(Store::KeychainType::Internal);
+
+        std::vector<Coin::PublicKey> pubKeys;
+
+        for(auto pk : recvKeys) pubKeys.push_back(pk);
+        for(auto pk : changeKeys) pubKeys.push_back(pk);
+
+        updateBloomFilter(scripts, pubKeys);
 
     } else {
         throw std::runtime_error("wallet already opened");
     }
+}
+
+bool SPVWallet::encrypted() const {
+    return _store.encrypted();
+}
+
+bool SPVWallet::locked() const {
+    return _store.locked();
+}
+
+void SPVWallet::unlock(std::string passphrase) {
+    _store.unlock(passphrase);
+}
+
+void SPVWallet::lock() {
+    _store.lock();
+}
+
+void SPVWallet::encrypt(std::string passphrase) {
+    _store.encrypt(passphrase);
+}
+
+void SPVWallet::decrypt(std::string passphrase) {
+    _store.decrypt(passphrase);
 }
 
 void SPVWallet::loadBlockTree(std::function<void(std::string)> feedback) {
@@ -215,75 +257,135 @@ void SPVWallet::stopSync() {
     _networkSync.stop();
 }
 
-Coin::PrivateKey SPVWallet::getKey(bool createReceiveAddress) {
+Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGenerator) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
-    Coin::PrivateKey sk = _store.getKey(createReceiveAddress);
+    uchar_vector script;
 
-    if(createReceiveAddress) {
-        updateBloomFilter({sk});
-    }
+    Coin::PrivateKey sk = _store.generatePrivateKey([&scriptGenerator, &script](const Coin::PublicKey & pubKey){
+        RedeemScriptInfo info = scriptGenerator(pubKey);
+        script = info.redeemScript;
+        return info;
+    });
+
+    updateBloomFilter({script}, {});
 
     return sk;
 }
 
-std::vector<Coin::PrivateKey> SPVWallet::getKeys(uint32_t numKeys, bool createReceiveAddress) {
+std::vector<Coin::PrivateKey> SPVWallet::generateKeys(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
-    std::vector<Coin::PrivateKey> keys = _store.getKeys(numKeys, createReceiveAddress);
-    if(createReceiveAddress) {
-        updateBloomFilter(keys);
-    }
+    std::vector<uchar_vector> scripts;
+
+    std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerator, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
+        RedeemScriptInfo info = scriptGenerator(pubKey);
+        scripts.push_back(info.redeemScript);
+        return info;
+    });
+
+    updateBloomFilter(scripts, {});
+
     return keys;
 }
 
 std::vector<Coin::KeyPair>
-SPVWallet::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
+SPVWallet::generateKeyPairs(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
-    std::vector<Coin::KeyPair> keyPairs = _store.getKeyPairs(num_pairs, createReceiveAddress);
-    if (createReceiveAddress) {
-        std::vector<Coin::PrivateKey> keys;
+    std::vector<uchar_vector> scripts;
+    std::vector<Coin::KeyPair> keyPairs;
 
-        for(auto &pair : keyPairs) {
-            keys.push_back(pair.sk());
-        }
+    std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerator, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
+        RedeemScriptInfo info = scriptGenerator(pubKey);
+        scripts.push_back(info.redeemScript);
+        return info;
+    });
 
-        updateBloomFilter(keys);
+    updateBloomFilter(scripts, {});
+
+    for(auto key : keys) {
+        keyPairs.push_back(Coin::KeyPair(key));
     }
+
     return keyPairs;
 }
 
-void SPVWallet::releaseKey(const Coin::PrivateKey &sk) {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
-    _store.releaseKey(sk);
-}
-
-std::list<Coin::P2PKHAddress> SPVWallet::listAddresses() {
-    return _store.listReceiveAddresses();
-}
-
-Coin::P2PKHAddress
-SPVWallet::getReceiveAddress()
+Coin::PublicKey SPVWallet::generateReceivePublicKey()
 {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
-    Coin::P2PKHAddress addr = getKey(true).toPublicKey().toP2PKHAddress(_network);
+    auto pubKey = _store.generateReceivePublicKey();
 
-    return addr;
+    updateBloomFilter({}, {pubKey});
+
+    return pubKey;
 }
 
+Coin::PublicKey SPVWallet::generateChangePublicKey()
+{
+    if(!isInitialized()) {
+        throw std::runtime_error("wallet not initialized");
+    }
+
+    auto pubKey = _store.generateChangePublicKey();
+
+    updateBloomFilter({}, {pubKey});
+
+    return pubKey;
+}
+
+Coin::P2PKHAddress SPVWallet::generateReceiveAddress() {
+    auto pubKey = generateReceivePublicKey();
+    return Coin::P2PKHAddress(_network, pubKey.toPubKeyHash());
+}
+
+Coin::P2PKHAddress SPVWallet::generateChangeAddress() {
+    auto pubKey = generateChangePublicKey();
+    return Coin::P2PKHAddress(_network, pubKey.toPubKeyHash());
+}
+
+Coin::PrivateKey SPVWallet::generateReceivePrivateKey()
+{
+    if(!isInitialized()) {
+        throw std::runtime_error("wallet not initialized");
+    }
+
+    auto sk = _store.generateReceivePrivateKey();
+
+    updateBloomFilter({}, {sk.toPublicKey()});
+
+    return sk;
+}
+
+Coin::PrivateKey SPVWallet::generateChangePrivateKey()
+{
+    if(!isInitialized()) {
+        throw std::runtime_error("wallet not initialized");
+    }
+
+    auto sk = _store.generateChangePrivateKey();
+
+    updateBloomFilter({}, {sk.toPublicKey()});
+
+    return sk;
+}
+
+std::vector<Coin::P2PKHAddress> SPVWallet::listReceiveAddresses() const {
+    std::vector<Coin::P2PKHAddress> addresses;
+    for(auto pubKey : _store.listPublicKeys(Store::KeychainType::External)) {
+        addresses.push_back(Coin::P2PKHAddress(_network, pubKey.toPubKeyHash()));
+    }
+    return addresses;
+}
 
 void SPVWallet::broadcastTx(Coin::Transaction cointx) {
     if(!isConnected()) {
@@ -305,50 +407,56 @@ int32_t SPVWallet::bestHeight() const {
     return _store.getBestHeaderHeight();
 }
 
-std::list<Coin::UnspentP2PKHOutput> SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
+std::string SPVWallet::getSeedWords() const {
+    return _store.getSeedWords();
+}
+
+Coin::UnspentOutputSet
+SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const Store::RedeemScriptFilter &scriptFilter) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
     
     std::lock_guard<std::mutex> lock(_utxoMutex);
 
-    uint32_t totalValue = 0;
-
-    std::list<Coin::UnspentP2PKHOutput> selectedOutputs;
+    Coin::UnspentOutputSet selectedOutputs;
 
     // Assume outputs are sorted in descending value
-    std::list<Coin::UnspentP2PKHOutput> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight()));
+    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight(), scriptFilter));
 
-    for(Coin::UnspentP2PKHOutput & utxo : unspentOutputs) {
-        if(_lockedOutpoints.find(utxo.outPoint()) != _lockedOutpoints.end()) continue;
+    for(std::shared_ptr<Coin::UnspentOutput> & utxo : unspentOutputs) {
+        if(_lockedOutpoints.find(utxo->outPoint()) != _lockedOutpoints.end()) continue;
 
-        selectedOutputs.push_back(utxo);
-        totalValue += utxo.value();
+        selectedOutputs.insert(utxo);
 
-        if(totalValue >= minValue) {
+        if(selectedOutputs.value() >= minValue) {
             break;
         }
     }
 
-    if(totalValue < minValue) {
+    if(selectedOutputs.value() < minValue) {
         // not enough utxo
-        return std::list<Coin::UnspentP2PKHOutput>();
+        return Coin::UnspentOutputSet();
     }
 
     // Lock and return the selected utxos
     for(auto utxo : selectedOutputs) {
-        _lockedOutpoints.insert(utxo.outPoint());
+        _lockedOutpoints.insert(utxo->outPoint());
     }
 
     return selectedOutputs;
 }
 
-void SPVWallet::unlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs) {
+uint SPVWallet::unlockOutputs(const Coin::UnspentOutputSet &outputs) {
     std::lock_guard<std::mutex> lock(_utxoMutex);
 
+    uint unlockedCount = 0;
+
     for(auto utxo : outputs) {
-        _lockedOutpoints.erase(utxo.outPoint());
+        unlockedCount += _lockedOutpoints.erase(utxo->outPoint());
     }
+
+    return unlockedCount;
 }
 
 uint64_t SPVWallet::balance() const {
@@ -506,39 +614,47 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     }
 }
 
-// call this first time we open the store with argument
-// std::list<Coin::PrivateKey> privateKeys = _store.listPrivateKeys();
+void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts, const std::vector<Coin::PublicKey> publicKeys) {
 
-void SPVWallet::updateBloomFilter(const std::vector<Coin::PrivateKey> & privateKeys) {
-
-    int currentElementsCount = _bloomFilterCompressedPubKeys.size() + _bloomFilterPubKeyHashes.size();
-
-    for(auto &sk : privateKeys) {
-        //public key - to capture inputs that spend outputs we control
-        _bloomFilterCompressedPubKeys.insert(_bloomFilterCompressedPubKeys.begin(),
-                                             sk.toPublicKey().toUCharVector());
-
-        //pubkeyhash - to capture outputs we control
-        _bloomFilterPubKeyHashes.insert(_bloomFilterPubKeyHashes.begin(),
-                                        sk.toPublicKey().toPubKeyHash().toUCharVector());
+    for(auto &script : redeemScripts) {
+        _bloomFilterScripts.insert(script);
     }
 
-    int newElementsCount = _bloomFilterCompressedPubKeys.size() + _bloomFilterPubKeyHashes.size();
-
-    if(newElementsCount > currentElementsCount) {
-        Coin::BloomFilter filter(newElementsCount, 0.0001, 0,0);
-
-        for(auto elm : _bloomFilterCompressedPubKeys) {
-            filter.insert(elm);
-        }
-
-        for(auto elm : _bloomFilterPubKeyHashes) {
-            filter.insert(elm);
-        }
-
-        _networkSync.setBloomFilter(filter);
+    for(auto &pubKey : publicKeys) {
+        _bloomFilterPubKeys.insert(pubKey);
     }
 
+    const uint filterSize = (_bloomFilterScripts.size() * 2 + _bloomFilterPubKeys.size() * 2);
+
+    if(filterSize == 0) return;
+
+    Coin::BloomFilter filter(filterSize, 0.0001, 0, 0);
+
+    for(const uchar_vector & script : _bloomFilterScripts) {
+        // For capturing inputs: Redeem script will be last data item pushed to stack in input scriptSig
+        filter.insert(script);
+
+        // For capturing outputs: script hash
+        Coin::P2SHAddress address = Coin::P2SHAddress(_network, Coin::RedeemScriptHash::fromRawScript(script));
+        filter.insert(address.redeemScriptHash().toUCharVector());
+
+        // Generate output scripts for direct comparison in createsWalletOutput() routine
+        _scriptPubKeys.insert(address.toP2SHScriptPubKey().serialize());
+    }
+
+    for(const Coin::PublicKey & pubKey : _bloomFilterPubKeys) {
+        // For capturing inputs: input scriptSig will have full public Key
+        filter.insert(pubKey.toUCharVector());
+
+        // For capturing outputs: pubkey hash
+        filter.insert(pubKey.toPubKeyHash().toUCharVector());
+
+        // Generate output scripts for direct comparison in createsWalletOutput() routine
+        Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey(pubKey);
+        _scriptPubKeys.insert(script.serialize());
+    }
+
+    _networkSync.setBloomFilter(filter);
 }
 
 bool SPVWallet::transactionShouldBeStored(const Coin::Transaction & cointx) const {
@@ -554,10 +670,20 @@ bool SPVWallet::transactionShouldBeStored(const Coin::Transaction & cointx) cons
 }
 
 bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
+
+    for(auto &redeemScript : _bloomFilterScripts) {
+       // if redeem script length is greater than scriptSig length, then it cannot be part of it
+       if(redeemScript.size() > txin.scriptSig.size()) continue;
+
+       // Compare the redeemScript to the end of the scriptSig which would contain the redeem script
+       // in a p2sh spending input
+       if(std::equal(redeemScript.rbegin(), redeemScript.rend(), txin.scriptSig.rbegin())) return true;
+    }
+
     try{
         uchar_vector pubkey = Coin::P2PKHScriptSig::deserialize(txin.scriptSig).pk().toUCharVector();
 
-        if(_bloomFilterCompressedPubKeys.find(pubkey) != _bloomFilterCompressedPubKeys.end()) {
+        if(_bloomFilterPubKeys.find(pubkey) != _bloomFilterPubKeys.end()) {
             return true;
         }
 
@@ -569,20 +695,8 @@ bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
 }
 
 bool SPVWallet::createsWalletOutput(const Coin::TxOut & txout) const {
-    try{
-        // get the pubkeyhash
-        Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(txout.scriptPubKey);
-
-        // if it matches bloom filter element we have a matching transaction
-        if(_bloomFilterPubKeyHashes.find(script.pubKeyHash().toUCharVector()) != _bloomFilterPubKeyHashes.end()) {
-            return true;
-        }
-
-    } catch(std::runtime_error &e) {
-        // not a p2pkh pubkey script
-    }
-
-    return false;
+    // If output script matches one of our wallet scriptPubKey
+    return _scriptPubKeys.find(txout.scriptPubKey) != _scriptPubKeys.end();
 }
 
 void SPVWallet::recalculateBalance() {
@@ -609,47 +723,47 @@ void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
     _networkSync.syncBlocks(height);
 }
 
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee) {
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee) {
+    auto scriptPubKey = Coin::P2PKHScriptPubKey(destinationAddr.pubKeyHash()).serialize();
+    return test_sendToAddress(value, scriptPubKey, fee);
+}
+
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee) {
+    auto scriptPubKey = destinationAddr.toP2SHScriptPubKey().serialize();
+    return test_sendToAddress(value, scriptPubKey, fee);
+}
+
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const uchar_vector & scriptPubKey, uint64_t fee) {
 
     // Get UnspentUTXO
-    std::list<Coin::UnspentP2PKHOutput> utxos(lockOutputs(value + fee, 0));
+    auto utxos(lockOutputs(value + fee, 0));
 
-    if(utxos.empty()) {
-        throw std::runtime_error("Not enough funds");
+    if(utxos.value() < (value+fee)) {
+        throw std::runtime_error("Not Enough Funds");
     }
-
-    Coin::UnspentP2PKHOutput utxo = utxos.front();
-
-    if(utxo.value() < value) {
-        throw std::runtime_error("Failed to get one UTXO with required value");
-    }
-
-    // Create Destination output
-    Coin::P2PKHScriptPubKey destinationScript(addr.pubKeyHash());
-
-    // Create Change output
-    Coin::P2PKHAddress changeAddr = getReceiveAddress();
-    Coin::P2PKHScriptPubKey changeScript(changeAddr.pubKeyHash());
 
     // Create an unsigned Transaction
     Coin::Transaction cointx;
-    cointx.addOutput(Coin::TxOut(value, destinationScript.serialize()));
 
-    uint64_t change = utxo.value() - (value + fee);
+    // Add output sending value to the destination address
+    cointx.addOutput(Coin::TxOut(value, scriptPubKey));
+
+    uint64_t change = utxos.value() - (value + fee);
+
     if(change > 0) {
+        // Create Change output
+        Coin::P2PKHScriptPubKey changeScript(generateChangePublicKey());
         cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
     }
 
-    // Set Input
-    cointx.addInput(Coin::TxIn(utxo.outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
-
-    // Sign the input
-    Coin::setScriptSigToSpendP2PKH(cointx, 0, utxo.keyPair().sk());
+    // Finance the transaction
+    utxos.finance(cointx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, false));
 
     broadcastTx(cointx);
 
     return cointx;
 }
+
 
 }
 }

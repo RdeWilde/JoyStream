@@ -1,31 +1,45 @@
 <changelog xmlns="http://www.codesynthesis.com/xmlns/odb/changelog" database="sqlite" version="1">
   <model version="1">
     <table name="Metadata" kind="object">
-      <column name="seed" type="TEXT" null="false"/>
+      <column name="id" type="INTEGER" null="false"/>
+      <column name="entropy" type="TEXT" null="false"/>
+      <column name="xpublicKey" type="TEXT" null="false"/>
       <column name="network" type="INTEGER" null="false"/>
+      <column name="encrypted" type="INTEGER" null="false"/>
+      <column name="salt" type="TEXT" null="false"/>
       <column name="created" type="INTEGER" null="false"/>
+      <primary-key>
+        <column name="id"/>
+      </primary-key>
     </table>
     <table name="Key" kind="object">
-      <column name="index" type="INTEGER" null="false"/>
+      <column name="id" type="INTEGER" null="false"/>
       <column name="generated" type="INTEGER" null="false"/>
-      <column name="used" type="INTEGER" null="false"/>
-      <column name="raw" type="TEXT" null="false"/>
+      <column name="path_coin_type" type="INTEGER" null="false"/>
+      <column name="path_change" type="INTEGER" null="false"/>
+      <column name="path_index" type="INTEGER" null="false"/>
       <primary-key auto="true">
-        <column name="index"/>
+        <column name="id"/>
       </primary-key>
+      <index name="Key_path_i" type="UNIQUE">
+        <column name="path_coin_type"/>
+        <column name="path_change"/>
+        <column name="path_index"/>
+      </index>
     </table>
     <table name="Address" kind="object">
       <column name="id" type="INTEGER" null="false"/>
-      <column name="address" type="TEXT" null="false"/>
       <column name="key" type="INTEGER" null="false"/>
       <column name="scriptPubKey" type="TEXT" null="false"/>
+      <column name="redeemScript" type="TEXT" null="true"/>
+      <column name="optionalData" type="TEXT" null="true"/>
       <primary-key auto="true">
         <column name="id"/>
       </primary-key>
       <foreign-key name="key_fk" deferrable="DEFERRED">
         <column name="key"/>
         <references table="Key">
-          <column name="index"/>
+          <column name="id"/>
         </references>
       </foreign-key>
       <index name="Address_key_i" type="UNIQUE">
@@ -145,39 +159,6 @@
         <column name="tx_ix_tx"/>
         <column name="tx_ix_index"/>
       </index>
-    </table>
-    <table name="InBoundPayment" kind="object">
-      <column name="id" type="INTEGER" null="false"/>
-      <column name="created" type="INTEGER" null="false"/>
-      <column name="note" type="TEXT" null="false"/>
-      <column name="receiveAddress" type="INTEGER" null="true"/>
-      <primary-key auto="true">
-        <column name="id"/>
-      </primary-key>
-      <foreign-key name="receiveAddress_fk" deferrable="DEFERRED">
-        <column name="receiveAddress"/>
-        <references table="Address">
-          <column name="id"/>
-        </references>
-      </foreign-key>
-    </table>
-    <table name="OutBoundPayment" kind="object">
-      <column name="id" type="INTEGER" null="false"/>
-      <column name="fee" type="INTEGER" null="false"/>
-      <column name="amount" type="INTEGER" null="false"/>
-      <column name="note" type="TEXT" null="false"/>
-      <column name="created" type="INTEGER" null="false"/>
-      <column name="toAddress" type="TEXT" null="false"/>
-      <column name="changeAddress" type="INTEGER" null="true"/>
-      <primary-key auto="true">
-        <column name="id"/>
-      </primary-key>
-      <foreign-key name="changeAddress_fk" deferrable="DEFERRED">
-        <column name="changeAddress"/>
-        <references table="Address">
-          <column name="id"/>
-        </references>
-      </foreign-key>
     </table>
   </model>
 </changelog>

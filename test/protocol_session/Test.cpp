@@ -7,6 +7,8 @@
 
 #include <Test.hpp>
 #include <thread>
+#include <common/Seed.hpp>
+#include <CoinCore/hdkeys.h>
 
 template<>
 std::string IdToString<ID>(const ID & s) {
@@ -21,26 +23,42 @@ Test::Test()
 
 void Test::init() {
 
+    // Reset next key counter
+    nextKey = 1;
+
     session = new Session<ID>();
 
     spy = new
     SessionSpy<ID>(
-    [this](int n) -> std::vector<Coin::KeyPair> {
+    [this](const P2SHScriptGeneratorFromPubKey & scriptGenerator, const uchar_vector &optional_data) -> Coin::KeyPair {
 
-        std::vector<Coin::KeyPair> keys;
+        Coin::PrivateKey sk = nextPrivateKey();
 
-        for(int i = 0;i < n;i++)
-            keys.push_back(Coin::KeyPair(privateKeyFromUInt(i)));
+        scriptGenerator(sk.toPublicKey());
 
-        return keys;
+        return Coin::KeyPair(sk);
     },
     [this](int n) {
 
         std::vector<Coin::P2PKHAddress> addresses;
 
-        for(int i = 0;i < n;i++)
-            addresses.push_back((privateKeyFromUInt(i)).toPublicKey().toP2PKHAddress(this->network));
+        for(int i = 0;i < n;i++){
 
+            Coin::P2PKHAddress addr(this->network, nextPrivateKey().toPublicKey().toPubKeyHash());
+            addresses.push_back(addr);
+        }
+        return addresses;
+
+    },
+    [this](int n) {
+
+        std::vector<Coin::P2PKHAddress> addresses;
+
+        for(int i = 0;i < n;i++){
+
+            Coin::P2PKHAddress addr(this->network, nextPrivateKey().toPublicKey().toPubKeyHash());
+            addresses.push_back(addr);
+        }
         return addresses;
 
     },
@@ -83,7 +101,7 @@ void Test::observing() {
     addConnection(1);
 
     // Go to buy mode
-    toBuyMode(Coin::UnspentP2PKHOutput(),
+    toBuyMode(Coin::UnspentOutputSet(),
               BuyingPolicy(),
               protocol_wire::BuyerTerms(),
               TorrentPieceInformation());
@@ -124,7 +142,7 @@ void Test::selling_basic() {
     addConnection(1);
 
     // Go to buy mode
-    toBuyMode(Coin::UnspentP2PKHOutput(),
+    toBuyMode(Coin::UnspentOutputSet(),
               BuyingPolicy(),
               protocol_wire::BuyerTerms(),
               TorrentPieceInformation());
@@ -145,7 +163,7 @@ void Test::selling() {
     protocol_wire::Ready ready(1123,
                                Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                payorContractSk.toPublicKey(),
-                               Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
+                               Coin::RedeemScriptHash::fromRawHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671")));
 
     ID peer = 0;
     uint numberOfExchangesWhileStarted = 5;
@@ -160,11 +178,11 @@ void Test::selling() {
 
     // Add a buyer peer and take connection to state ReadyForPieceRequest
     Coin::PublicKey payeeContractPk;
-    Coin::PubKeyHash payeeFinalPkHash;
-    addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready, payeeContractPk, payeeFinalPkHash);
+    Coin::RedeemScriptHash payeeFinalScriptHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready, payeeContractPk, payeeFinalScriptHash);
 
     // Do sequence of data for payments exchanges
-    paymentchannel::Payor payor = getPayor(sellerTerms, buyerTerms, ready, payorContractSk, payeeContractPk, payeeFinalPkHash);
+    paymentchannel::Payor payor = getPayor(sellerTerms, ready, payorContractSk, payeeContractPk, payeeFinalScriptHash);
 
     exchangeDataForPayment(peer, numberOfExchangesWhileStarted, payor);
 
@@ -249,8 +267,8 @@ void Test::selling_buyer_requested_invalid_piece() {
 
     // Add a buyer peer and take connection to state ReadyForPieceRequest
     Coin::PublicKey payeeContractPk;
-    Coin::PubKeyHash payeeFinalPkHash;
-    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), protocol_wire::Ready(), payeeContractPk, payeeFinalPkHash);
+    Coin::RedeemScriptHash payeeFinalScriptHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), protocol_wire::Ready(), payeeContractPk, payeeFinalScriptHash);
 
     // peer requests invalid piece
     session->processMessageOnConnection(peer, protocol_wire::RequestFullPiece(invalidPieceIndex));
@@ -281,8 +299,8 @@ void Test::selling_buyer_interrupted_payment() {
 
     // Add a buyer peer and take connection to state ReadyForPieceRequest
     Coin::PublicKey payeeContractPk;
-    Coin::PubKeyHash payeeFinalPkHash;
-    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), protocol_wire::Ready(), payeeContractPk, payeeFinalPkHash);
+    Coin::RedeemScriptHash payeeFinalScriptHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), protocol_wire::Ready(), payeeContractPk, payeeFinalScriptHash);
 
     // peer requests valid piece
     receiveValidFullPieceRequest(peer, pieceIndex);
@@ -306,7 +324,7 @@ void Test::selling_buyer_sent_invalid_payment() {
     protocol_wire::Ready ready = protocol_wire::Ready(1123,
                                                       Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                                       payorContractSk.toPublicKey(),
-                                                      Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
+                                                      Coin::RedeemScriptHash::fromRawHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671")));
     // back to sell mode
     toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 5);
 
@@ -315,8 +333,8 @@ void Test::selling_buyer_sent_invalid_payment() {
 
     // Add a buyer peer and take connection to state ReadyForPieceRequest
     Coin::PublicKey payeeContractPk;
-    Coin::PubKeyHash payeeFinalPkHash;
-    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), ready, payeeContractPk, payeeFinalPkHash);
+    Coin::RedeemScriptHash payeeFinalScriptHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), ready, payeeContractPk, payeeFinalScriptHash);
 
     // peer requests valid piece
     receiveValidFullPieceRequest(peer, pieceIndex);
@@ -343,7 +361,7 @@ void Test::selling_buyer_disappears() {
     protocol_wire::Ready ready(1123,
                                Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                payorContractSk.toPublicKey(),
-                               Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
+                               Coin::RedeemScriptHash::fromRawHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671")));
 
     assert(sellerTerms.satisfiedBy(buyerTerms));
 
@@ -355,11 +373,11 @@ void Test::selling_buyer_disappears() {
 
     // Add a buyer peer and take connection to state ReadyForPieceRequest
     Coin::PublicKey payeeContractPk;
-    Coin::PubKeyHash payeeFinalPkHash;
-    addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready, payeeContractPk, payeeFinalPkHash);
+    Coin::RedeemScriptHash payeeFinalScriptHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready, payeeContractPk, payeeFinalScriptHash);
 
     // Do sequence of data for payments exchanges
-    paymentchannel::Payor payor = getPayor(sellerTerms, buyerTerms, ready, payorContractSk, payeeContractPk, payeeFinalPkHash);
+    paymentchannel::Payor payor = getPayor(sellerTerms, ready, payorContractSk, payeeContractPk, payeeFinalScriptHash);
 
     exchangeDataForPayment(peer, numberOfExchangesBeforeDisappearance, payor);
 
@@ -386,10 +404,10 @@ void Test::buying_basic() {
 
     // To buy mode
     BuyingPolicy policy(1000, 1000, protocol_wire::SellerTerms::OrderingPolicy::min_price);
-    toBuyMode(Coin::UnspentP2PKHOutput(), policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
+    toBuyMode(Coin::UnspentOutputSet(), policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
 
     // Incorrectly try to go to same mode again
-    QVERIFY_EXCEPTION_THROWN(toBuyMode(Coin::UnspentP2PKHOutput(), BuyingPolicy(), protocol_wire::BuyerTerms(), TorrentPieceInformation()),
+    QVERIFY_EXCEPTION_THROWN(toBuyMode(Coin::UnspentOutputSet(), BuyingPolicy(), protocol_wire::BuyerTerms(), TorrentPieceInformation()),
                              exception::SessionAlreadyInThisMode);
 
     // Start session
@@ -412,7 +430,7 @@ void Test::buying_basic() {
     toObserveMode();
 
     // Back to buy mode
-    toBuyMode(Coin::UnspentP2PKHOutput(), policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
+    toBuyMode(Coin::UnspentOutputSet(), policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
 }
 
 void Test::buying() {
@@ -431,10 +449,16 @@ void Test::buying() {
     assert(!buyerTerms.satisfiedBy(bad.terms));
 
     // To buy mode
-    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(),
-                                     Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
-                                                            55),
-                                     34561);
+    std::shared_ptr<Coin::UnspentOutput> utxo(
+      new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
+                                  uchar_vector(),
+                                  uchar_vector(),
+                                  Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                                         55),
+                                  34561)
+    );
+
+    Coin::UnspentOutputSet funding({utxo});
 
     // minTimeBeforeBuildingContract = 1
     // servicingPieceTimeOutLimit = 2
@@ -540,10 +564,16 @@ void Test::buying_seller_has_interrupted_contract() {
     assert(buyerTerms.satisfiedBy(first.terms));
 
     // To buy mode
-    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(),
-                                     Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
-                                                            55),
-                                     34561);
+    std::shared_ptr<Coin::UnspentOutput> utxo(
+      new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
+                                  uchar_vector(),
+                                  uchar_vector(),
+                                  Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                                         55),
+                                  34561)
+    );
+
+    Coin::UnspentOutputSet funding({utxo});
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
@@ -593,10 +623,16 @@ void Test::buying_seller_servicing_piece_has_timed_out() {
     assert(buyerTerms.satisfiedBy(first.terms));
 
     // To buy mode
-    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(),
-                                     Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
-                                                            55),
-                                     34561);
+    std::shared_ptr<Coin::UnspentOutput> utxo(
+      new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
+                                  uchar_vector(),
+                                  uchar_vector(),
+                                  Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                                         55),
+                                  34561)
+    );
+
+    Coin::UnspentOutputSet funding({utxo});
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
@@ -645,10 +681,16 @@ void Test::buying_seller_sent_invalid_piece() {
     assert(buyerTerms.satisfiedBy(first.terms));
 
     // To buy mode
-    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(),
-                                     Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
-                                                            55),
-                                     34561);
+    std::shared_ptr<Coin::UnspentOutput> utxo(
+      new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
+                                  uchar_vector(),
+                                  uchar_vector(),
+                                  Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                                         55),
+                                  34561)
+    );
+
+    Coin::UnspentOutputSet funding({utxo});
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
@@ -700,15 +742,10 @@ void Test::buying_seller_sent_invalid_piece() {
     spy->reset();
 }
 
-Coin::PrivateKey Test::privateKeyFromUInt(uint) {
-
-    /**
-     * For whatever reason, the private keys generated
-     * by this routine seem to be invalid? the EC routines fail to convert
-     * them properly to public keys.
+Coin::PrivateKey Test::nextPrivateKey() {
 
     std::stringstream s;
-    s << std::hex << i;
+    s << std::hex << nextKey++;
     std::string hexInteger = s.str(); // MSB is at index 0
 
     // Make even length representation by potentially adding leading 0
@@ -717,23 +754,23 @@ Coin::PrivateKey Test::privateKeyFromUInt(uint) {
 
     std::string finalHexRepresentation;
 
-    if(hexInteger.length() > 2*Coin::PrivateKey::length())
+    if(hexInteger.length() > 2*Coin::Seed::length())
         throw std::runtime_error("privateKeyFromUInt: argument to big"); // not even going to truncate
-    else if(hexInteger.length() < 2*Coin::PrivateKey::length())
-        finalHexRepresentation = std::string(2*Coin::PrivateKey::length() - hexInteger.length(), '0') + hexInteger; // add suitable number of leading 0s
+    else if(hexInteger.length() < 2*Coin::Seed::length())
+        finalHexRepresentation = std::string(2*Coin::Seed::length() - hexInteger.length(), '0') + hexInteger; // add suitable number of leading 0s
 
-    assert(finalHexRepresentation.length() == 2*Coin::PrivateKey::length());
+    assert(finalHexRepresentation.length() == 2*Coin::Seed::length());
 
-    std::cout << "Generate ---- " << finalHexRepresentation.length() << std::endl;
+    //std::cout << "Generate ---- " << finalHexRepresentation.length() << std::endl;
 
-    return Coin::PrivateKey(finalHexRepresentation);
-    */
+    Coin::Seed seed(finalHexRepresentation.c_str());
 
-    return Coin::PrivateKey::generate();
+    Coin::HDKeychain keyChain(seed.generateHDKeychain());
+
+    return Coin::PrivateKey(keyChain.privkey());
 }
 
 paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTerms,
-                                     const protocol_wire::BuyerTerms & buyerTerms,
                                      const protocol_wire::Ready & ready,
                                      const Coin::PrivateKey & payorContractSk,
                                      const Coin::PublicKey & payeeContractPk,
@@ -742,16 +779,13 @@ paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTe
    return paymentchannel::Payor(sellerTerms.minPrice(),
                                 0,
                                 ready.value(),
-                                buyerTerms.refundFee(),
                                 sellerTerms.settlementFee(),
-                                buyerTerms.refundFee(),
+                                sellerTerms.minLock(),
                                 ready.anchor(),
                                 Coin::KeyPair(payorContractSk),
                                 ready.finalPkHash(),
                                 payeeContractPk,
-                                payeeFinalPkHash,
-                                Coin::Signature(),
-                                Coin::Signature());
+                                payeeFinalPkHash);
 
 
 
@@ -899,7 +933,7 @@ void Test::toSellMode(const SellingPolicy & policy,
     QCOMPARE(session->mode(), SessionMode::selling);
 }
 
-void Test::toBuyMode(const Coin::UnspentP2PKHOutput & funding,
+void Test::toBuyMode(const Coin::UnspentOutputSet & funding,
                      const BuyingPolicy & policy,
                      const protocol_wire::BuyerTerms & terms,
                      const TorrentPieceInformation & information) {
@@ -1019,12 +1053,11 @@ void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::Buyer
     session->processMessageOnConnection(id, protocol_wire::JoinContract(0));
 
     // key pair was generated
-    QCOMPARE((int)spy->generateKeyPairsCallbackSlot.size(), 1);
-    QCOMPARE((int)std::get<0>(spy->generateKeyPairsCallbackSlot.front()), 1);
+    QCOMPARE((int)spy->generateKeyPairCallbackSlot.size(), 1);
 
     // address was generated
-    QCOMPARE((int)spy->generateP2PKHAddressesCallbackSlot.size(), 1);
-    QCOMPARE((int)std::get<0>(spy->generateP2PKHAddressesCallbackSlot.front()), 1);
+    QCOMPARE((int)spy->generateReceiveAddressesCallbackSlot.size(), 1);
+    QCOMPARE((int)std::get<0>(spy->generateReceiveAddressesCallbackSlot.front()), 1);
 
     // client joined contract
     ConnectionSpy<ID> * cSpy = spy->connectionSpies.at(id);

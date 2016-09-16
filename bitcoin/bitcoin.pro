@@ -21,7 +21,8 @@ DEPENDPATH += $$PWD/../blockcypher/include
 #store
 HEADERS += include/bitcoin/Store.hpp \
            src/detail/store/Schema.hpp \
-           include/bitcoin/SPVWallet.hpp
+           include/bitcoin/SPVWallet.hpp \
+           include/bitcoin/Common.hpp
 
 SOURCES += src/detail/store/Schema-odb.cxx \
            src/detail/store/Schema.cpp \

@@ -12,9 +12,7 @@
 #include <common/RedeemScriptHash.hpp>
 #include <common/MultisigScriptPubKey.hpp>
 #include <common/P2SHScriptPubKey.hpp>
-#include <common/P2PKHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
-#include <common/UnspentP2PKHOutput.hpp>
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
 #include <cassert>
 #include <cmath> // ceil
@@ -26,7 +24,6 @@ namespace paymentchannel {
         : _price(0)
         , _numberOfPaymentsMade(0)
         , _funds(0)
-        , _refundFee(0)
         , _settlementFee(0)
         , _refundLockTime(0) {
     }
@@ -34,42 +31,33 @@ namespace paymentchannel {
     Payor::Payor(quint64 price,
                      quint64 numberOfPaymentsMade,
                      quint64 funds,
-                     quint64 refundFee,
                      quint64 settlementFee,
                      quint32 refundLockTime,
                      const Coin::typesafeOutPoint & anchor,
                      const Coin::KeyPair & payorContractKeyPair,
-                     const Coin::PubKeyHash & payorFinalPkHash,
+                     const Coin::PubKeyHash &payorFinalPkHash,
                      const Coin::PublicKey & payeeContractPk,
-                     const Coin::PubKeyHash & payeeFinalPkHash,
-                     const Coin::Signature & payorRefundSignature,
-                     const Coin::Signature & payeeRefundSignature)
+                     const Coin::PubKeyHash &payeeFinalPkHash)
         : _price(price)
         , _numberOfPaymentsMade(numberOfPaymentsMade)
         , _funds(funds)
-        , _refundFee(refundFee)
         , _settlementFee(settlementFee)
         , _refundLockTime(refundLockTime)
         , _anchor(anchor)
         , _payorContractKeyPair(payorContractKeyPair)
         , _payorFinalPkHash(payorFinalPkHash)
         , _payeeContractPk(payeeContractPk)
-        , _payeeFinalPkHash(payeeFinalPkHash)
-        , _payorRefundSignature(payorRefundSignature)
-        , _payeeRefundSignature(payeeRefundSignature) {
+        , _payeeFinalPkHash(payeeFinalPkHash){
     }
 
     Commitment Payor::commitment() const {
 
-        return Commitment(_funds, _payorContractKeyPair.pk(), _payeeContractPk);
+        return Commitment(_funds, _payorContractKeyPair.pk(), _payeeContractPk, _refundLockTime);
     }
 
     Refund Payor::refund() const {
 
-        return Refund(_anchor,
-                      commitment(),
-                      Coin::Payment(_funds - _refundFee, _payorFinalPkHash),
-                      _refundLockTime);
+        return Refund(_anchor, commitment(), _payorContractKeyPair);
     }
 
     Settlement Payor::settlement() const {
@@ -78,20 +66,8 @@ namespace paymentchannel {
                                                           commitment(),
                                                           _payorFinalPkHash,
                                                           _payeeFinalPkHash,
-                                                          _funds,
                                                           amountPaid(),
                                                           _settlementFee);
-    }
-
-    Coin::Signature Payor::generatePayorRefundSignature() const {
-
-        // Get refund
-        Refund r = refund();
-
-        // Get refund signature
-        Coin::TransactionSignature refundSignature = r.transactionSignature(_payorContractKeyPair.sk());
-
-        return refundSignature.sig();
     }
 
     Coin::Signature Payor::generatePayorSettlementSignature() const {
@@ -114,11 +90,6 @@ namespace paymentchannel {
         return generatePayorSettlementSignature();
     }
 
-    bool Payor::checkPayeeRefundSignature(const Coin::Signature & sig) const {
-
-        return refund().validate(_payeeContractPk, sig);
-    }
-
     quint64 Payor::amountPaid() const {
         return _price*_numberOfPaymentsMade;
     }
@@ -131,8 +102,6 @@ namespace paymentchannel {
 
         _anchor = anchor;
 
-        // Generate refund signature for payor
-        _payorRefundSignature = generatePayorRefundSignature();
     }
 
     quint64 Payor::price() const {
@@ -157,14 +126,6 @@ namespace paymentchannel {
 
     void Payor::setFunds(quint64 funds) {
         _funds = funds;
-    }
-
-    quint64 Payor::refundFee() const {
-        return _refundFee;
-    }
-
-    void Payor::setRefundFee(quint64 refundFee) {
-        _refundFee = refundFee;
     }
 
     quint64 Payor::settlementFee() const {
@@ -215,20 +176,5 @@ namespace paymentchannel {
         _payeeFinalPkHash = payeeFinalPkHash;
     }
 
-    Coin::Signature Payor::payorRefundSignature() const {
-        return _payorRefundSignature;
-    }
-
-    void Payor::setPayorRefundSignature(const Coin::Signature & payorRefundSignature) {
-        _payorRefundSignature = payorRefundSignature;
-    }
-
-    Coin::Signature Payor::payeeRefundSignature() const {
-        return _payeeRefundSignature;
-    }
-
-    void Payor::setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature) {
-        _payeeRefundSignature = payeeRefundSignature;
-    }
 }
 }

@@ -8,7 +8,7 @@
 #ifndef PAYMENTCHANNEL_CONTRACT_HPP
 #define PAYMENTCHANNEL_CONTRACT_HPP
 
-#include <common/UnspentP2PKHOutput.hpp>
+#include <common/UnspentOutputSet.hpp>
 #include <common/Payment.hpp>
 #include <paymentchannel/Commitment.hpp>
 
@@ -27,14 +27,14 @@ public:
 
     Contract();
 
-    Contract(const Coin::UnspentP2PKHOutput &);
+    Contract(const Coin::UnspentOutputSet &);
 
     // Setup contract without change
-    Contract(const Coin::UnspentP2PKHOutput &,
+    Contract(const Coin::UnspentOutputSet &,
              const std::vector<Commitment> &);
 
     // Setup contract with change
-    Contract(const Coin::UnspentP2PKHOutput &,
+    Contract(const Coin::UnspentOutputSet &,
              const std::vector<Commitment> &,
              const Coin::Payment &);
 
@@ -59,7 +59,7 @@ private:
     static uint32_t transactionSize(uint32_t, bool);
 
     // Funding contract
-    Coin::UnspentP2PKHOutput _funding;
+    Coin::UnspentOutputSet _funding;
 
     // Commitments for end to end channels
     std::vector<Commitment> _commitments;

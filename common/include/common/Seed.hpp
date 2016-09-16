@@ -34,8 +34,8 @@ public:
     // Constructor from raw data
     Seed(const QByteArray & raw);
 
-    // Constructor from raw data
-    Seed(const char * raw);
+    // Constructor from hex encoded C string
+    Seed(const char * hexEncoded);
 
     // Constructor from hex encoded string
     Seed(const QString & hexEncoded);
@@ -51,6 +51,9 @@ public:
 
     // Synchrounously generates new seed, is quite slow?
     static Seed generate();
+
+    // Length of seeds
+    static uint length() noexcept;
 
     // Generate a HD key chain from seed
     Coin::HDKeychain generateHDKeychain();

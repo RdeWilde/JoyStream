@@ -314,8 +314,8 @@ void TorrentPlugin::toObserveMode() {
     _session.toObserveMode(removeConnection());
 }
 
-void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                               const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
+                               const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
                                const protocol_session::SellingPolicy & policy,
                                const protocol_wire::SellerTerms & terms) {
 
@@ -331,8 +331,8 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackH
     int maxPieceIndex = torrent()->picker().num_pieces() - 1;
 
     _session.toSellMode(removeConnection(),
-                        generateKeyPairsCallbackHandler,
-                        generateP2PKHAddressesCallbackHandler,
+                        generateKeyPairCallbackHandler,
+                        generateReceiveAddressesCallbackHandler,
                         loadPieceForBuyer(),
                         claimLastPayment(),
                         anchorAnnounced(),
@@ -341,9 +341,10 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackH
                         maxPieceIndex);
 }
 
-void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                              const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                              const Coin::UnspentP2PKHOutput & funding,
+void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
+                              const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
+                              const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
+                              const Coin::UnspentOutputSet & funding,
                               const protocol_session::BuyingPolicy & policy,
                               const protocol_wire::BuyerTerms & terms) {
 
@@ -356,8 +357,9 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHa
         _outstandingLoadPieceForBuyerCalls.clear();
 
     _session.toBuyMode(removeConnection(),
-                       generateKeyPairsCallbackHandler,
-                       generateP2PKHAddressesCallbackHandler,
+                       generateKeyPairCallbackHandler,
+                       generateReceiveAddressesCallbackHandler,
+                       generateChangeAddressesCallbackHandler,
                        broadcastTransaction(),
                        fullPieceArrived(),
                        funding,
@@ -465,6 +467,7 @@ void TorrentPlugin::setLibtorrentInteraction(LibtorrentInteraction e) {
 
         // For each peer: sending (once) NOT-INTERESTED and CHOCKED message in order to discourage unchocking.
         forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_not_interested(); c->write_choke(); });
+
     }
 
     _libtorrentInteraction = e;

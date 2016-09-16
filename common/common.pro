@@ -30,6 +30,8 @@ HEADERS += \
     include/common/PublicKeyCompression.hpp \
     include/common/KeyPair.hpp \
     include/common/P2PKHAddress.hpp \
+    include/common/UnspentOutput.hpp \
+    include/common/UnspentP2SHOutput.hpp \
     include/common/UnspentP2PKHOutput.hpp \
     include/common/Utilities.hpp \
     include/common/TimeTools.hpp \
@@ -41,6 +43,7 @@ HEADERS += \
     include/common/P2SHAddress.hpp \
     include/common/PubKeyHash.hpp \
     include/common/Seed.hpp \
+    include/common/Entropy.hpp \
     include/common/LibtorrentUtilities.hpp \
     include/common/RedeemScriptHash.hpp \
     include/common/SigHashType.hpp \
@@ -51,8 +54,11 @@ HEADERS += \
     include/common/P2SHScriptSig.hpp \
     include/common/P2PKHScriptPubKey.hpp \
     include/common/P2PKHScriptSig.hpp \
+    include/common/MajorMinorSoftwareVersion.hpp \
+    include/common/P2PKScriptPubKey.hpp \
     include/common/Payment.hpp \
-    include/common/MajorMinorSoftwareVersion.hpp
+    include/common/UnspentOutputSet.hpp \
+    include/common/Script.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -62,6 +68,8 @@ SOURCES += \
     src/Signature.cpp \
     src/KeyPair.cpp \
     src/P2PKHAddress.cpp \
+    src/UnspentOutput.cpp \
+    src/UnspentP2SHOutput.cpp \
     src/UnspentP2PKHOutput.cpp \
     src/Utilities.cpp \
     src/TimeTools.cpp \
@@ -70,6 +78,7 @@ SOURCES += \
     src/typesafeOutPoint.cpp \
     src/P2SHAddress.cpp \
     src/Seed.cpp \
+    src/Entropy.cpp \
     src/LibtorrentUtilities.cpp \
     src/Network.cpp \
     src/SigHashType.cpp \
@@ -80,7 +89,10 @@ SOURCES += \
     src/P2SHScriptSig.cpp \
     src/P2PKHScriptPubKey.cpp \
     src/P2PKHScriptSig.cpp \
+    src/P2PKScriptPubKey.cpp \
     src/Payment.cpp \
-    src/TransactionId.cpp
+    src/TransactionId.cpp \
+    src/UnspentOutputSet.cpp \
+    src/RedeemScriptHash.cpp
 
 include(../config.pri)

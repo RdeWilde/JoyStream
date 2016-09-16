@@ -11,6 +11,8 @@
 #include <QtTest/QtTest>
 
 #include <SessionSpy.hpp>
+#include <common/P2PKScriptPubKey.hpp>
+#include <common/UnspentP2SHOutput.hpp>
 
 using namespace joystream;
 using namespace joystream::protocol_session;
@@ -62,15 +64,17 @@ private:
     Session<ID> * session;
     SessionSpy<ID> * spy;
 
+    // Integer value used to generate a key in nextPrivateKey()
+    uint nextKey;
     // Generates private key which is 32 byte unsigned integer encoded i
-    static Coin::PrivateKey privateKeyFromUInt(uint i);
+    Coin::PrivateKey nextPrivateKey();
+
 
     static paymentchannel::Payor getPayor(const protocol_wire::SellerTerms &,
-                                          const protocol_wire::BuyerTerms &,
                                           const protocol_wire::Ready &,
                                           const Coin::PrivateKey &,
                                           const Coin::PublicKey &,
-                                          const Coin::PubKeyHash &);
+                                          const Coin::PubKeyHash &payeeFinalPkHash);
 
     //// Routines for doing spesific set of tests which can be used across number of cases
     //// Spy is always reset, if affected, by each call
@@ -110,7 +114,7 @@ private:
                     int);
 
     // Session to buy mode
-    void toBuyMode(const Coin::UnspentP2PKHOutput &,
+    void toBuyMode(const Coin::UnspentOutputSet &,
                    const BuyingPolicy &,
                    const protocol_wire::BuyerTerms &,
                    const TorrentPieceInformation &);
@@ -137,12 +141,12 @@ private:
     };
 
     // Adds a buyer peer with given id and terms, and navigate to 'ready for piece request' state
-    // Write payee contractPk/finalpkhash into last two args
+    // Write payee contractPk/finalscripthash into last two args
     // (1) peer joins with given id
     // (2) peer announces given buyer terms
     // (3) peer (buyer) sends contract invitation
     // (4) peer (buyer) announces contract
-    void addBuyerAndGoToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &, Coin::PublicKey &, Coin::PubKeyHash &);
+    void addBuyerAndGoToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &, Coin::PublicKey &, Coin::PubKeyHash &payeeFinalPkHash);
 
     //
     void receiveValidFullPieceRequest(ID, int);
@@ -184,7 +188,8 @@ private:
 
             contractKeys = Coin::KeyPair::generate();
             finalKeys = Coin::KeyPair::generate();
-            joiningContract = protocol_wire::JoiningContract(contractKeys.pk(), finalKeys.pk().toPubKeyHash());
+            Coin::RedeemScriptHash scriptHash(Coin::P2PKScriptPubKey(finalKeys.pk()));
+            joiningContract = protocol_wire::JoiningContract(contractKeys.pk(), scriptHash);
 
             return joiningContract;
         }
@@ -240,7 +245,6 @@ private:
                                          terms.minPrice(),
                                          ready.value(),
                                          terms.settlementFee(),
-                                         0,
                                          ready.anchor(),
                                          contractKeys,
                                          joiningContract.finalPkHash(),

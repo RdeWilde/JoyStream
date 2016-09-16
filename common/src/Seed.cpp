@@ -7,9 +7,12 @@
 
 #include <common/Seed.hpp>
 #include <CoinCore/hdkeys.h>
+#include <CoinCore/bip39.h>
 
 #include <openssl/rand.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
 
 namespace Coin {
 
@@ -37,8 +40,8 @@ const QList<Seed> Seed::testSeeds = QList<Seed>()
 Seed::Seed() {
 }
 
-Seed::Seed(const char * raw)
-    : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(raw) {
+Seed::Seed(const char * hexEncoded)
+    : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(hexEncoded) {
 }
 
 Seed::Seed(const QByteArray & raw)
@@ -65,6 +68,11 @@ Seed Seed::generate() {
 
     return s;
 }
+
+uint Seed::length() noexcept {
+    return WALLET_SEED_BYTE_LENGTH;
+}
+
 
 Coin::HDKeychain Seed::generateHDKeychain() {
 

@@ -13,6 +13,7 @@
 #include <common/TransactionSignature.hpp>
 #include <common/PrivateKey.hpp>
 #include <common/P2PKHScriptSig.hpp>
+#include <common/typesafeOutPoint.hpp>
 
 #include <QByteArray>
 #include <QDebug>
@@ -75,46 +76,65 @@ namespace Coin {
         return rval;
     }
 
-    uint32_t popData(const uchar_vector & inputData, uchar_vector & poppedData)
+    /*
+     * This method extracts the next data item from the script and assigns it to poppedData
+     * and returns a subscript following the end of the data.
+     *
+     * If the first byte (operation) is not a push data operation or
+     * script is too short to contain the expected data the popped data and returned subscript
+     * will be an empty uchar_vector
+     */
+    uchar_vector popData(const uchar_vector & script, uchar_vector & poppedData)
     {
-        if(inputData.empty() || inputData[0] == 0) return 0;
+        uchar_vector subscript;
+        poppedData = uchar_vector();
 
-        uint32_t inputSize = inputData.size();
+        if(script.empty()) return uchar_vector();
+
         uint32_t dataSize = 0;
-        uint32_t dataStartsAt = 0;
-        uint32_t dataEndsAt = 0;
+        uint32_t offset = 0;
 
-        if (inputData[0] <= 0x4b  && inputSize > 1) {
-            dataSize = inputData[0];
-            dataStartsAt = 1;
+        if (script[0] == 0x00) {
+            offset = 1;
         }
-        else if (inputData[0] == 0x4c  && inputSize > 2) {
-            dataSize = inputData[1];
-            dataStartsAt = 2;
+        else if (script[0] <= 0x4b && script.size() > 1) {
+            dataSize = script[0];
+            offset = 1;
         }
-        else if (inputData[0] == 0x4d  && inputSize > 3) {
-            dataSize = inputData[1];
-            dataSize += (inputData[2] << 8);
-            dataStartsAt = 3;
+        // OP_PUSHDATA1
+        else if (script[0] == 0x4c && script.size() > 1) {
+            dataSize = script[1];
+            offset = 1;
         }
-        else if(inputData[0] == 0x4e  && inputSize > 5){
-            dataSize = inputData[1];
-            dataSize += (inputData[2] << 8);
-            dataSize += (inputData[3] << 16);
-            dataSize += (inputData[4] << 24);
-            dataStartsAt = 5;
+        // OP_PUSHDATA2
+        else if (script[0] == 0x4d && script.size() > 2) {
+            dataSize = script[1];
+            dataSize += (script[2] << 8);
+            offset = 3;
+        }
+        // OP_PUSHDATA4
+        else if(script[0] == 0x4e && script.size() > 3){
+            dataSize = script[1];
+            dataSize += ((uint32_t)script[2]) << 8;
+            dataSize += ((uint32_t)script[3]) << 16;
+            dataSize += ((uint32_t)script[4]) << 24;
+            offset = 5;
+        } else {
+            // operation is not a push data op
         }
 
-        if(dataSize > 0) {
-            dataEndsAt = dataStartsAt + dataSize;
+        if(script.size() >= (offset + dataSize)){
 
-            if(dataEndsAt <= inputSize) {
-                poppedData = uchar_vector(&inputData[dataStartsAt], &inputData[dataEndsAt]);
-                return dataEndsAt;
+            if(script.size() > (offset + dataSize)){
+                subscript = uchar_vector(script.begin() + offset + dataSize, script.end());
+            }
+
+            if(dataSize > 0) {
+                poppedData = uchar_vector(script.begin() + offset, script.begin() + offset + dataSize);
             }
         }
 
-        return 0;
+        return subscript;
     }
 
     /**
@@ -141,69 +161,63 @@ namespace Coin {
     }
     */
 
-    // bytes_t sighash(const Coin::Transaction & tx, uint input, const CoinQ::Script::Script & inputScriptBuilder) {
-    uchar_vector sighash(const Coin::Transaction & tx,
-                    uint input,
-                    const uchar_vector & scriptPubKey,
-                    const SigHashType & type) {
+    uchar_vector sighash(const Transaction &tx,
+                         uint inputIndex,
+                         const uchar_vector &subscript,
+                         const SigHashType &sigHashType) {
 
         // We only support this for now
-        if(!type.isStandard())
+        if(sigHashType.type() != SigHashType::MutuallyExclusiveType::all)
             throw std::runtime_error("unsupported sighash type, only sighash_all is supported");
 
-        if(tx.inputs.size() <= input)
-            throw std::runtime_error("Transaction does not have a corresponding input");
+        if(inputIndex >= tx.inputs.size()) {
+            throw std::runtime_error("sighash: input index out of range");
+        }
 
-        // Make copy of original tx, since it will be modified
+        // Make a copy of the transaction
         Coin::Transaction txCopy = tx;
 
-        // Clear all input scripts
-        for(std::vector<TxIn>::iterator i = txCopy.inputs.begin(),
-            end = txCopy.inputs.end(); i != end;i++)
-            (*i).scriptSig.clear();
+        if(sigHashType.anyOneCanPay()) {
+            // Sign only one input
+            // https://en.bitcoin.it/wiki/OP_CHECKSIG#Procedure_for_Hashtype_SIGHASH_ANYONECANPAY
 
-        /**
-         * // Clear all op_codeseperators from scriptPubKey
-         * uchar_vector cleanScriptPubKey = clearCodeSeperators(scriptPubKey);
-         */
+            // Remove all inputs
+            txCopy.inputs.clear();
 
-        // Set script sig for input to be signed
-        txCopy.inputs[input].scriptSig = scriptPubKey;
+            // Add input to sign as input 0
+            txCopy.inputs.push_back(tx.inputs[inputIndex]);
 
-        // Compute sighash and return
-        return txCopy.getHashWithAppendedCode(type.hashCode());
+            // Set script sig to subscript for signature
+            txCopy.inputs[0].scriptSig = subscript;
+
+        } else {
+            // Sign all inputs
+
+            // Clear all inputs scripts
+            txCopy.clearScriptSigs();
+
+            // Set script sig to subscript for signature
+            txCopy.inputs[inputIndex].scriptSig = subscript;
+        }
+
+        // Compute sighash
+        return txCopy.getHashWithAppendedCode(sigHashType.hashCode());
     }
 
-    /**
-     secure_bytes_t createSignature(const Coin::Transaction & tx,
-                                    uint inputToSign,
-                                    const CoinQ::Script::Script & inputScriptBuilder,
-                                    const uchar_vector & privateKey) {
+    uchar_vector sighash(const Coin::Transaction & tx,
+                    const typesafeOutPoint &outPoint,
+                    const uchar_vector & subscript,
+                    const SigHashType & sigHashType) {
 
-        // Generate sighash
-        bytes_t signingHash = sighash(tx, inputToSign, inputScriptBuilder);
+        // find input index by outpoint
+        for(uint n = 0; n < tx.inputs.size(); n++) {
+            if(typesafeOutPoint(tx.inputs[n].previousOut) == outPoint) {
+                return sighash(tx, n, subscript, sigHashType);
+            }
+        }
 
-        // Create signing key
-        CoinCrypto::secp256k1_key signingKey;
-        signingKey.setPrivKey(privateKey);
-
-        // Comute signature and return
-        return CoinCrypto::secp256k1_sign(signingKey, signingHash);
-     }
-
-
-     bool verifySignature(const Coin::Transaction & tx,
-                          uint inputToCheck,
-                          const CoinQ::Script::Script & inputScriptBuilder,
-                          const secure_bytes_t & signature,
-                          const bytes_t & publicKey) {
-
-
-         // Generate sighash
-         bytes_t signingHash = sighash(tx, inputToCheck, inputScriptBuilder);
-
-     }
-     */
+        throw std::runtime_error("sighash: transaction does not have a corresponding input");
+    }
 
     uchar_vector serializeForOP_CHECKSIGMULTISIG(const std::vector<TransactionSignature> & sigs) {
 
@@ -228,27 +242,54 @@ namespace Coin {
 
     }
 
-    void setScriptSigToSpendP2PKH(Coin::Transaction & tx,
-                           uint input,
-                           const Coin::PrivateKey & sk) {
+    // Borrowed from bitcoin core Script.h CScript::serialize
+    uchar_vector serializeScriptNum(const int64_t& value) {
+       if(value == 0)
+           return uchar_vector();
 
-        // Generate signature
-        Coin::TransactionSignature ts = sk.signForP2PKHSpend(tx, input);
+       uchar_vector result;
+       const bool neg = value < 0;
+       uint64_t absvalue = neg ? -value : value;
 
-        //qDebug() << "signature: " << ts.sig().toString();
+       while(absvalue)
+       {
+           result.push_back(absvalue & 0xff);
+           absvalue >>= 8;
+       }
 
-        // Generate scriptSig
-        Coin::P2PKHScriptSig scriptSig(sk.toPublicKey(), ts);
+//    - If the most significant byte is >= 0x80 and the value is positive, push a
+//    new zero-byte to make the significant byte < 0x80 again.
 
-        Q_ASSERT(input < tx.inputs.size());
+//    - If the most significant byte is >= 0x80 and the value is negative, push a
+//    new 0x80 byte that will be popped off when converting to an integral.
 
-        uchar_vector ser_scriptSig = scriptSig.serialized();
+//    - If the most significant byte is < 0x80 and the value is negative, add
+//    0x80 to it, since it will be subtracted and interpreted as a negative when
+//    converting to an integral.
 
-        //qDebug() << "scriptSig:" << QString::fromStdString(ser_scriptSig.getHex());
+       if (result.back() & 0x80)
+           result.push_back(neg ? 0x80 : 0);
+       else if (neg)
+           result.back() |= 0x80;
 
-        // Set input script
-        tx.inputs[input].scriptSig = ser_scriptSig;
+       return result;
+    }
 
+    // Borrowed from bitcoin core Script.h CScript::set_vch
+    int64_t deserializeScriptNum(const uchar_vector & vch)
+    {
+        if (vch.empty())
+         return 0;
 
+        int64_t result = 0;
+        for (size_t i = 0; i != vch.size(); ++i)
+         result |= static_cast<int64_t>(vch[i]) << 8*i;
+
+        // If the input vector's most significant byte is 0x80, remove it from
+        // the result's msb and return a negative.
+        if (vch.back() & 0x80)
+         return -((int64_t)(result & ~(0x80ULL << (8 * (vch.size() - 1)))));
+
+        return result;
     }
 }

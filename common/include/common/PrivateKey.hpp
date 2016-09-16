@@ -51,14 +51,6 @@ public:
     // Sign raw data
     Signature sign(const uchar_vector & message) const;
 
-    // Sign transaction in given sighash mode on given input for spending
-    // output with given output script
-    TransactionSignature sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, const SigHashType & type) const;
-
-    // Sign transaction in SIGHASH_ALL mode on given input for spending
-    // output with p2kh output controlled by this private key
-    TransactionSignature signForP2PKHSpend(const Coin::Transaction & tx, uint inputToSign) const;
-
     // Generates the correponding (compressed) public key
     PublicKey toPublicKey() const;
 };
