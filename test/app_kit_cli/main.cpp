@@ -65,27 +65,29 @@ int main(int argc, char *argv[])
 
     joystream::AppKit* kit = joystream::AppKit::createInstance(QDir::homePath(), Coin::Network::testnet3);
 
-    std::list<Coin::P2PKHAddress> addresses = kit->wallet()->listAddresses();
+    std::vector<Coin::P2PKHAddress> addresses = kit->wallet()->listReceiveAddresses();
 
     std::string depositAddress;
 
     if(addresses.size() > 0){
         depositAddress = addresses.front().toBase58CheckEncoding().toStdString();
     } else {
-        depositAddress = kit->wallet()->getReceiveAddress().toBase58CheckEncoding().toStdString();
+        depositAddress = kit->wallet()->generateReceiveAddress().toBase58CheckEncoding().toStdString();
     }
 
     std::cout << "Wallet Deposit Address: " <<  depositAddress << std::endl;
 
     std::cout << "Wallet Balance: " << kit->wallet()->unconfirmedBalance() << std::endl;
 
-    //std::cout << "Starting Wallet Sync\n";
-    //kit->syncWallet();
+    std::cout << "Starting Wallet Sync.. this could take a while while loading blocktree\n";
+
+    kit->syncWallet();
 
     QTimer *timer = new QTimer();
 
     QObject::connect(timer, &QTimer::timeout, [&timer, &app, &kit](){
-        //std::cout << "Exit Timer" << std::endl;
+        kit->node()->updateStatus();
+
         if(!shuttingDown) return;
         timer->stop();
         std::cout << "Stopping..." << std::endl;
@@ -108,26 +110,36 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // process addedTorrent Signal when torrent is added
+    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&ti, &kit](const joystream::core::Torrent *torrent){
+        std::cout << "Got torrent added signal, waiting for plugin added signal" << std::endl;
+        if(torrent->infoHash() != ti->info_hash()) return;
+
+        // wait for torrent pluging to be added before we can go to buy mode...
+        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, &torrent](const joystream::core::TorrentPlugin *plugin){
+            std::cout << "Torrent Plugin Added... tryin to buy torrent" << std::endl;
+
+            Q_ASSERT(plugin);
+
+            kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
+                std::cerr << "Error Buying Torrent" << std::endl;
+            });
+        });
+    });
+
     std::cout << "Adding Torrent" << std::endl;
+
     auto savePath = (QDir::homePath()+"/Downloads/").toStdString();
 
     kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, false, joystream::core::TorrentIdentifier(ti),
                            [&kit](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
 
         if(ecode) {
-            std::cerr << "addTorrent() failed: " << ecode.message().c_str() << std::endl;
+            std::cerr << "Node::addTorrent() failed: " << ecode.message().c_str() << std::endl;
             return;
         }
 
         std::cout << "Torrent Added" << std::endl;
-    });
-
-    // Wait for TorrentPlugin to get added to the Torrent
-    QTimer::singleShot(20000, nullptr, [&kit, &ti](){
-        std::cout << "Trying to Buy Torrent" << std::endl;
-        kit->buyTorrent(ti->info_hash(), joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
-            std::cerr << "Error Buying Torrent" << std::endl;
-        });
     });
 
     std::cout << "Starting Qt Application Event loop\n";
