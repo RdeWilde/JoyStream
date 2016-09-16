@@ -20,6 +20,7 @@ namespace joystream {
 namespace core {
     class Node;
     class Torrent;
+    class TorrentPlugin;
 }
 
 namespace bitcoin {
@@ -44,8 +45,8 @@ public:
 
     static AppKit* createInstance(const QString &dataDirectory, Coin::Network network);
 
-    std::unique_ptr<bitcoin::SPVWallet> & wallet();
-    std::unique_ptr<core::Node> & node();
+    bitcoin::SPVWallet* wallet();
+    core::Node* node();
 
     void syncWallet(std::string host = "", int port = 0);
 
@@ -63,7 +64,12 @@ public:
     // Load Node state from torrent data directory
     void loadNodeState();
 
-    void buyTorrent(std::shared_ptr<core::Torrent> &,
+    void buyTorrent(core::TorrentPlugin *,
+                    const protocol_session::BuyingPolicy &,
+                    const protocol_wire::BuyerTerms &,
+                    const SubroutineHandler &);
+
+    void buyTorrent(const core::Torrent*,
                     const protocol_session::BuyingPolicy &,
                     const protocol_wire::BuyerTerms &,
                     const SubroutineHandler &);
@@ -78,7 +84,7 @@ private:
 
     AppKit();
 
-    AppKit(std::unique_ptr<core::Node> &node, std::unique_ptr<bitcoin::SPVWallet> &wallet, const QString &dataDirectory);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, const QString &dataDirectory);
 
     QString _dataDirectory;
 

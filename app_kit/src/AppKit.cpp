@@ -17,10 +17,15 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
 
     auto wallet = new bitcoin::SPVWallet(storeFile.toStdString(), blockTreeFile.toStdString(), network);
 
-    if(!QFile::exists(storeFile)){
-        wallet->create();
-    } else {
-        wallet->open();
+    try {
+        if(!QFile::exists(storeFile)){
+            wallet->create();
+        } else {
+            wallet->open();
+        }
+    } catch(std::exception & e) {
+        delete wallet;
+        return nullptr;
     }
 
     return wallet;
@@ -28,31 +33,37 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
 
 AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network)
 {
-    auto walletp = getWallet(dataDirectory, network);
+    bitcoin::SPVWallet* wallet = getWallet(dataDirectory, network);
 
-    std::unique_ptr<bitcoin::SPVWallet> wallet(walletp);
+    if(wallet) {
+        try {
+            core::Node* node = core::Node::create([wallet](const Coin::Transaction &tx){
+                wallet->broadcastTx(tx);
+            });
 
-    std::unique_ptr<core::Node> node(new core::Node([walletp](const Coin::Transaction &tx){
-        walletp->broadcastTx(tx);
-    }));
+            return new AppKit(node, wallet, dataDirectory);
 
-    return new AppKit(node, wallet, dataDirectory);
+        } catch(std::exception &e) {
+
+        }
+    }
+
+    return nullptr;
+}
+
+AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &dataDirectory)
+    : _node(node),
+      _wallet(wallet),
+      _dataDirectory(dataDirectory) {
 
 }
 
-AppKit::AppKit(std::unique_ptr<core::Node> &node, std::unique_ptr<bitcoin::SPVWallet> &wallet, const QString &dataDirectory)
-    : _dataDirectory(dataDirectory)
-{
-    _node = std::move(node);
-    _wallet = std::move(wallet);
+core::Node *AppKit::node() {
+    return _node.get();
 }
 
-std::unique_ptr<core::Node>& AppKit::node() {
-    return _node;
-}
-
-std::unique_ptr<bitcoin::SPVWallet>& AppKit::wallet() {
-    return _wallet;
+bitcoin::SPVWallet* AppKit::wallet() {
+    return _wallet.get();
 }
 
 void AppKit::syncWallet(std::string host, int port) {
@@ -68,9 +79,8 @@ void AppKit::syncWallet(std::string host, int port) {
 }
 
 void AppKit::shutdown(const Callback & callback) {
-    //std::cout << "Wallet::stopSync()" << std::endl;
-    //_wallet->stopSync(); // in debug mode enabling still causes a crash - must be disabled
-                           // does node try to broadcast a tx when plugins get paused ?
+    std::cout << "Wallet::stopSync()" << std::endl;
+    _wallet->stopSync();
 
     std::cout << "Node::Pause()" << std::endl;
     _node->pause(callback);
@@ -78,46 +88,67 @@ void AppKit::shutdown(const Callback & callback) {
     std::cout << "AppKit::Shutdown Done" << std::endl;
 }
 
-void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
+void AppKit::buyTorrent(const core::Torrent *torrent,
                         const protocol_session::BuyingPolicy& policy,
                         const protocol_wire::BuyerTerms& terms,
                         const extension::request::SubroutineHandler& handler){
 
-    // This will be termporary. funding of the contract will be done
-    // by an external transaction signing/funding routine
-    auto outputs = _wallet->lockOutputs(1000, 0);
+    core::TorrentPlugin* plugin = torrent->torrentPlugin();
 
-    if(outputs.size() == 0)
-        return;
+    buyTorrent(plugin, policy, terms, handler);
+}
 
-    if(outputs.size() > 1){
-        _wallet->unlockOutputs(outputs);
+void AppKit::buyTorrent(core::TorrentPlugin *plugin,
+                        const protocol_session::BuyingPolicy& policy,
+                        const protocol_wire::BuyerTerms& terms,
+                        const extension::request::SubroutineHandler& handler){
+
+    // What is the best way to set this value - calculate based on buyer policy/terms ?
+    const uint64_t paymentChannelFunds = 5000;
+
+    auto outputs = _wallet->lockOutputs(paymentChannelFunds, 0, [](const uchar_vector &p2sh_redeem_script){
+        // only select p2pkh outputs
+        return p2sh_redeem_script.empty();
+    });
+
+    if(outputs.size() == 0) {
+        // Not enough funds
+        std::cout << "Not Enough Funds" << std::endl;
         return;
     }
 
-    /// Traced the problem to here - after a Torrent is added, the torrentPlugin is still an empty shared_ptr
-    /// It is not set by Torrent::addTorrentPlugin(const extension::status::TorrentPlugin & status)
-    /// which is never called automatically
-    auto plugin = torrent->torrentPlugin();
-
-    if(!plugin.get()) return;
-
     plugin->toBuyMode(
-        // protocol_session::GenerateKeyPairsCallbackHandler
-        [this](int npairs){
-            return _wallet->getKeyPairs(npairs, false);
+        // protocol_session::GenerateP2SHKeyPairCallbackHandler
+        [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
+
+            Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
+                return bitcoin::RedeemScriptInfo(generateScript(pk), data);
+            });
+
+            return Coin::KeyPair(sk);
         },
-        // protocol_session::GenerateP2PKHAddressesCallbackHandler
-        [this](int npairs){
-            auto keyPairs = _wallet->getKeyPairs(npairs, true);
+        // protocol_session::GenerateReceiveAddressesCallbackHandler
+        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
             std::vector<Coin::P2PKHAddress> addresses;
-            for(const Coin::KeyPair &keyPair : keyPairs) {
-                addresses.push_back(Coin::P2PKHAddress(_wallet->network(), keyPair.pk().toPubKeyHash()));
+
+            for(int n = 0; n < npairs; n++) {
+                addresses.push_back(_wallet->generateReceiveAddress());
             }
+
             return addresses;
         },
-        // Coin::UnspentP2PKHOutput
-        outputs.front(),
+        // protocol_session::GenerateChangeAddressesCallbackHandler
+        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
+            std::vector<Coin::P2PKHAddress> addresses;
+
+            for(int n = 0; n < npairs; n++) {
+                addresses.push_back(_wallet->generateChangeAddress());
+            }
+
+            return addresses;
+        },
+        // Coin::UnspentOutputSet
+        outputs,
         policy,
         terms,
         [this, outputs, &handler](const std::exception_ptr & e) {
