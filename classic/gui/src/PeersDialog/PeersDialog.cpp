@@ -28,7 +28,7 @@ QString toString(const libtorrent::tcp::endpoint & endPoint) {
 
 /// NormalPeerRow
 
-NormalPeerRow * NormalPeerRow::create(QStandardItemModel * model,
+PeerTreeViewRow * PeerTreeViewRow::create(QStandardItemModel * model,
                                       const std::shared_ptr<core::Peer> & peer) {
 
     QStandardItem * host = new QStandardItem(),
@@ -38,18 +38,18 @@ NormalPeerRow * NormalPeerRow::create(QStandardItemModel * model,
     // NB: Claims item memory
     model->appendRow(QList<QStandardItem *>() << host << clientName << BEPSupportStatus);
 
-    NormalPeerRow * row = new NormalPeerRow(host, clientName, BEPSupportStatus);
+    PeerTreeViewRow * row = new PeerTreeViewRow(host, clientName, BEPSupportStatus);
 
     row->setHost(peer->endPoint());
     row->setClientName(peer->client());
 
     QObject::connect(peer.get(), &core::Peer::clientChanged,
-                     row, &NormalPeerRow::setClientName);
+                     row, &PeerTreeViewRow::setClientName);
 
     return row;
 }
 
-NormalPeerRow::NormalPeerRow(QStandardItem * host,
+PeerTreeViewRow::PeerTreeViewRow(QStandardItem * host,
                              QStandardItem * clientName,
                              QStandardItem * BEPSupportStatus)
     : _hostItem(host)
@@ -57,27 +57,39 @@ NormalPeerRow::NormalPeerRow(QStandardItem * host,
     , _BEPSupportStatusItem(BEPSupportStatus) {
 }
 
-void NormalPeerRow::set(const std::shared_ptr<core::PeerPlugin> & peerPlugin) {
+void PeerTreeViewRow::set(const std::shared_ptr<core::PeerPlugin> & peerPlugin) {
 
     setBEPSupport(peerPlugin->peerBitSwaprBEPSupportStatus());
 
     QObject::connect(peerPlugin.get(), &core::PeerPlugin::peerBEP10SupportStatusChanged,
-                     this, &NormalPeerRow::setBEPSupport);
+                     this, &PeerTreeViewRow::setBEPSupport);
 }
 
-void NormalPeerRow::setHost(const libtorrent::tcp::endpoint & endPoint) {
+QStandardItem * PeerTreeViewRow::hostItem() const noexcept {
+    return _hostItem;
+}
+
+QStandardItem * PeerTreeViewRow::clientNameItem() const noexcept {
+    return _clientNameItem;
+}
+
+QStandardItem * PeerTreeViewRow::BEPSupportStatusItem() const noexcept {
+    return _BEPSupportStatusItem;
+}
+
+void PeerTreeViewRow::setHost(const libtorrent::tcp::endpoint & endPoint) {
     _hostItem->setText(toString(endPoint));
 }
 
-void NormalPeerRow::setClientName(const std::string & clientName) {
+void PeerTreeViewRow::setClientName(const std::string & clientName) {
     _clientNameItem->setText(QString::fromStdString(clientName));
 }
 
-void NormalPeerRow::setBEPSupport(const extension::BEPSupportStatus & status) {
+void PeerTreeViewRow::setBEPSupport(const extension::BEPSupportStatus & status) {
     _BEPSupportStatusItem->setText(Language::toString(status));
 }
 
-int NormalPeerRow::row() const noexcept {
+int PeerTreeViewRow::row() const noexcept {
     return _hostItem->row();
 }
 
@@ -252,7 +264,7 @@ PeerRows * PeerRows::create(QStandardItemModel * anyPeerTableModel,
                             QStandardItemModel * buyerConnectionTableModel,
                             QStandardItemModel * sellerConnectionTableModel,
                             QStandardItemModel * observerConnectionTableModel,
-                            NormalPeerRow * normalPeerRow,
+                            PeerTreeViewRow * normalPeerRow,
                             const libtorrent::tcp::endpoint & endPoint,
                             const BitcoinDisplaySettings * settings) {
 
@@ -272,7 +284,7 @@ PeerRows::PeerRows(QStandardItemModel * anyPeerTableModel,
                    QStandardItemModel * buyerConnectionTableModel,
                    QStandardItemModel * sellerConnectionTableModel,
                    QStandardItemModel * observerConnectionTableModel,
-                   NormalPeerRow * normalPeerRow,
+                   PeerTreeViewRow * normalPeerRow,
                    boost::optional<ConnectionRow> & connectionRow,
                    const libtorrent::tcp::endpoint & endPoint,
                    const BitcoinDisplaySettings * settings)
@@ -308,7 +320,7 @@ void PeerRows::set(const std::shared_ptr<core::Connection> & connection) {
 
 }
 
-NormalPeerRow * PeerRows::normalPeerRow() const noexcept {
+PeerTreeViewRow * PeerRows::normalPeerRow() const noexcept {
     return _normalPeerRow;
 }
 
@@ -509,7 +521,7 @@ void PeersDialog::addPeer(const std::weak_ptr<core::Peer> & p) {
 
         assert(_endPointToPeerRows.count(endPoint) == 0);
 
-        NormalPeerRow * normalPeerRow = NormalPeerRow::create(&_anyPeerTableModel, peer);
+        PeerTreeViewRow * normalPeerRow = PeerTreeViewRow::create(&_anyPeerTableModel, peer);
 
         PeerRows * newPeerRow = PeerRows::create(&_anyPeerTableModel,
                                                  &_buyerConnectionTableModel,

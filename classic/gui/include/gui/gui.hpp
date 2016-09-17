@@ -14,15 +14,15 @@
 #include <gui/FundingWalletProgressDialog.hpp>
 #include <gui/GeneralLoadingProgressDialog.hpp>
 #include <gui/Language.hpp>
-#include <gui/MainWindow.hpp>
-#include <gui/PeersDialog.hpp>
+#include <gui/PeersDialog/PeersDialog.hpp>
 #include <gui/ReceiveFundsDialog.hpp>
 #include <gui/SelectTorrentForDownloadDialog.hpp>
 #include <gui/SellerTermsDialog.hpp>
 #include <gui/SellingModeSessionWidget.hpp>
 #include <gui/SessionDialog.hpp>
-#include <gui/TorrentContextMenu.hpp>
-#include <gui/TorrentTreeViewRow.hpp>
+#include <gui/MainWindow/MainWindow.hpp>
+#include <gui/MainWindow/TorrentContextMenu.hpp>
+#include <gui/MainWindow/TorrentTreeViewRow.hpp>
 #include <gui/TrayMenuManager.hpp>
 
 #endif // JOYSTREAM_CLASSIC_GUI_HPP

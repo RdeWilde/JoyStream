@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 18 2016
  */
 
-#include <gui/TorrentContextMenu.hpp>
+#include <gui/MainWindow/TorrentContextMenu.hpp>
 #include <protocol_session/protocol_session.hpp>
 
 namespace joystream {

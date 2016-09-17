@@ -22,42 +22,42 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 INCLUDEPATH += $$PWD/include
 
 SOURCES += \
-    src/MainWindow.cpp \
+    src/MainWindow/MainWindow.cpp \
+    src/MainWindow/TorrentTreeViewRow.cpp \
+    src/MainWindow/TorrentContextMenu.cpp \
     #src/UtxoEventViewModel.cpp \
     src/ReceiveFundsDialog.cpp \
     src/FundingWalletProgressDialog.cpp \
     src/GeneralLoadingProgressDialog.cpp \
-    src/TorrentContextMenu.cpp \
     src/Language.cpp \
     src/SellingModeSessionWidget.cpp \
     src/BuyingModeSessionWidget.cpp \
     src/SessionDialog.cpp \
-    src/PeersDialog.cpp \
+    src/PeersDialog/PeersDialog.cpp \
     src/BuyerTermsDialog.cpp \
     src/CurrencyFieldPrefixSettings.cpp \
     src/SellerTermsDialog.cpp \
     src/SelectTorrentForDownloadDialog.cpp \
-    src/TrayMenuManager.cpp \
-    src/TorrentTreeViewRow.cpp
+    src/TrayMenuManager.cpp
 
 HEADERS += \
-    include/gui/MainWindow.hpp \
+    include/gui/MainWindow/MainWindow.hpp \
+    include/gui/MainWindow/TorrentTreeViewRow.hpp \
+    include/gui/MainWindow/TorrentContextMenu.hpp \
     #include/gui/UtxoEventViewModel.hpp \
     include/gui/ReceiveFundsDialog.hpp \
     include/gui/FundingWalletProgressDialog.hpp \
     include/gui/GeneralLoadingProgressDialog.hpp \
-    include/gui/TorrentContextMenu.hpp \
     include/gui/Language.hpp \
     include/gui/SellingModeSessionWidget.hpp \
     include/gui/BuyingModeSessionWidget.hpp \
     include/gui/SessionDialog.hpp \
-    include/gui/PeersDialog.hpp \
+    include/gui/PeersDialog/PeersDialog.hpp \
     include/gui/BuyerTermsDialog.hpp \
     include/gui/CurrencyFieldPrefixSettings.hpp \
     include/gui/SellerTermsDialog.hpp \
     include/gui/SelectTorrentForDownloadDialog.hpp \
     include/gui/TrayMenuManager.hpp \
-    include/gui/TorrentTreeViewRow.hpp \
     include/gui/gui.hpp
 
 FORMS += \

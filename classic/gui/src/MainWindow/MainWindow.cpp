@@ -5,9 +5,9 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <gui/MainWindow.hpp>
+#include <gui/MainWindow/MainWindow.hpp>
 #include "ui_MainWindow.h"
-#include <gui/TorrentTreeViewRow.hpp>
+#include <gui/MainWindow/TorrentTreeViewRow.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 

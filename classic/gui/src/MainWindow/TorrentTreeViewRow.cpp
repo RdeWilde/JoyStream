@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2016
  */
 
-#include <gui/TorrentTreeViewRow.hpp>
+#include <gui/MainWindow/TorrentTreeViewRow.hpp>
 #include <gui/Language.hpp>
 #include <core/core.hpp>
 #include <common/DataSizeRepresentation.hpp>

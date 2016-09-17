@@ -46,30 +46,25 @@ namespace extension {
 namespace classic {
 namespace gui {
 
-class NormalPeerRow : public QObject {
-
-    Q_OBJECT
+class PeerTreeViewRow {
 
 public:
 
-    static NormalPeerRow * create(QStandardItemModel * model,
-                                  const std::shared_ptr<core::Peer> & peer);
-
-    NormalPeerRow(QStandardItem * host,
+    PeerTreeViewRow(QStandardItem * host,
                   QStandardItem * clientName,
                   QStandardItem * BEPSupportStatus);
 
     void set(const std::shared_ptr<core::PeerPlugin> & peerPlugin);
 
-public slots:
+    QStandardItem * hostItem() const noexcept;
+    QStandardItem * clientNameItem() const noexcept;
+    QStandardItem * BEPSupportStatusItem() const noexcept;
 
     void setHost(const libtorrent::tcp::endpoint & endPoint);
 
     void setClientName(const std::string & clientName);
 
     void setBEPSupport(const extension::BEPSupportStatus & status);
-
-public:
 
     int row() const noexcept;
 
@@ -203,7 +198,7 @@ public:
                              QStandardItemModel * buyerConnectionTableModel,
                              QStandardItemModel * sellerConnectionTableModel,
                              QStandardItemModel * observerConnectionTableModel,
-                             NormalPeerRow * normalPeerRow,
+                             PeerTreeViewRow * normalPeerRow,
                              const libtorrent::tcp::endpoint & endPoint,
                              const BitcoinDisplaySettings * settings);
 
@@ -212,7 +207,7 @@ public:
              QStandardItemModel * buyerConnectionTableModel,
              QStandardItemModel * sellerConnectionTableModel,
              QStandardItemModel * observerConnectionTableModel,
-             NormalPeerRow * normalPeerRow,
+             PeerTreeViewRow * normalPeerRow,
              boost::optional<ConnectionRow> & connectionRow,
              const libtorrent::tcp::endpoint & endPoint,
              const BitcoinDisplaySettings * settings);
@@ -221,7 +216,7 @@ public:
 
     void set(const std::shared_ptr<core::Connection> & connection);
 
-    NormalPeerRow * normalPeerRow() const noexcept;
+    PeerTreeViewRow * normalPeerRow() const noexcept;
 
     void dropConnectionRow();
 
@@ -241,7 +236,7 @@ private:
                        * _sellerConnectionTableModel,
                        * _observerConnectionTableModel;
 
-    NormalPeerRow * _normalPeerRow;
+    PeerTreeViewRow * _normalPeerRow;
 
     // Substitute with std::optional when available
     boost::optional<ConnectionRow> _connectionRow;
