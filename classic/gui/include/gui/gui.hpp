@@ -15,6 +15,7 @@
 #include <gui/GeneralLoadingProgressDialog.hpp>
 #include <gui/Common.hpp>
 #include <gui/PeersDialog/PeersDialog.hpp>
+#include <gui/PeersDialog/PeerTreeViewRow.hpp>
 #include <gui/ReceiveFundsDialog.hpp>
 #include <gui/SelectTorrentForDownloadDialog.hpp>
 #include <gui/SellerTermsDialog.hpp>
