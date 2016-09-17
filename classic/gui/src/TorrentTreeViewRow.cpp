@@ -176,6 +176,10 @@ void TorrentTreeViewRow::unsetTorrentPluginPresence() {
     _balanceItem->setText("-");
 }
 
+int TorrentTreeViewRow::row() const noexcept {
+    return _nameItem->row();
+}
+
 }
 }
 }

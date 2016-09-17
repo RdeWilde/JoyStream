@@ -72,6 +72,8 @@ public:
 
     void unsetTorrentPluginPresence();
 
+    int row() const noexcept;
+
 private:
 
     // Display settings for bitcoin
