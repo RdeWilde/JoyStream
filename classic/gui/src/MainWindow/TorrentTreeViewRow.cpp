@@ -6,7 +6,7 @@
  */
 
 #include <gui/MainWindow/TorrentTreeViewRow.hpp>
-#include <gui/Language.hpp>
+#include <gui/Common.hpp>
 #include <core/core.hpp>
 #include <common/DataSizeRepresentation.hpp>
 #include <common/BitcoinRepresentation.hpp>
@@ -38,55 +38,6 @@ TorrentTreeViewRow::TorrentTreeViewRow(const BitcoinDisplaySettings * settings,
     , _numberOfSellerPeersitem(numberOfSellerPeersitem)
     , _sessionModeItem(sessionModeItem)
     , _balanceItem(balanceItem) {
-}
-
-TorrentTreeViewRow * TorrentTreeViewRow::create(const BitcoinDisplaySettings * settings) {
-
-    // Create items
-    QStandardItem * nameItem = new QStandardItem(),
-                  * sizeItem = new QStandardItem(),
-                  * stateItem = new QStandardItem(),
-                  * uploadSpeedItem = new QStandardItem(),
-                  * downloadSpeedItem = new QStandardItem(),
-                  * numberOfBuyerPeersItem = new QStandardItem(),
-                  * numberOfSellerPeersitem = new QStandardItem(),
-                  * sessionModeItem = new QStandardItem(),
-                  * balanceItem = new QStandardItem();
-
-    // Center content
-    nameItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    sizeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    stateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    uploadSpeedItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    downloadSpeedItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    numberOfBuyerPeersItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    numberOfSellerPeersitem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    sessionModeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    balanceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-
-    // Don't allow edits
-    nameItem->setEditable(false);
-    sizeItem->setEditable(false);
-    stateItem->setEditable(false);
-    uploadSpeedItem->setEditable(false);
-    downloadSpeedItem->setEditable(false);
-    numberOfBuyerPeersItem->setEditable(false);
-    numberOfSellerPeersitem->setEditable(false);
-    sessionModeItem->setEditable(false);
-    balanceItem->setEditable(false);
-
-    // Create row
-    return new TorrentTreeViewRow(settings,
-                                  nameItem,
-                                  sizeItem,
-                                  stateItem,
-                                  uploadSpeedItem,
-                                  downloadSpeedItem,
-                                  numberOfBuyerPeersItem,
-                                  numberOfSellerPeersitem,
-                                  sessionModeItem,
-                                  balanceItem);
-
 }
 
 QStandardItem * TorrentTreeViewRow::nameItem() const noexcept{
