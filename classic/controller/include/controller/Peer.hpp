@@ -8,8 +8,6 @@
 #ifndef JOYSTREAM_CLASSIC_CONTROLLER_PEER_HPP
 #define JOYSTREAM_CLASSIC_CONTROLLER_PEER_HPP
 
-#include <gui/PeersDialog/PeerTreeViewRow.hpp>
-
 #include <libtorrent/socket.hpp>
 #include <QObject>
 #include <boost/cstdint.hpp>
@@ -24,6 +22,9 @@ namespace extension {
     enum class BEPSupportStatus;
 }
 namespace classic {
+namespace gui {
+    class PeerTreeViewRow;
+}
 namespace controller {
 
 class Peer : public QObject {
@@ -33,10 +34,19 @@ class Peer : public QObject {
 public:
 
     Peer(core::Peer * peer,
-         const boost::optional<gui::PeerTreeViewRow> & peerTreeViewRow);
+         gui::PeerTreeViewRow * peerTreeViewRow);
 
-    boost::optional<gui::PeerTreeViewRow> peerTreeViewRow() const;
-    void setPeerTreeViewRow(const gui::PeerTreeViewRow & row);
+    gui::PeerTreeViewRow * peerTreeViewRow() const noexcept;
+
+    /**
+     * @brief Sets peer tree view row, frees any previously set instance
+     * @param peerTreeViewRow row to be set
+     */
+    void setPeerTreeViewRow(gui::PeerTreeViewRow * peerTreeViewRow);
+
+    void dropPeerTreeViewRow();
+
+    bool peerTreeViewRowSet() const noexcept;
 
 public slots:
 
@@ -56,7 +66,7 @@ private:
     // type has no operations, but may be of use in the future.
     core::Peer * _peer;
 
-    boost::optional<gui::PeerTreeViewRow> _peerTreeViewRow;
+    std::unique_ptr<gui::PeerTreeViewRow> _peerTreeViewRow;
 };
 
 }
