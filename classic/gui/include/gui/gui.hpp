@@ -13,7 +13,7 @@
 #include <gui/CurrencyFieldPrefixSettings.hpp>
 #include <gui/FundingWalletProgressDialog.hpp>
 #include <gui/GeneralLoadingProgressDialog.hpp>
-#include <gui/Language.hpp>
+#include <gui/Common.hpp>
 #include <gui/PeersDialog/PeersDialog.hpp>
 #include <gui/ReceiveFundsDialog.hpp>
 #include <gui/SelectTorrentForDownloadDialog.hpp>
