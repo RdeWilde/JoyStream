@@ -6,7 +6,7 @@
  */
 
 #include <gui/BuyingModeSessionWidget.hpp>
-#include <gui/Language.hpp>
+#include <gui/Common.hpp>
 #include "ui_BuyingModeSessionWidget.h"
 #include <common/BitcoinDisplaySettings.hpp>
 #include <common/BitcoinRepresentation.hpp>
@@ -104,7 +104,7 @@ void BuyingModeSessionWidget::setPolicy(const protocol_session::BuyingPolicy &) 
 
 void BuyingModeSessionWidget::setState(const protocol_session::BuyingState & state) {
 
-    ui->stateValueLabel->setText(Language::toString(state));
+    ui->stateValueLabel->setText(Common::toString(state));
 
     // Set update terms button visibility
     if(state != protocol_session::BuyingState::sending_invitations)
@@ -297,7 +297,7 @@ void BuyingModeSessionWidget::Connection::setHost(const libtorrent::tcp::endpoin
 
 void BuyingModeSessionWidget::Connection::setState(const std::type_index & index) {
 
-    _stateItem->setText(Language::toString(index));
+    _stateItem->setText(Common::toString(index));
 
     // blank out or set other fields depending on new state
     // Q: how do we get values for other fields if we need then?,

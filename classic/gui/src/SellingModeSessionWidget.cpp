@@ -6,7 +6,7 @@
  */
 
 #include <gui/SellingModeSessionWidget.hpp>
-#include <gui/Language.hpp>
+#include <gui/Common.hpp>
 #include "ui_SellingModeSessionWidget.h"
 #include <common/BitcoinRepresentation.hpp>
 #include <protocol_wire/protocol_wire.hpp>
@@ -270,7 +270,7 @@ void SellingModeSessionWidget::Connection::setHost(const libtorrent::tcp::endpoi
 
 void SellingModeSessionWidget::Connection::setState(const std::type_index & index) {
 
-    _stateItem->setText(Language::toString(index));
+    _stateItem->setText(Common::toString(index));
 
     // blank out or set other fields depending on new state
     // Q: how do we get values for other fields if we need then?,

@@ -8,7 +8,7 @@
 #include <gui/SessionDialog.hpp>
 #include <gui/SellingModeSessionWidget.hpp>
 #include <gui/BuyingModeSessionWidget.hpp>
-#include <gui/Language.hpp>
+#include <gui/Common.hpp>
 #include "ui_SessionDialog.h"
 #include <core/core.hpp>
 
@@ -46,7 +46,7 @@ void SessionDialog::updateSessionMode() {
 
         if(session->mode() == protocol_session::SessionMode::buying) {
 
-            ui->sessionModeValueLabel->setText(Language::toString(protocol_session::SessionMode::buying));
+            ui->sessionModeValueLabel->setText(Common::toString(protocol_session::SessionMode::buying));
 
             _buyingWidget.release();
             _sellingWidget = std::unique_ptr<SellingModeSessionWidget>(SellingModeSessionWidget::create(this, _settings, session));
@@ -58,7 +58,7 @@ void SessionDialog::updateSessionMode() {
 
         } else if(session->mode() == protocol_session::SessionMode::selling) {
 
-            ui->sessionModeValueLabel->setText(Language::toString(protocol_session::SessionMode::selling));
+            ui->sessionModeValueLabel->setText(Common::toString(protocol_session::SessionMode::selling));
 
             _buyingWidget = std::unique_ptr<BuyingModeSessionWidget>(BuyingModeSessionWidget::create(this, _settings, session));
             _sellingWidget.release();
