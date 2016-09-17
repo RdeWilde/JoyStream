@@ -149,6 +149,12 @@ QString Common::toString(const extension::BEPSupportStatus & status) {
 
 }
 
+QString Common::toString(const libtorrent::tcp::endpoint & endPoint) {
+
+    std::string endPointString = libtorrent::print_endpoint(endPoint);
+    return QString::fromStdString(endPointString);
+}
+
 }
 }
 }

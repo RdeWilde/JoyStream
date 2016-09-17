@@ -34,7 +34,7 @@ public:
     static QString toString(const protocol_session::BuyingState & state);
     static QString toString(const std::type_index & index);
     static QString toString(const extension::BEPSupportStatus & status);
-
+    static QString toString(const libtorrent::tcp::endpoint & endPoint);
 };
 
 }
