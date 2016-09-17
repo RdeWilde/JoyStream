@@ -133,28 +133,20 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::addToTorrentsTreeView(QStandardItem * nameItem,
-                                       QStandardItem * sizeItem,
-                                       QStandardItem * stateItem,
-                                       QStandardItem * uploadSpeedItem,
-                                       QStandardItem * downloadSpeedItem,
-                                       QStandardItem * numberOfBuyerPeersItem,
-                                       QStandardItem * numberOfSellerPeersitem,
-                                       QStandardItem * sessionModeItem,
-                                       QStandardItem * balanceItem) {
+void MainWindow::addToTorrentsTreeView(const TorrentTreeViewRow & row) {
 
     // Add row to view model, which takes ownership of items
     QList<QStandardItem *> items;
 
-    items << nameItem
-          << sizeItem
-          << stateItem
-          << uploadSpeedItem
-          << downloadSpeedItem
-          << numberOfBuyerPeersItem
-          << numberOfSellerPeersitem
-          << sessionModeItem
-          << balanceItem;
+    items << row.nameItem()
+          << row.sizeItem()
+          << row.stateItem()
+          << row.uploadSpeedItem()
+          << row.downloadSpeedItem()
+          << row.numberOfBuyerPeersItem()
+          << row.numberOfSellerPeersitem()
+          << row.sessionModeItem()
+          << row.balanceItem();
 
     _torrentTreeViewModel.appendRow(items);
 }

@@ -46,15 +46,7 @@ public slots:
 
     /// Manage torrent table
 
-    void addToTorrentsTreeView(QStandardItem * nameItem,
-                               QStandardItem * sizeItem,
-                               QStandardItem * stateItem,
-                               QStandardItem * uploadSpeedItem,
-                               QStandardItem * downloadSpeed,
-                               QStandardItem * numberOfBuyerPeersItem,
-                               QStandardItem * numberOfSellerPeersitem,
-                               QStandardItem * sessionModeItem,
-                               QStandardItem * balanceItem);
+    void add(const TorrentTreeViewRow & row);
 
     void removeFromTorrentsTreeView(int row);
 
