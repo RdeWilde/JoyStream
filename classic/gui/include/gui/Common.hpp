@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2016
  */
 
-#ifndef JOYSTREAM_CLASSIC_GUI_LANGUAGE_HPP
-#define JOYSTREAM_CLASSIC_GUI_LANGUAGE_HPP
+#ifndef JOYSTREAM_CLASSIC_GUI_COMMON_HPP
+#define JOYSTREAM_CLASSIC_GUI_COMMON_HPP
 
 #include <libtorrent/torrent_status.hpp>
 
@@ -41,5 +41,5 @@ public:
 }
 }
 
-#endif // JOYSTREAM_CLASSIC_GUI_LANGUAGE_HPP
+#endif // JOYSTREAM_CLASSIC_GUI_COMMON_HPP
 
