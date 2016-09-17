@@ -32,12 +32,17 @@ class Peer : public QObject {
 
 public:
 
-    Peer(core::Peer * peer);
+    Peer(core::Peer * peer,
+         const boost::optional<gui::PeerTreeViewRow> & peerTreeViewRow);
 
     boost::optional<gui::PeerTreeViewRow> peerTreeViewRow() const;
     void setPeerTreeViewRow(const gui::PeerTreeViewRow & row);
 
 public slots:
+
+    /// The slots below will forward the state chagne to the
+    /// relevant gui type, if gui is present, otherwise it will
+    /// ignore the signal.
 
     void setHost(const libtorrent::tcp::endpoint & endPoint);
 

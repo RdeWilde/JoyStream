@@ -12,8 +12,15 @@ namespace joystream {
 namespace classic {
 namespace controller {
 
-Peer::Peer(core::Peer * peer)
-    : _peer(peer) {
+Peer::Peer(core::Peer * peer,
+           const boost::optional<gui::PeerTreeViewRow> & peerTreeViewRow)
+    : _peer(peer)
+    , _peerTreeViewRow(peerTreeViewRow) {
+
+    QObject::connect(peer,
+                     &core::Peer::clientChanged,
+                     this,
+                     &Peer::setClientName);
 }
 
 boost::optional<gui::PeerTreeViewRow> Peer::peerTreeViewRow() const {
