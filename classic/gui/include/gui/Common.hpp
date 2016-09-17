@@ -25,7 +25,7 @@ namespace extension {
 namespace classic {
 namespace gui {
 
-class Language {
+class Common {
 
 public:
 

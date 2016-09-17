@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2016
  */
 
-#include <gui/Language.hpp>
+#include <gui/Common.hpp>
 
 #include <protocol_session/protocol_session.hpp>
 #include <extension/extension.hpp>
@@ -18,7 +18,7 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-QString Language::toString(const libtorrent::torrent_status::state_t & state, float progress) {
+QString Common::toString(const libtorrent::torrent_status::state_t & state, float progress) {
 
     switch(state) {
 
@@ -70,7 +70,7 @@ QString Language::toString(const libtorrent::torrent_status::state_t & state, fl
     }
 }
 
-QString Language::toString(protocol_session::SessionMode mode) {
+QString Common::toString(protocol_session::SessionMode mode) {
 
     switch(mode) {
         case protocol_session::SessionMode::buying: return QObject::tr("Buying");
@@ -82,7 +82,7 @@ QString Language::toString(protocol_session::SessionMode mode) {
     }
 }
 
-QString Language::toString(const protocol_session::BuyingState & state) {
+QString Common::toString(const protocol_session::BuyingState & state) {
 
     switch(state) {
         case protocol_session::BuyingState::downloading: return QObject::tr("Downloading");
@@ -94,7 +94,7 @@ QString Language::toString(const protocol_session::BuyingState & state) {
 
 }
 
-QString Language::toString(const std::type_index & index) {
+QString Common::toString(const std::type_index & index) {
 
     // not set state
     if(index == typeid(protocol_statemachine::ChooseMode))
@@ -137,7 +137,7 @@ QString Language::toString(const std::type_index & index) {
 
 }
 
-QString Language::toString(const extension::BEPSupportStatus & status) {
+QString Common::toString(const extension::BEPSupportStatus & status) {
 
     switch(status) {
         case extension::BEPSupportStatus::not_supported: return QObject::tr("Not supported");
