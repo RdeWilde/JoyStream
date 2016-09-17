@@ -133,7 +133,7 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::addToTorrentsTreeView(const TorrentTreeViewRow & row) {
+void MainWindow::add(const TorrentTreeViewRow & row) {
 
     // Add row to view model, which takes ownership of items
     QList<QStandardItem *> items;
