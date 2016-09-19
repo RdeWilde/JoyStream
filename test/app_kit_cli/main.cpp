@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
         if(torrent->infoHash() != ti->info_hash()) return;
 
         // wait for torrent pluging to be added before we can go to buy mode...
-        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, &torrent](const joystream::core::TorrentPlugin *plugin){
+        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, torrent](const joystream::core::TorrentPlugin *plugin){
             std::cout << "Torrent Plugin Added... tryin to buy torrent" << std::endl;
 
             Q_ASSERT(plugin);
