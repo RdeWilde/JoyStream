@@ -27,7 +27,9 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin,
     , _broadcaster(broadcaster)
     , _minimumMessageId(minimumMessageId)
     , _policy(policy)
-    , _libtorrentInteraction(libtorrentInteraction) {
+    , _libtorrentInteraction(libtorrentInteraction)
+    , _infoHash(torrent.info_hash())
+{
 }
 
 TorrentPlugin::~TorrentPlugin() {
