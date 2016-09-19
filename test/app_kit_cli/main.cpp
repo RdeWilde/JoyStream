@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
     std::cout << "Starting Wallet Sync.. this could take a while while loading blocktree\n";
 
-    kit->syncWallet();
+    //kit->syncWallet();
 
     QTimer *timer = new QTimer();
 
@@ -113,16 +113,17 @@ int main(int argc, char *argv[])
     // process addedTorrent Signal when torrent is added
     QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&ti, &kit](const joystream::core::Torrent *torrent){
         std::cout << "Got torrent added signal, waiting for plugin added signal" << std::endl;
-        if(torrent->infoHash() != ti->info_hash()) return;
+        assert(torrent->infoHash() == ti->info_hash());
 
         // wait for torrent pluging to be added before we can go to buy mode...
         QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, torrent](const joystream::core::TorrentPlugin *plugin){
-            std::cout << "Torrent Plugin Added... tryin to buy torrent" << std::endl;
-
-            Q_ASSERT(plugin);
+            std::cout << "Torrent Plugin Added... infohash from torrent: " << torrent->infoHash() << std::endl;
+            std::cout << "Torrent Plugin Added... infohash from plugin:" << plugin->infoHash() << std::endl;
+            assert(plugin->infoHash() == torrent->infoHash());
 
             kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
                 std::cerr << "Error Buying Torrent" << std::endl;
+                std::rethrow_exception(eptr);
             });
         });
     });
