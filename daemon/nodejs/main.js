@@ -8,4 +8,9 @@ rpc.listTorrents(function(err, torrent){
 	}
 }, function(){
 	console.log("Got All Torrents");
+	rpc.pause(function(){
+
+	});
 });
+
+
