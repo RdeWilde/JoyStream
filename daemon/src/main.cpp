@@ -25,15 +25,17 @@ std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(bo
 
 class DaemonServiceImpl final : public Daemon::Service {
 public:
-  DaemonServiceImpl(joystream::core::Node* node)
-      : node_(node)
+  DaemonServiceImpl(joystream::core::Node* node, QCoreApplication* app)
+      : node_(node),
+        app_(app)
   {}
 
   Status Pause(ServerContext* context, const Void* request, Void* reply) override {
       std::cout << "Received Pause Request" << std::endl;
 
-      node_->pause([](){
+      node_->pause([this](){
           std::cout << "Node was paused" << std::endl;
+          this->app_->exit();
       });
 
       return Status::OK;
@@ -59,6 +61,7 @@ public:
 
 private:
   joystream::core::Node *node_;
+  QCoreApplication *app_;
 };
 
 int main(int argc, char *argv[])
@@ -71,7 +74,7 @@ int main(int argc, char *argv[])
     });
 
     // Create a daemon rpc service
-    DaemonServiceImpl service(node);
+    DaemonServiceImpl service(node, &a);
 
     // Build and Start the RPC service
     std::unique_ptr<Server> server = service.CreateServer();
