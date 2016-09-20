@@ -278,7 +278,7 @@ private:
     //libtorrent::torrent * torrent();
 
     // Returns torrent piece information based on current state of torrent
-    protocol_session::TorrentPieceInformation torrentPieceInformation(const libtorrent::piece_picker &) const;
+    protocol_session::TorrentPieceInformation torrentPieceInformation() const;
 
     // Processes each Bittorrent type connection
     void forEachBitTorrentConnection(const std::function<void(libtorrent::bt_peer_connection *)> &);

@@ -329,8 +329,10 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallba
     if(_session.mode() == protocol_session::SessionMode::buying)
         _outstandingFullPieceArrivedCalls.clear();
 
+    const libtorrent::torrent_info torrentInfo = torrent()->torrent_file();
+
     // Get maximum number of pieces
-    int maxPieceIndex = torrent()->picker().num_pieces() - 1;
+    int maxPieceIndex = torrentInfo.num_pieces() - 1;
 
     _session.toSellMode(removeConnection(),
                         generateKeyPairCallbackHandler,
@@ -367,7 +369,7 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
                        funding,
                        policy,
                        terms,
-                       torrentPieceInformation(torrent()->picker()));
+                       torrentPieceInformation());
 }
 
 status::TorrentPlugin TorrentPlugin::status() const {
@@ -421,7 +423,7 @@ libtorrent::torrent * TorrentPlugin::torrent() const {
     return torrent.get();
 }
 
-protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation(const libtorrent::piece_picker & picker) const {
+protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation() const {
 
     // Build
     protocol_session::TorrentPieceInformation information;
@@ -429,8 +431,12 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
     // Proper size, but drop later
     //size = getTorrent()->block_size() * picker.blocks_in_piece() or picker.blocks_in_last_piece();
 
-    for(int i = 0; i < picker.num_pieces();i++)
-        information.push_back(protocol_session::PieceInformation(0, picker.is_piece_finished(i)));
+    const libtorrent::torrent_info torrentInfo = torrent()->torrent_file();
+
+    const int numberOfPieces = torrentInfo.num_pieces();
+
+    for(int i = 0; i < numberOfPieces;i++)
+        information.push_back(protocol_session::PieceInformation(0, torrent()->have_piece(i)));
 
     return information;
 }
