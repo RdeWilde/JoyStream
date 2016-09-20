@@ -43,10 +43,20 @@ Session::Session(const protocol_session::SessionMode & mode,
 
 Session * Session::create(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status) {
 
-    Session * session = new Session(status.mode,
-                                    status.state,
-                                    Selling::create(status.selling),
-                                    Buying::create(status.buying));
+    Session * session;
+    switch(status.mode)
+    {
+        case protocol_session::SessionMode::buying:
+            session = new Session(status.mode, status.state, nullptr, Buying::create(status.buying));
+            break;
+        case protocol_session::SessionMode::selling:
+            session = new Session(status.mode, status.state, Selling::create(status.selling), nullptr);
+            break;
+        case protocol_session::SessionMode::not_set :
+        case protocol_session::SessionMode::observing :
+            session = new Session(status.mode, status.state, nullptr, nullptr);
+            break;
+    }
 
     for(auto m : status.connections)
         session->addConnection(m.second);
