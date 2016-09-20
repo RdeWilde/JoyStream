@@ -63,7 +63,9 @@ int main(int argc, char *argv[])
 
     std::cout << "Creating AppKit Instance\n";
 
-    joystream::AppKit* kit = joystream::AppKit::createInstance(QDir::homePath(), Coin::Network::testnet3);
+    QString dataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? QString::fromStdString(getenv("JOYSTREAM_DATADIR")) : QDir::homePath();
+
+    joystream::AppKit* kit = joystream::AppKit::createInstance(dataDirectory, Coin::Network::testnet3);
 
     std::vector<Coin::P2PKHAddress> addresses = kit->wallet()->listReceiveAddresses();
 
@@ -130,7 +132,7 @@ int main(int argc, char *argv[])
 
     std::cout << "Adding Torrent" << std::endl;
 
-    auto savePath = (QDir::homePath()+"/Downloads/").toStdString();
+    auto savePath = (dataDirectory + QDir::separator() + "downloads").toStdString();
 
     kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, false, joystream::core::TorrentIdentifier(ti),
                            [&kit](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
