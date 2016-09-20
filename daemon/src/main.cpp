@@ -25,9 +25,9 @@ std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(bo
 
 class DaemonServiceImpl final : public Daemon::Service {
 public:
-  DaemonServiceImpl(joystream::core::Node* node) {
-      node = node_;
-  }
+  DaemonServiceImpl(joystream::core::Node* node)
+      : node_(node)
+  {}
 
   Status Pause(ServerContext* context, const Void* request, Void* reply) override {
       std::cout << "Received Pause Request" << std::endl;
