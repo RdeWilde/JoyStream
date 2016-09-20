@@ -53,9 +53,9 @@ void handleSignal(int sig)
 int main(int argc, char *argv[])
 {
 
-    if (argc != 2)
+    if (argc < 3)
     {
-        std::cerr << "usage: ./app_kit_cli torrent-file" << std::endl;
+        std::cerr << "usage: ./app_kit_cli [buy, sell] [torrent-file]" << std::endl;
         return 1;
     }
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 
     std::cout << "Starting Wallet Sync.. this could take a while while loading blocktree\n";
 
-    //kit->syncWallet();
+    kit->syncWallet();
 
     QTimer *timer = new QTimer();
 
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     signal(SIGTERM, &handleSignal);
 
     libtorrent::error_code ec;
-    auto ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[1]), boost::ref(ec), 0);
+    auto ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[2]), boost::ref(ec), 0);
     if (ec)
     {
         std::cerr << ec.message().c_str() << std::endl;
@@ -113,25 +113,28 @@ int main(int argc, char *argv[])
     }
 
     // process addedTorrent Signal when torrent is added
-    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&ti, &kit](const joystream::core::Torrent *torrent){
+    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&ti, &kit, argv](const joystream::core::Torrent *torrent){
         std::cout << "Got torrent added signal, waiting for plugin added signal" << std::endl;
         assert(torrent->infoHash() == ti->info_hash());
 
         // wait for torrent pluging to be added before we can go to buy mode...
-        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, torrent](const joystream::core::TorrentPlugin *plugin){
-            std::cout << "Torrent Plugin Added... infohash from torrent: " << torrent->infoHash() << std::endl;
-            std::cout << "Torrent Plugin Added... infohash from plugin:" << plugin->infoHash() << std::endl;
-            assert(plugin->infoHash() == torrent->infoHash());
+        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, torrent, argv](const joystream::core::TorrentPlugin *plugin){
 
-            kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
-                if(eptr){
-                    std::cerr << "Error Buying Torrent" << std::endl;
-                    std::rethrow_exception(eptr);
-                }else {
-                    std::cout << "Success going to BuyMode" << std::endl;
-                }
-            });
+            assert(plugin->infoHash() == torrent->infoHash());
+            if(std::string(argv[1]) == "buy") {
+                kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
+                    if(eptr){
+                        std::cerr << "Error Buying Torrent" << std::endl;
+                        std::rethrow_exception(eptr);
+                    }else {
+                        std::cout << "Success going to BuyMode" << std::endl;
+                    }
+                });
+            } else {
+              //kit->sellTorrent(torrent);
+            }
         });
+
     });
 
     std::cout << "Adding Torrent" << std::endl;
