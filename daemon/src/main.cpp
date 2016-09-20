@@ -66,12 +66,12 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
     // Create the objects we need here to pass to the daemon
-    joystream::core::Node node([](const Coin::Transaction &tx){
+    auto node = joystream::core::Node::create([](const Coin::Transaction &tx){
         // broadcast tx
     });
 
     // Create a daemon rpc service
-    DaemonServiceImpl service(&node);
+    DaemonServiceImpl service(node);
 
     // Build and Start the RPC service
     std::unique_ptr<Server> server = service.CreateServer();
