@@ -124,8 +124,12 @@ int main(int argc, char *argv[])
             assert(plugin->infoHash() == torrent->infoHash());
 
             kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
-                std::cerr << "Error Buying Torrent" << std::endl;
-                std::rethrow_exception(eptr);
+                if(eptr){
+                    std::cerr << "Error Buying Torrent" << std::endl;
+                    std::rethrow_exception(eptr);
+                }else {
+                    std::cout << "Success going to BuyMode" << std::endl;
+                }
             });
         });
     });
