@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
         QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, torrent, argv](const joystream::core::TorrentPlugin *plugin){
 
             assert(plugin->infoHash() == torrent->infoHash());
+
             if(std::string(argv[1]) == "buy") {
                 kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
                     if(eptr){
@@ -131,7 +132,14 @@ int main(int argc, char *argv[])
                     }
                 });
             } else {
-              //kit->sellTorrent(torrent);
+              kit->sellTorrent(torrent, joystream::protocol_session::SellingPolicy(), joystream::protocol_wire::SellerTerms(), [](const std::exception_ptr &eptr){
+                  if(eptr){
+                      std::cerr << "Error Selling Torrent" << std::endl;
+                      std::rethrow_exception(eptr);
+                  }else {
+                      std::cout << "Success going to SellMode" << std::endl;
+                  }
+              });
             }
         });
 
