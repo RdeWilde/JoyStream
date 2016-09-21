@@ -123,21 +123,37 @@ int main(int argc, char *argv[])
             assert(plugin->infoHash() == torrent->infoHash());
 
             if(std::string(argv[1]) == "buy") {
-                kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
+                kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [torrent](const std::exception_ptr &eptr){
                     if(eptr){
                         std::cerr << "Error Buying Torrent" << std::endl;
                         std::rethrow_exception(eptr);
                     }else {
                         std::cout << "Success going to BuyMode" << std::endl;
+                        torrent->torrentPlugin()->start([](const std::exception_ptr &eptr){
+                            if(eptr){
+                               std::cerr << "Error Starting Torrent" << std::endl;
+                               std::rethrow_exception(eptr);
+                            }else {
+                                std::cout << "Torrent Started" << std::endl;
+                            }
+                        });
                     }
                 });
             } else {
-              kit->sellTorrent(torrent, joystream::protocol_session::SellingPolicy(), joystream::protocol_wire::SellerTerms(), [](const std::exception_ptr &eptr){
+              kit->sellTorrent(torrent, joystream::protocol_session::SellingPolicy(), joystream::protocol_wire::SellerTerms(), [torrent](const std::exception_ptr &eptr){
                   if(eptr){
                       std::cerr << "Error Selling Torrent" << std::endl;
                       std::rethrow_exception(eptr);
                   }else {
                       std::cout << "Success going to SellMode" << std::endl;
+                      torrent->torrentPlugin()->start([](const std::exception_ptr &eptr){
+                          if(eptr){
+                             std::cerr << "Error Starting Torrent" << std::endl;
+                             std::rethrow_exception(eptr);
+                          }else {
+                              std::cout << "Torrent Started" << std::endl;
+                          }
+                      });
                   }
               });
             }
@@ -149,7 +165,7 @@ int main(int argc, char *argv[])
 
     auto savePath = (dataDirectory + QDir::separator() + "downloads").toStdString();
 
-    kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, false, joystream::core::TorrentIdentifier(ti),
+    kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, true, joystream::core::TorrentIdentifier(ti),
                            [&kit](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
 
         if(ecode) {
