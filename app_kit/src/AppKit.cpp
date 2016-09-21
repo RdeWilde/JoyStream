@@ -152,7 +152,8 @@ void AppKit::buyTorrent(core::TorrentPlugin *plugin,
         policy,
         terms,
         [this, outputs, handler](const std::exception_ptr & e) {
-            _wallet->unlockOutputs(outputs);
+            if(e)
+                _wallet->unlockOutputs(outputs);
             handler(e);
         }
 
