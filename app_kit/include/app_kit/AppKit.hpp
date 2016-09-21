@@ -29,10 +29,12 @@ namespace bitcoin {
 
 namespace protocol_session {
     class BuyingPolicy;
+    class SellingPolicy;
 }
 
 namespace protocol_wire {
     class BuyerTerms;
+    class SellerTerms;
 }
 
 class AppKit
@@ -78,6 +80,16 @@ public:
                     const protocol_session::BuyingPolicy&,
                     const protocol_wire::BuyerTerms&,
                     const SubroutineHandler &);
+
+    void sellTorrent(const core::Torrent *,
+                     const protocol_session::SellingPolicy &,
+                     const protocol_wire::SellerTerms &,
+                     const SubroutineHandler &);
+
+    void sellTorrent(core::TorrentPlugin *,
+                     const protocol_session::SellingPolicy &,
+                     const protocol_wire::SellerTerms &,
+                     const SubroutineHandler &);
 private:
 
     static bitcoin::SPVWallet* getWallet(const QString &dataDirectory, Coin::Network network);

@@ -155,9 +155,7 @@ void AppKit::buyTorrent(core::TorrentPlugin *plugin,
             if(e)
                 _wallet->unlockOutputs(outputs);
             handler(e);
-        }
-
-    );
+        });
 }
 
 void AppKit::buyTorrent(const libtorrent::sha1_hash &info_hash,
@@ -173,5 +171,43 @@ void AppKit::buyTorrent(const libtorrent::sha1_hash &info_hash,
     buyTorrent(torrents[info_hash], policy, terms, handler);
 }
 
+void AppKit::sellTorrent(core::TorrentPlugin *plugin,
+                         const protocol_session::SellingPolicy &policy,
+                         const protocol_wire::SellerTerms &terms,
+                         const SubroutineHandler& handler){
 
+    plugin->toSellMode(
+        // protocol_session::GenerateP2SHKeyPairCallbackHandler
+        [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
+
+            Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
+                return bitcoin::RedeemScriptInfo(generateScript(pk), data);
+            });
+
+            return Coin::KeyPair(sk);
+        },
+        // protocol_session::GenerateReceiveAddressesCallbackHandler
+        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
+            std::vector<Coin::P2PKHAddress> addresses;
+
+            for(int n = 0; n < npairs; n++) {
+                addresses.push_back(_wallet->generateReceiveAddress());
+            }
+
+            return addresses;
+        },
+        policy,
+        terms,
+        handler);
+}
+
+void AppKit::sellTorrent(const core::Torrent *torrent,
+                         const protocol_session::SellingPolicy &policy,
+                         const protocol_wire::SellerTerms &terms,
+                         const SubroutineHandler& handler){
+
+    core::TorrentPlugin* plugin = torrent->torrentPlugin();
+
+    sellTorrent(plugin, policy, terms, handler);
+}
 } // joystream namespace
