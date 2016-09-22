@@ -401,6 +401,7 @@ namespace extension {
 
         //std::clog << "can_disconnect: " << ec.message() << std::endl;
 
+
         return false;
     }
 
