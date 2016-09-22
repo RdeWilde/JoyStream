@@ -91,7 +91,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
 
     }
 
-    std::clog << "Installed seller plugin #" << _peers.size() << std::endl;
+    std::clog << "Installed peer plugin #" << _peers.size() << std::endl;
 
     // Create a new peer plugin
     boost::shared_ptr<PeerPlugin> plugin(new PeerPlugin(this, connection, _policy.peerPolicy, _minimumMessageId));
