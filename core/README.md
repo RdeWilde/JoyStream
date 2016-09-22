@@ -1,7 +1,12 @@
-# JoyStream core library
-The core JoyStream library.
+# joystream-core
 
-## Handle Hierarchy
+The core library for a JoyStream node.
+
+## Documentation
+
+...coming later...
+
+### Handle Hierarchy
 There is a hierarchy of handles corresponding to internal structure of a node instance.
 
 - Node
@@ -17,7 +22,7 @@ There is a hierarchy of handles corresponding to internal structure of a node in
 						- (1) Payor
 						- (1) Payee
 
-## Handle Expiry
+### Handle Expiry
 For each handle, monitor the given kill signal to detect expiry.
 
 Type | Expiry Signal
@@ -34,3 +39,14 @@ Connection		| Session::connectionRemoved
 CBStateMachine		| same
 Payor			| same
 Payee 			| same
+
+## Building
+
+```
+qmake core.pro
+make
+```
+
+## Testing
+
+Build and run ../test/core
