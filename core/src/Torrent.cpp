@@ -43,7 +43,7 @@ Torrent::Torrent(const libtorrent::torrent_handle & handle,
 
 Torrent::~Torrent() {
 
-    for(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::iterator it = _peers.begin();it != _peers.end();)
+    for(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::const_iterator it = _peers.cbegin();it != _peers.cend();)
         removePeer(it++);
 
     removeTorrentPlugin();
@@ -144,7 +144,7 @@ void Torrent::removePeer(const libtorrent::tcp::endpoint & ip) {
     removePeer(it);
 }
 
-void Torrent::removePeer(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::iterator it) {
+void Torrent::removePeer(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::const_iterator it) {
 
     libtorrent::tcp::endpoint endPoint = it->first;
 
@@ -213,13 +213,14 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
     }
 
     // for each exisiting peer
-    for(auto & p: _peers) {
-
+    for (auto it = _peers.cbegin(); it != _peers.cend(); ) {
         // if there is no status for it, then remove
-        if(peerToStatus.count(p.first) == 0)
-            removePeer(p.first);
+        if (peerToStatus.count(it->first) == 0) {
+            removePeer(it++);
+        } else {
+            it++;
+        }
     }
-
 }
 
 void Torrent::updateTorrentPluginStatus(const extension::status::TorrentPlugin & status) {

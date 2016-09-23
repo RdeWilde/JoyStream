@@ -44,7 +44,7 @@ TorrentPlugin * TorrentPlugin::create(const extension::status::TorrentPlugin & s
 
 TorrentPlugin::~TorrentPlugin() {
 
-    for(auto it = _peers.begin();it != _peers.end();)
+    for(auto it = _peers.cbegin();it != _peers.cend();)
         removePeerPlugin(it++);
 }
 
@@ -144,7 +144,7 @@ void TorrentPlugin::removePeerPlugin(const libtorrent::tcp::endpoint & endPoint)
     removePeerPlugin(it);
 }
 
-void TorrentPlugin::removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::iterator it) {
+void TorrentPlugin::removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::const_iterator it) {
 
     libtorrent::tcp::endpoint endPoint = it->first;
 
@@ -175,11 +175,14 @@ void TorrentPlugin::update(const extension::status::TorrentPlugin & status) {
     }
 
     // for each exisiting peer
-    for(auto & p: _peers) {
+    for (auto it = _peers.cbegin(); it != _peers.cend(); ) {
 
         // if there is no status for it, then remove
-        if(status.peers.count(p.first) == 0)
-            removePeerPlugin(p.first);
+        if(status.peers.count(it->first) == 0){
+            removePeerPlugin(it++);
+        } else {
+            it++;
+        }
     }
 
     // Session
