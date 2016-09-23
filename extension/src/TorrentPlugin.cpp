@@ -267,8 +267,10 @@ void TorrentPlugin::start() {
 
     // If session was initially stopped (not paused), then initiate extended handshake
     if(initialState == protocol_session::SessionState::stopped)
-        forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_extensions(); });
-
+        forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void {
+            if(c->support_extensions())
+                c->write_extensions();
+        });
 }
 
 void TorrentPlugin::stop() {
