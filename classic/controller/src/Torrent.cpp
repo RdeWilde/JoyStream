@@ -6,6 +6,7 @@
  */
 
 #include <controller/Torrent.hpp>
+#include <controller/Peer.hpp>
 #include <core/core.hpp>
 #include <gui/gui.hpp>
 
@@ -13,29 +14,12 @@ namespace joystream {
 namespace classic {
 namespace controller {
 
-Torrent::Torrent(ApplicationController * applicationController,
-                 gui::TorrentTreeViewRow * row,
-                 core::Torrent * torrent)
-    : _applicationController(applicationController)
-    , _row(row)
-    , _torrent(torrent) {
-
-    // Set inital values
-    _row->setName(torrent->name());
-
-    if(torrent->isPaused())
-        _row->setPaused(true);
-    else
-        _row->setState(torrent->state(), torrent->progress());
-
-    _row->setUploadSpeed(torrent->uploadRate());
-    _row->setDownloadSpeed(torrent->downloadRate());
-
-    // When plugin is present, then set it up, otherwise set it as absent
-    if(torrent->torrentPlugin())
-        setTorrentPluginPresent(torrent->torrentPlugin());
-    else
-        setTorrentPluginAbsent();
+Torrent::Torrent(core::Torrent * torrent,
+                 ApplicationController * applicationController,
+                 gui::TorrentTreeViewRow * torrentTreeViewRow)
+    : _torrent(torrent)
+    , _applicationController(applicationController)
+    , _torrentTreeViewRow(torrentTreeViewRow) {
 
     // Connect model signals to slots on this object
     QObject::connect(torrent,
@@ -48,7 +32,6 @@ Torrent::Torrent(ApplicationController * applicationController,
                      this,
                      &Torrent::setTorrentPluginAbsent);
 
-    // Connect model signals to slots on row
     QObject::connect(torrent,
                      &core::Torrent::stateChanged,
                      this,
@@ -70,9 +53,65 @@ Torrent::Torrent(ApplicationController * applicationController,
                      &Torrent::setUploadSpeed);
 }
 
+Torrent::~Torrent() {
+}
+
+void Torrent::addPeer(core::Peer * peer) {
+
+    if(_peers.count(peer->endPoint()) > 0)
+        throw std::runtime_error("Peer already added.");
+
+    // Row for peers dialog
+    gui::PeerTreeViewRow * row = nullptr;
+
+    // If Peers dialogue is displayed
+    if(peersDialogDisplayed()) {
+
+        // Create row
+        row = _peersDialog->addPeerTreeViewRow();
+
+        // Set initial values
+        row->setHost(peer->endPoint());
+        row->setClientName(peer->client());
+        row->setBEPSupport(extension::BEPSupportStatus::unknown);
+    }
+
+    // Create controller::Peer, and add to map
+    _peers[peer->endPoint()] = std::unique_ptr<Peer>(new Peer(peer, row));
+}
+
+void Torrent::removePeer(const libtorrent::tcp::endpoint & endPoint) {
+
+   // Get corresponding controoler::Peer
+   auto it = _peers.find(endPoint);
+
+   if(it == _peers.cend())
+       throw std::runtime_error("Peer not present.");
+
+   std::unique_ptr<Peer> & peer = it->second;
+
+   // If Peers dialuge is displayed, then we need to remove this peer
+   if(peersDialogDisplayed()) {
+
+       // Currently, all rows should be added
+       assert(peer->peerTreeViewRowSet());
+
+       // Find the row
+       gui::PeerTreeViewRow * row = peer->peerTreeViewRow();
+
+       int rowIndex = row->row();
+
+       // Remove from dialog
+       /////_peersDialog->removePeer(rowIndex);
+   }
+
+   // Remove peer
+   _peers.erase(it);
+}
+
 void Torrent::pluginModeChanged(protocol_session::SessionMode mode) {
 
-    _row->setSessionMode(mode);
+    _torrentTreeViewRow->setSessionMode(mode);
 
     updateBalance();
 }
@@ -113,7 +152,7 @@ void Torrent::setTorrentPluginPresent(core::TorrentPlugin * model) {
     core::Session * session = model->session();
 
     // Set session mode
-    _row->setSessionMode(session->mode());
+    _torrentTreeViewRow->setSessionMode(session->mode());
 
     // and update when it is changed
     QObject::connect(session,
@@ -141,7 +180,7 @@ void Torrent::setTorrentPluginPresent(core::TorrentPlugin * model) {
 }
 
 void Torrent::setTorrentPluginAbsent() {
-    _row->unsetTorrentPluginPresence();
+    _torrentTreeViewRow->unsetTorrentPluginPresence();
 }
 
 void Torrent::updateBalance() {
@@ -153,23 +192,83 @@ void Torrent::updateBalance() {
     int64_t balance = getBalance(session);
 
     // Update view
-    _row->setBalance(balance);
+    _torrentTreeViewRow->setBalance(balance);
 }
 
 void Torrent::setState(libtorrent::torrent_status::state_t state, float progress) {
-    _row->setState(state, progress);
+    _torrentTreeViewRow->setState(state, progress);
 }
 
 void Torrent::setPaused(bool paused) {
-    _row->setPaused(paused);
+    _torrentTreeViewRow->setPaused(paused);
 }
 
 void Torrent::setDownloadSpeed(int speed) {
-    _row->setDownloadSpeed(speed);
+    _torrentTreeViewRow->setDownloadSpeed(speed);
 }
 
 void Torrent::setUploadSpeed(int speed) {
-    _row->setUploadSpeed(speed);
+    _torrentTreeViewRow->setUploadSpeed(speed);
+}
+
+void Torrent::showPeersDialog() {
+
+    if(peersDialogDisplayed())
+        throw std::runtime_error("Already displayed");
+
+    // Create a peers dialog window
+    // add all sorts of peers and connections
+
+    /**
+    /// Populate models
+
+    // Add all peers
+    for(auto mapping : torrent->peers())
+        addPeer(mapping.second);
+
+    // Add all peer plugins
+    std::shared_ptr<core::TorrentPlugin> plugin = torrent->torrentPlugin();
+
+    if(plugin.get() != NULL) {
+        for(auto mapping : plugin->peers())
+            addPeerPlugin(mapping.second);
+    }
+
+    // Add all connections
+    std::shared_ptr<core::Session> session = plugin->session();
+    for(auto mapping : session->connections())
+        addConnection(mapping.second);
+        */
+}
+
+void Torrent::hidePeersDialog() {
+
+    if(!peersDialogDisplayed())
+        throw std::runtime_error("Not displayed");
+
+    // Go through all peers and unset PeerTreeViewRow
+
+    _peersDialog.release();
+}
+
+bool Torrent::peersDialogDisplayed() {
+    return _peersDialog.get() != nullptr;
+}
+
+gui::TorrentTreeViewRow * Torrent::torrentTreeViewRow() const noexcept {
+    return _torrentTreeViewRow.get();
+}
+
+void Torrent::setTorrentTreeViewRow(gui::TorrentTreeViewRow * torrentTreeViewRow) {
+    _torrentTreeViewRow.reset(torrentTreeViewRow);
+}
+
+void Torrent::dropTorrentTreeViewRow() {
+    _torrentTreeViewRow.reset();
+}
+
+bool Torrent::peerTorrentTreeViewRow() const noexcept {
+    return _torrentTreeViewRow.get() != nullptr;
 }
 
 int64_t Torrent::getBalance(const core::Session * session) {

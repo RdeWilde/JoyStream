@@ -8,16 +8,19 @@
 #ifndef JOYSTREAM_CLASSIC_CONTROLLER_TORRENT_HPP
 #define JOYSTREAM_CLASSIC_CONTROLLER_TORRENT_HPP
 
+#include <gui/MainWindow/TorrentTreeViewRow.hpp>
+
 #include <libtorrent/socket.hpp>
 #include <libtorrent/torrent_status.hpp>
-
 #include <QObject>
-
+#include <boost/optional.hpp>
 #include <cstdint>
+#include <memory>
 
 namespace joystream {
 namespace core {
     class Torrent;
+    class Peer;
     class TorrentPlugin;
     class Session;
     class Connection;
@@ -27,23 +30,33 @@ namespace protocol_session {
 }
 namespace classic {
 namespace gui {
-    class TorrentTreeViewRow;
+    class PeersDialog;
 }
 namespace controller {
 
 class ApplicationController;
+class Peer;
 
 class Torrent : public QObject {
 
+    Q_OBJECT
+
 public:
 
-    Torrent(ApplicationController * applicationController,
-            gui::TorrentTreeViewRow * row,
-            core::Torrent * torrent);
+    Torrent(core::Torrent * torrent,
+            ApplicationController * applicationController,
+            gui::TorrentTreeViewRow * torrentTreeViewRow);
+
+    ~Torrent();
 
 public slots:
 
     /// core events
+
+    void addPeer(core::Peer * peer);
+
+    void removePeer(const libtorrent::tcp::endpoint & endPoint);
+
 
     void pluginModeChanged(protocol_session::SessionMode mode);
 
@@ -69,13 +82,45 @@ public slots:
 
     /// view events
 
+public:
+
+    /// Peers Dialog
+
+    void showPeersDialog();
+
+    void hidePeersDialog();
+
+    bool peersDialogDisplayed();
+
+    /// Torrent tree view row
+
+    gui::TorrentTreeViewRow * torrentTreeViewRow() const noexcept;
+
+    /**
+     * @brief Sets peer tree view row, frees any previously set instance
+     * @param peerTreeViewRow row to be set
+     */
+    void setTorrentTreeViewRow(gui::TorrentTreeViewRow * torrentTreeViewRow);
+
+    void dropTorrentTreeViewRow();
+
+    bool peerTorrentTreeViewRow() const noexcept;
+
+
 private:
+
+    core::Torrent * _torrent;
 
     ApplicationController * _applicationController;
 
-    gui::TorrentTreeViewRow * _row;
+    // Could be by value, since all torrents are represented with
+    // a row in the main window, however this may change, so we may
+    // as well make this as general as possible
+    std::unique_ptr<gui::TorrentTreeViewRow> _torrentTreeViewRow;
 
-    core::Torrent * _torrent;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>> _peers;
+
+    std::unique_ptr<gui::PeersDialog> _peersDialog;
 
     // Updates the peer counts
     void updateConnectionCounts(const core::Session * session);
