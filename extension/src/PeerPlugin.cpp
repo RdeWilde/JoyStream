@@ -278,6 +278,9 @@ namespace extension {
                 // Remove peer
                 libtorrent::error_code ec;
                 drop(ec);
+
+                // Keep us around
+                return true;
             }
 
         }
