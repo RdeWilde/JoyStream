@@ -75,7 +75,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
         libtorrent::peer_connection * c = connection.native_handle().get();
 
         // ***** experiment in order to ask Arvid ****
-        c->disconnect(ec, libtorrent::operation_t::op_bittorrent);
+        //c->disconnect(ec, libtorrent::operation_t::op_bittorrent);
         // ***** experiment in order to ask Arvid ****
 
         if(_peerScheduledForDeletionForGivenError.count(c))
