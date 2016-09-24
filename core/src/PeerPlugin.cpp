@@ -52,7 +52,7 @@ void PeerPlugin::update(const extension::status::PeerPlugin & status) {
 
     if(_peerBitSwaprBEPSupportStatus != status.peerBitSwaprBEPSupportStatus) {
         _peerBitSwaprBEPSupportStatus = status.peerBitSwaprBEPSupportStatus;
-        emit peerBitSwaprBEPSupportStatus(_peerBitSwaprBEPSupportStatus);
+        emit peerBitSwaprBEPSupportStatusChanged(_peerBitSwaprBEPSupportStatus);
     }
 }
 

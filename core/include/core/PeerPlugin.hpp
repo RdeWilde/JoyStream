@@ -49,7 +49,7 @@ signals:
 
     void peerBEP10SupportStatusChanged(const extension::BEPSupportStatus &);
 
-    void peerBitSwaprBEPSupportStatus(const extension::BEPSupportStatus &);
+    void peerBitSwaprBEPSupportStatusChanged(const extension::BEPSupportStatus &);
 
 private:
 
