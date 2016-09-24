@@ -20,11 +20,33 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
 HEADERS += \
     include/controller/ApplicationController.hpp \
-    include/controller/Torrent.hpp
+    include/controller/Torrent.hpp \
+    include/controller/Peer.hpp \
+    include/controller/PeerPlugin.hpp \
+    include/controller/TorrentPlugin.hpp \
+    include/controller/Session.hpp \
+    include/controller/Connection.hpp \
+    include/controller/Payor.hpp \
+    include/controller/Payee.hpp \
+    include/controller/CBStateMachine.hpp \
+    include/controller/Selling.hpp \
+    include/controller/Seller.hpp \
+    include/controller/Buying.hpp
 
 SOURCES += \
     src/ApplicationController.cpp \
-    src/Torrent.cpp
+    src/Torrent.cpp \
+    src/Peer.cpp \
+    src/TorrentPlugin.cpp \
+    src/PeerPlugin.cpp \
+    src/Session.cpp \
+    src/Payor.cpp \
+    src/Payee.cpp \
+    src/CBStateMachine.cpp \
+    src/Connection.cpp \
+    src/Selling.cpp \
+    src/Seller.cpp \
+    src/Buying.cpp
 
 # gui
 INCLUDEPATH += $$PWD/../gui/include
