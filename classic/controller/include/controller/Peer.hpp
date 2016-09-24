@@ -36,6 +36,14 @@ public:
     Peer(core::Peer * peer,
          gui::PeerTreeViewRow * peerTreeViewRow);
 
+    ~Peer();
+
+    /**
+     * @brief Creates a peer tree view row
+     * @return
+     */
+    gui::PeerTreeViewRow * create() const noexcept;
+
     gui::PeerTreeViewRow * peerTreeViewRow() const noexcept;
 
     /**

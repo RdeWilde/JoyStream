@@ -24,6 +24,10 @@ Peer::Peer(core::Peer * peer,
                      &Peer::setClientName);
 }
 
+Peer::~Peer() {
+
+}
+
 gui::PeerTreeViewRow * Peer::peerTreeViewRow() const noexcept {
     return _peerTreeViewRow.get();
 }
