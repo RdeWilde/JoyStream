@@ -1,3 +1,4 @@
+
 /**
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
@@ -6,59 +7,30 @@
  */
 
 #include <common/UnspentP2PKHOutput.hpp>
-
-//#include <QJsonObject>
+#include <CoinCore/CoinNodeData.h>
+#include <common/Utilities.hpp>
 
 namespace Coin {
 
 UnspentP2PKHOutput::UnspentP2PKHOutput()
-    : _value(0){
+    : UnspentOutput() {
 }
 
-UnspentP2PKHOutput::UnspentP2PKHOutput(const KeyPair & keyPair, const typesafeOutPoint & output, quint64 value)
-    : _keyPair(keyPair)
-    , _outPoint(output)
-    , _value(value) {
+UnspentP2PKHOutput::UnspentP2PKHOutput(const KeyPair & keyPair, const typesafeOutPoint & outPoint, uint64_t setValue)
+    : UnspentOutput(outPoint, setValue)
+    , _keyPair(keyPair) {
 }
-
-/**
-UnspentP2PKHOutput::UnspentP2PKHOutput(const QJsonObject & json) {
-
-    QJsonValue keyPairValue = json["keyPair"];
-    Q_ASSERT(keyPairValue.isObject());
-    _keyPair = KeyPair(keyPairValue.toObject());
-
-    QJsonValue outPointValue = json["outPoint"];
-    Q_ASSERT(outPointValue.isObject());
-    _outPoint = OutPoint(outPointValue.toObject());
-
-    QJsonValue valueValue = json["value"];
-    Q_ASSERT(valueValue.isDouble());
-    _value = valueValue.toDouble();
-}
-*/
 
 bool UnspentP2PKHOutput::operator==(const UnspentP2PKHOutput & o) const {
 
-    return _value == o.value() &&
-           _outPoint == o.outPoint() &&
-           _keyPair == o.keyPair();
+    return _keyPair == o.keyPair() &&
+           outPoint() == o.outPoint() &&
+           value() == o.value();
 }
 
 bool UnspentP2PKHOutput::operator!=(const UnspentP2PKHOutput & o) const {
     return !(*this == o);
 }
-
-/**
-QJsonObject UnspentP2PKHOutput::json() const {
-
-    return QJsonObject{
-        {"keyPair", _keyPair.json()},
-        {"outPoint", _outPoint.json()},
-        {"value", static_cast<int>(_value)}
-    };
-}
-*/
 
 KeyPair UnspentP2PKHOutput::keyPair() const {
     return _keyPair;
@@ -68,20 +40,29 @@ void UnspentP2PKHOutput::setKeyPair(const KeyPair &keyPair) {
     _keyPair = keyPair;
 }
 
-typesafeOutPoint UnspentP2PKHOutput::outPoint() const {
-    return _outPoint;
+uchar_vector UnspentP2PKHOutput::scriptPubKey() const {
+    return P2PKHScriptPubKey(keyPair().pk()).serialize();
 }
 
-void UnspentP2PKHOutput::setOutPoint(const typesafeOutPoint &outPoint) {
-    _outPoint = outPoint;
+uchar_vector UnspentP2PKHOutput::sighash(const Transaction & tx, const SigHashType &sigHashType) const {
+    return ::Coin::sighash(tx, outPoint(), scriptPubKey(), sigHashType);
 }
 
-quint64 UnspentP2PKHOutput::value() const {
-    return _value;
+TransactionSignature UnspentP2PKHOutput::transactionSignature(const Transaction & tx, const SigHashType &sigHashType) const {
+    uchar_vector sigHash = sighash(tx, sigHashType);
+    return TransactionSignature(keyPair().sk().sign(sigHash), sigHashType);
 }
 
-void UnspentP2PKHOutput::setValue(quint64 value) {
-    _value = value;
+uchar_vector UnspentP2PKHOutput::scriptSig(const Transaction & tx, const SigHashType &sigHashType) const {
+
+    uchar_vector scriptSig;
+
+    scriptSig += transactionSignature(tx, sigHashType).opPushForScriptSigSerialized();
+
+    scriptSig += opPushData(0x21);
+    scriptSig += keyPair().pk().toUCharVector();
+
+    return scriptSig;
 }
 
 }

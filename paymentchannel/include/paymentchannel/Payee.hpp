@@ -10,7 +10,7 @@
 
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
-#include <common/PubKeyHash.hpp>
+#include <common/RedeemScriptHash.hpp>
 #include <common/Signature.hpp>
 
 namespace Coin {
@@ -41,16 +41,12 @@ namespace paymentchannel {
               quint64 price,
               quint64 funds,
               quint64 settlementFee,
-              quint64 refundFee,
               const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::KeyPair & payeeContractKeys,
               const Coin::PubKeyHash & payeeFinalPkHash,
               const Coin::PublicKey & payorContractPk,
               const Coin::PubKeyHash & payorFinalPkHash,
               const Coin::Signature & lastValidPayorPaymentSignature);
-
-        // Creates refund signature
-        Coin::Signature generateRefundSignature() const;
 
         // Attempts to register payment if signature is valid
         // ==================================================
@@ -71,9 +67,6 @@ namespace paymentchannel {
 
         // Commitment
         Commitment commitment() const;
-
-        // Refund
-        Refund refund() const;
 
         // Settlement
         Settlement settlement(int) const;
@@ -96,9 +89,6 @@ namespace paymentchannel {
 
         quint64 settlementFee() const;
         void setSettlementFee(quint64);
-
-        quint64 refundFee() const;
-        void setRefundFee(quint64 refundFee);
 
         Coin::typesafeOutPoint contractOutPoint() const;
         void setContractOutPoint(const Coin::typesafeOutPoint &);
@@ -135,9 +125,6 @@ namespace paymentchannel {
         // Amount (#satoshies) used in fee for settlement
         quint64 _settlementFee;
 
-        // Amount (#satoshies) used in fee for refund
-        quint64 _refundFee;
-
         // Contract outpoint from which payments originate
         Coin::typesafeOutPoint _contractOutPoint;
 
@@ -150,7 +137,7 @@ namespace paymentchannel {
         // Payor key in contract output
         Coin::PublicKey _payorContractPk;
 
-        // Payor P2PKH output in refund/payment
+        // Payor P2SH output in refund/payment
         Coin::PubKeyHash _payorFinalPkHash;
 
         // The last valid payment signature received, corresponds to _numberOfPaymentsMade

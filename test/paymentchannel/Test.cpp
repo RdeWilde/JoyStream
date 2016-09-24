@@ -12,44 +12,68 @@
 #include <common/typesafeOutPoint.hpp>
 #include <common/TransactionSignature.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
-#include <common/P2PKHAddress.hpp>
+#include <common/P2PKScriptPubKey.hpp>
+#include <common/P2SHAddress.hpp>
+#include <common/RedeemScriptHash.hpp>
 #include <paymentchannel/paymentchannel.hpp>
 
 #include <CoinCore/CoinNodeData.h> // Transaction
 #include <CoinCore/hdkeys.h>
 
+#include <ctime>
+
 using namespace joystream::paymentchannel;
+
+void Test::redeemScript() {
+
+    Coin::KeyPair payorPair = Coin::KeyPair::generate();
+
+    Coin::KeyPair payeePair = Coin::KeyPair::generate();
+
+    uint32_t lockTime = std::time(nullptr);
+
+    RedeemScript rs(payorPair.pk(), payeePair.pk(), lockTime);
+
+    uchar_vector serialized = rs.serialized();
+
+    RedeemScript rs_des = RedeemScript::deserialize(serialized);
+
+    QCOMPARE(serialized, rs_des.serialized());
+}
 
 void Test::refund() {
 
     Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
     Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
     Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeeFinalPair = Coin::KeyPair::generate();
+
     Coin::typesafeOutPoint contractOutPoint;
-    joystream::paymentchannel::Commitment commitment(190, payorContractPair.pk(), payeeContractPair.pk());
 
-    Coin::Payment toPayor(190, payorFinalPair.pk().toPubKeyHash());
+    // settlement final destinations
+    Coin::P2PKScriptPubKey payorScriptPubKey(payorFinalPair.pk());
+    Coin::RedeemScriptHash payorScriptHash(payorScriptPubKey);
+
+    Coin::P2PKScriptPubKey payeeScriptPubKey(payeeFinalPair.pk());
+    Coin::RedeemScriptHash payeeScriptHash(payeeScriptPubKey);
+
     uint32_t lockTime = 100;
+    uint64_t channelValue = 180;
 
-    joystream::paymentchannel::Refund r(contractOutPoint,
-                                        commitment,
-                                        toPayor,
-                                        lockTime);
+    joystream::paymentchannel::Payor p(1, 0, channelValue, 1000, lockTime,contractOutPoint, payorContractPair, payorScriptHash, payeeContractPair.pk(), payeeScriptHash);
 
-    // Validate payee refund signature
-    Coin::TransactionSignature payeeRefundSig = r.transactionSignature(payeeContractPair.sk());
+    joystream::paymentchannel::Refund R(p.refund());
 
-    bool validPayeeRefundSig = r.validatePayeeSignature(payeeRefundSig.sig());
+    QCOMPARE(R.lockedUntil(), lockTime);
 
-    QVERIFY(validPayeeRefundSig);
-    QVERIFY(r.fee() == 0);
+    // The output is locked until the block height is greater than the locktime
+    QCOMPARE(R.isLocked(99), true); // locked
+    QCOMPARE(R.isLocked(100), true); // locked
+    QCOMPARE(R.isLocked(101), false); // unlocked
 
-    // Validate payee refund signature
-    Coin::TransactionSignature payorRefundSig = r.transactionSignature(payorContractPair.sk());
+    QCOMPARE(R.getUnspentOutput().value(), channelValue);
 
-    bool validPayorRefundSig = r.validatePayorSignature(payorRefundSig.sig());
-
-    QVERIFY(validPayorRefundSig);
+    QVERIFY(R.getUnspentOutput().outPoint() == contractOutPoint);
 }
 
 void Test::settlement() {
@@ -58,11 +82,19 @@ void Test::settlement() {
     Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
     Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
     Coin::KeyPair payeeFinalPair = Coin::KeyPair::generate();
+    uint32_t lockTime = 100;
 
     Coin::typesafeOutPoint contractOutPoint;
-    joystream::paymentchannel::Commitment commitment(180, payorContractPair.pk(), payeeContractPair.pk());
-    Coin::Payment toPayor(90, payorFinalPair.pk().toPubKeyHash());
-    Coin::Payment toPayee(90, payeeFinalPair.pk().toPubKeyHash());
+    joystream::paymentchannel::Commitment commitment(180, payorContractPair.pk(), payeeContractPair.pk(), lockTime);
+
+    Coin::P2PKScriptPubKey payorScriptPubKey(payorFinalPair.pk());
+    Coin::RedeemScriptHash payorScriptHash(payorScriptPubKey);
+
+    Coin::P2PKScriptPubKey payeeScriptPubKey(payeeFinalPair.pk());
+    Coin::RedeemScriptHash payeeScriptHash(payeeScriptPubKey);
+
+    Coin::Payment toPayor(90, payorScriptHash);
+    Coin::Payment toPayee(90, payeeScriptHash);
 
     joystream::paymentchannel::Settlement s(contractOutPoint,
                                             commitment,
@@ -93,10 +125,10 @@ void Test::paychan_one_to_one() {
 
     // Setup keys
     Coin::KeyPair payorContractKeyPair = Coin::KeyPair::generate();
-    Coin::PubKeyHash payorFinalKeyHash("5364093874829384794bda860241f4c55ea0b297");
+    Coin::RedeemScriptHash payorFinalKeyHash;
 
     Coin::KeyPair payeeContractKeyPair = Coin::KeyPair::generate();
-    Coin::PubKeyHash payeeFinalKeyHash("0285b8ceae4c5d7f094bda860241f4c55ea0b297");
+    Coin::RedeemScriptHash payeeFinalKeyHash;
 
     // Funding & allocation
     uint64_t source_amount = 3000000,
@@ -105,35 +137,33 @@ void Test::paychan_one_to_one() {
             amount_in_channel = source_amount - (change_amount + contract_fee_amount);
 
     // Construct contract
-    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source_amount);
-    Coin::Payment change(change_amount, Coin::PubKeyHash("8956784568342390764574523895634289896781"));
+    auto funding = std::make_shared<Coin::UnspentP2PKHOutput>(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source_amount);
+    Contract c(Coin::UnspentOutputSet({funding}));
 
-    Contract c(funding);
-    c.addCommitment(Commitment(amount_in_channel, payorContractKeyPair.pk(), payeeContractKeyPair.pk()));
+    // Terms
+    uint32_t lockTime = 1000;
+    uint64_t price = 8;
+
+    c.addCommitment(Commitment(amount_in_channel, payorContractKeyPair.pk(), payeeContractKeyPair.pk(), lockTime));
+
+    Coin::Payment change(change_amount, Coin::RedeemScriptHash());
     c.setChange(change);
 
     // Derive anchor
     Coin::Transaction contractTx = c.transaction();
     Coin::typesafeOutPoint anchor(Coin::TransactionId::fromTx(contractTx), 0);
 
-    // Terms
-    uint32_t lockTime = 1000;
-    uint64_t price = 8;
-
     // Setup payor
     joystream::paymentchannel::Payor payor(price,
                                           0,
                                           amount_in_channel,
-                                          0,
                                           0,
                                           lockTime,
                                           anchor,
                                           payorContractKeyPair,
                                           payorFinalKeyHash,
                                           payeeContractKeyPair.pk(),
-                                          payeeFinalKeyHash,
-                                          Coin::Signature(),
-                                          Coin::Signature());
+                                          payeeFinalKeyHash);
 
     // Setup payee
     joystream::paymentchannel::Payee payee(0,
@@ -141,21 +171,12 @@ void Test::paychan_one_to_one() {
                                            price,
                                            amount_in_channel,
                                            1,
-                                           1,
                                            anchor,
                                            payeeContractKeyPair,
                                            payeeFinalKeyHash,
                                            payorContractKeyPair.pk(),
                                            payorFinalKeyHash,
                                            Coin::Signature());
-
-    // Payee generates refund
-    Coin::Signature refundSignature = payee.generateRefundSignature();
-
-    // Payor validates refund
-    bool wasValid = payor.checkPayeeRefundSignature(refundSignature);
-
-    //QVERIFY(wasValid); // <-- not passing I think, but ok, we are dumping old refunds
 
     // Make series of payments
     int number_of_payments = 10;

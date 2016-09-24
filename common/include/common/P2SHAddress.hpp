@@ -14,6 +14,7 @@
 namespace Coin {
 
 class TxOut;
+class P2SHScriptPubKey;
 
 /**
  * Consollidate some how with P2PKHAddress type,
@@ -23,7 +24,6 @@ class TxOut;
 class P2SHAddress {
 
 public:
-
     P2SHAddress(Network network, const RedeemScriptHash & redeemScriptHash);
 
     // Factory from Base58CheckEncoding
@@ -34,6 +34,9 @@ public:
 
     // Transaction output
     TxOut txOut(quint64 value) const;
+
+    // P2SHScriptPubKey
+    P2SHScriptPubKey toP2SHScriptPubKey() const;
 
     // Getters and setters
     Network network() const;

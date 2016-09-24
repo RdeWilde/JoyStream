@@ -34,8 +34,8 @@ public:
 
     Selling(Session<ConnectionIdType> *,
             const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-            const GenerateKeyPairsCallbackHandler &,
-            const GenerateP2PKHAddressesCallbackHandler &,
+            const GenerateP2SHKeyPairCallbackHandler &,
+            const GenerateReceiveAddressesCallbackHandler &,
             const LoadPieceForBuyer<ConnectionIdType> &,
             const ClaimLastPayment<ConnectionIdType> &,
             const AnchorAnnounced<ConnectionIdType> &,
@@ -104,8 +104,8 @@ private:
 
     // Callback handlers
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
-    GenerateKeyPairsCallbackHandler _generateKeyPairs;
-    GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddresses;
+    GenerateP2SHKeyPairCallbackHandler _generateP2SHKeyPair;
+    GenerateReceiveAddressesCallbackHandler _generateReceiveAddresses;
     LoadPieceForBuyer<ConnectionIdType> _loadPieceForBuyer;
     ClaimLastPayment<ConnectionIdType> _claimLastPayment;
     AnchorAnnounced<ConnectionIdType> _anchorAnnounced;

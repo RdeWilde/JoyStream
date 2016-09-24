@@ -122,15 +122,16 @@ public:
     void toObserveMode();
 
     // Transition to sell mode
-    void toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                    const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+    void toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
+                    const protocol_session::GenerateReceiveAddressesCallbackHandler &generateReceiveAddressesCallbackHandler,
                     const protocol_session::SellingPolicy & policy,
                     const protocol_wire::SellerTerms & terms);
 
     // Transition to buy mode
-    void toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                   const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                   const Coin::UnspentP2PKHOutput & funding,
+    void toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
+                   const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
+                   const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
+                   const Coin::UnspentOutputSet &funding,
                    const protocol_session::BuyingPolicy & policy,
                    const protocol_wire::BuyerTerms & terms);
 
@@ -277,7 +278,7 @@ private:
     //libtorrent::torrent * torrent();
 
     // Returns torrent piece information based on current state of torrent
-    protocol_session::TorrentPieceInformation torrentPieceInformation(const libtorrent::piece_picker &) const;
+    protocol_session::TorrentPieceInformation torrentPieceInformation() const;
 
     // Processes each Bittorrent type connection
     void forEachBitTorrentConnection(const std::function<void(libtorrent::bt_peer_connection *)> &);

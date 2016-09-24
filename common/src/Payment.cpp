@@ -6,6 +6,7 @@
  */
 
 #include <common/Payment.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
@@ -15,14 +16,24 @@ Payment::Payment()
     : _value(0) {
 }
 
-Payment::Payment(int64_t value, const Coin::PubKeyHash & destination)
+Payment::Payment(int64_t value, const Coin::P2PKHAddress &addr)
     : _value(value)
-    , _destination(destination){
+    , _serializedScriptPubKey(Coin::P2PKHScriptPubKey(addr.pubKeyHash()).serialize()){
 
 }
 
+Payment::Payment(int64_t value, const Coin::P2SHAddress &addr)
+    : _value(value)
+    , _serializedScriptPubKey(addr.toP2SHScriptPubKey().serialize()){
+}
+
+Payment::Payment(int64_t value, const Coin::PubKeyHash &pkHash)
+    : _value(value)
+    , _serializedScriptPubKey(Coin::P2PKHScriptPubKey(pkHash).serialize()){
+}
+
 Coin::TxOut Payment::txOut() const {
-    return Coin::TxOut(_value, Coin::P2PKHScriptPubKey(_destination).serialize());
+    return Coin::TxOut(_value, _serializedScriptPubKey);
 }
 
 int64_t Payment::value() const {
@@ -33,14 +44,12 @@ void Payment::setValue(int64_t value) {
     _value = value;
 }
 
-Coin::PubKeyHash Payment::destination() const {
-    return _destination;
+uchar_vector Payment::serializedScriptPubKey() const {
+    return _serializedScriptPubKey;
 }
 
-void Payment::setDestination(const Coin::PubKeyHash & destination) {
-    _destination = destination;
+void Payment::setSerializedScriptPubKey(const uchar_vector &scriptPubKey) {
+    _serializedScriptPubKey = scriptPubKey;
 }
-
-
 
 }

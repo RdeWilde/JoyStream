@@ -72,8 +72,8 @@ namespace detail {
 
         // Change session to sell mode
         void toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-                        const GenerateKeyPairsCallbackHandler &,
-                        const GenerateP2PKHAddressesCallbackHandler &,
+                        const GenerateP2SHKeyPairCallbackHandler &,
+                        const GenerateReceiveAddressesCallbackHandler &,
                         const LoadPieceForBuyer<ConnectionIdType> &,
                         const ClaimLastPayment<ConnectionIdType> &,
                         const AnchorAnnounced<ConnectionIdType> &,
@@ -83,11 +83,12 @@ namespace detail {
 
         // Change session to buy mode
         void toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-                       const GenerateKeyPairsCallbackHandler &,
-                       const GenerateP2PKHAddressesCallbackHandler &,
+                       const GenerateP2SHKeyPairCallbackHandler &,
+                       const GenerateReceiveAddressesCallbackHandler &,
+                       const GenerateChangeAddressesCallbackHandler &,
                        const BroadcastTransaction &,
                        const FullPieceArrived<ConnectionIdType> &,
-                       const Coin::UnspentP2PKHOutput &,
+                       const Coin::UnspentOutputSet &,
                        const BuyingPolicy &,
                        const protocol_wire::BuyerTerms &,
                        const TorrentPieceInformation &);
@@ -197,7 +198,7 @@ namespace detail {
         void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
         void invitedToOutdatedContract(const ConnectionIdType &);
         void invitedToJoinContract(const ConnectionIdType &);
-        void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
+        void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &payorFinalPkHash);
         void pieceRequested(const ConnectionIdType &, int i);
         void invalidPieceRequested(const ConnectionIdType &);
         void paymentInterrupted(const ConnectionIdType &);

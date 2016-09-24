@@ -10,9 +10,9 @@
 
 #include <common/Base58CheckEncodable.hpp> // version macroes
 #include <common/AddressType.hpp>
+#include <stdutils/uchar_vector.h>
 
 class QByteArray;
-class uchar_vector;
 
 #define DEFAULT_SEQUENCE_NUMBER 0xFFFFFFFF
 
@@ -57,7 +57,7 @@ namespace Coin {
     // Copied from mSIGNA
     uchar_vector opPushData(uint32_t nBytes);
 
-    uint32_t popData(const uchar_vector & rawData, uchar_vector &data);
+    uchar_vector popData(const uchar_vector & script, uchar_vector & poppedData);
 
     // Deduce address network
     //Network getNetwork(std::string & base58CheckEncodedAddress);
@@ -79,17 +79,25 @@ namespace Coin {
 
     //enum class SigHashType;
     class SigHashType;
+    class typesafeOutPoint;
 
     /**
      * MOVE INTO SIGHASHTYPE.HPP FILE
      */
 
     // Signature hash of type <sighahType> for transaction <tx> corresponding to input
-    // index <input> spending an output with script <scriptPubKey>
+    // index <input> spending outpoint
     uchar_vector sighash(const Coin::Transaction & tx,
-                    uint input,
-                    const uchar_vector & scriptPubKey,
-                    const SigHashType & type);
+                    uint inputIndex,
+                    const uchar_vector & subscript,
+                    const SigHashType & sigHashType);
+
+    // Signature hash of type <sighahType> for transaction <tx> corresponding to outpoint
+    // <outPoint>
+    uchar_vector sighash(const Coin::Transaction & tx,
+                    const Coin::typesafeOutPoint & outPoint,
+                    const uchar_vector & subscript,
+                    const SigHashType & sigHashType);
 
     /**
     // DER encoded signature (without trailing sighash flag) corresponding to <privateKey> on input <inputToSign> of transaction <tx>.
@@ -116,10 +124,7 @@ namespace Coin {
 
     class PrivateKey;
 
-    // Utility routine for spending p2pkh outpoint
-    void setScriptSigToSpendP2PKH(Coin::Transaction & tx,
-                           uint input,
-                           const Coin::PrivateKey & sk);
-
+    uchar_vector serializeScriptNum(const int64_t& value);
+    int64_t deserializeScriptNum(const uchar_vector & vch);
 }
 #endif // COIN_UTILITIES_HPP

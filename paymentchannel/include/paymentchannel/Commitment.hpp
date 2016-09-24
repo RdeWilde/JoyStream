@@ -9,6 +9,7 @@
 #define PAYMENT_CHANNEL_COMMITMENT_HPP
 
 #include <common/PublicKey.hpp>
+#include <paymentchannel/RedeemScript.hpp>
 
 namespace Coin {
     class P2SHScriptPubKey;
@@ -27,7 +28,7 @@ namespace paymentchannel {
         Commitment();
 
         // Constructor based on members
-        Commitment(int64_t value, const Coin::PublicKey & firstPk, const Coin::PublicKey & secondPk);
+        Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime);
 
         // Copy constructor
         Commitment(const Commitment& o);
@@ -41,18 +42,21 @@ namespace paymentchannel {
         // Generates contract output
         Coin::TxOut contractOutput() const;
 
-        // 2o2 multisig scriptpubkey
-        Coin::MultisigScriptPubKey redeemScript() const;
+        // Multiway paychan script
+        RedeemScript redeemScript() const;
 
         // Getters and setters
         int64_t value() const;
         void setValue(int64_t value);
 
-        Coin::PublicKey firstPk() const;
-        void setFirstPk(const Coin::PublicKey & firstPk);
+        Coin::PublicKey payorPk() const;
+        void setPayorPk(const Coin::PublicKey & payorPk);
 
-        Coin::PublicKey secondPk() const;
-        void setSecondPk(const Coin::PublicKey & secondPk);
+        Coin::PublicKey payeePk() const;
+        void setPayeePk(const Coin::PublicKey & payeePk);
+
+        void setLockTime(uint32_t lockTime);
+        uint32_t lockTime() const;
 
     private:
 
@@ -60,10 +64,13 @@ namespace paymentchannel {
         int64_t _value;
 
         // First public key controlling multisig output
-        Coin::PublicKey _firstPk;
+        Coin::PublicKey _payorPk;
 
         // Second public key controlling multisig output
-        Coin::PublicKey _secondPk;
+        Coin::PublicKey _payeePk;
+
+        // How long the output is locked before payor can spend it
+        uint32_t _lockTime;
     };
 
 }

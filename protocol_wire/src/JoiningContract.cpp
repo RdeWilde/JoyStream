@@ -17,7 +17,7 @@ namespace protocol_wire {
     JoiningContract::JoiningContract() {
     }
 
-    JoiningContract::JoiningContract(const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash)
+    JoiningContract::JoiningContract(const Coin::PublicKey & contractPk, const Coin::PubKeyHash &finalPkHash)
         : _contractPk(contractPk)
         , _finalPkHash(finalPkHash) {
     }

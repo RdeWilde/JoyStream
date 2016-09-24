@@ -56,7 +56,7 @@ namespace protocol_statemachine {
     // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
     typedef NoPayloadNotification InvitedToJoinContract;
 
-    // Peer announced that contract is now ready, should contract be be included? it was available
+    // Peer announced that contract is now ready, should contract be included? it was available
     typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
 
     // Peer requested piece

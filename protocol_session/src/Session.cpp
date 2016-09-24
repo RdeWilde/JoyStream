@@ -105,8 +105,8 @@ namespace protocol_session {
 
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                               const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                               const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddresses,
+                                               const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
+                                               const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                                const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                                const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                                const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
@@ -152,8 +152,8 @@ namespace protocol_session {
         // Create and set selling state
         _selling = new detail::Selling<ConnectionIdType>(this,
                                                          removedConnection,
-                                                         generateKeyPairs,
-                                                         generateP2PKHAddresses,
+                                                         generateP2SHKeyPair,
+                                                         generateReceiveAddresses,
                                                          loadPieceForBuyer,
                                                          claimLastPayment,
                                                          anchorAnnounced,
@@ -164,11 +164,12 @@ namespace protocol_session {
 
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                              const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                              const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddresses,
+                                              const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
+                                              const GenerateReceiveAddressesCallbackHandler & generateReceiveAddresses,
+                                              const GenerateChangeAddressesCallbackHandler & generateChangeAddresses,
                                               const BroadcastTransaction & hasOutstandingPayment,
                                               const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
-                                              const Coin::UnspentP2PKHOutput & funding,
+                                              const Coin::UnspentOutputSet & funding,
                                               const BuyingPolicy & policy,
                                               const protocol_wire::BuyerTerms & terms,
                                               const TorrentPieceInformation & information) {
@@ -211,8 +212,9 @@ namespace protocol_session {
         // Create and set selling state
         _buying = new detail::Buying<ConnectionIdType>(this,
                                                        removedConnection,
-                                                       generateKeyPairs,
-                                                       generateP2PKHAddresses,
+                                                       generateP2SHKeyPair,
+                                                       generateReceiveAddresses,
+                                                       generateChangeAddresses,
                                                        hasOutstandingPayment,
                                                        fullPieceArrived,
                                                        funding,

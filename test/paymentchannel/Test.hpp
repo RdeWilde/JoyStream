@@ -24,6 +24,8 @@ class Test : public QObject
 
 private slots:
 
+    void redeemScript();
+
     void refund();
 
     void settlement();

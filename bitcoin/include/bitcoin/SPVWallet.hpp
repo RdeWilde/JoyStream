@@ -3,7 +3,8 @@
 
 #include <QObject>
 #include <common/Network.hpp>
-#include <common/UnspentP2PKHOutput.hpp>
+#include <common/UnspentOutput.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 
 #include <CoinQ/CoinQ_netsync.h>
 #include <bitcoin/Store.hpp>
@@ -11,6 +12,11 @@
 #include <mutex>
 
 class Test;
+
+namespace Coin {
+    class UnspentOutputSet;
+    class Entropy;
+}
 
 namespace joystream {
 namespace bitcoin {
@@ -41,14 +47,25 @@ public:
 
     explicit SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network = Coin::Network::testnet3);
 
-    // Create a new wallet with auto generated seed
+    // Create a new wallet (auto generated bip39 seed)
     void create();
 
-    // Create a new wallet with provided seed (useful for recovering a wallet from seed)
-    void create(Coin::Seed seed, uint32_t timestamp = 0);
+    // Create a new wallet bip39 seed generated from provided entropy
+    // Important - Creating a wallet with a predefined entropy does not by itself restore
+    // a wallet.
+    void create(const Coin::Entropy &entropy, uint32_t timestamp = 0);
 
-    // Open the wallet. Will throw exception on failure.
-    void open();
+    // Open the wallet. Will throw exception on failure
+    void open(std::string passphrase = "");
+
+    bool encrypted() const;
+    bool locked() const;
+
+    void unlock(std::string passphrase);
+    void lock();
+
+    void encrypt(std::string passphrase);
+    void decrypt(std::string passphrase);
 
     // Start Synching the wallet with peer at host:port
     void sync(std::string host, int port, unsigned int timeout = 0);
@@ -65,16 +82,26 @@ public:
     bool isSynchingBlocks() const { return _walletStatus == wallet_status_t::SYNCHING_BLOCKS;}
     bool isSynched() const { return _walletStatus == wallet_status_t::SYNCHED;}
 
-    Coin::PrivateKey getKey(bool createReceiveAddress);
-    std::vector<Coin::PrivateKey> getKeys(uint32_t numKeys, bool createReceiveAddress);
-    std::vector<Coin::KeyPair> getKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
-    void releaseKey(const Coin::PrivateKey &sk);
-    Coin::P2PKHAddress getReceiveAddress();
+    // Generate Keys with custom redeem scripts
+    Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
+    std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator);
+    std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator);
 
-    std::list<Coin::P2PKHAddress> listAddresses();
+    // Generate a Key for external use
+    Coin::PublicKey generateReceivePublicKey();
 
-    std::list<Coin::UnspentP2PKHOutput> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
-    void unlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
+    // Generate a Key for internal use (change address)
+    Coin::PublicKey generateChangePublicKey();
+
+    //Generate addresses..
+    Coin::P2PKHAddress generateReceiveAddress();
+    Coin::P2PKHAddress generateChangeAddress();
+
+    Coin::PrivateKey generateReceivePrivateKey();
+    Coin::PrivateKey generateChangePrivateKey();
+
+    Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0, const Store::RedeemScriptFilter &scriptFilter = nullptr);
+    uint unlockOutputs(const Coin::UnspentOutputSet & outputs);
 
     uint64_t balance() const;
     uint64_t unconfirmedBalance() const;
@@ -84,6 +111,10 @@ public:
     Q_INVOKABLE void broadcastTx(Coin::Transaction cointx);
 
     int32_t bestHeight() const;
+
+    std::string getSeedWords() const;
+    
+    std::vector<Coin::P2PKHAddress> listReceiveAddresses() const;
 
 signals:
 
@@ -154,12 +185,11 @@ private:
     void onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount);
     void onMerkleBlock(const ChainMerkleBlock& chainmerkleblock);
 
-    std::set<uchar_vector> _bloomFilterPubKeyHashes;
-    std::set<uchar_vector> _bloomFilterCompressedPubKeys;
+    std::set<uchar_vector> _bloomFilterScripts;
+    std::set<Coin::PublicKey> _bloomFilterPubKeys;
+    std::set<uchar_vector> _scriptPubKeys;
 
-    Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
-
-    void updateBloomFilter(const std::vector<Coin::PrivateKey> &privateKeys);
+    void updateBloomFilter(const std::vector<uchar_vector> redeemScripts, const std::vector<Coin::PublicKey> publicKeys);
 
     bool transactionShouldBeStored(const Coin::Transaction &) const;
     bool spendsWalletOutput(const Coin::TxIn &) const;
@@ -173,7 +203,9 @@ private:
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
     int32_t test_netsyncBestHeight() const { return _networkSync.getBestHeight(); }
-    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee);
+    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee);
+    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee);
+    Coin::Transaction test_sendToAddress(uint64_t value, const uchar_vector &scriptPubKey, uint64_t fee);
 
 };
 

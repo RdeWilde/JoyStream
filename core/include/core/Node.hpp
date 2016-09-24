@@ -135,7 +135,7 @@ signals:
     void startedListening(const libtorrent::tcp::endpoint & endPoint);
 
     // Torrent added
-    void addedTorrent(const Torrent *);
+    void addedTorrent(Torrent *);
 
     // Torrent with given info hash was removed
     void removedTorrent(const libtorrent::sha1_hash & info_hash);

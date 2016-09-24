@@ -6,14 +6,16 @@
  */
 
 #include <common/P2SHAddress.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 #include <common/Base58CheckEncodable.hpp>
 #include <CoinCore/Base58Check.h>
 
 namespace Coin {
 
 P2SHAddress::P2SHAddress(Network network, const RedeemScriptHash & redeemScriptHash)
-    : _network(network)
-    , _redeemScriptHash(redeemScriptHash) {
+    : _network(network),
+      _redeemScriptHash(redeemScriptHash)
+{
 }
 
 P2SHAddress P2SHAddress::fromBase58CheckEncoding(const QString & encoded) {
@@ -30,7 +32,7 @@ P2SHAddress P2SHAddress::fromBase58CheckEncoding(const QString & encoded) {
         throw std::runtime_error("Argument was not a P2SH address.");
 
     // Create address and return
-    return P2SHAddress(network, RedeemScriptHash(redeemScriptHash));
+    return P2SHAddress(network, RedeemScriptHash::fromRawHash(redeemScriptHash));
 }
 
 QString P2SHAddress::toBase58CheckEncoding() const {
@@ -42,6 +44,10 @@ QString P2SHAddress::toBase58CheckEncoding() const {
     std::string encoded = toBase58Check(_redeemScriptHash.toUCharVector(), versionBytes);
 
     return QString::fromStdString(encoded);
+}
+
+P2SHScriptPubKey P2SHAddress::toP2SHScriptPubKey() const {
+    return P2SHScriptPubKey(_redeemScriptHash);
 }
 
 Network P2SHAddress::network() const {

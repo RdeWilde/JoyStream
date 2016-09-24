@@ -9,7 +9,7 @@
 #include <core/Seller.hpp>
 #include <core/detail/detail.hpp>
 
-Q_DECLARE_METATYPE(Coin::UnspentP2PKHOutput)
+Q_DECLARE_METATYPE(Coin::UnspentOutputSet)
 Q_DECLARE_METATYPE(joystream::protocol_session::BuyingPolicy)
 Q_DECLARE_METATYPE(joystream::protocol_session::BuyingState)
 Q_DECLARE_METATYPE(joystream::protocol_wire::BuyerTerms)
@@ -21,7 +21,7 @@ namespace core {
 
 void Buying::registerMetaTypes() {
 
-    qRegisterMetaType<Coin::UnspentP2PKHOutput>();
+    qRegisterMetaType<Coin::UnspentOutputSet>();
     qRegisterMetaType<protocol_session::BuyingPolicy>();
     qRegisterMetaType<protocol_session::BuyingState>();
     qRegisterMetaType<protocol_wire::BuyerTerms>();
@@ -30,7 +30,7 @@ void Buying::registerMetaTypes() {
     Seller::registerMetaTypes();
 }
 
-Buying::Buying(const Coin::UnspentP2PKHOutput & funding,
+Buying::Buying(const Coin::UnspentOutputSet & funding,
                const protocol_session::BuyingPolicy & policy,
                const protocol_session::BuyingState & state,
                const protocol_wire::BuyerTerms & terms,
@@ -64,7 +64,7 @@ Buying::~Buying() {
 }
 
 
-Coin::UnspentP2PKHOutput Buying::funding() const noexcept {
+Coin::UnspentOutputSet Buying::funding() const noexcept {
     return _funding;
 }
 

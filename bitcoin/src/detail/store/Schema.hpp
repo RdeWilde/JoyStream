@@ -11,7 +11,8 @@
 #include <common/PrivateKey.hpp>
 #include <common/PublicKey.hpp>
 #include <common/PubKeyHash.hpp>
-#include <common/P2PKHAddress.hpp>
+#include <common/P2SHAddress.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
 
 #include <common/TransactionId.hpp>
@@ -25,6 +26,9 @@
 
 namespace joystream {
 namespace bitcoin {
+
+class RedeemScriptInfo;
+
 namespace detail {
 namespace store {
 
@@ -34,27 +38,46 @@ namespace store {
  * Metadata
  */
 
-//no_id - we don't intend to have more than one Metadata object in the database
-#pragma db object no_id pointer(std::shared_ptr)
+#pragma db object pointer(std::shared_ptr)
 class Metadata : public std::enable_shared_from_this<Metadata> {
   public:
     std::shared_ptr<Metadata> get_shared_ptr() { return shared_from_this(); }
 
     Metadata();
-    Metadata(std::string seed, Coin::Network network, uint32_t created_utc);
+    Metadata(std::string entropy, std::string xpublicKey, uint32_t created_utc, Coin::Network network);
 
-    std::string seed() const;
-    Coin::Network network() const;
+    std::string entropy() const;
+    void entropy(std::string);
+
     uint32_t created() const;
+
+    bool encrypted() const;
+    void encrypted(bool);
+    Coin::Network network() const;
+    std::string salt() const;
+    void salt(std::string);
+    std::string xpublicKey() const;
 
   private:
     friend class odb::access;
 
-    //TODO: store encrypted seed
+    #pragma db id
+    int id_;
+
     #pragma db not_null
-    std::string seed_;
-    #pragma db not_null
+    std::string entropy_; //hex encoded entropy
+
+    //hex encoded extended public key, for deriving public keys
+    std::string xpublicKey_;
+
     Coin::Network network_;
+
+    //wether entropy_ is encrypted with a passphrase
+    bool encrypted_;
+
+    //hex encoded random salt
+    std::string salt_;
+
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t created_;
 };
@@ -63,30 +86,45 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
  * Key
  */
 
+// bip32 derivation path: m / purpose' / coin_type' / account' / change / address_index
+#pragma db value
+struct key_path_t {
+    //uint32_t purpose;    // 0x8000002C = 44' implied (BIP44)
+    uint32_t coin_type;  // Bitcoin = 0x80000000, Bitcoin Tesnet = 0x80000001
+    //uint32_t account;   // 0x00000000 = 0 implied (Single Account)
+    // 0 = receive p2pkh address
+    // 1 = change  p2pkh address
+    // 2 = p2sh address (corresponding to payment channel commitment) this is not part of bip44
+    //                                                                which means coins controller by these p2sh
+    //                                                                addresses cannot be recovered by other bip44 wallets
+    uint32_t change;
+    uint32_t index;
+};
+
 #pragma db object pointer(std::shared_ptr) session
 class Key : public std::enable_shared_from_this<Key> {
 public:
     std::shared_ptr<Key> get_shared_ptr() { return shared_from_this(); }
 
-    Key(uint32_t index, bool used = true);
-    Key(bool used = true);
+    Key(uint32_t coin_type, uint32_t change, uint32_t index);
+    Key();
 
-    uint32_t id() const;
+    uint32_t index() const;
+    uint32_t change() const;
+    uint32_t coin_type() const;
     uint32_t generated() const;
-    bool used() const;
-    void used(bool);
-    Coin::PrivateKey getPrivateKey() const { return Coin::PrivateKey(uchar_vector(raw_)); }
-    void setPrivateKey(Coin::PrivateKey sk) { raw_ = sk.toHex().toStdString(); }
 
 private:
     friend class odb::access;
 
     #pragma db id auto
-    uint32_t index_;
+    uint32_t id_;
+
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t generated_;
-    bool used_;
-    std::string raw_; //hex encoded raw private key
+
+    #pragma db index unique
+    key_path_t path_;
 };
 
 /*
@@ -99,10 +137,18 @@ public:
     std::shared_ptr<Address> get_shared_ptr() { return shared_from_this(); }
 
     Address() {}
-    Address(const std::shared_ptr<Key> & key_, const Coin::P2PKHAddress & p2pkh_addr);
+
+    // P2PKH Address
+    Address(const std::shared_ptr<Key> & key_, const Coin::Script &scriptPubKey);
+
+    // P2SH Adddress
+    Address(const std::shared_ptr<Key> & key_, const RedeemScriptInfo & scriptInfo);
+
     const std::shared_ptr<Key> key() const { return key_; }
-    //Coin::P2PKHAddress toP2PKHAddress() const;
+
     std::string scriptPubKey() const { return scriptPubKey_; }
+    std::string redeemScript() const { return redeemScript_; }
+    std::string optionalData() const { return optionalData_; }
 
 private:
     friend class odb::access;
@@ -110,13 +156,17 @@ private:
     #pragma db id auto
     unsigned long id_;
 
-    std::string address_; //Base58CheckEncoded string
-
-    #pragma db not_null unique //unique - it doesn't make sense to have two address objects for the same key
-    std::shared_ptr<Key> key_; //to establish a relation with the Wallet::Key
+    #pragma db not_null unique
+    std::shared_ptr<Key> key_;
 
     #pragma db not_null
-    std::string scriptPubKey_;//to lookup outputs to this address
+    std::string scriptPubKey_; // to lookup outputs to this address
+
+    #pragma db null
+    std::string redeemScript_; // hex encoded redeem script (for p2sh address)
+
+    #pragma db null
+    std::string optionalData_; // optional hex encoded script chunk
 };
 
 /*
@@ -361,19 +411,21 @@ typedef struct {
 
 #pragma db view object(Key)
 typedef struct {
-  #pragma db column("count(" + Key::index_ + ")")
+  #pragma db column("count(" + Key::id_ + ")")
   uint32_t count;
 
-  #pragma db column("max(" + Key::index_ + ")")
-  uint32_t max;
+  #pragma db column("max(" + Key::path_.index + ")")
+  uint32_t max_index;
+
 } key_stat_t;
 
 #pragma db view object(Key = key) object(Address = address)
 typedef struct {
     std::shared_ptr<Key> key;
+    std::shared_ptr<Address> address;
 } key_view_t;
 
-
+#ifdef USE_STORE_ALPHA_CODE
 /*
  * InBoundPayment
  */
@@ -426,7 +478,7 @@ private:
     std::shared_ptr<Address> changeAddress_;
 };
 
-#ifdef USE_STORE_ALPHA_CODE
+
 #pragma db object pointer(std::shared_ptr)
 class Payer : public std::enable_shared_from_this<Payer> {
 public:
@@ -551,7 +603,6 @@ typedef struct {
     uint32_t index() { return outpoint->index(); }
     std::string txid() { return outpoint->txid(); }
     uint64_t value() { return output->value(); }
-    uint32_t keyIndex() { return address->key()->id(); }
 
 } outputs_view_t;
 

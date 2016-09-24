@@ -18,8 +18,8 @@ namespace detail {
     template <class ConnectionIdType>
     Selling<ConnectionIdType>::Selling(Session<ConnectionIdType> * session,
                                        const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                       const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                       const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddresses,
+                                       const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
+                                       const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                        const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                        const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
@@ -28,8 +28,8 @@ namespace detail {
                                        int MAX_PIECE_INDEX)
         : _session(session)
         , _removedConnection(removedConnection)
-        , _generateKeyPairs(generateKeyPairs)
-        , _generateP2PKHAddresses(generateP2PKHAddresses)
+        , _generateP2SHKeyPair(generateP2SHKeyPair)
+        , _generateReceiveAddresses(generateReceiveAddresses)
         , _loadPieceForBuyer(loadPieceForBuyer)
         , _claimLastPayment(claimLastPayment)
         , _anchorAnnounced(anchorAnnounced)
@@ -374,8 +374,12 @@ namespace detail {
         if(_terms.satisfiedBy(announced.buyModeTerms())) {
 
             // Join if they are
-            Coin::KeyPair contractKeyPair = _generateKeyPairs(1).front();
-            Coin::PubKeyHash finalPkHash = _generateP2PKHAddresses(1).front().pubKeyHash();
+            Coin::KeyPair contractKeyPair = _generateP2SHKeyPair([&](const Coin::PublicKey &pubKey){
+                paymentchannel::RedeemScript redeemScript(c->payee().payorContractPk(), pubKey, c->payee().lockTime());
+                return redeemScript.serialized();
+            }, uchar_vector(0x01) /*OP_TRUE */);
+
+            Coin::PubKeyHash finalPkHash = _generateReceiveAddresses(1).front().pubKeyHash();
             c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));
 
         } else {

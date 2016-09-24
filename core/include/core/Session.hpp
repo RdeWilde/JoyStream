@@ -88,7 +88,7 @@ signals:
 
     void stateChanged(protocol_session::SessionState);
 
-    void connectionAdded(const Connection *);
+    void connectionAdded(Connection *);
 
     void connectionRemoved(const libtorrent::tcp::endpoint &);
 

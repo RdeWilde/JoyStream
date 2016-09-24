@@ -16,7 +16,7 @@ namespace protocol_wire {
         : Ready(0, Coin::typesafeOutPoint(), Coin::PublicKey(), Coin::PubKeyHash()) {
     }
 
-    Ready::Ready(quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash)
+    Ready::Ready(quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash &finalPkHash)
         : _value(value)
         , _anchor(anchor)
         , _contractPk(contractPk)

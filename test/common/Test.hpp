@@ -33,6 +33,12 @@ private slots:
     void addresses();
 
     /**
+      * Utilities
+      */
+
+    void popData();
+
+    /**
      * Input and output scripts
      */
 
@@ -47,6 +53,12 @@ private slots:
 
     void P2SHMultisigScriptPubKey();
     void P2SHMultisigScriptSig();
+
+    /**
+      * BIP 39 Seed
+      */
+
+    void BIP39();
 
 private:
 

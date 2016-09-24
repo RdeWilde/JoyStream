@@ -12,16 +12,13 @@ event::Recv<protocol_wire::Payment> SellingNavigator::Fixture::goodPayment(const
     joystream::paymentchannel::Payor payor(sellModeStarted.terms().minPrice(),
                                            numberOfPayments,
                                            contractReady.message().value(),
-                                           peerToBuyMode.message().terms().refundFee(),
                                            sellModeStarted.terms().settlementFee(),
                                            sellModeStarted.terms().minLock(),
                                            contractReady.message().anchor(),
                                            Coin::KeyPair(payorContractSk),
                                            contractReady.message().finalPkHash(),
                                            joinedContract.contractKeys().pk(),
-                                           joinedContract.finalPkHash(),
-                                           Coin::Signature(),
-                                           Coin::Signature());
+                                           joinedContract.finalPkHash());
 
     Coin::Signature payment = payor.generatePayorSettlementSignature();
 

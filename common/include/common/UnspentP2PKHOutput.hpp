@@ -4,67 +4,51 @@
  * Proprietary and confidential
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>
+ */
 
 #ifndef COIN_UNSPENT_P2PKH_OUTPUT_HPP
 #define COIN_UNSPENT_P2PKH_OUTPUT_HPP
 
+#include <common/P2PKHScriptPubKey.hpp>
+#include <common/UnspentOutput.hpp>
 #include <common/KeyPair.hpp>
-#include <common/typesafeOutPoint.hpp>
-//#include <CoinCore/CoinNodeData.h> // Coin::OutPoint
+#include <common/TransactionSignature.hpp>
 
 namespace Coin {
 
-    /**
-     * Refactor this later into something which can hold a
-     * set of utxo, not just one, and also what the coinage
-     * of inputs are and so on, so that fee calculation can be
-     * improved. (does this even matter in fee market?)
-     */
-    class UnspentP2PKHOutput
-    {
-    public:
+class UnspentP2PKHOutput : public UnspentOutput
+{
+public:
 
-        // Default constructor
-        UnspentP2PKHOutput();
+    // Default constructor
+    UnspentP2PKHOutput();
 
-        // Constructor from members
-        UnspentP2PKHOutput(const KeyPair & keyPair, const typesafeOutPoint & outPoint, quint64 setValue);
+    // Constructor from members
+    UnspentP2PKHOutput(const KeyPair & keyPair, const typesafeOutPoint & outPoint, uint64_t setValue);
 
-        // Constructor from json
-        UnspentP2PKHOutput(const QJsonObject & json);
+    // Comparator
+    bool operator==(const UnspentP2PKHOutput & o) const;
+    bool operator!=(const UnspentP2PKHOutput & o) const;
 
-        // Comparator
-        bool operator==(const UnspentP2PKHOutput & o) const;
-        bool operator!=(const UnspentP2PKHOutput & o) const;
+    // Getters and setters
+    KeyPair keyPair() const;
+    void setKeyPair(const KeyPair & keyPair);
 
-        // Getters and setters
-        KeyPair keyPair() const;
-        void setKeyPair(const KeyPair & keyPair);
+    virtual uchar_vector scriptPubKey() const;
+    virtual uchar_vector sighash(const Transaction & tx, const SigHashType &sigHashType) const;
+    virtual TransactionSignature transactionSignature(const Transaction & tx, const SigHashType & sigHashType) const;
+    virtual uchar_vector scriptSig(const Transaction &, const SigHashType &) const;
 
-        typesafeOutPoint outPoint() const;
-        void setOutPoint(const typesafeOutPoint & outPoint);
+private:
 
-        quint64 value() const;
-        void setValue(quint64 value);
-
-    private:
-
-        // Controls utxo
-        KeyPair _keyPair;
-
-        // OutPoint locating utxo
-        typesafeOutPoint _outPoint;
-
-        // Value of output
-        quint64 _value;
-
-        /**
-          we may need scriptPubKey so that we can create spendingsignatures,
-          but as long as its p2pkh we can always regenerate from keypair.
-          Coin::Output _ouput
-        */
-
-    };
+    // Controls utxo
+    KeyPair _keyPair;
+};
 
 }
 

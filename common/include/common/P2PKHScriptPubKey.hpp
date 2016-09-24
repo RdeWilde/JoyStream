@@ -9,13 +9,14 @@
 #define P2PKH_SCRIPT_PUBKEY_HPP
 
 #include <common/PubKeyHash.hpp>
+#include <common/Script.hpp>
 
 namespace Coin {
 
 class PublicKey;
 
 /** NOTE: Make subclass of proper typesafe script class in the future **/
-class P2PKHScriptPubKey {
+class P2PKHScriptPubKey : public Script {
 
 public:
 
@@ -30,8 +31,8 @@ public:
     static P2PKHScriptPubKey deserialize(const uchar_vector & script);
     static P2PKHScriptPubKey deserialize(const std::string & hex);
 
-    // Raw script: scriptSig: <sig> <pubKey>
-    uchar_vector serialize() const;
+    // Raw Script
+    virtual uchar_vector serialize() const;
 
     PubKeyHash pubKeyHash() const { return _hash; }
 

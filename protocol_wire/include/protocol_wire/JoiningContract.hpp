@@ -11,6 +11,7 @@
 #include <protocol_wire/ExtendedMessagePayload.hpp>
 #include <common/PublicKey.hpp>
 
+
 namespace joystream {
 namespace protocol_wire {
 
@@ -19,7 +20,7 @@ namespace protocol_wire {
     public:
 
         JoiningContract();
-        JoiningContract(const Coin::PublicKey &, const Coin::PubKeyHash &);
+        JoiningContract(const Coin::PublicKey &, const Coin::PubKeyHash &finalPkHash);
         JoiningContract(QDataStream & stream);
 
         virtual ~JoiningContract() {}

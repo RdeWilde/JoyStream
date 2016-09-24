@@ -15,6 +15,7 @@ QT      += core sql
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
+    include/paymentchannel/RedeemScript.hpp \
     include/paymentchannel/Commitment.hpp \
     include/paymentchannel/Payee.hpp \
     include/paymentchannel/Refund.hpp \
@@ -25,6 +26,7 @@ HEADERS += \
     include/paymentchannel/Contract.hpp
 
 SOURCES += \
+    src/RedeemScript.cpp \
     src/Commitment.cpp \
     src/Payee.cpp \
     src/Refund.cpp \

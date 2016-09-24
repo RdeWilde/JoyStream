@@ -120,7 +120,7 @@ public:
 
 signals:
 
-    void peerAdded(const Peer *);
+    void peerAdded(Peer *);
 
     void peerRemoved(const libtorrent::tcp::endpoint &);
 

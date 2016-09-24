@@ -5,6 +5,10 @@
 #include <odb/transaction.hxx>
 #include <odb/sqlite/database.hxx>
 
+#include <CoinCore/hash.h> // ripemd160(sha256(pubkey))
+
+#include <bitcoin/Common.hpp>
+
 namespace joystream {
 namespace bitcoin {
 namespace detail {
@@ -14,60 +18,91 @@ namespace store {
 
     Metadata::Metadata(){}
 
-    Metadata::Metadata(std::string seed, Coin::Network net, uint32_t created_utc) :
-        seed_(seed),
-        network_(net),
-        created_(created_utc)
+    Metadata::Metadata(std::string entropy, std::string extendedPubKey, uint32_t created_utc, Coin::Network network) :
+         entropy_(entropy)
+        ,xpublicKey_(extendedPubKey)
+        ,created_(created_utc)
+        ,encrypted_(false)
+        ,network_(network)
     {}
 
-    std::string Metadata::seed() const {
-        return seed_;
+    std::string Metadata::entropy() const {
+        return entropy_;
     }
 
-    Coin::Network Metadata::network() const {
-        return network_;
+    void Metadata::entropy(std::string entropy) {
+        entropy_ = entropy;
     }
 
     uint32_t Metadata::created() const {
         return created_;
     }
 
+    bool Metadata::encrypted() const {
+        return encrypted_;
+    }
+
+    void Metadata::encrypted(bool encrypted) {
+        encrypted_ = encrypted;
+    }
+
+    Coin::Network Metadata::network() const {
+        return network_;
+    }
+
+    std::string Metadata::salt() const {
+        return salt_;
+    }
+
+    void Metadata::salt(std::string salt) {
+        salt_ = salt;
+    }
+
+    std::string Metadata::xpublicKey() const {
+        return xpublicKey_;
+    }
+
 /// Key
 
-    Key::Key(uint32_t index, bool used) :
-        index_(index),
-        used_(used),
+    Key::Key(uint32_t coin_type, uint32_t change, uint32_t index) :
+        path_({coin_type, change, index}),
         generated_(std::time(nullptr))
     {}
 
-    Key::Key(bool used) :
-        used_(used),
+    Key::Key() :
         generated_(std::time(nullptr))
     {}
 
-    uint32_t Key::id() const {
-        return index_;
+    uint32_t Key::index() const {
+        return path_.index;
+    }
+
+    uint32_t Key::change() const {
+        return path_.change;
+    }
+
+    uint32_t Key::coin_type() const {
+        return path_.coin_type;
     }
 
     uint32_t Key::generated() const {
         return generated_;
     }
 
-    bool Key::used() const {
-        return used_;
-    }
-
-    void Key::used(bool isUsed) {
-        used_ = isUsed;
-    }
-
 /// Address
 
-    Address::Address(const std::shared_ptr<Key> & key, const Coin::P2PKHAddress & p2pkh_addr) {
+    Address::Address(const std::shared_ptr<Key> & key, const RedeemScriptInfo &scriptInfo) {
         key_ = key;
-        address_ = p2pkh_addr.toBase58CheckEncoding().toStdString();
-        Coin::PubKeyHash pubKeyHash = p2pkh_addr.pubKeyHash();
-        scriptPubKey_ = Coin::P2PKHScriptPubKey(pubKeyHash).serialize().getHex();
+        redeemScript_ = scriptInfo.redeemScript.getHex();
+        optionalData_ = scriptInfo.optionalData.getHex();
+        scriptPubKey_ = Coin::P2SHScriptPubKey(Coin::RedeemScriptHash::fromRawScript(scriptInfo.redeemScript)).serialize().getHex();
+        //scriptPubKey_ = scriptPubKey.serialize().getHex();
+    }
+
+    Address::Address(const std::shared_ptr<Key> & key, const Coin::Script & scriptPubKey) {
+        key_ = key;
+        //scriptPubKey_ = Coin::P2PKHScriptPubKey(key->getPrivateKey().toPublicKey()).serialize().getHex();
+        scriptPubKey_ = scriptPubKey.serialize().getHex();
     }
 
 /// Transaction
@@ -173,7 +208,14 @@ namespace store {
         return lhs.tx->txid() < rhs.tx->txid();
     }
 
+    // BlockHeader
 
+    BlockHeader::BlockHeader(const ChainMerkleBlock &header) {
+        id_ =  header.hash().getHex();
+        height_ = header.height;
+    }
+
+#ifdef USE_STORE_ALPHA_CODE
 /// InBoundPayment
 
     InBoundPayment::InBoundPayment(const std::shared_ptr<Address> &address,
@@ -196,15 +238,6 @@ namespace store {
         created_(std::time(nullptr))
     {}
 
-
-// BlockHeader
-
-    BlockHeader::BlockHeader(const ChainMerkleBlock &header) {
-        id_ =  header.hash().getHex();
-        height_ = header.height;
-    }
-
-#ifdef USE_STORE_ALPHA_CODE
 // Payer
 
     Payer::Payer(std::shared_ptr<Transaction> tx)

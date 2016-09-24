@@ -36,17 +36,17 @@ uchar_vector P2PKHScriptSig::serialized() const {
 
 }
 
-P2PKHScriptSig P2PKHScriptSig::deserialize(const uchar_vector & rawScript) {
+P2PKHScriptSig P2PKHScriptSig::deserialize(const uchar_vector & script) {
     uchar_vector rawTxSignatureAndCode;
     uchar_vector rawPublicKey;
 
-    int nextData = popData(rawScript, rawTxSignatureAndCode);
+    uchar_vector subscript = popData(script, rawTxSignatureAndCode);
 
-    if(nextData > 0) {
-        popData(uchar_vector(&rawScript[nextData], &rawScript[rawScript.size()]), rawPublicKey);
+    if(!subscript.empty()) {
+        popData(subscript, rawPublicKey);
     }
 
-    if(rawTxSignatureAndCode.size() == 0) {
+    if(rawTxSignatureAndCode.empty()) {
         throw std::runtime_error("error deserializing p2pkhScriptSig: missing signature.");
     }
 
@@ -62,9 +62,7 @@ P2PKHScriptSig P2PKHScriptSig::deserialize(const uchar_vector & rawScript) {
 
     PublicKey pubKey(rawPublicKey);
 
-    P2PKHScriptSig script(pubKey, txSignature);
-
-    return script;
+    return P2PKHScriptSig(pubKey, txSignature);
 }
 
 PublicKey P2PKHScriptSig::pk() const {

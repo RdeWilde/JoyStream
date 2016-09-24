@@ -19,8 +19,13 @@
 #include <common/P2SHScriptPubKey.hpp>
 #include <common/P2SHScriptSig.hpp>
 #include <common/Utilities.hpp>
+#include <common/Seed.hpp>
+#include <common/Entropy.hpp>
 
+#include <CoinCore/bip39.h>
 #include <CoinCore/secp256k1_openssl.h>
+#include <CoinCore/hdkeys.h>
+#include <CoinCore/Base58Check.h>
 
 #include <QJsonArray>
 
@@ -203,6 +208,92 @@ void Test::addresses() {
     // p2sh
 }
 
+
+void Test::popData() {
+
+    {
+        uchar_vector script;
+        script.push_back(0x00); // OP_FALSE
+
+        uchar_vector data;
+
+        uchar_vector subscript = Coin::popData(script, data);
+
+        QCOMPARE(uint(data.size()), uint(0));
+
+        QVERIFY(subscript.empty());
+    }
+
+    {
+        uchar_vector script;
+        script.push_back(0x00); // OP_FALSE
+        script.push_back(0x00); // OP_FALSE
+
+        QCOMPARE(uint(script.size()), uint(2));
+
+        uchar_vector data;
+
+        uchar_vector subscript = Coin::popData(script, data);
+
+        QCOMPARE(uint(data.size()), uint(0));
+
+        QCOMPARE(uint(subscript.size()), uint(1));
+
+        Coin::popData(subscript, data);
+
+        QCOMPARE(uint(data.size()), uint(0));
+    }
+
+    {
+        const uint len = 20;
+        uchar_vector data(len, 0xff);
+        uchar_vector script;
+        script += Coin::opPushData(data.size());
+        script += data;
+
+        QCOMPARE(uint(script.size()), uint(21));
+        QCOMPARE(uint(script[0]), len);
+
+        uchar_vector data_;
+        uchar_vector subscript = Coin::popData(script, data_);
+
+        QCOMPARE(uint(data_.size()), uint(len));
+
+        QCOMPARE(data_, data);
+
+        QVERIFY(subscript.empty());
+    }
+
+    {
+        const uint len = 20;
+        uchar_vector data(len, 0xff);
+        uchar_vector script;
+        script += Coin::opPushData(data.size());
+        script += data;
+        script += Coin::opPushData(data.size());
+        script += data;
+
+        uchar_vector subscript;
+
+        QCOMPARE(uint(script.size()), uint(42));
+
+        uchar_vector data_;
+
+        subscript = Coin::popData(script, data_);
+
+        QCOMPARE(uint(data_.size()), uint(len));
+        QCOMPARE(data_, data);
+
+        QCOMPARE(uint(subscript.size()), uint(21));
+
+        Coin::popData(subscript, data_);
+
+        QCOMPARE(uint(data_.size()), uint(len));
+        QCOMPARE(data_, data);
+    }
+
+}
+
 void Test::P2PKHScriptPubKey() {
 
     /**
@@ -327,7 +418,7 @@ void Test::P2SHScriptPubKey() {
     uchar_vector rawRedeemScript("5221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc52ae");
     uchar_vector rawScript("a9144fbd6060861fed97ef2b95e6afff4afb2943cc1587");
 
-    Coin::P2SHScriptPubKey script = Coin::P2SHScriptPubKey::fromSerializedRedeemScript(rawRedeemScript);
+    Coin::P2SHScriptPubKey script = Coin::P2SHScriptPubKey(Coin::RedeemScriptHash::fromRawScript(rawRedeemScript));
 
     QVERIFY(script.serialize() == rawScript);
 }
@@ -401,6 +492,33 @@ void Test::P2SHMultisigScriptSig() {
     //qDebug() << QString::fromStdString(ser.getHex());
     QVERIFY(script == sig.serialized());
 
+}
+
+void Test::BIP39()
+{
+    // Test Vectors from
+    // https://github.com/trezor/python-mnemonic/blob/master/vectors.json
+    {
+        Coin::Entropy entropy(std::string("00000000000000000000000000000000"));
+        QVERIFY(entropy.getHex() == "00000000000000000000000000000000");
+        QVERIFY(entropy.mnemonic() == "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about");
+        QVERIFY(Coin::Entropy::fromMnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about").getHex() == "00000000000000000000000000000000");
+        QVERIFY(entropy.seed("TREZOR").toHex().toStdString() == "c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04");
+    }
+
+    {
+        Coin::Entropy entropy(std::string("7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f"));
+        QVERIFY(entropy.getHex() == "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f");
+        QVERIFY(entropy.mnemonic() == "legal winner thank year wave sausage worth useful legal winner thank yellow");
+        QVERIFY(entropy.seed("TREZOR").toHex().toStdString() == "2e8905819b8723fe2c1d161860e5ee1830318dbf49a83bd451cfb8440c28bd6fa457fe1296106559a3c80937a1c1069be3a3a5bd381ee6260e8d9739fce1f607");
+    }
+
+    {
+        Coin::Entropy entropy(std::string("80808080808080808080808080808080"));
+        QVERIFY(entropy.getHex() == "80808080808080808080808080808080");
+        QVERIFY(entropy.mnemonic() == "letter advice cage absurd amount doctor acoustic avoid letter advice cage above");
+        QVERIFY(entropy.seed("TREZOR").toHex().toStdString() == "d71de856f81a8acc65e6fc851a38d4d7ec216fd0796d0a6827a3ad6ed5511a30fa280f12eb2e47ed2ac03b5c462a0358d18d69fe4f985ec81778c1b370b652a8");
+    }
 }
 
 QTEST_MAIN(Test)

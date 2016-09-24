@@ -12,7 +12,7 @@ using namespace joystream::protocol_statemachine::event;
 Joined::Joined() {
 }
 
-Joined::Joined(const Coin::KeyPair & contractKeys, const Coin::PubKeyHash & finalPkHash)
+Joined::Joined(const Coin::KeyPair & contractKeys, const Coin::PubKeyHash &finalPkHash)
     : _contractKeys(contractKeys)
     , _finalPkHash(finalPkHash) {
 }
