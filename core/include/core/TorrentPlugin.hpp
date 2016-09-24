@@ -87,7 +87,7 @@ public:
 
 signals:
 
-    void peerPluginAdded(const PeerPlugin *);
+    void peerPluginAdded(PeerPlugin *);
 
     void peerPluginRemoved(const libtorrent::tcp::endpoint &);
 

@@ -67,7 +67,7 @@ signals:
 
     void termsChanged(const protocol_wire::BuyerTerms &);
 
-    void sellerAdded(const Seller *);
+    void sellerAdded(Seller *);
 
     void sellerRemoved(const libtorrent::tcp::endpoint &);
 
