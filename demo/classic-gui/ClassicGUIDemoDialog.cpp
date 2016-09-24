@@ -7,7 +7,8 @@
 
 #include "ClassicGUIDemoDialog.hpp"
 #include "ui_ClassicGUIDemoDialog.h"
-#include <gui/MainWindow.hpp>
+#include <gui/MainWindow/MainWindow.hpp>
+#include <gui/PeersDialog/PeersDialog.hpp>
 
 namespace joystream {
 namespace demo {
@@ -37,6 +38,23 @@ void ClassicGUIDemoDialog::on_pushButton_clicked() {
     QEventLoop loop;
     QObject::connect(&window,
                      &classic::gui::MainWindow::ignoredCloseEventOccured,
+                     &loop,
+                     &QEventLoop::quit);
+
+    loop.exec();
+}
+
+void ClassicGUIDemoDialog::on_peersDialogPushButton_clicked() {
+
+    BitcoinDisplaySettings settings;
+
+    classic::gui::PeersDialog peersDialog(nullptr, &settings);
+
+    window.show();
+
+    QEventLoop loop;
+    QObject::connect(&window,
+                     &classic::gui::PeersDialog::ignoredCloseEventOccured,
                      &loop,
                      &QEventLoop::quit);
 

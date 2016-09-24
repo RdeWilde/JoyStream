@@ -28,6 +28,8 @@ public:
 private slots:
     void on_pushButton_clicked();
 
+    void on_peersDialogPushButton_clicked();
+
 private:
     Ui::ClassicGUIDemoDialog *ui;
 };
