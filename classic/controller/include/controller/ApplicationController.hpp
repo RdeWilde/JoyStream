@@ -26,13 +26,13 @@ namespace controller {
 
 class Torrent;
 
-
-// Cordinates view and model (core)
 class ApplicationController {
 
 public:
 
     ApplicationController();
+
+    ~ApplicationController();
 
     /// Events from core
 

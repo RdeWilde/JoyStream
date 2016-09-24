@@ -16,7 +16,78 @@ ApplicationController::ApplicationController() {
 
 }
 
+ApplicationController::~ApplicationController() {
+}
+
 void ApplicationController::addTorrent(core::Torrent *) {
+
+    /**
+    // Create items
+    QStandardItem * nameItem = new QStandardItem(),
+                  * sizeItem = new QStandardItem(),
+                  * stateItem = new QStandardItem(),
+                  * uploadSpeedItem = new QStandardItem(),
+                  * downloadSpeedItem = new QStandardItem(),
+                  * numberOfBuyerPeersItem = new QStandardItem(),
+                  * numberOfSellerPeersitem = new QStandardItem(),
+                  * sessionModeItem = new QStandardItem(),
+                  * balanceItem = new QStandardItem();
+
+    // Center content
+    nameItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    sizeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    stateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    uploadSpeedItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    downloadSpeedItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    numberOfBuyerPeersItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    numberOfSellerPeersitem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    sessionModeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    balanceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+
+    // Don't allow edits
+    nameItem->setEditable(false);
+    sizeItem->setEditable(false);
+    stateItem->setEditable(false);
+    uploadSpeedItem->setEditable(false);
+    downloadSpeedItem->setEditable(false);
+    numberOfBuyerPeersItem->setEditable(false);
+    numberOfSellerPeersitem->setEditable(false);
+    sessionModeItem->setEditable(false);
+    balanceItem->setEditable(false);
+
+    // Create row
+    return new TorrentTreeViewRow(settings,
+                                  nameItem,
+                                  sizeItem,
+                                  stateItem,
+                                  uploadSpeedItem,
+                                  downloadSpeedItem,
+                                  numberOfBuyerPeersItem,
+                                  numberOfSellerPeersitem,
+                                  sessionModeItem,
+                                  balanceItem);
+
+    */
+
+    /**
+    // Set inital values
+    _torrentTreeViewRow->setName(torrent->name());
+
+    if(torrent->isPaused())
+        _torrentTreeViewRow->setPaused(true);
+    else
+        _torrentTreeViewRow->setState(torrent->state(), torrent->progress());
+
+    _torrentTreeViewRow->setUploadSpeed(torrent->uploadRate());
+    _torrentTreeViewRow->setDownloadSpeed(torrent->downloadRate());
+
+    // When plugin is present, then set it up, otherwise set it as absent
+    if(torrent->torrentPlugin())
+        setTorrentPluginPresent(torrent->torrentPlugin());
+    else
+        setTorrentPluginAbsent();
+
+    */
 
 }
 
