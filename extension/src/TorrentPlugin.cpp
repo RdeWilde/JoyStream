@@ -552,8 +552,11 @@ void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libto
 
 void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage){
 
-    // Should have been checked by peer plugin
-    assert(_session.hasConnection(endPoint));
+    if(_session.mode() == protocol_session::SessionMode::not_set)
+        return;
+
+    if(!_session.hasConnection(endPoint))
+        return;
 
     // Have session process message
     _session.processMessageOnConnection(endPoint, extendedMessage);
