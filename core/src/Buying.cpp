@@ -59,7 +59,7 @@ Buying * Buying::create(const protocol_session::status::Buying<libtorrent::tcp::
 
 Buying::~Buying() {
 
-    for(auto it = _sellers.begin();it != _sellers.end();)
+    for(auto it = _sellers.cbegin();it != _sellers.cend();)
         removeSeller(it++);
 }
 
@@ -110,7 +110,7 @@ void Buying::removeSeller(const libtorrent::tcp::endpoint & endPoint) {
     removeSeller(it);
 }
 
-void Buying::removeSeller(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Seller>>::iterator it) {
+void Buying::removeSeller(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Seller>>::const_iterator it) {
 
     libtorrent::tcp::endpoint endPoint = it->first;
 
@@ -165,11 +165,14 @@ void Buying::update(const protocol_session::status::Buying<libtorrent::tcp::endp
     }
 
     // for each existing seller
-    for(auto & p : _sellers) {
+    for(auto it = _sellers.cbegin(); it != _sellers.cend(); ) {
 
         // if there is no status for it, then remove
-        if(status.sellers.count(p.first) == 0)
-            removeSeller(p.first);
+        if(status.sellers.count(it->first) == 0){
+            removeSeller(it++);
+	}else{
+	    it++;
+	}
     }
 
 }
