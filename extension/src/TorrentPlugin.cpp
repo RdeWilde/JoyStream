@@ -513,6 +513,8 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
 }
 
 void TorrentPlugin::removeFromSession(const libtorrent::tcp::endpoint & endPoint) {
+    if(_session.mode() == protocol_session::SessionMode::not_set)
+        return;
 
     if(_session.hasConnection(endPoint))
         _session.removeConnection(endPoint);

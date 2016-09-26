@@ -399,7 +399,7 @@ namespace extension {
 
     bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
 
-        std::clog << "can_disconnect: " << ec.message() << std::endl;
+        //std::clog << "can_disconnect: " << ec.message() << std::endl;
 
         return false;
     }
@@ -420,7 +420,13 @@ namespace extension {
         // If this peer is not part of this session, then
         // we ignore the message and ask all other plugins to do the same.
         // This could happen if the peer is malicious, or if the connection .... <what here?>
+        if(_plugin->_session.mode() == protocol_session::SessionMode::not_set) {
+            std::clog << "Ignoring extended message, session mode not set" << std::endl;
+            return true;
+        }
+
         if(!_plugin->_session.hasConnection(_endPoint)) {
+            std::clog << "Ignoring extended message, connection not in session" << std::endl;
             return true;
         }
 
