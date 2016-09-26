@@ -97,7 +97,7 @@ namespace extension {
 
         // Otherwise, the disconnect was iniated by peer, and we should notify
         // the torrent plugin.
-        _plugin->drop(_endPoint, ec);
+        _plugin->drop(_endPoint, ec, false);
     }
 
     void PeerPlugin::on_connected() {
@@ -398,11 +398,9 @@ namespace extension {
     }
 
     bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
-        assert(!_undead);
 
         std::clog << "can_disconnect: " << ec.message() << std::endl;
 
-        // rejecting request
         return false;
     }
 

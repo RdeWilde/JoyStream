@@ -518,7 +518,7 @@ void TorrentPlugin::removeFromSession(const libtorrent::tcp::endpoint & endPoint
         _session.removeConnection(endPoint);
 }
 
-void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libtorrent::error_code & ec)  {
+void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libtorrent::error_code & ec, bool disconnect)  {
 
     if(ec) {
         // log string version: std::clog << "Malformed handshake received: m key not mapping to dictionary.";
@@ -529,20 +529,25 @@ void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libto
     // Get plugin
     PeerPlugin * peerPlugin = peer(endPoint);
 
+    // Make sure only we only process one call to drop the peer
+    if(peerPlugin->undead())
+        return;
+
     // Mark as undead
     // NB: must be done before closing connection, due to on_disconnect callback from libtorrent
-    assert(!peerPlugin->undead());
+    // peer will get disconnected by libtorrent when it calls can_connect on the peer plugin
     peerPlugin->setUndead(true);
 
-    // Initiate closing connection
-    peerPlugin->connection().disconnect(ec, libtorrent::operation_t::op_bittorrent);
+    if(disconnect)
+        peerPlugin->connection().disconnect(ec, libtorrent::operation_t::op_bittorrent);
 
     // Remove from session if present
     removeFromSession(endPoint);
 
     // Remove from map
     auto it = _peers.find(endPoint);
-    _peers.erase(it);
+    if(it != _peers.cend())
+        _peers.erase(it);
 }
 
 void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage){

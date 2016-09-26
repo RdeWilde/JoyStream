@@ -163,7 +163,7 @@ private:
     void removeFromSession(const libtorrent::tcp::endpoint &);
 
     // Disconnects peer, removes corresponding plugin from map
-    void drop(const libtorrent::tcp::endpoint &, const libtorrent::error_code &);
+    void drop(const libtorrent::tcp::endpoint &, const libtorrent::error_code &, bool disconnect = true);
 
     // Determines the message type, calls correct handler, then frees message
     void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
