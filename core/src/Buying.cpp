@@ -90,7 +90,7 @@ Coin::Transaction Buying::contractTx() const noexcept {
 
 void Buying::addSeller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> & status) {
 
-    assert(_sellers.count(status.connection) > 0);
+    assert(_sellers.count(status.connection) == 0);
 
     // Create seller
     Seller * s = Seller::create(status);
