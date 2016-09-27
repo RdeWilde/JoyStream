@@ -24,6 +24,7 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
             wallet->open();
         }
     } catch(std::exception & e) {
+        std::cout << "Error opening/creating wallet: " << e.what() << std::endl;
         delete wallet;
         return nullptr;
     }
@@ -44,7 +45,7 @@ AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network netwo
             return new AppKit(node, wallet, dataDirectory);
 
         } catch(std::exception &e) {
-
+            std::cout << e.what() << std::endl;
         }
     }
 
