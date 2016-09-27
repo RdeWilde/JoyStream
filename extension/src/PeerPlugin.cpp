@@ -513,11 +513,14 @@ namespace extension {
             // Remove this peer
             libtorrent::error_code ec; // <- s
             drop(ec);
+
+            return true;
         }
 
         // Was message malformed
         if(m == NULL) {
 
+            std::clog << "Extended Message was Malformed" << std::endl;
             // Remove this peer
             libtorrent::error_code ec; // <-- "Malformed extended message received, removing."
             drop(ec);
