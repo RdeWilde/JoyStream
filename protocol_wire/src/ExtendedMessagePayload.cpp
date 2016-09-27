@@ -37,7 +37,7 @@ namespace protocol_wire {
                 case MessageType::joining_contract: return new JoiningContract(stream);
                 case MessageType::sign_refund: return new SignRefund(stream);
                 case MessageType::refund_signed: return new RefundSigned(stream, lengthOfExtendedMessagePayload);
-                case MessageType::ready: return new Ready();
+                case MessageType::ready: return new Ready(stream);
                 case MessageType::request_full_piece: return new RequestFullPiece(stream);
                 case MessageType::full_piece: return new FullPiece(stream, lengthOfExtendedMessagePayload);
                 case MessageType::payment: return new Payment(stream, lengthOfExtendedMessagePayload);
