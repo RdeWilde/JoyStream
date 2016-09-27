@@ -237,7 +237,7 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     // Iterate peers
     for(auto endPoint : peers) {
 
-        assert(_peers.count(endPoint));
+        if(!_peers.count(endPoint)) continue;
 
         // Make sure reading worked
         if(alert->ec) {
