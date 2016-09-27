@@ -583,7 +583,7 @@ std::vector<uchar_vector> Store::listRedeemScripts() const {
     typedef odb::result<detail::store::key_view_t> result;
 
     std::vector<uchar_vector> scripts;
-
+    odb::session s;
     odb::transaction t(_db->begin());
     result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type && query::key::path.change == (uint32_t)KeychainType::Other));
     for(auto &entry : r) {
