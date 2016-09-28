@@ -1,19 +1,23 @@
 #include <gui/ReceiveFundsDialog.hpp>
 #include "ui_ReceiveFundsDialog.h"
-#include <QUrl>
-#include <bitcoin/SPVWallet.hpp>
 
+#include <QUrl>
 #include <QDesktopServices>
 
-ReceiveFundsDialog::ReceiveFundsDialog(joystream::bitcoin::SPVWallet *wallet)
-    : ui(new Ui::ReceiveFundsDialog)
-    , _wallet(wallet)
-    , _receiveAddres(_wallet->getReceiveAddress())
+ReceiveFundsDialog::ReceiveFundsDialog(QWidget * parent)
+    : QDialog(parent)
+    , ui(new Ui::ReceiveFundsDialog)
 {
     ui->setupUi(this);
 
-    // Set input field to contain receivea ddress
-    ui->receiveAddressLineEdit->setText(_receiveAddres.toBase58CheckEncoding());
+    QObject::connect(ui->freeCoinsPushButton,
+                     &QPushButton::clicked,
+                     this,
+                     &ReceiveFundsDialog::freeCoinsPushButtonClicked);
+
+    // before we did
+    //QUrl url("https://accounts.blockcypher.com/testnet-faucet");
+    //QDesktopServices::openUrl(url);
 
     // Set title of dialog window
     setWindowTitle("Top up wallet");
@@ -24,11 +28,8 @@ ReceiveFundsDialog::~ReceiveFundsDialog()
     delete ui;
 }
 
-
-void ReceiveFundsDialog::on_freeCoinsPushButton_clicked() {
-
-    QUrl url("https://accounts.blockcypher.com/testnet-faucet");
-    QDesktopServices::openUrl(url);
+void ReceiveFundsDialog::setReceiveAddress(const Coin::P2PKHAddress & address) {
+    ui->receiveAddressLineEdit->setText(address.toBase58CheckEncoding());
 }
 
 void ReceiveFundsDialog::on_closePushButton_clicked() {

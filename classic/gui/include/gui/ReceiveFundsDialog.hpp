@@ -4,11 +4,6 @@
 #include <QDialog>
 #include <common/P2PKHAddress.hpp>
 
-namespace joystream {
-namespace bitcoin {
-    class SPVWallet;
-}
-}
 
 namespace Ui {
 class ReceiveFundsDialog;
@@ -19,24 +14,24 @@ class ReceiveFundsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ReceiveFundsDialog(joystream::bitcoin::SPVWallet * wallet);
+
+    explicit ReceiveFundsDialog(QWidget * parent);
 
     ~ReceiveFundsDialog();
 
+    void setReceiveAddress(const Coin::P2PKHAddress &);
+
+signals:
+
+    void freeCoinsPushButtonClicked();
+
 private slots:
 
-    void on_freeCoinsPushButton_clicked();
     void on_closePushButton_clicked();
-
 
 private:
 
     Ui::ReceiveFundsDialog *ui;
-
-    joystream::bitcoin::SPVWallet * _wallet;
-
-    Coin::P2PKHAddress _receiveAddres;
-
 };
 
 #endif // RECEIVEFUNDSDIALOG_HPP
