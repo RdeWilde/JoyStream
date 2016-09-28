@@ -85,7 +85,7 @@ void TorrentTreeViewRow::setSize(qint64 totalSize) {
 }
 
 void TorrentTreeViewRow::setState(libtorrent::torrent_status::state_t state, float progress) {
-    _stateItem->setText(Language::toString(state, progress));
+    _stateItem->setText(Common::toString(state, progress));
 }
 
 void TorrentTreeViewRow::setPaused(bool paused) {
@@ -113,7 +113,7 @@ void TorrentTreeViewRow::setNumberOfSellers(quint32 num) {
 }
 
 void TorrentTreeViewRow::setSessionMode(protocol_session::SessionMode mode) {
-    _sessionModeItem->setText(Language::toString(mode));
+    _sessionModeItem->setText(Common::toString(mode));
 }
 
 void TorrentTreeViewRow::setBalance(qint64 balance) {
