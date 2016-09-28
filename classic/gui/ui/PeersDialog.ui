@@ -25,11 +25,11 @@
    <property name="currentIndex">
     <number>0</number>
    </property>
-   <widget class="QWidget" name="classic">
+   <widget class="QWidget" name="ClassicPeersTab">
     <attribute name="title">
      <string>Classic</string>
     </attribute>
-    <widget class="QTableView" name="allPeersTableView">
+    <widget class="QTableView" name="classicPeersTableView">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -40,11 +40,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="BuyersTab">
+   <widget class="QWidget" name="BuyerPeersTab">
     <attribute name="title">
      <string>Buyers</string>
     </attribute>
-    <widget class="QTableView" name="buyersPeersTableView">
+    <widget class="QTableView" name="buyerPeersTableView">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -55,11 +55,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="SellersTab">
+   <widget class="QWidget" name="SellerPeersTab">
     <attribute name="title">
      <string>Sellers</string>
     </attribute>
-    <widget class="QTableView" name="sellersPeersTableView">
+    <widget class="QTableView" name="sellerPeersTableView">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -70,11 +70,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="ObserversTab">
+   <widget class="QWidget" name="ObserverPeerTab">
     <attribute name="title">
      <string>Observers</string>
     </attribute>
-    <widget class="QTableView" name="observersPeersTableView">
+    <widget class="QTableView" name="observerPeersTableView">
      <property name="geometry">
       <rect>
        <x>10</x>
