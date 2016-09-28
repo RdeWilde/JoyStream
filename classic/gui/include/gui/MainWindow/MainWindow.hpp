@@ -42,13 +42,9 @@ public:
 
     ~MainWindow();
 
+    void setTorrentTreeViewModel(QStandardItemModel * model);
+
 public slots:
-
-    /// Manage torrent table
-
-    void add(const TorrentTreeViewRow & row);
-
-    void removeFromTorrentsTreeView(int row);
 
     /// Bitcoin balances
 
@@ -63,6 +59,8 @@ public slots:
     /// Wallet events
 
     void walletSynched();
+
+    void walletSynching();
 
     void walletConnected();
 
@@ -98,9 +96,6 @@ private:
     // Status bar at bottom of the page
     QStatusBar _statusBar;
     QLabel _statusLabel;
-
-    // Torrent table view model
-    QStandardItemModel _torrentTreeViewModel;
 
     // How bitcoin should be displayed in entire view
     const BitcoinDisplaySettings * _bitcoinDisplaySettings;

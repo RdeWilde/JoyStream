@@ -23,7 +23,6 @@ MainWindow::MainWindow(const QString & title,
                        unsigned int applicationPatchVersion,
                        const BitcoinDisplaySettings * settings)
     : ui(new Ui::MainWindow)
-    , _torrentTreeViewModel(0, 9)
     , _bitcoinDisplaySettings(settings) {
 
     ui->setupUi(this);
@@ -79,24 +78,8 @@ MainWindow::MainWindow(const QString & title,
     ui->balanceLabel->setAlignment(Qt::AlignRight);
 
     /**
-     * Add columns to model view model
+     * Set column widths
      */
-    QStringList columnNames;
-
-    columnNames << "Name"
-                << "Size"
-                << "State"
-                << "Upload Speed"
-                << "Download Speed"
-                << "#Buyers"
-                << "#Sellers"
-                << "Mode"
-                << "Balance";
-
-    _torrentTreeViewModel.setHorizontalHeaderLabels(columnNames);
-
-    // Set table model to view model
-    ui->torrentsTreeView->setModel(&_torrentTreeViewModel);
 
     // Set column width
     ui->torrentsTreeView->setColumnWidth(0, 350);
@@ -133,26 +116,8 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::add(const TorrentTreeViewRow & row) {
-
-    // Add row to view model, which takes ownership of items
-    QList<QStandardItem *> items;
-
-    items << row.nameItem()
-          << row.sizeItem()
-          << row.stateItem()
-          << row.uploadSpeedItem()
-          << row.downloadSpeedItem()
-          << row.numberOfBuyerPeersItem()
-          << row.numberOfSellerPeersitem()
-          << row.sessionModeItem()
-          << row.balanceItem();
-
-    _torrentTreeViewModel.appendRow(items);
-}
-
-void MainWindow::removeFromTorrentsTreeView(int row) {
-    _torrentTreeViewModel.removeRow(row);
+void MainWindow::setTorrentTreeViewModel(QStandardItemModel * model) {
+    ui->torrentsTreeView->setModel(model);
 }
 
 void MainWindow::setTotalSentSinceStart(quint64 sentSinceStart) {
@@ -180,6 +145,10 @@ void MainWindow::setUnconfirmedBalance(quint64 unconfirmedBalance) {
 }
 
 void MainWindow::walletSynched() {
+
+}
+
+void MainWindow::walletSynching() {
 
 }
 
