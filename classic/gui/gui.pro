@@ -29,36 +29,46 @@ SOURCES += \
     src/ReceiveFundsDialog.cpp \
     src/FundingWalletProgressDialog.cpp \
     src/GeneralLoadingProgressDialog.cpp \
-    src/Language.cpp \
-    src/SellingModeSessionWidget.cpp \
-    src/BuyingModeSessionWidget.cpp \
-    src/SessionDialog.cpp \
+    src/SessionDialog/SessionDialog.cpp \
+    src/SessionDialog/SellingModeSessionWidget.cpp \
+    src/SessionDialog/BuyingModeSessionWidget.cpp \
     src/PeersDialog/PeersDialog.cpp \
     src/BuyerTermsDialog.cpp \
     src/CurrencyFieldPrefixSettings.cpp \
     src/SellerTermsDialog.cpp \
     src/SelectTorrentForDownloadDialog.cpp \
-    src/TrayMenuManager.cpp
+    src/TrayMenuManager.cpp \
+    src/PeersDialog/PeerTreeViewRow.cpp \
+    src/Common.cpp \
+    src/PeersDialog/BuyerConnectionTreeViewRow.cpp \
+    src/PeersDialog/SellerConnectionTreeViewRow.cpp \
+    src/PeersDialog/ObserverConnectionTreeViewRow.cpp \
+    src/SessionDialog/ConnectionTreeViewRow.cpp
 
 HEADERS += \
     include/gui/MainWindow/MainWindow.hpp \
     include/gui/MainWindow/TorrentTreeViewRow.hpp \
     include/gui/MainWindow/TorrentContextMenu.hpp \
     #include/gui/UtxoEventViewModel.hpp \
+    include/gui/Common.hpp \
     include/gui/ReceiveFundsDialog.hpp \
     include/gui/FundingWalletProgressDialog.hpp \
     include/gui/GeneralLoadingProgressDialog.hpp \
-    include/gui/Language.hpp \
-    include/gui/SellingModeSessionWidget.hpp \
-    include/gui/BuyingModeSessionWidget.hpp \
-    include/gui/SessionDialog.hpp \
-    include/gui/PeersDialog/PeersDialog.hpp \
+    include/gui/SessionDialog/SessionDialog.hpp \
+    include/gui/SessionDialog/SellingModeSessionWidget.hpp \
+    include/gui/SessionDialog/BuyingModeSessionWidget.hpp \
     include/gui/BuyerTermsDialog.hpp \
     include/gui/CurrencyFieldPrefixSettings.hpp \
     include/gui/SellerTermsDialog.hpp \
     include/gui/SelectTorrentForDownloadDialog.hpp \
     include/gui/TrayMenuManager.hpp \
-    include/gui/gui.hpp
+    include/gui/gui.hpp \
+    include/gui/PeersDialog/PeersDialog.hpp \
+    include/gui/PeersDialog/PeerTreeViewRow.hpp \
+    include/gui/PeersDialog/BuyerConnectionTreeViewRow.hpp \
+    include/gui/PeersDialog/SellerConnectionTreeViewRow.hpp \
+    include/gui/PeersDialog/ObserverConnectionTreeViewRow.hpp \
+    include/gui/SessionDialog/ConnectionTreeViewRow.hpp
 
 FORMS += \
     ui/MainWindow.ui \
