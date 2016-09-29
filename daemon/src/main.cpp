@@ -42,10 +42,12 @@ public:
   }
 
   Status ListTorrents(grpc::ServerContext *context, const joystream::daemon::rpc::Void *request, ::grpc::ServerWriter<joystream::daemon::rpc::Torrent> *writer) override {
-     joystream::daemon::rpc::Torrent t;
-     t.set_infohash("test-infohash");
-     writer->Write(t);
-     return Status::OK;
+    joystream::daemon::rpc::Torrent torrent;
+    std::cout << "Torrents list" << std::endl;
+    for (const auto &e : node_->torrents()) {
+      writer->Write(torrent);
+    }
+    return Status::OK;
   }
 
   std::unique_ptr<Server> CreateServer() {
