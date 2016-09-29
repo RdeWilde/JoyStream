@@ -783,11 +783,13 @@ namespace detail {
             removeSeller(s);
         }
 
+        // Destroy connection - important todo before notifying client
+        auto it = _session->destroyConnection(id);
+
         // Notify client to remove connection
         _removedConnection(id, cause);
 
-        // Destroy connection
-        return _session->destroyConnection(id);
+        return it;
     }
 
     template <class ConnectionIdType>
