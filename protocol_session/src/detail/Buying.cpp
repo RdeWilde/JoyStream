@@ -336,9 +336,6 @@ namespace detail {
                     // Reference to seller
                     detail::Seller<ConnectionIdType> & s = mapping.second;
 
-                    // Get id of connection for this seller
-                    ConnectionIdType id = s.connection()->connectionId();
-
                     // A seller may be waiting to be assigned a new piece
                     if(s.state() == SellerState::waiting_to_be_assigned_piece) {
 
@@ -352,6 +349,9 @@ namespace detail {
                         tryToAssignAndRequestPiece(s);
 
                     } else if(s.state() == SellerState::waiting_for_full_piece) {
+
+                        // Get id of connection for this seller
+                        ConnectionIdType id = s.connection()->connectionId();
 
                         // Check if seller has timed out in servicing the current request,
                         // if so remove connection
