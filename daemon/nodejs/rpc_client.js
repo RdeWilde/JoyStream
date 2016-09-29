@@ -29,3 +29,7 @@ rpc.listTorrents = function(data, done ) {
   	data(err);
   });
 }
+
+rpc.addTorrent = function(torrent, callback ) {
+  client.addTorrent(torrent, callback);
+}
