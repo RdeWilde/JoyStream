@@ -73,3 +73,9 @@ deps/win32/src/
 bitcoin/src/detail/store/Schema-odb.cxx
 bitcoin/src/detail/store/Schema-odb.hxx
 bitcoin/src/detail/store/Schema-odb.ixx
+
+# gRPC generated files (for daemon)
+daemon/protos/daemon.grpc.pb.cc
+daemon/protos/daemon.grpc.pb.h
+daemon/protos/daemon.pb.cc
+daemon/protos/daemon.pb.h
