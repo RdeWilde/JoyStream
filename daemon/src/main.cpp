@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <core/Node.hpp>
+#include <core/TorrentIdentifier.hpp>
 
 #include <boost/asio/impl/src.hpp>
 
@@ -49,6 +50,23 @@ public:
     }
     return Status::OK;
   }
+
+  Status AddTorrent(grpc::ServerContext *context, const joystream::daemon::rpc::Torrent* request, joystream::daemon::rpc::Torrent* torrent) override {
+     libtorrent::sha1_hash info_hash = libtorrent::sha1_hash(request->infohash());
+     std::string save_path = std::string("/home/lola/joystream");
+     std::vector<char> resume_data = std::vector<char>();
+     std::string name = std::string(request->name());
+     boost::optional<uint> upload_limit = -1;
+     boost::optional<uint> download_limit = -1;
+     bool paused = 1;
+     joystream::core::TorrentIdentifier torrent_identifier = joystream::core::TorrentIdentifier(info_hash);
+     joystream::core::Node::AddedTorrent added_torrent;
+     std::cout << "We are adding the torrent" << std::endl;
+     std::cout << request->infohash() << std::endl;
+     node_->addTorrent(upload_limit,download_limit,name,resume_data,save_path,paused,torrent_identifier,added_torrent);
+     std::cout << "New torrent added" << std::endl;
+     return Status::OK;
+   }
 
   std::unique_ptr<Server> CreateServer() {
       std::string server_address("0.0.0.0:30000");
