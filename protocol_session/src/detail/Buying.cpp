@@ -447,8 +447,13 @@ namespace detail {
         // Generate statuses of all sellers
         std::map<ConnectionIdType, status::Seller<ConnectionIdType>> sellerStatuses;
 
-        for(auto mapping : _sellers)
+        for(auto mapping : _sellers) {
+            // skip sellers that are no longer around
+            if(mapping.second.state() == protocol_session::SellerState::gone)
+                continue;
+
             sellerStatuses.insert(std::make_pair(mapping.first, mapping.second.status()));
+        }
 
         return status::Buying<ConnectionIdType>(_funding,
                                                 _policy,
