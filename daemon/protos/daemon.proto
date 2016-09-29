@@ -8,7 +8,7 @@ service Daemon {
 
   rpc GetEvents(Void) returns (stream Event) {}
 
-  rpc AddTorrent(Torrent) returns (TorrentState) {}
+  rpc AddTorrent(Torrent) returns (Torrent) {}
   rpc RemoveTorrent(Torrent) returns (TorrentState) {}
   rpc ListTorrents(Void) returns (stream Torrent) {}
   rpc GetTorrentState (Torrent) returns (TorrentState) {}
@@ -20,6 +20,7 @@ message Void {
 
 message Torrent {
   string infohash = 1;
+  string name = 2;
 }
 
 message TorrentState {
