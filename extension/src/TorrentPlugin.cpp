@@ -53,7 +53,6 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
               << std::endl; // << "on " << _torrent->name().c_str();
 
     // Screen connection
-    libtorrent::error_code ec;
     bool allow = false; // <-- drop when ec can be used
 
     // ec <-- later put actual error in here, dont just log
@@ -71,24 +70,8 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
 
     // If connection should not be accepted,
     if(!allow) {
-
-        libtorrent::peer_connection * c = connection.native_handle().get();
-
-        // ***** experiment in order to ask Arvid ****
-        //c->disconnect(ec, libtorrent::operation_t::op_bittorrent);
-        // ***** experiment in order to ask Arvid ****
-
-        if(_peerScheduledForDeletionForGivenError.count(c))
-            std::clog << "Peer already scheduled for deletion on next tick, no plugin installed." << std::endl;
-        else {
-            std::clog << "Peer scheduled for deletion on next tick, no plugin installed." << std::endl;
-
-            _peerScheduledForDeletionForGivenError[c] = ec;
-        }
-
         // and don't install plugin
         return boost::shared_ptr<PeerPlugin>(nullptr);
-
     }
 
     std::clog << "Installed peer plugin #" << _peers.size() << std::endl;
@@ -151,21 +134,6 @@ void TorrentPlugin::on_piece_failed(int index) {
 }
 
 void TorrentPlugin::tick() {
-
-    // Disconnect peers scheduled for instant deletion
-    for(auto mapping : _peerScheduledForDeletionForGivenError) {
-
-        std::clog << "Completing delayed disconnection of peer "
-                  << libtorrent::print_endpoint(mapping.first->peer_info_struct()->ip())
-                  << "due to error: "
-                  << mapping.second.message()
-                  << std::endl;
-
-        // Disconnect with given error
-        mapping.first->disconnect(mapping.second, libtorrent::operation_t::op_bittorrent);
-    }
-
-    _peerScheduledForDeletionForGivenError.clear();
 
     // Asynch processing in session
     _session.tick();

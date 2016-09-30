@@ -209,12 +209,6 @@ private:
     // a) PeerPlugin::on_extension_handshake: sent extended message, despite claiming not to support BEP10
     std::set<libtorrent::tcp::endpoint> _misbehavedPeers;
 
-    // Peers which should have been deleted in ::new_connection event, but cannot, due to some invariant which
-    // is asserted in on_disconnect about peer having to be on the peer_list.
-    // NB: peers in this list have no plugin installed
-    // NB: connection, rather than endpoint, is used as key, as connection is not recoverable later from libtorrent!!
-    std::map<libtorrent::peer_connection *, libtorrent::error_code> _peerScheduledForDeletionForGivenError;
-
     // Torrent info hash
     const libtorrent::sha1_hash _infoHash;
 
