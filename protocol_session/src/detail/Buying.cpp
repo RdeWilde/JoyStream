@@ -328,7 +328,7 @@ namespace detail {
         // Only process if we are active
         if(_session->_state == SessionState::started) {
 
-            if(_state == BuyingState::sending_invitations && !_sellers.empty())
+            if(_state == BuyingState::sending_invitations)
                 tryToStartDownloading();
             else if(_state == BuyingState::downloading) {
 
