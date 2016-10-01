@@ -15,14 +15,14 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QPushButton" name="mainWindowPushButton">
+    <widget class="QPushButton" name="MainWindowPushButton">
      <property name="text">
       <string>MainWindow</string>
      </property>
     </widget>
    </item>
    <item row="0" column="1">
-    <widget class="QPushButton" name="peersDialogPushButton">
+    <widget class="QPushButton" name="PeersDialogPushButton">
      <property name="text">
       <string>PeersDialog</string>
      </property>

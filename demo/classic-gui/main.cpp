@@ -15,5 +15,10 @@ int main(int argc, char *argv[])
     joystream::demo::ClassicGUIDemoDialog dialog;
     dialog.show();
 
+    QObject::connect(&dialog,
+                     &joystream::demo::ClassicGUIDemoDialog::finished,
+                     &a,
+                     &QApplication::quit);
+
     return a.exec();
 }

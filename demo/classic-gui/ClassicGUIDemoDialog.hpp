@@ -26,9 +26,10 @@ public:
     ~ClassicGUIDemoDialog();
 
 private slots:
-    void on_pushButton_clicked();
 
-    void on_peersDialogPushButton_clicked();
+    void on_MainWindowPushButton_clicked();
+
+    void on_PeersDialogPushButton_clicked();
 
 private:
     Ui::ClassicGUIDemoDialog *ui;
