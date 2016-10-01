@@ -42,7 +42,7 @@ public:
 
     ~MainWindow();
 
-    void setTorrentTreeViewModel(QStandardItemModel * model);
+    void setTorrentTreeViewModel(QAbstractItemModel * model);
 
 public slots:
 

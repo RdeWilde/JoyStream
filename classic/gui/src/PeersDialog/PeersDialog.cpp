@@ -26,19 +26,19 @@ PeersDialog::~PeersDialog()
     delete ui;
 }
 
-void PeersDialog::setPeerTreeViewModel(QStandardItemModel * model) {
+void PeersDialog::setPeerTreeViewModel(QAbstractItemModel * model) {
     ui->classicPeersTableView->setModel(model);
 }
 
-void PeersDialog::setObserverConnectionTreeViewModel(QStandardItemModel * model) {
+void PeersDialog::setObserverConnectionTreeViewModel(QAbstractItemModel * model) {
     ui->observerPeersTableView->setModel(model);
 }
 
-void PeersDialog::setBuyerConnectionTreeViewModel(QStandardItemModel * model) {
+void PeersDialog::setBuyerConnectionTreeViewModel(QAbstractItemModel * model) {
     ui->buyerPeersTableView->setModel(model);
 }
 
-void PeersDialog::setSellerConnectionTreeViewModel(QStandardItemModel * model) {
+void PeersDialog::setSellerConnectionTreeViewModel(QAbstractItemModel * model) {
     ui->sellerPeersTableView->setModel(model);
 }
 

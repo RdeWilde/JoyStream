@@ -12,7 +12,7 @@
 #include <typeindex>
 #include <QWidget>
 
-class QStandardItemModel;
+class QAbstractItemModel;
 class BitcoinDisplaySettings;
 
 namespace Ui {
@@ -44,7 +44,7 @@ public:
                                      const BitcoinDisplaySettings * settings);
     ~BuyingModeSessionWidget();
 
-    void setSellerTreeViewModel(QStandardItemModel * model);
+    void setSellerTreeViewModel(QAbstractItemModel * model);
 
 public slots:
 

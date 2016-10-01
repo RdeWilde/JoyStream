@@ -12,7 +12,7 @@
 
 #include <QDialog>
 
-class QStandardItemModel;
+class QAbstractItemModel;
 
 namespace Ui {
     class PeersDialog;
@@ -32,10 +32,10 @@ public:
 
     ~PeersDialog();
 
-    void setPeerTreeViewModel(QStandardItemModel * model);
-    void setObserverConnectionTreeViewModel(QStandardItemModel * model);
-    void setBuyerConnectionTreeViewModel(QStandardItemModel * model);
-    void setSellerConnectionTreeViewModel(QStandardItemModel * model);
+    void setPeerTreeViewModel(QAbstractItemModel * model);
+    void setObserverConnectionTreeViewModel(QAbstractItemModel * model);
+    void setBuyerConnectionTreeViewModel(QAbstractItemModel * model);
+    void setSellerConnectionTreeViewModel(QAbstractItemModel * model);
 
 private:
 

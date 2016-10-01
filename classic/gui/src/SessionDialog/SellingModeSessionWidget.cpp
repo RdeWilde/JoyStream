@@ -30,7 +30,7 @@ SellingModeSessionWidget::~SellingModeSessionWidget() {
     delete ui;
 }
 
-void SellingModeSessionWidget::setBuyerTreeViewModel(QStandardItemModel * model) {
+void SellingModeSessionWidget::setBuyerTreeViewModel(QAbstractItemModel * model) {
     ui->buyersTableView->setModel(model);
 }
 

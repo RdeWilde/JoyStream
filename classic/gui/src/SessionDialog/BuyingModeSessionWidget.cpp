@@ -40,7 +40,7 @@ BuyingModeSessionWidget::~BuyingModeSessionWidget() {
     delete ui;
 }
 
-void BuyingModeSessionWidget::setSellerTreeViewModel(QStandardItemModel * model) {
+void BuyingModeSessionWidget::setSellerTreeViewModel(QAbstractItemModel * model) {
     ui->sellersTableView->setModel(model);
 }
 

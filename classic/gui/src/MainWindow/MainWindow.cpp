@@ -116,7 +116,7 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::setTorrentTreeViewModel(QStandardItemModel * model) {
+void MainWindow::setTorrentTreeViewModel(QAbstractItemModel * model) {
     ui->torrentsTreeView->setModel(model);
 }
 
