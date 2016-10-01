@@ -29,13 +29,13 @@
     <attribute name="title">
      <string>Classic</string>
     </attribute>
-    <widget class="QTableView" name="classicPeersTableView">
+    <widget class="QTreeView" name="peersTreeView">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>596</width>
-       <height>197</height>
+       <width>601</width>
+       <height>201</height>
       </rect>
      </property>
     </widget>
@@ -44,13 +44,13 @@
     <attribute name="title">
      <string>Buyers</string>
     </attribute>
-    <widget class="QTableView" name="buyerPeersTableView">
+    <widget class="QTreeView" name="buyersTreeView">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>596</width>
-       <height>197</height>
+       <width>601</width>
+       <height>201</height>
       </rect>
      </property>
     </widget>
@@ -59,13 +59,13 @@
     <attribute name="title">
      <string>Sellers</string>
     </attribute>
-    <widget class="QTableView" name="sellerPeersTableView">
+    <widget class="QTreeView" name="sellersTreeView">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>596</width>
-       <height>197</height>
+       <width>601</width>
+       <height>201</height>
       </rect>
      </property>
     </widget>
@@ -74,13 +74,13 @@
     <attribute name="title">
      <string>Observers</string>
     </attribute>
-    <widget class="QTableView" name="observerPeersTableView">
+    <widget class="QTreeView" name="observersTreeView">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>596</width>
-       <height>197</height>
+       <width>601</width>
+       <height>201</height>
       </rect>
      </property>
     </widget>

@@ -27,19 +27,19 @@ PeersDialog::~PeersDialog()
 }
 
 void PeersDialog::setPeerTreeViewModel(QAbstractItemModel * model) {
-    ui->classicPeersTableView->setModel(model);
+    ui->peersTreeView->setModel(model);
 }
 
 void PeersDialog::setObserverConnectionTreeViewModel(QAbstractItemModel * model) {
-    ui->observerPeersTableView->setModel(model);
+    ui->observersTreeView->setModel(model);
 }
 
 void PeersDialog::setBuyerConnectionTreeViewModel(QAbstractItemModel * model) {
-    ui->buyerPeersTableView->setModel(model);
+    ui->buyersTreeView->setModel(model);
 }
 
 void PeersDialog::setSellerConnectionTreeViewModel(QAbstractItemModel * model) {
-    ui->sellerPeersTableView->setModel(model);
+    ui->sellersTreeView->setModel(model);
 }
 
 }
