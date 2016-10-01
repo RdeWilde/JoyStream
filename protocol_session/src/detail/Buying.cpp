@@ -565,10 +565,9 @@ namespace detail {
             Coin::KeyPair payorCommitmentKeyPair = _generateP2SHKeyPair([payeeContractPk, lockTime](const Coin::PublicKey & payorCommitmentPk){
 
                 paymentchannel::RedeemScript redeemScript(payorCommitmentPk, payeeContractPk, lockTime);
-
                 return redeemScript.serialized();
 
-            }, uchar_vector(0x00) /* OP_FALSE */);
+            }, paymentchannel::RedeemScript::PayorOptionalData());
 
             paymentchannel::Commitment commitment(value,
                                                   payorCommitmentKeyPair.pk(),

@@ -100,4 +100,12 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
 
 }
 
+uchar_vector RedeemScript::PayorOptionalData() {
+    return uchar_vector(0x00); /* OP_FALSE */
+}
+
+uchar_vector RedeemScript::PayeeOptionalData() {
+    return uchar_vector(0x01); /* OP_TRUE */
+}
+
 }}
