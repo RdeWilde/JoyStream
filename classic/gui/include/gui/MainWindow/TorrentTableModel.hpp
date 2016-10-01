@@ -9,7 +9,7 @@
 #define JOYSTREAM_CLASSIC_GUI_TORRENTTABLEMODEL_HPP
 
 #include <QStandardItemModel>
-#include <libtorrent/socket.hpp>
+#include <libtorrent/sha1_hash.hpp>
 
 class BitcoinDisplaySettings;
 
@@ -27,17 +27,17 @@ public:
 
     ~TorrentTableModel();
 
-    TorrentTableRowModel * add(const libtorrent::tcp::endpoint & endPoint);
+    TorrentTableRowModel * add(const libtorrent::sha1_hash & infoHash);
 
-    void remove(const libtorrent::tcp::endpoint & endPoint);
+    void remove(const libtorrent::sha1_hash & infoHash);
 
-    std::map<libtorrent::tcp::endpoint, TorrentTableRowModel *> rowModels() const noexcept;
+    std::map<libtorrent::sha1_hash, TorrentTableRowModel *> rowModels() const noexcept;
 
     QStandardItemModel * standardItemModel() noexcept;
 
 private:
 
-    std::map<libtorrent::tcp::endpoint, TorrentTableRowModel *> _rowModels;
+    std::map<libtorrent::sha1_hash, TorrentTableRowModel *> _rowModels;
 
     QStandardItemModel _standardItemModel;
 

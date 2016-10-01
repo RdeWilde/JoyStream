@@ -42,9 +42,9 @@ TorrentTableModel::~TorrentTableModel() {
         delete mapping.second;
 }
 
-TorrentTableRowModel * TorrentTableModel::add(const libtorrent::tcp::endpoint & endPoint) {
+TorrentTableRowModel * TorrentTableModel::add(const libtorrent::sha1_hash & infoHash) {
 
-    if(_rowModels.count(endPoint) > 0)
+    if(_rowModels.count(infoHash) > 0)
         throw std::runtime_error("Torrent already added.");
 
     // Create items
@@ -109,14 +109,14 @@ TorrentTableRowModel * TorrentTableModel::add(const libtorrent::tcp::endpoint & 
                                                                _settings);
 
     // Add to row model mapping
-    _rowModels[endPoint] = rowModel;
+    _rowModels[infoHash] = rowModel;
 
     return rowModel;
 }
 
-void TorrentTableModel::remove(const libtorrent::tcp::endpoint & endPoint) {
+void TorrentTableModel::remove(const libtorrent::sha1_hash & infoHash) {
 
-    auto it = _rowModels.find(endPoint);
+    auto it = _rowModels.find(infoHash);
 
     if(it == _rowModels.cend())
         throw std::runtime_error("No such torrent exists.");
@@ -136,7 +136,7 @@ void TorrentTableModel::remove(const libtorrent::tcp::endpoint & endPoint) {
     }
 }
 
-std::map<libtorrent::tcp::endpoint, TorrentTableRowModel *> TorrentTableModel::rowModels() const noexcept {
+std::map<libtorrent::sha1_hash, TorrentTableRowModel *> TorrentTableModel::rowModels() const noexcept {
     return _rowModels;
 }
 
