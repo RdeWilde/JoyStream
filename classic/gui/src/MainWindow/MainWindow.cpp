@@ -7,7 +7,6 @@
 
 #include <gui/MainWindow/MainWindow.hpp>
 #include "ui_MainWindow.h"
-#include <gui/MainWindow/TorrentTreeViewRow.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 

@@ -26,8 +26,6 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-class TorrentTreeViewRow;
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
