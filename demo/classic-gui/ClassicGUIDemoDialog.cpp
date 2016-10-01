@@ -10,6 +10,7 @@
 #include <gui/gui.hpp>
 
 #include <common/BitcoinDisplaySettings.hpp>
+#include <extension/BEPSupportStatus.hpp>
 
 #include <libtorrent/socket_io.hpp>
 
@@ -42,13 +43,13 @@ void ClassicGUIDemoDialog::on_MainWindowPushButton_clicked() {
     // Setup model
     classic::gui::TorrentTableModel model(&settings);
 
+    libtorrent::sha1_hash infoHash("e940a7a57294e4c98f62514b32611e38181b6cae");
+
     for(int i = 0;i < 11;i++) {
 
-        libtorrent::error_code ec;
-        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint(std::string("198.9.") + std::to_string(i) + ".12:800", ec);
-        assert(!ec);
+        infoHash <<= 1; // shift 1 bit to make unique for this torrent
 
-        classic::gui::TorrentTableRowModel * rowModel = model.add(endPoint);
+        classic::gui::TorrentTableRowModel * rowModel = model.add(infoHash);
 
         rowModel->setName("First test torrent");
         rowModel->setSize(1024*10);
@@ -82,6 +83,25 @@ void ClassicGUIDemoDialog::on_PeersDialogPushButton_clicked() {
 
     peersDialog.show();
 
+    // Setup model
+    classic::gui::PeerTableModel model(&settings);
+
+    for(int i = 0;i < 10;i++) {
+
+        libtorrent::error_code ec;
+        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint(std::string("198.9.") + std::to_string(i) + ".12:800", ec);
+        assert(!ec);
+
+        classic::gui::PeerTableRowModel * rowModel = model.add(endPoint);
+
+        rowModel->setHost(endPoint);
+        rowModel->setClientName("uTorrent");
+        rowModel->setBEPSupport(extension::BEPSupportStatus::supported);
+    }
+
+    peersDialog.setPeerTreeViewModel(model.standardItemModel());
+
+    // Start local event loop
     QEventLoop loop;
     QObject::connect(&peersDialog,
                      &classic::gui::PeersDialog::accepted,
