@@ -5,14 +5,13 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2016
  */
 
-#ifndef JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
-#define JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
+#ifndef JOYSTREAM_CLASSIC_GUI_TORRENTTABLEROWMODEL_HPP
+#define JOYSTREAM_CLASSIC_GUI_TORRENTTABLEROWMODEL_HPP
 
 #include <libtorrent/torrent_status.hpp>
 
-#include <QtGlobal>
+#include <QObject>
 
-class QObject;
 class QStandardItem;
 class BitcoinDisplaySettings;
 
@@ -20,15 +19,12 @@ namespace joystream {
 namespace protocol_session {
     enum class SessionMode;
 }
-namespace core {
-    class Torrent;
-    class Session;
-    class TorrentPlugin;
-}
 namespace classic {
 namespace gui {
 
-class TorrentTreeViewRow {
+class TorrentTableRowModel : public QObject {
+
+    Q_OBJECT
 
 public:
 
@@ -36,26 +32,19 @@ public:
      * @brief TorrentTableViewRow constructor
      * @note This object does not take ownership of the items provided
      */
-    TorrentTreeViewRow(const BitcoinDisplaySettings * settings,
-                       QStandardItem * nameItem,
-                       QStandardItem * sizeItem,
-                       QStandardItem * stateItem,
-                       QStandardItem * uploadSpeed,
-                       QStandardItem * downloadSpeed,
-                       QStandardItem * numberOfBuyerPeersItem,
-                       QStandardItem * numberOfSellerPeersitem,
-                       QStandardItem * sessionModeItem,
-                       QStandardItem * balanceItem);
+    TorrentTableRowModel(QObject * parent,
+                         QStandardItem * nameItem,
+                         QStandardItem * sizeItem,
+                         QStandardItem * stateItem,
+                         QStandardItem * uploadSpeed,
+                         QStandardItem * downloadSpeed,
+                         QStandardItem * numberOfBuyerPeersItem,
+                         QStandardItem * numberOfSellerPeersitem,
+                         QStandardItem * sessionModeItem,
+                         QStandardItem * balanceItem,
+                         const BitcoinDisplaySettings * settings);
 
-    QStandardItem * nameItem() const noexcept;
-    QStandardItem * sizeItem() const noexcept;
-    QStandardItem * stateItem() const noexcept;
-    QStandardItem * uploadSpeedItem() const noexcept;
-    QStandardItem * downloadSpeedItem() const noexcept;
-    QStandardItem * numberOfBuyerPeersItem() const noexcept;
-    QStandardItem * numberOfSellerPeersitem() const noexcept;
-    QStandardItem * sessionModeItem() const noexcept;
-    QStandardItem * balanceItem() const noexcept;
+public slots:
 
     void setName(const std::string & name);
     void setSize(qint64 totalSize);
@@ -70,12 +59,11 @@ public:
 
     void unsetTorrentPluginPresence();
 
+public:
+
     int row() const noexcept;
 
 private:
-
-    // Display settings for bitcoin
-    const BitcoinDisplaySettings * _settings;
 
     // View model pointers
     // Objects are owned by QStandardItemModel, not us
@@ -88,11 +76,13 @@ private:
                   * _numberOfSellerPeersitem,
                   * _sessionModeItem,
                   * _balanceItem;
+
+    const BitcoinDisplaySettings * _settings;
 };
 
 }
 }
 }
 
-#endif // JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
+#endif // JOYSTREAM_CLASSIC_GUI_TORRENTTABLEROWMODEL_HPP
 
