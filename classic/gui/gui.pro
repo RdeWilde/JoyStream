@@ -23,7 +23,6 @@ INCLUDEPATH += $$PWD/include
 
 SOURCES += \
     src/MainWindow/MainWindow.cpp \
-    src/MainWindow/TorrentTreeViewRow.cpp \
     src/MainWindow/TorrentContextMenu.cpp \
     #src/UtxoEventViewModel.cpp \
     src/ReceiveFundsDialog.cpp \
@@ -43,11 +42,12 @@ SOURCES += \
     src/PeersDialog/BuyerConnectionTreeViewRow.cpp \
     src/PeersDialog/SellerConnectionTreeViewRow.cpp \
     src/PeersDialog/ObserverConnectionTreeViewRow.cpp \
-    src/SessionDialog/ConnectionTreeViewRow.cpp
+    src/SessionDialog/ConnectionTreeViewRow.cpp \
+    src/MainWindow/TorrentTableModel.cpp \
+    src/MainWindow/TorrentTableRowModel.cpp
 
 HEADERS += \
     include/gui/MainWindow/MainWindow.hpp \
-    include/gui/MainWindow/TorrentTreeViewRow.hpp \
     include/gui/MainWindow/TorrentContextMenu.hpp \
     #include/gui/UtxoEventViewModel.hpp \
     include/gui/Common.hpp \
@@ -68,7 +68,9 @@ HEADERS += \
     include/gui/PeersDialog/BuyerConnectionTreeViewRow.hpp \
     include/gui/PeersDialog/SellerConnectionTreeViewRow.hpp \
     include/gui/PeersDialog/ObserverConnectionTreeViewRow.hpp \
-    include/gui/SessionDialog/ConnectionTreeViewRow.hpp
+    include/gui/SessionDialog/ConnectionTreeViewRow.hpp \
+    include/gui/MainWindow/TorrentTableModel.hpp \
+    include/gui/MainWindow/TorrentTableRowModel.hpp
 
 FORMS += \
     ui/MainWindow.ui \
