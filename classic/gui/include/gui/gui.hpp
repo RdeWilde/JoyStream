@@ -14,7 +14,8 @@
 #include <gui/SessionDialog/SessionDialog.hpp>
 #include <gui/SessionDialog/BuyingModeSessionWidget.hpp>
 #include <gui/PeersDialog/PeersDialog.hpp>
-#include <gui/PeersDialog/PeerTreeViewRow.hpp>
+#include <gui/PeersDialog/PeerTableModel.hpp>
+#include <gui/PeersDialog/PeerTableRowModel.hpp>
 #include <gui/PeersDialog/BuyerConnectionTreeViewRow.hpp>
 #include <gui/PeersDialog/ObserverConnectionTreeViewRow.hpp>
 #include <gui/PeersDialog/SellerConnectionTreeViewRow.hpp>
