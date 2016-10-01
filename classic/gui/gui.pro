@@ -37,14 +37,15 @@ SOURCES += \
     src/SellerTermsDialog.cpp \
     src/SelectTorrentForDownloadDialog.cpp \
     src/TrayMenuManager.cpp \
-    src/PeersDialog/PeerTreeViewRow.cpp \
     src/Common.cpp \
     src/PeersDialog/BuyerConnectionTreeViewRow.cpp \
     src/PeersDialog/SellerConnectionTreeViewRow.cpp \
     src/PeersDialog/ObserverConnectionTreeViewRow.cpp \
     src/SessionDialog/ConnectionTreeViewRow.cpp \
     src/MainWindow/TorrentTableModel.cpp \
-    src/MainWindow/TorrentTableRowModel.cpp
+    src/MainWindow/TorrentTableRowModel.cpp \
+    src/PeersDialog/PeerTableModel.cpp \
+    src/PeersDialog/PeerTableRowModel.cpp
 
 HEADERS += \
     include/gui/MainWindow/MainWindow.hpp \
@@ -64,13 +65,14 @@ HEADERS += \
     include/gui/TrayMenuManager.hpp \
     include/gui/gui.hpp \
     include/gui/PeersDialog/PeersDialog.hpp \
-    include/gui/PeersDialog/PeerTreeViewRow.hpp \
     include/gui/PeersDialog/BuyerConnectionTreeViewRow.hpp \
     include/gui/PeersDialog/SellerConnectionTreeViewRow.hpp \
     include/gui/PeersDialog/ObserverConnectionTreeViewRow.hpp \
     include/gui/SessionDialog/ConnectionTreeViewRow.hpp \
     include/gui/MainWindow/TorrentTableModel.hpp \
-    include/gui/MainWindow/TorrentTableRowModel.hpp
+    include/gui/MainWindow/TorrentTableRowModel.hpp \
+    include/gui/PeersDialog/PeerTableModel.hpp \
+    include/gui/PeersDialog/PeerTableRowModel.hpp
 
 FORMS += \
     ui/MainWindow.ui \
