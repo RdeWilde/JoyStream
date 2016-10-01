@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 17 2016
  */
 
-#include <gui/PeersDialog/PeerTreeViewRow.hpp>
+#include <gui/PeersDialog/PeerTableRowModel.hpp>
 #include <gui/Common.hpp>
 #include <extension/extension.hpp>
 
@@ -15,7 +15,7 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-PeerTreeViewRow::PeerTreeViewRow(QStandardItem * host,
+PeerTableRowModel::PeerTableRowModel(QStandardItem * host,
                              QStandardItem * clientName,
                              QStandardItem * BEPSupportStatus)
     : _hostItem(host)
@@ -23,31 +23,19 @@ PeerTreeViewRow::PeerTreeViewRow(QStandardItem * host,
     , _BEPSupportStatusItem(BEPSupportStatus) {
 }
 
-QStandardItem * PeerTreeViewRow::hostItem() const noexcept {
-    return _hostItem;
-}
-
-QStandardItem * PeerTreeViewRow::clientNameItem() const noexcept {
-    return _clientNameItem;
-}
-
-QStandardItem * PeerTreeViewRow::BEPSupportStatusItem() const noexcept {
-    return _BEPSupportStatusItem;
-}
-
-void PeerTreeViewRow::setHost(const libtorrent::tcp::endpoint & endPoint) {
+void PeerTableRowModel::setHost(const libtorrent::tcp::endpoint & endPoint) {
     _hostItem->setText(Common::toString(endPoint));
 }
 
-void PeerTreeViewRow::setClientName(const std::string & clientName) {
+void PeerTableRowModel::setClientName(const std::string & clientName) {
     _clientNameItem->setText(QString::fromStdString(clientName));
 }
 
-void PeerTreeViewRow::setBEPSupport(const extension::BEPSupportStatus & status) {
+void PeerTableRowModel::setBEPSupport(const extension::BEPSupportStatus & status) {
     _BEPSupportStatusItem->setText(Common::toString(status));
 }
 
-int PeerTreeViewRow::row() const noexcept {
+int PeerTableRowModel::row() const noexcept {
     return _hostItem->row();
 }
 

@@ -10,6 +10,8 @@
 
 #include <libtorrent/socket.hpp>
 
+#include <QObject>
+
 class QStandardItem;
 
 namespace joystream {
@@ -19,23 +21,25 @@ namespace extension {
 namespace classic {
 namespace gui {
 
-class PeerTreeViewRow {
+class PeerTableRowModel : public QObject {
+
+    Q_OBJECT
 
 public:
 
-    PeerTreeViewRow(QStandardItem * host,
-                    QStandardItem * clientName,
-                    QStandardItem * BEPSupportStatus);
+    PeerTableRowModel(QStandardItem * host,
+                      QStandardItem * clientName,
+                      QStandardItem * BEPSupportStatus);
 
-    QStandardItem * hostItem() const noexcept;
-    QStandardItem * clientNameItem() const noexcept;
-    QStandardItem * BEPSupportStatusItem() const noexcept;
+public slots:
 
     void setHost(const libtorrent::tcp::endpoint & endPoint);
 
     void setClientName(const std::string & clientName);
 
     void setBEPSupport(const extension::BEPSupportStatus & status);
+
+public:
 
     int row() const noexcept;
 
