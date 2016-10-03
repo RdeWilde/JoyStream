@@ -10,21 +10,25 @@ var torrent = {
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 
-	rpc.listTorrents(function(err, t){
-		if(err){
-			console.log(err);
-		} else {
-			console.log('This torrent is in the node',t);
-		}
-	}, function(){
-		console.log("Got All Torrents");
-	});
 
 	rpc.addTorrent(torrent, function(err) {
 		if (err) {
 			console.log(err);
 		} else {
-			console.log('The torrent is being added, waiting for callback...')
+			console.log(torrent);
+
+			rpc.listTorrents(function(err, torrent){
+				if(err){
+					console.log(err);
+				} else {
+					console.log(torrent);
+				}
+			}, function(){
+				console.log("Got All Torrents");
+				rpc.pause(function(){
+					console.log('Daemon stop')
+				});
+			});
 		}
 	});
 
