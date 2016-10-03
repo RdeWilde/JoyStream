@@ -606,10 +606,11 @@ protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::lo
         const bool noPreviousCalls = callSet.empty();
 
         // Remember to notify this endpoint when piece is loaded
+        // NB it is important the callSet be updated before call to read_piece below as a piece could be read in the
+        // same call triggering re-entry into hanlding read_piece_alert which checks this set then erases it
         callSet.insert(endPoint);
 
         if(noPreviousCalls) {
-
             std::clog << "Requested piece "
                       << index
                       << " by"
