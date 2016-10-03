@@ -25,24 +25,3 @@ rpc.addTorrent(torrent, function(err, torrent) {
 		});
 	}
 });
-
-rpc.addTorrent(torrent, function(err, torrentState) {
-	if (err) {
-		console.log(err);
-	} else {
-		console.log(torrentState);
-	}
-})
-
-rpc.listTorrents(function(err, torrent){
-	if(err){
-		console.log(err);
-	} else {
-		console.log(torrent);
-	}
-}, function(){
-	console.log("Got All Torrents");
-	rpc.pause(function(){
-
-	});
-});
