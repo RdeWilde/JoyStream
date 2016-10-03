@@ -597,23 +597,26 @@ protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> TorrentPlugin::ful
 
 protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::loadPieceForBuyer() {
 
-    return [this](const libtorrent::tcp::endpoint & endPoint, unsigned int index) -> void {
+    return [this](const libtorrent::tcp::endpoint & endPoint, int index) -> void {
 
         // Get reference to, possibly new - and hence empty, set of calls for given piece index
         std::set<libtorrent::tcp::endpoint> & callSet = this->_outstandingLoadPieceForBuyerCalls[index];
 
-        // was there no previous calls for this piece?
-        if(callSet.empty()) {
+        // Was there no previous calls for this piece?
+        const bool noPreviousCalls = callSet.empty();
 
-            std::clog << "["
-                      << _outstandingLoadPieceForBuyerCalls[index].size()
-                      << "] Requested piece"
+        // Remember to notify this endpoint when piece is loaded
+        callSet.insert(endPoint);
+
+        if(noPreviousCalls) {
+
+            std::clog << "Requested piece "
                       << index
-                      << "by"
+                      << " by"
                       << libtorrent::print_address(endPoint.address()).c_str()
                       << std::endl;
 
-            // then we make first call
+            // Make first call
             torrent()->read_piece(index);
 
         } else {
@@ -621,17 +624,14 @@ protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::lo
             // otherwise we dont need to make a new call, a response will come from libtorrent
             std::clog << "["
                       << _outstandingLoadPieceForBuyerCalls[index].size()
-                      << "] Skipping requested piece"
+                      << "] Skipping reading requeted piece "
                       << index
-                      << "by"
+                      << " by"
                       << libtorrent::print_address(endPoint.address()).c_str()
                       << std::endl;
 
         }
 
-        // and in any case, remember to notify this endpoint
-        // when piece is loaded
-        callSet.insert(endPoint);
     };
 }
 
