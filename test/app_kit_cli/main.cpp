@@ -50,8 +50,33 @@ void handleSignal(int sig)
     }
 }
 
+uint32_t future_unix_timestamp(const unsigned int minutes) {
+    std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
+    auto futureTime = std::chrono::system_clock::now() + std::chrono::minutes(minutes);
+    auto delta = futureTime - epoch;
+    return std::chrono::duration_cast<std::chrono::seconds>(delta).count();
+}
+
 int main(int argc, char *argv[])
 {
+    const int nsellers = 1;
+    const uint64_t price = 100; //satoshis per piece
+    const uint32_t locktime = future_unix_timestamp(5); // 5 minute locktime
+    const uint64_t refund_fee = 20000;
+    const uint64_t settlement_fee = 20000;
+    const uint64_t contractFeeRate = 20000;   //satoshis/KByte - ref https://bitcoinfees.github.io/
+
+    joystream::protocol_wire::BuyerTerms buyerTerms(price, locktime, nsellers, contractFeeRate, refund_fee);
+    joystream::protocol_wire::SellerTerms sellerTerms(price, locktime, nsellers, contractFeeRate, settlement_fee);
+
+    assert(sellerTerms.satisfiedBy(buyerTerms));
+    assert(buyerTerms.satisfiedBy(sellerTerms));
+
+    const double secondsBeforeCreatingContract = 45;
+    const double secondsBeforePieceTimeout = 25;
+    joystream::protocol_session::BuyingPolicy buyingPolicy(secondsBeforeCreatingContract,
+                                                           secondsBeforePieceTimeout,
+                                                           joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
     if (argc < 3)
     {
@@ -67,7 +92,9 @@ int main(int argc, char *argv[])
 
     joystream::AppKit* kit = joystream::AppKit::createInstance(dataDirectory, Coin::Network::testnet3);
 
-    std::vector<Coin::P2PKHAddress> addresses = kit->wallet()->listReceiveAddresses();
+    auto w = kit->wallet();
+
+    std::vector<Coin::P2PKHAddress> addresses = w->listReceiveAddresses();
 
     std::string depositAddress;
 
@@ -113,17 +140,17 @@ int main(int argc, char *argv[])
     }
 
     // process addedTorrent Signal when torrent is added
-    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&ti, &kit, argv](const joystream::core::Torrent *torrent){
+    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&ti, &kit, argv, &buyerTerms, &sellerTerms, &buyingPolicy](const joystream::core::Torrent *torrent){
         std::cout << "Got torrent added signal, waiting for plugin added signal" << std::endl;
         assert(torrent->infoHash() == ti->info_hash());
 
         // wait for torrent pluging to be added before we can go to buy mode...
-        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, torrent, argv](const joystream::core::TorrentPlugin *plugin){
+        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, torrent, argv, &buyerTerms, &sellerTerms, &buyingPolicy](const joystream::core::TorrentPlugin *plugin){
 
             assert(plugin->infoHash() == torrent->infoHash());
 
             if(std::string(argv[1]) == "buy") {
-                kit->buyTorrent(torrent, joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [torrent](const std::exception_ptr &eptr){
+                kit->buyTorrent(torrent, buyingPolicy, buyerTerms, [torrent](const std::exception_ptr &eptr){
                     if(eptr){
                         std::cerr << "Error Buying Torrent" << std::endl;
                         std::rethrow_exception(eptr);
@@ -140,7 +167,7 @@ int main(int argc, char *argv[])
                     }
                 });
             } else {
-              kit->sellTorrent(torrent, joystream::protocol_session::SellingPolicy(), joystream::protocol_wire::SellerTerms(), [torrent](const std::exception_ptr &eptr){
+              kit->sellTorrent(torrent, joystream::protocol_session::SellingPolicy(), sellerTerms, [torrent](const std::exception_ptr &eptr){
                   if(eptr){
                       std::cerr << "Error Selling Torrent" << std::endl;
                       std::rethrow_exception(eptr);
