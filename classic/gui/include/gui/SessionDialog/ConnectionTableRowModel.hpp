@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 28 2016
  */
 
-#ifndef JOYSTREAM_CLASSIC_GUI_CONNECTIONTREVIEWROW_HPP
-#define JOYSTREAM_CLASSIC_GUI_CONNECTIONTREVIEWROW_HPP
+#ifndef JOYSTREAM_CLASSIC_GUI_CONNECTIONTABLEROWMODEL_HPP
+#define JOYSTREAM_CLASSIC_GUI_CONNECTIONTABLEROWMODEL_HPP
 
 /// temporary needed for CBStateMachine::InnerStateIndex for now, remove when
 /// https://github.com/JoyStream/JoyStream/issues/307 is fixed
@@ -17,35 +17,24 @@ class QStandardItem;
 class BitcoinDisplaySettings;
 
 namespace joystream {
-namespace protocol_statemachine {
-    class AnnouncedModeAndTerms;
-}
 namespace classic {
 namespace gui {
 
-class ConnectionTreeViewRow : public QObject {
+class ConnectionTableRowModel : public QObject {
 
     Q_OBJECT
 
 public:
 
-    ConnectionTreeViewRow(QObject * parent,
-                          QStandardItem * hostItem,
-                          QStandardItem * stateItem,
-                          QStandardItem * fundsItem,
-                          QStandardItem * lockItem,
-                          QStandardItem * priceItem,
-                          QStandardItem * numberOfPaymentsItem,
-                          QStandardItem * balanceItem,
-                          const BitcoinDisplaySettings * settings);
-
-    QStandardItem * hostItem() const noexcept;
-    QStandardItem * stateItem() const noexcept;
-    QStandardItem * fundsItem() const noexcept;
-    QStandardItem * lockItem() const noexcept;
-    QStandardItem * priceItem() const noexcept;
-    QStandardItem * numberOfPayments() const noexcept;
-    QStandardItem * balance() const noexcept;
+    ConnectionTableRowModel(QObject * parent,
+                            QStandardItem * hostItem,
+                            QStandardItem * stateItem,
+                            QStandardItem * fundsItem,
+                            QStandardItem * lockItem,
+                            QStandardItem * priceItem,
+                            QStandardItem * numberOfPaymentsItem,
+                            QStandardItem * balanceItem,
+                            const BitcoinDisplaySettings * settings);
 
     int row() const noexcept;
 
@@ -79,4 +68,4 @@ private:
 }
 }
 
-#endif // JOYSTREAM_CLASSIC_GUI_CONNECTIONTREVIEWROW_HPP
+#endif // JOYSTREAM_CLASSIC_GUI_CONNECTIONTABLEROWMODEL_HPP

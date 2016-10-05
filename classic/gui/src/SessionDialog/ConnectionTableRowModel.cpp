@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 28 2016
  */
 
-#include <gui/SessionDialog/ConnectionTreeViewRow.hpp>
+#include <gui/SessionDialog/ConnectionTableRowModel.hpp>
 #include <gui/Common.hpp>
 #include <common/BitcoinRepresentation.hpp>
 
@@ -15,7 +15,7 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-ConnectionTreeViewRow::ConnectionTreeViewRow(QObject * parent,
+ConnectionTableRowModel::ConnectionTableRowModel(QObject * parent,
                                              QStandardItem * hostItem,
                                              QStandardItem * stateItem,
                                              QStandardItem * fundsItem,
@@ -35,44 +35,16 @@ ConnectionTreeViewRow::ConnectionTreeViewRow(QObject * parent,
     , _settings(settings) {
 }
 
-QStandardItem * ConnectionTreeViewRow::hostItem() const noexcept {
-    return _hostItem;
-}
-
-QStandardItem * ConnectionTreeViewRow::stateItem() const noexcept {
-    return _stateItem;
-}
-
-QStandardItem * ConnectionTreeViewRow::fundsItem() const noexcept {
-    return _fundsItem;
-}
-
-QStandardItem * ConnectionTreeViewRow::lockItem() const noexcept {
-    return _lockItem;
-}
-
-QStandardItem * ConnectionTreeViewRow::priceItem() const noexcept {
-    return _priceItem;
-}
-
-QStandardItem * ConnectionTreeViewRow::numberOfPayments() const noexcept {
-    return _numberOfPaymentsItem;
-}
-
-QStandardItem * ConnectionTreeViewRow::balance() const noexcept {
-    return _balanceItem;
-}
-
-int ConnectionTreeViewRow::row() const noexcept {
+int ConnectionTableRowModel::row() const noexcept {
     return _hostItem->row();
 }
 
-void ConnectionTreeViewRow::setHost(const libtorrent::tcp::endpoint & endPoint) {
+void ConnectionTableRowModel::setHost(const libtorrent::tcp::endpoint & endPoint) {
     std::string hostString = libtorrent::print_endpoint(endPoint);
     _hostItem->setText(QString::fromStdString(hostString));
 }
 
-void ConnectionTreeViewRow::setState(const core::CBStateMachine::InnerStateIndex & stateIndex) {
+void ConnectionTableRowModel::setState(const core::CBStateMachine::InnerStateIndex & stateIndex) {
 
     if(stateIndex.is_initialized())
         _stateItem->setText(Common::toString(stateIndex.get()));
@@ -80,23 +52,23 @@ void ConnectionTreeViewRow::setState(const core::CBStateMachine::InnerStateIndex
         _stateItem->setText("-");
 }
 
-void ConnectionTreeViewRow::setFunds(quint64 funds) {
+void ConnectionTableRowModel::setFunds(quint64 funds) {
     _fundsItem->setText(BitcoinRepresentation(funds).toString(_settings));
 }
 
-void ConnectionTreeViewRow::setRefundLockTime(quint64 refundLockTime) {
+void ConnectionTableRowModel::setRefundLockTime(quint64 refundLockTime) {
     _lockItem->setText(QString::number(refundLockTime));
 }
 
-void ConnectionTreeViewRow::setPrice(quint64 price) {
+void ConnectionTableRowModel::setPrice(quint64 price) {
     _priceItem->setText(BitcoinRepresentation(price).toString(_settings));
 }
 
-void ConnectionTreeViewRow::setNumberOfPayments(quint64 numberOfPayments) {
+void ConnectionTableRowModel::setNumberOfPayments(quint64 numberOfPayments) {
     _numberOfPaymentsItem->setText(QString::number(numberOfPayments));
 }
 
-void ConnectionTreeViewRow::setBalance(qint64 balance) {
+void ConnectionTableRowModel::setBalance(qint64 balance) {
     _balanceItem->setText(BitcoinRepresentation(balance).toString(_settings));
 }
 
