@@ -14,8 +14,6 @@
 #include <common/BitcoinRepresentation.hpp>
 #include <CoinCore/CoinNodeData.h>
 
-#include <QStandardItemModel>
-
 namespace joystream {
 namespace classic {
 namespace gui {
