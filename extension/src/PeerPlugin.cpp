@@ -97,7 +97,7 @@ namespace extension {
 
         // Otherwise, the disconnect was iniated by peer, and we should notify
         // the torrent plugin.
-        _plugin->drop(_endPoint, ec);
+        _plugin->drop(_endPoint, ec, false);
     }
 
     void PeerPlugin::on_connected() {
@@ -278,6 +278,9 @@ namespace extension {
                 // Remove peer
                 libtorrent::error_code ec;
                 drop(ec);
+
+                // Keep us around
+                return true;
             }
 
         }
@@ -395,11 +398,9 @@ namespace extension {
     }
 
     bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
-        assert(!_undead);
 
-        std::clog << "can_disconnect: " << ec.message() << std::endl;
+        //std::clog << "can_disconnect: " << ec.message() << std::endl;
 
-        // rejecting request
         return false;
     }
 
@@ -419,7 +420,13 @@ namespace extension {
         // If this peer is not part of this session, then
         // we ignore the message and ask all other plugins to do the same.
         // This could happen if the peer is malicious, or if the connection .... <what here?>
+        if(_plugin->_session.mode() == protocol_session::SessionMode::not_set) {
+            std::clog << "Ignoring extended message, session mode not set" << std::endl;
+            return true;
+        }
+
         if(!_plugin->_session.hasConnection(_endPoint)) {
+            std::clog << "Ignoring extended message, connection not in session" << std::endl;
             return true;
         }
 
@@ -506,11 +513,14 @@ namespace extension {
             // Remove this peer
             libtorrent::error_code ec; // <- s
             drop(ec);
+
+            return true;
         }
 
         // Was message malformed
         if(m == NULL) {
 
+            std::clog << "Extended Message was Malformed" << std::endl;
             // Remove this peer
             libtorrent::error_code ec; // <-- "Malformed extended message received, removing."
             drop(ec);

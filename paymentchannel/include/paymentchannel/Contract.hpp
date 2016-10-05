@@ -51,12 +51,12 @@ public:
     Coin::Transaction transaction() const;
 
     // Transaction fee for contract with given terms
-    static uint64_t fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb);
+    static uint64_t fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, int numberOfInputs = 1);
 
 private:
 
     // The size of a contract transaction with given terms
-    static uint32_t transactionSize(uint32_t, bool);
+    static uint32_t transactionSize(uint32_t, bool, int);
 
     // Funding contract
     Coin::UnspentOutputSet _funding;

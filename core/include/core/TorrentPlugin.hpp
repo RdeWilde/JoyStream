@@ -99,7 +99,7 @@ private:
 
     void removePeerPlugin(const libtorrent::tcp::endpoint &);
 
-    void removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::iterator it);
+    void removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::const_iterator it);
 
     void update(const extension::status::TorrentPlugin &);
 

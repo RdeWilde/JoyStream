@@ -100,7 +100,7 @@ private:
 
     void removeConnection(const libtorrent::tcp::endpoint &);
 
-    void removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::iterator it);
+    void removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::const_iterator it);
 
     void update(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
 

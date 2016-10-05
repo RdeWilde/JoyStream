@@ -135,7 +135,7 @@ private:
     std::vector<uint64_t> distributeFunds(const std::vector<protocol_wire::SellerTerms> &) const;
 
     // Determine if there should be a change output, and if so, how much funds it should have
-    uint64_t determineChangeAmount(uint32_t numberOfSellers, uint64_t totalComitted, uint64_t contractFeePerKb) const;
+    uint64_t determineChangeAmount(uint32_t numberOfSellers, uint64_t totalComitted, uint64_t contractFeePerKb, int numberOfInputs = 1) const;
 
     //// Assigning pieces
 

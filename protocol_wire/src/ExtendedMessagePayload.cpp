@@ -33,11 +33,11 @@ namespace protocol_wire {
                 case MessageType::observe: return new Observe();
                 case MessageType::buy: return new Buy(stream);
                 case MessageType::sell: return new Sell(stream);
-                case MessageType::join_contract: return new JoinContract();
+                case MessageType::join_contract: return new JoinContract(stream);
                 case MessageType::joining_contract: return new JoiningContract(stream);
                 case MessageType::sign_refund: return new SignRefund(stream);
                 case MessageType::refund_signed: return new RefundSigned(stream, lengthOfExtendedMessagePayload);
-                case MessageType::ready: return new Ready();
+                case MessageType::ready: return new Ready(stream);
                 case MessageType::request_full_piece: return new RequestFullPiece(stream);
                 case MessageType::full_piece: return new FullPiece(stream, lengthOfExtendedMessagePayload);
                 case MessageType::payment: return new Payment(stream, lengthOfExtendedMessagePayload);

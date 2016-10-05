@@ -90,7 +90,7 @@ using FullPieceArrived = std::function<void(const ConnectionIdType &, const prot
 
 // Buyer with given connection id requires piece with given index
 template <class ConnectionIdType>
-using LoadPieceForBuyer = std::function<void(const ConnectionIdType &, unsigned int)>;
+using LoadPieceForBuyer = std::function<void(const ConnectionIdType &, int)>;
 
 // Buyer with given connection id caused invitedToOutdatedContract event
 //template <class ConnectionIdType>

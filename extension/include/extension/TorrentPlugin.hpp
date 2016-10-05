@@ -163,7 +163,7 @@ private:
     void removeFromSession(const libtorrent::tcp::endpoint &);
 
     // Disconnects peer, removes corresponding plugin from map
-    void drop(const libtorrent::tcp::endpoint &, const libtorrent::error_code &);
+    void drop(const libtorrent::tcp::endpoint &, const libtorrent::error_code &, bool disconnect = true);
 
     // Determines the message type, calls correct handler, then frees message
     void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
@@ -208,12 +208,6 @@ private:
     // in one of following scenarios
     // a) PeerPlugin::on_extension_handshake: sent extended message, despite claiming not to support BEP10
     std::set<libtorrent::tcp::endpoint> _misbehavedPeers;
-
-    // Peers which should have been deleted in ::new_connection event, but cannot, due to some invariant which
-    // is asserted in on_disconnect about peer having to be on the peer_list.
-    // NB: peers in this list have no plugin installed
-    // NB: connection, rather than endpoint, is used as key, as connection is not recoverable later from libtorrent!!
-    std::map<libtorrent::peer_connection *, libtorrent::error_code> _peerScheduledForDeletionForGivenError;
 
     // Torrent info hash
     const libtorrent::sha1_hash _infoHash;

@@ -53,7 +53,6 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
               << std::endl; // << "on " << _torrent->name().c_str();
 
     // Screen connection
-    libtorrent::error_code ec;
     bool allow = false; // <-- drop when ec can be used
 
     // ec <-- later put actual error in here, dont just log
@@ -71,27 +70,11 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
 
     // If connection should not be accepted,
     if(!allow) {
-
-        libtorrent::peer_connection * c = connection.native_handle().get();
-
-        // ***** experiment in order to ask Arvid ****
-        c->disconnect(ec, libtorrent::operation_t::op_bittorrent);
-        // ***** experiment in order to ask Arvid ****
-
-        if(_peerScheduledForDeletionForGivenError.count(c))
-            std::clog << "Peer already scheduled for deletion on next tick, no plugin installed." << std::endl;
-        else {
-            std::clog << "Peer scheduled for deletion on next tick, no plugin installed." << std::endl;
-
-            _peerScheduledForDeletionForGivenError[c] = ec;
-        }
-
         // and don't install plugin
         return boost::shared_ptr<PeerPlugin>(nullptr);
-
     }
 
-    std::clog << "Installed seller plugin #" << _peers.size() << std::endl;
+    std::clog << "Installed peer plugin #" << _peers.size() << std::endl;
 
     // Create a new peer plugin
     boost::shared_ptr<PeerPlugin> plugin(new PeerPlugin(this, connection, _policy.peerPolicy, _minimumMessageId));
@@ -151,21 +134,6 @@ void TorrentPlugin::on_piece_failed(int index) {
 }
 
 void TorrentPlugin::tick() {
-
-    // Disconnect peers scheduled for instant deletion
-    for(auto mapping : _peerScheduledForDeletionForGivenError) {
-
-        std::clog << "Completing delayed disconnection of peer "
-                  << libtorrent::print_endpoint(mapping.first->peer_info_struct()->ip())
-                  << "due to error: "
-                  << mapping.second.message()
-                  << std::endl;
-
-        // Disconnect with given error
-        mapping.first->disconnect(mapping.second, libtorrent::operation_t::op_bittorrent);
-    }
-
-    _peerScheduledForDeletionForGivenError.clear();
 
     // Asynch processing in session
     _session.tick();
@@ -237,7 +205,7 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     // Iterate peers
     for(auto endPoint : peers) {
 
-        assert(_peers.count(endPoint));
+        if(!_peers.count(endPoint)) continue;
 
         // Make sure reading worked
         if(alert->ec) {
@@ -267,8 +235,10 @@ void TorrentPlugin::start() {
 
     // If session was initially stopped (not paused), then initiate extended handshake
     if(initialState == protocol_session::SessionState::stopped)
-        forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_extensions(); });
-
+        forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void {
+            if(c->support_extensions())
+                c->write_extensions();
+        });
 }
 
 void TorrentPlugin::stop() {
@@ -511,12 +481,14 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
 }
 
 void TorrentPlugin::removeFromSession(const libtorrent::tcp::endpoint & endPoint) {
+    if(_session.mode() == protocol_session::SessionMode::not_set)
+        return;
 
     if(_session.hasConnection(endPoint))
         _session.removeConnection(endPoint);
 }
 
-void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libtorrent::error_code & ec)  {
+void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libtorrent::error_code & ec, bool disconnect)  {
 
     if(ec) {
         // log string version: std::clog << "Malformed handshake received: m key not mapping to dictionary.";
@@ -527,27 +499,38 @@ void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libto
     // Get plugin
     PeerPlugin * peerPlugin = peer(endPoint);
 
+    // Make sure only we only process one call to drop the peer
+    if(peerPlugin->undead())
+        return;
+
     // Mark as undead
     // NB: must be done before closing connection, due to on_disconnect callback from libtorrent
-    assert(!peerPlugin->undead());
+    // peer will get disconnected by libtorrent when it calls can_connect on the peer plugin
     peerPlugin->setUndead(true);
 
-    // Initiate closing connection
-    peerPlugin->connection().disconnect(ec, libtorrent::operation_t::op_bittorrent);
+    if(disconnect)
+        peerPlugin->connection().disconnect(ec, libtorrent::operation_t::op_bittorrent);
 
     // Remove from session if present
     removeFromSession(endPoint);
 
     // Remove from map
     auto it = _peers.find(endPoint);
-    _peers.erase(it);
+    if(it != _peers.cend())
+        _peers.erase(it);
 }
 
 void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage){
 
-    // Should have been checked by peer plugin
-    assert(_session.hasConnection(endPoint));
+    if(_session.mode() == protocol_session::SessionMode::not_set) {
+        std::clog << "Ignoring extended message - session mode not set" << std::endl;
+        return;
+    }
 
+    if(!_session.hasConnection(endPoint)) {
+        std::clog << "Ignoring extended message - connection already removed from session" << std::endl;
+        return;
+    }
     // Have session process message
     _session.processMessageOnConnection(endPoint, extendedMessage);
 }
@@ -614,23 +597,27 @@ protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> TorrentPlugin::ful
 
 protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::loadPieceForBuyer() {
 
-    return [this](const libtorrent::tcp::endpoint & endPoint, unsigned int index) -> void {
+    return [this](const libtorrent::tcp::endpoint & endPoint, int index) -> void {
 
         // Get reference to, possibly new - and hence empty, set of calls for given piece index
         std::set<libtorrent::tcp::endpoint> & callSet = this->_outstandingLoadPieceForBuyerCalls[index];
 
-        // was there no previous calls for this piece?
-        if(callSet.empty()) {
+        // Was there no previous calls for this piece?
+        const bool noPreviousCalls = callSet.empty();
 
-            std::clog << "["
-                      << _outstandingLoadPieceForBuyerCalls[index].size()
-                      << "] Requested piece"
+        // Remember to notify this endpoint when piece is loaded
+        // NB it is important the callSet be updated before call to read_piece below as a piece could be read in the
+        // same call triggering re-entry into hanlding read_piece_alert which checks this set then erases it
+        callSet.insert(endPoint);
+
+        if(noPreviousCalls) {
+            std::clog << "Requested piece "
                       << index
-                      << "by"
+                      << " by"
                       << libtorrent::print_address(endPoint.address()).c_str()
                       << std::endl;
 
-            // then we make first call
+            // Make first call
             torrent()->read_piece(index);
 
         } else {
@@ -638,17 +625,14 @@ protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::lo
             // otherwise we dont need to make a new call, a response will come from libtorrent
             std::clog << "["
                       << _outstandingLoadPieceForBuyerCalls[index].size()
-                      << "] Skipping requested piece"
+                      << "] Skipping reading requeted piece "
                       << index
-                      << "by"
+                      << " by"
                       << libtorrent::print_address(endPoint.address()).c_str()
                       << std::endl;
 
         }
 
-        // and in any case, remember to notify this endpoint
-        // when piece is loaded
-        callSet.insert(endPoint);
     };
 }
 

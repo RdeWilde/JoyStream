@@ -336,9 +336,6 @@ namespace detail {
                     // Reference to seller
                     detail::Seller<ConnectionIdType> & s = mapping.second;
 
-                    // Get id of connection for this seller
-                    ConnectionIdType id = s.connection()->connectionId();
-
                     // A seller may be waiting to be assigned a new piece
                     if(s.state() == SellerState::waiting_to_be_assigned_piece) {
 
@@ -352,6 +349,9 @@ namespace detail {
                         tryToAssignAndRequestPiece(s);
 
                     } else if(s.state() == SellerState::waiting_for_full_piece) {
+
+                        // Get id of connection for this seller
+                        ConnectionIdType id = s.connection()->connectionId();
 
                         // Check if seller has timed out in servicing the current request,
                         // if so remove connection
@@ -447,8 +447,13 @@ namespace detail {
         // Generate statuses of all sellers
         std::map<ConnectionIdType, status::Seller<ConnectionIdType>> sellerStatuses;
 
-        for(auto mapping : _sellers)
+        for(auto mapping : _sellers) {
+            // skip sellers that are no longer around
+            if(mapping.second.state() == protocol_session::SellerState::gone)
+                continue;
+
             sellerStatuses.insert(std::make_pair(mapping.first, mapping.second.status()));
+        }
 
         return status::Buying<ConnectionIdType>(_funding,
                                                 _policy,
@@ -498,20 +503,16 @@ namespace detail {
         // Make sure there are enough peers
         if(numberOfSellers < _terms.minNumberOfSellers()) {
 
-            std::cout << "Aborted, to few viable seller peers, needed " << _terms.minNumberOfSellers() << ", found " << numberOfSellers << std::endl;
+            std::cout << "Aborted, too few viable seller peers, needed " << _terms.minNumberOfSellers() << ", found " << numberOfSellers << std::endl;
             return false;
         }
-
-        // Create sellers
-        for(auto c : selected)
-            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(SellerState::waiting_to_be_assigned_piece, c, 0);
 
         /////////////////////////
 
         // Determine fund distribution among sellers
         std::vector<protocol_wire::SellerTerms> terms;
-        for(auto mapping : _sellers)
-            terms.push_back(mapping.second.connection()->announcedModeAndTermsFromPeer().sellModeTerms());
+        for(auto c : selected)
+            terms.push_back(c->announcedModeAndTermsFromPeer().sellModeTerms());
 
         std::vector<uint64_t> funds = distributeFunds(terms);
 
@@ -535,7 +536,17 @@ namespace detail {
         }
 
         // Determine the change amount if any (!=0)
-        uint64_t changeAmount = determineChangeAmount(numberOfSellers, totalComitted, contractFeePerKb);
+        uint64_t changeAmount = determineChangeAmount(numberOfSellers, totalComitted, contractFeePerKb, _funding.size());
+
+        // Ensure Enough funds available to fund the contract
+        uint64_t estimatedFee = paymentchannel::Contract::fee(numberOfSellers, true, contractFeePerKb, _funding.size());
+
+        if(_funding.value() < (totalComitted + changeAmount + estimatedFee))
+            throw std::runtime_error("Aborted trying to start download, not enough funding provided");
+
+        // Create sellers
+        for(auto c : selected)
+            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(SellerState::waiting_to_be_assigned_piece, c, 0);
 
         /////////////////////////
 
@@ -593,16 +604,16 @@ namespace detail {
         // Create and store contract transaction
         _contractTx = c.transaction();
 
-        // Notify client that transaction should be broadcasted
-        _broadcastTransaction(_contractTx);
-
         // Make sure we are sending the right amount
         assert(_contractTx.getTotalSent() == totalComitted + changeAmount);
 
         // Make sure we are covering the intended fee rate
         uint64_t fee = _funding.value() - _contractTx.getTotalSent();
-        float contractSizeKb = (float)_contractTx.getSize()/1000;
-        assert(((float)fee)/contractSizeKb >= contractFeePerKb);
+        float contractSizeKb = ((float)_contractTx.getSize())/1024;
+        assert((float)fee >= (contractFeePerKb * contractSizeKb));
+
+        // Notify client that transaction should be broadcasted
+        _broadcastTransaction(_contractTx);
 
         /////////////////////////
 
@@ -689,10 +700,10 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    uint64_t Buying<ConnectionIdType>::determineChangeAmount(uint32_t numberOfSellers, uint64_t totalComitted, uint64_t contractFeePerKb) const {
+    uint64_t Buying<ConnectionIdType>::determineChangeAmount(uint32_t numberOfSellers, uint64_t totalComitted, uint64_t contractFeePerKb, int numberOfInputs) const {
 
         // Contract fee when there is a change output
-        uint64_t contractTxFeeWithChangeOutput = paymentchannel::Contract::fee(numberOfSellers, true, contractFeePerKb);
+        uint64_t contractTxFeeWithChangeOutput = paymentchannel::Contract::fee(numberOfSellers, true, contractFeePerKb, numberOfInputs);
 
         // Amount to use as change, if we are going to have change
         uint64_t potentialChangeAmount = _funding.value() - totalComitted - contractTxFeeWithChangeOutput;
@@ -778,11 +789,13 @@ namespace detail {
             removeSeller(s);
         }
 
+        // Destroy connection - important todo before notifying client
+        auto it = _session->destroyConnection(id);
+
         // Notify client to remove connection
         _removedConnection(id, cause);
 
-        // Destroy connection
-        return _session->destroyConnection(id);
+        return it;
     }
 
     template <class ConnectionIdType>

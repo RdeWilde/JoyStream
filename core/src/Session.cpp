@@ -130,7 +130,7 @@ void Session::removeConnection(const libtorrent::tcp::endpoint & endPoint) {
     removeConnection(it);
 }
 
-void Session::removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::iterator it) {
+void Session::removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::const_iterator it) {
 
     libtorrent::tcp::endpoint endPoint = it->first;
 
@@ -164,11 +164,14 @@ void Session::update(const protocol_session::status::Session<libtorrent::tcp::en
     }
 
     // for each exisiting peer
-    for(auto & p: _connections) {
+    for(auto it = _connections.cbegin(); it != _connections.cend();) {
 
         // if there is no status for it, then remove
-        if(status.connections.count(p.first) == 0)
-            removeConnection(p.first);
+        if(status.connections.count(it->first) == 0){
+            removeConnection(it++);
+        } else {
+            it++;
+        }
     }
 
     /// Update mode and tranistion to substates
