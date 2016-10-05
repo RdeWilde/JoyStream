@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 18 2016
  */
 
-#include <gui/PeersDialog/BuyerConnectionTreeViewRow.hpp>
+#include <gui/PeersDialog/BuyerTableRowModel.hpp>
 #include <gui/Common.hpp>
 #include <protocol_wire/protocol_wire.hpp>
 #include <common/BitcoinRepresentation.hpp>
@@ -16,7 +16,7 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-BuyerConnectionTreeViewRow::BuyerConnectionTreeViewRow(QStandardItem * hostItem,
+BuyerTableRowModel::BuyerTableRowModel(QStandardItem * hostItem,
                                                        QStandardItem * maxPriceItem,
                                                        QStandardItem * maxLockItem,
                                                        QStandardItem * minNumberOfSellersItem,
@@ -30,35 +30,15 @@ BuyerConnectionTreeViewRow::BuyerConnectionTreeViewRow(QStandardItem * hostItem,
     , _settings(settings) {
 }
 
-QStandardItem * BuyerConnectionTreeViewRow::hostItem() const noexcept {
-    return _hostItem;
-}
-
-QStandardItem * BuyerConnectionTreeViewRow::maxPriceItem() const noexcept {
-    return _maxPriceItem;
-}
-
-QStandardItem * BuyerConnectionTreeViewRow::maxLockItem() const noexcept {
-    return _maxLockItem;
-}
-
-QStandardItem * BuyerConnectionTreeViewRow::minNumberOfSellersItem() const noexcept {
-    return _minNumberOfSellersItem;
-}
-
-QStandardItem * BuyerConnectionTreeViewRow::maxContractFeePerKbItem() const noexcept {
-    return _maxContractFeePerKbItem;
-}
-
-int BuyerConnectionTreeViewRow::row() const noexcept {
+int BuyerTableRowModel::row() const noexcept {
     return _hostItem->row();
 }
 
-void BuyerConnectionTreeViewRow::setHost(const libtorrent::tcp::endpoint & endPoint) {
+void BuyerTableRowModel::setHost(const libtorrent::tcp::endpoint & endPoint) {
     _hostItem->setText(Common::toString(endPoint));
 }
 
-void BuyerConnectionTreeViewRow::setTerms(const protocol_wire::BuyerTerms & terms) {
+void BuyerTableRowModel::setTerms(const protocol_wire::BuyerTerms & terms) {
 
     _maxPriceItem->setText(BitcoinRepresentation(terms.maxPrice()).toString(_settings));
     _maxLockItem->setText(QString::number(terms.maxLock()));
