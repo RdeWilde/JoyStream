@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 
         auto savePath = (dataDirectory + QDir::separator() + "downloads").toStdString();
 
-        kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, true, *torrentIdentifier,
+        kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, false, *torrentIdentifier,
                                [&kit, &onPluginAdded](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
             if(ecode) {
                 std::cerr << "Node::addTorrent() failed: " << ecode.message().c_str() << std::endl;
