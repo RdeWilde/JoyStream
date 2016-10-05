@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>329</width>
-    <height>61</height>
+    <width>369</width>
+    <height>78</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,6 +25,20 @@
     <widget class="QPushButton" name="PeersDialogPushButton">
      <property name="text">
       <string>PeersDialog</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QPushButton" name="BuyingSessionDialogPushButton">
+     <property name="text">
+      <string>SessionDialog (Buying)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QPushButton" name="SellingSessionDialogPushButton">
+     <property name="text">
+      <string>SessionDialog (Selling)</string>
      </property>
     </widget>
    </item>

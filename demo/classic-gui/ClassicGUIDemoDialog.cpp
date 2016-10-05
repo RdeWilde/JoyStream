@@ -11,6 +11,7 @@
 
 #include <common/BitcoinDisplaySettings.hpp>
 #include <extension/BEPSupportStatus.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 #include <libtorrent/socket_io.hpp>
 
@@ -63,7 +64,7 @@ void ClassicGUIDemoDialog::on_MainWindowPushButton_clicked() {
         rowModel->setBalance(100000);
     }
 
-    window.setTorrentTreeViewModel(model.standardItemModel());
+    window.setTorrentTreeViewModel(model.model());
 
     // Start local event loop
     QEventLoop loop;
@@ -84,7 +85,26 @@ void ClassicGUIDemoDialog::on_PeersDialogPushButton_clicked() {
     peersDialog.show();
 
     // Setup model
-    classic::gui::PeerTableModel model(&settings);
+    classic::gui::PeerTableModel peerTableModel(&settings);
+
+    // Peers
+    for(int i = 0;i < 10;i++) {
+
+        libtorrent::error_code ec;
+        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint(std::string("198.9.") + std::to_string(i) + ".12:800", ec);
+        assert(!ec);
+
+        classic::gui::PeerTableRowModel * rowModel = peerTableModel.add(endPoint);
+
+        rowModel->setHost(endPoint);
+        rowModel->setClientName("uTorrent");
+        rowModel->setBEPSupport(extension::BEPSupportStatus::supported);
+    }
+
+    peersDialog.setPeerTreeViewModel(peerTableModel.model());
+
+    // Buyers
+    classic::gui::BuyerTableModel buyerTableModel(&settings);
 
     for(int i = 0;i < 10;i++) {
 
@@ -92,19 +112,141 @@ void ClassicGUIDemoDialog::on_PeersDialogPushButton_clicked() {
         libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint(std::string("198.9.") + std::to_string(i) + ".12:800", ec);
         assert(!ec);
 
-        classic::gui::PeerTableRowModel * rowModel = model.add(endPoint);
+        classic::gui::BuyerTableRowModel * rowModel = buyerTableModel.add(endPoint);
 
         rowModel->setHost(endPoint);
-        rowModel->setClientName("uTorrent");
-        rowModel->setBEPSupport(extension::BEPSupportStatus::supported);
+        rowModel->setTerms(protocol_wire::BuyerTerms(i,i,i,i,i));
     }
 
-    peersDialog.setPeerTreeViewModel(model.standardItemModel());
+    peersDialog.setBuyerTreeViewModel(buyerTableModel.model());
+
+    // Sellers
+    classic::gui::SellerTableModel sellerTableModel(&settings);
+
+    for(int i = 0;i < 10;i++) {
+
+        libtorrent::error_code ec;
+        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint(std::string("198.9.") + std::to_string(i) + ".12:800", ec);
+        assert(!ec);
+
+        classic::gui::SellerTableRowModel * rowModel = sellerTableModel.add(endPoint);
+
+        rowModel->setHost(endPoint);
+        rowModel->setTerms(protocol_wire::SellerTerms(i,i,i,i,i));
+    }
+
+    peersDialog.setSellerTreeViewModel(sellerTableModel.model());
+
+    // Observers
+    classic::gui::ObserverTableModel observerTableModel(&settings);
+
+    for(int i = 0;i < 10;i++) {
+
+        libtorrent::error_code ec;
+        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint(std::string("198.9.") + std::to_string(i) + ".12:800", ec);
+        assert(!ec);
+
+        classic::gui::ObserverTableRowModel * rowModel = observerTableModel.add(endPoint);
+
+        rowModel->setHost(endPoint);
+    }
+
+    peersDialog.setObserverTreeViewModel(observerTableModel.model());
 
     // Start local event loop
     QEventLoop loop;
     QObject::connect(&peersDialog,
                      &classic::gui::PeersDialog::accepted,
+                     &loop,
+                     &QEventLoop::quit);
+
+    loop.exec();
+}
+
+void ClassicGUIDemoDialog::on_BuyingSessionDialogPushButton_clicked() {
+
+    BitcoinDisplaySettings settings;
+
+    classic::gui::SessionDialog sessionDialog(this);
+
+    sessionDialog.show();
+
+    // Setup model
+    classic::gui::ConnectionTableModel connectionTableModel(&settings);
+
+    // Add connections
+    for(int i = 0;i < 10;i++) {
+
+        libtorrent::error_code ec;
+        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint(std::string("118.9.") + std::to_string(i) + ".12:800", ec);
+
+        classic::gui::ConnectionTableRowModel * rowModel = connectionTableModel.add(endPoint);
+
+        rowModel->setHost(endPoint);
+        rowModel->setState(core::CBStateMachine::InnerStateIndex(typeid(protocol_statemachine::Observing)));
+        rowModel->setFunds(i*2);
+        rowModel->setRefundLockTime(i*13);
+        rowModel->setPrice(i*i);
+        rowModel->setNumberOfPayments(i*34);
+        rowModel->setBalance(i*i*i);
+    }
+
+    // Show dialog with buying mode widet set
+    classic::gui::BuyingModeSessionWidget * widget = new classic::gui::BuyingModeSessionWidget(&sessionDialog, &settings);
+
+    widget->setSellerTreeViewModel(connectionTableModel.model());
+
+    sessionDialog.showBuyModeWidget(widget);
+
+    // Start local event loop
+    QEventLoop loop;
+    QObject::connect(&sessionDialog,
+                     &classic::gui::SessionDialog::accepted,
+                     &loop,
+                     &QEventLoop::quit);
+
+    loop.exec();
+}
+
+void ClassicGUIDemoDialog::on_SellingSessionDialogPushButton_clicked() {
+
+    BitcoinDisplaySettings settings;
+
+    classic::gui::SessionDialog sessionDialog(this);
+
+    sessionDialog.show();
+
+    // Setup model
+    classic::gui::ConnectionTableModel connectionTableModel(&settings);
+
+    // Add connections
+    for(int i = 0;i < 10;i++) {
+
+        libtorrent::error_code ec;
+        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint(std::string("118.9.") + std::to_string(i) + ".12:800", ec);
+
+        classic::gui::ConnectionTableRowModel * rowModel = connectionTableModel.add(endPoint);
+
+        rowModel->setHost(endPoint);
+        rowModel->setState(core::CBStateMachine::InnerStateIndex(typeid(protocol_statemachine::Observing)));
+        rowModel->setFunds(i*2);
+        rowModel->setRefundLockTime(i*13);
+        rowModel->setPrice(i*i);
+        rowModel->setNumberOfPayments(i*34);
+        rowModel->setBalance(i*i*i);
+    }
+
+    // Show dialog with buying mode widet set
+    classic::gui::SellingModeSessionWidget * widget = new classic::gui::SellingModeSessionWidget(&sessionDialog, &settings);
+
+    widget->setBuyerTreeViewModel(connectionTableModel.model());
+
+    sessionDialog.showSellModeWidget(widget);
+
+    // Start local event loop
+    QEventLoop loop;
+    QObject::connect(&sessionDialog,
+                     &classic::gui::SessionDialog::accepted,
                      &loop,
                      &QEventLoop::quit);
 

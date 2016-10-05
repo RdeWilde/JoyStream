@@ -31,6 +31,10 @@ private slots:
 
     void on_PeersDialogPushButton_clicked();
 
+    void on_BuyingSessionDialogPushButton_clicked();
+
+    void on_SellingSessionDialogPushButton_clicked();
+
 private:
     Ui::ClassicGUIDemoDialog *ui;
 };
