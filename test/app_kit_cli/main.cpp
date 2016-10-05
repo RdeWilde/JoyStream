@@ -92,6 +92,11 @@ int main(int argc, char *argv[])
 
     joystream::AppKit* kit = joystream::AppKit::createInstance(dataDirectory, Coin::Network::testnet3);
 
+    if(!kit) {
+        std::cout << "Failed to create appkit instance" << std::endl;
+        return 2;
+    }
+
     auto w = kit->wallet();
 
     std::vector<Coin::P2PKHAddress> addresses = w->listReceiveAddresses();
@@ -138,6 +143,7 @@ int main(int argc, char *argv[])
             std::cerr << ec.message().c_str() << std::endl;
             return 1;
         }
+        std::cout << "Torrent InfoHash: " << ti->info_hash() << std::endl;
     }
 
     auto startIt = [](const std::exception_ptr &eptr, joystream::core::Torrent* torrent) {

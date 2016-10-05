@@ -12,44 +12,51 @@ AppKit::AppKit()
 }
 
 bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Network network) {
+
     QString storeFile = dataDirectory + QDir::separator() + "store.sqlite";
     QString blockTreeFile = dataDirectory + QDir::separator() + "blocktree.dat";
 
     auto wallet = new bitcoin::SPVWallet(storeFile.toStdString(), blockTreeFile.toStdString(), network);
 
     try {
+        std::cout << "Looking for wallet file " << storeFile.toStdString() << std::endl;
         if(!QFile::exists(storeFile)){
+            std::cout << "Wallet not found.\nCreating a new wallet..." << std::endl;
             wallet->create();
         } else {
+            std::cout << "Wallet found, opening..." << std::endl;
             wallet->open();
         }
+
+        return wallet;
     } catch(std::exception & e) {
-        std::cout << "Error opening/creating wallet: " << e.what() << std::endl;
+        std::cout << "Wallet Error: " << e.what() << std::endl;
         delete wallet;
-        return nullptr;
     }
 
-    return wallet;
+    return nullptr;
 }
 
 AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network)
 {
     bitcoin::SPVWallet* wallet = getWallet(dataDirectory, network);
 
-    if(wallet) {
-        try {
-            core::Node* node = core::Node::create([wallet](const Coin::Transaction &tx){
-                wallet->broadcastTx(tx);
-            });
+    if(!wallet)
+        return nullptr;
 
-            return new AppKit(node, wallet, dataDirectory);
+    core::Node* node = nullptr;
 
-        } catch(std::exception &e) {
-            std::cout << e.what() << std::endl;
-        }
+    try {
+        node = core::Node::create([wallet](const Coin::Transaction &tx){
+            wallet->broadcastTx(tx);
+        });
+
+    } catch(std::exception &e) {
+        std::cout << "Node Error: " << e.what() << std::endl;
+        return nullptr;
     }
 
-    return nullptr;
+    return new AppKit(node, wallet, dataDirectory);
 }
 
 AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &dataDirectory)
