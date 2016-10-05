@@ -19,6 +19,29 @@ PeersDialog::PeersDialog(QWidget * parent)
     , ui(new Ui::PeersDialog){
 
     ui->setupUi(this);
+
+    // peersTreeView
+    ui->peersTreeView->setColumnWidth(0, 150);
+    ui->peersTreeView->setColumnWidth(1, 100);
+    ui->peersTreeView->setColumnWidth(2, 100);
+
+    // observersTreeView
+    ui->observersTreeView->setColumnWidth(0, 150);
+
+    // buyersTreeView
+    ui->buyersTreeView->setColumnWidth(0, 150);
+    ui->buyersTreeView->setColumnWidth(1, 100);
+    ui->buyersTreeView->setColumnWidth(2, 100);
+    ui->buyersTreeView->setColumnWidth(3, 100);
+    ui->buyersTreeView->setColumnWidth(4, 100);
+
+    // sellersTreeView
+    ui->sellersTreeView->setColumnWidth(0, 150);
+    ui->sellersTreeView->setColumnWidth(1, 100);
+    ui->sellersTreeView->setColumnWidth(2, 100);
+    ui->sellersTreeView->setColumnWidth(3, 100);
+    ui->sellersTreeView->setColumnWidth(4, 100);
+    ui->sellersTreeView->setColumnWidth(5, 100);
 }
 
 PeersDialog::~PeersDialog()
@@ -30,15 +53,15 @@ void PeersDialog::setPeerTreeViewModel(QAbstractItemModel * model) {
     ui->peersTreeView->setModel(model);
 }
 
-void PeersDialog::setObserverConnectionTreeViewModel(QAbstractItemModel * model) {
+void PeersDialog::setObserverTreeViewModel(QAbstractItemModel * model) {
     ui->observersTreeView->setModel(model);
 }
 
-void PeersDialog::setBuyerConnectionTreeViewModel(QAbstractItemModel * model) {
+void PeersDialog::setBuyerTreeViewModel(QAbstractItemModel * model) {
     ui->buyersTreeView->setModel(model);
 }
 
-void PeersDialog::setSellerConnectionTreeViewModel(QAbstractItemModel * model) {
+void PeersDialog::setSellerTreeViewModel(QAbstractItemModel * model) {
     ui->sellersTreeView->setModel(model);
 }
 

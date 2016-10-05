@@ -33,9 +33,9 @@ public:
     ~PeersDialog();
 
     void setPeerTreeViewModel(QAbstractItemModel * model);
-    void setObserverConnectionTreeViewModel(QAbstractItemModel * model);
-    void setBuyerConnectionTreeViewModel(QAbstractItemModel * model);
-    void setSellerConnectionTreeViewModel(QAbstractItemModel * model);
+    void setObserverTreeViewModel(QAbstractItemModel * model);
+    void setBuyerTreeViewModel(QAbstractItemModel * model);
+    void setSellerTreeViewModel(QAbstractItemModel * model);
 
 private:
 
