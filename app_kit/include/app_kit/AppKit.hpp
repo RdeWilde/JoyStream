@@ -21,6 +21,7 @@ namespace core {
     class Node;
     class Torrent;
     class TorrentPlugin;
+    class TorrentIdentifier;
 }
 
 namespace bitcoin {
@@ -90,6 +91,11 @@ public:
                      const protocol_session::SellingPolicy &,
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
+
+    // Utility functions
+    static libtorrent::sha1_hash sha1_hash_from_hex_string(const char *);
+    static core::TorrentIdentifier* makeTorrentIdentifier(const char *);
+
 private:
 
     static bitcoin::SPVWallet* getWallet(const QString &dataDirectory, Coin::Network network);
