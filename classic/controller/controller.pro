@@ -32,7 +32,6 @@ HEADERS += \
     include/controller/Selling.hpp \
     include/controller/Seller.hpp \
     include/controller/Buying.hpp \
-    include/controller/TorrentItemModel.hpp
 
 SOURCES += \
     src/ApplicationController.cpp \
@@ -48,7 +47,6 @@ SOURCES += \
     src/Selling.cpp \
     src/Seller.cpp \
     src/Buying.cpp \
-    src/TorrentItemModel.cpp
 
 # gui
 INCLUDEPATH += $$PWD/../gui/include
