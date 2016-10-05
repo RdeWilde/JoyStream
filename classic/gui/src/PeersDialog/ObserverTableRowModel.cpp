@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 18 2016
  */
 
-#include <gui/PeersDialog/ObserverConnectionTreeViewRow.hpp>
+#include <gui/PeersDialog/ObserverTableRowModel.hpp>
 #include <gui/Common.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 
@@ -15,17 +15,17 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-ObserverConnectionTreeViewRow::ObserverConnectionTreeViewRow(QStandardItem * hostItem,
+ObserverTableRowModel::ObserverTableRowModel(QStandardItem * hostItem,
                                                              const BitcoinDisplaySettings * settings)
     : _hostItem(hostItem)
     , _settings(settings){
 }
 
-void ObserverConnectionTreeViewRow::setHost(const libtorrent::tcp::endpoint & endPoint) {
+void ObserverTableRowModel::setHost(const libtorrent::tcp::endpoint & endPoint) {
     _hostItem->setText(Common::toString(endPoint));
 }
 
-int ObserverConnectionTreeViewRow::row() const noexcept {
+int ObserverTableRowModel::row() const noexcept {
     return _hostItem->row();
 }
 

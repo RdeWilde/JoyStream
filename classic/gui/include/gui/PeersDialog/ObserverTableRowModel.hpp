@@ -5,10 +5,11 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 18 2016
  */
 
-#ifndef JOYSTREAM_CLASSIC_GUI_OBSERVERCONNECTIONTREEVIEWROW_HPP
-#define JOYSTREAM_CLASSIC_GUI_OBSERVERCONNECTIONTREEVIEWROW_HPP
+#ifndef JOYSTREAM_CLASSIC_GUI_OBSERVERTABLEROWMODEL_HPP
+#define JOYSTREAM_CLASSIC_GUI_OBSERVERTABLEROWMODEL_HPP
 
 #include <libtorrent/socket.hpp>
+#include <QObject>
 
 class BitcoinDisplaySettings;
 
@@ -18,14 +19,20 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-class ObserverConnectionTreeViewRow {
+class ObserverTableRowModel : public QObject {
+
+    Q_OBJECT
 
 public:
 
-    ObserverConnectionTreeViewRow(QStandardItem * hostItem,
-                                  const BitcoinDisplaySettings * settings);
+    ObserverTableRowModel(QStandardItem * hostItem,
+                          const BitcoinDisplaySettings * settings);
+
+public slots:
 
     void setHost(const libtorrent::tcp::endpoint & endPoint);
+
+public:
 
     int row() const noexcept;
 
@@ -42,4 +49,4 @@ private:
 }
 
 
-#endif // JOYSTREAM_CLASSIC_GUI_OBSERVERCONNECTIONTREEVIEWROW_HPP
+#endif // JOYSTREAM_CLASSIC_GUI_OBSERVERTABLEROWMODEL_HPP
