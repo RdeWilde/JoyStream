@@ -57,14 +57,7 @@ uint32_t future_unix_timestamp(const unsigned int minutes) {
     return std::chrono::duration_cast<std::chrono::seconds>(delta).count();
 }
 
-libtorrent::sha1_hash sha1_hash_from_hex_string(const char * hex) {
-  char buf[21];
 
-  if(!libtorrent::from_hex(hex, 40, buf)){
-    throw std::runtime_error("Invalid info hash string");
-  }
-  return libtorrent::sha1_hash(buf);
-}
 
 int main(int argc, char *argv[])
 {
@@ -93,28 +86,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    libtorrent::error_code ec;
-    boost::shared_ptr<libtorrent::torrent_info> ti;
+
+    joystream::core::TorrentIdentifier* torrentIdentifier = nullptr;
 
     if(argc == 3) {
-        // If argument is a valid path to a file, treat it as a filename
-        if(QFile::exists(argv[2])) {
-            ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[2]), boost::ref(ec), 0);
-            if (ec) {
-                std::cerr << ec.message().c_str() << std::endl;
-                return 1;
-            }
-        } else {
-            // otherwise treat it as an infohash
-            try {
-                ti = boost::make_shared<libtorrent::torrent_info>(sha1_hash_from_hex_string(argv[2]), 0);
-            } catch(std::exception &e) {
-                std::cerr << "Failed to parse info hash: " << e.what() << std::endl;
-                return 1;
-            }
+        torrentIdentifier = joystream::AppKit::makeTorrentIdentifier(argv[2]);
+        if(!torrentIdentifier) {
+            return 1;
         }
-
-        std::cout << "Torrent InfoHash: " << ti->info_hash() << std::endl;
+        std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
     }
 
     QCoreApplication app(argc, argv);
@@ -205,12 +185,12 @@ int main(int argc, char *argv[])
         });
     };
 
-    if(ti) {
+    if(torrentIdentifier) {
         std::cout << "Adding Torrent" << std::endl;
 
         auto savePath = (dataDirectory + QDir::separator() + "downloads").toStdString();
 
-        kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, true, joystream::core::TorrentIdentifier(ti),
+        kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, true, *torrentIdentifier,
                                [&kit, &onPluginAdded](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
             if(ecode) {
                 std::cerr << "Node::addTorrent() failed: " << ecode.message().c_str() << std::endl;
