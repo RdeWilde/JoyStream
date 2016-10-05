@@ -84,19 +84,24 @@ Coin::Transaction Contract::transaction() const {
     return transaction;
 }
 
-uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange) {
+uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange, int numberOfInputs) {
 
     // Create blank contract with correct structure
+    Coin::UnspentOutputSet funding;
 
     // NB: We must have valid private key, as there will be actual signing with key
-    auto funding = std::make_shared<Coin::UnspentP2PKHOutput>(Coin::PrivateKey("153213303DA61F20BD67FC233AA33262"), Coin::typesafeOutPoint(), 0);
+    for(int i = 0; i < numberOfInputs; i++) {
+        auto utxo = std::make_shared<Coin::UnspentP2PKHOutput>(Coin::PrivateKey("153213303DA61F20BD67FC233AA33262"), Coin::typesafeOutPoint(), 0);
+        funding.insert(utxo);
+    }
+
     Contract c(Coin::UnspentOutputSet({funding}));
 
     for(uint32_t i = 0;i < numberOfCommitments; i++)
         c.addCommitment(Commitment());
 
     if(hasChange)
-        c.setChange(Coin::Payment());
+        c.setChange(Coin::Payment(0, Coin::PrivateKey("153213303DA61F20BD67FC233AA33262").toPublicKey().toPubKeyHash()));
 
     // Generate transaction
     Coin::Transaction tx = c.transaction();
@@ -105,13 +110,13 @@ uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange)
     return tx.getSize();
 }
 
-uint64_t Contract::fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb) {
+uint64_t Contract::fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, int numberOfInputs) {
 
     // Sizeof transaction
-    quint64 txByteSize = transactionSize(numberOfCommitments, hasChange);
+    quint64 txByteSize = transactionSize(numberOfCommitments, hasChange, numberOfInputs);
 
     // Seed on fee estimate at http://bitcoinfees.com/
-    return ceil(feePerKb*((float)txByteSize/1000));
+    return ceil(feePerKb*((float)txByteSize/1024));
 }
 
 }
