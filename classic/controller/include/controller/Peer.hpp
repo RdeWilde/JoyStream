@@ -23,7 +23,7 @@ namespace extension {
 }
 namespace classic {
 namespace gui {
-    class PeerTreeViewRow;
+    class PeerTableRowModel;
 }
 namespace controller {
 
@@ -34,7 +34,7 @@ class Peer : public QObject {
 public:
 
     Peer(core::Peer * peer,
-         gui::PeerTreeViewRow * peerTreeViewRow);
+         gui::PeerTableRowModel * peerTreeViewRow);
 
     ~Peer();
 
@@ -42,15 +42,15 @@ public:
      * @brief Creates a peer tree view row
      * @return
      */
-    gui::PeerTreeViewRow * create() const noexcept;
+    gui::PeerTableRowModel * create() const noexcept;
 
-    gui::PeerTreeViewRow * peerTreeViewRow() const noexcept;
+    gui::PeerTableRowModel * peerTreeViewRow() const noexcept;
 
     /**
      * @brief Sets peer tree view row, frees any previously set instance
      * @param peerTreeViewRow row to be set
      */
-    void setPeerTreeViewRow(gui::PeerTreeViewRow * peerTreeViewRow);
+    void setPeerTreeViewRow(gui::PeerTableRowModel * peerTreeViewRow);
 
     void dropPeerTreeViewRow();
 
@@ -74,7 +74,7 @@ private:
     // type has no operations, but may be of use in the future.
     core::Peer * _peer;
 
-    std::unique_ptr<gui::PeerTreeViewRow> _peerTreeViewRow;
+    std::unique_ptr<gui::PeerTableRowModel> _peerTreeViewRow;
 };
 
 }

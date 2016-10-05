@@ -25,7 +25,7 @@ namespace core {
 namespace classic {
 namespace gui {
     class PeersDialog;
-    class TorrentTreeViewRow;
+    class TorrentTableRowModel;
 }
 namespace controller {
 
@@ -57,7 +57,7 @@ private:
 
     Session _session;
 
-    gui::TorrentTreeViewRow * _torrentTreeViewRow;
+    gui::TorrentTableRowModel * _torrentTreeViewRow;
 
     gui::PeersDialog * _peersDialog;
 };

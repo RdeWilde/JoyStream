@@ -19,7 +19,7 @@ namespace core {
 namespace classic {
 namespace gui {
     class PeersDialog;
-    class TorrentTreeViewRow;
+    class TorrentTableRowModel;
 }
 namespace controller {
 

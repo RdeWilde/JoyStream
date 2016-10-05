@@ -10,16 +10,32 @@
 #include <core/core.hpp>
 #include <gui/gui.hpp>
 
+#include <QStandardItem>
+
 namespace joystream {
 namespace classic {
 namespace controller {
 
 Torrent::Torrent(core::Torrent * torrent,
-                 ApplicationController * applicationController,
-                 gui::TorrentTreeViewRow * torrentTreeViewRow)
+                 QStandardItem * nameItem,
+                 QStandardItem * sizeItem,
+                 QStandardItem * stateItem,
+                 QStandardItem * uploadSpeedItem,
+                 QStandardItem * downloadSpeedItem,
+                 QStandardItem * numberOfBuyerPeersItem,
+                 QStandardItem * numberOfSellerPeersitem,
+                 QStandardItem * sessionModeItem,
+                 QStandardItem * balanceItem)
     : _torrent(torrent)
-    , _applicationController(applicationController)
-    , _torrentTreeViewRow(torrentTreeViewRow) {
+    , _nameItem(nameItem)
+    , _sizeItem(sizeItem)
+    , _stateItem(stateItem)
+    , _uploadSpeedItem(uploadSpeedItem)
+    , _downloadSpeedItem(downloadSpeedItem)
+    , _numberOfBuyerPeersItem(numberOfBuyerPeersItem)
+    , _numberOfSellerPeersitem(numberOfSellerPeersitem)
+    , _sessionModeItem(sessionModeItem)
+    , _balanceItem(balanceItem) {
 
     // Connect model signals to slots on this object
     QObject::connect(torrent,
@@ -62,7 +78,7 @@ void Torrent::addPeer(core::Peer * peer) {
         throw std::runtime_error("Peer already added.");
 
     // Row for peers dialog
-    gui::PeerTreeViewRow * row = nullptr;
+    gui::PeerTableRowModel * row = nullptr;
 
     // If Peers dialogue is displayed
     if(peersDialogDisplayed()) {
@@ -97,7 +113,7 @@ void Torrent::removePeer(const libtorrent::tcp::endpoint & endPoint) {
        assert(peer->peerTreeViewRowSet());
 
        // Find the row
-       gui::PeerTreeViewRow * row = peer->peerTreeViewRow();
+       gui::PeerTableRowModel * row = peer->peerTreeViewRow();
 
        int rowIndex = row->row();
 
@@ -255,15 +271,15 @@ bool Torrent::peersDialogDisplayed() {
     return _peersDialog.get() != nullptr;
 }
 
-gui::TorrentTreeViewRow * Torrent::torrentTreeViewRow() const noexcept {
+gui::TorrentTableRowModel * Torrent::torrentTreeViewRow() const noexcept {
     return _torrentTreeViewRow.get();
 }
 
-void Torrent::setTorrentTreeViewRow(gui::TorrentTreeViewRow * torrentTreeViewRow) {
+void Torrent::setTorrentTreeViewRow(gui::TorrentTableRowModel * torrentTreeViewRow) {
     _torrentTreeViewRow.reset(torrentTreeViewRow);
 }
 
-void Torrent::dropTorrentTreeViewRow() {
+void Torrent::unsetTorrentTreeViewRow() {
     _torrentTreeViewRow.reset();
 }
 

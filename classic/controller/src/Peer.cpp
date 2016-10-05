@@ -6,7 +6,7 @@
  */
 
 #include <controller/Peer.hpp>
-#include <gui/PeersDialog/PeerTreeViewRow.hpp>
+#include <gui/PeersDialog/PeerTableRowModel.hpp>
 #include <core/core.hpp>
 
 namespace joystream {
@@ -14,7 +14,7 @@ namespace classic {
 namespace controller {
 
 Peer::Peer(core::Peer * peer,
-           gui::PeerTreeViewRow * peerTreeViewRow)
+           gui::PeerTableRowModel * peerTreeViewRow)
     : _peer(peer)
     , _peerTreeViewRow(peerTreeViewRow) {
 
@@ -28,11 +28,11 @@ Peer::~Peer() {
 
 }
 
-gui::PeerTreeViewRow * Peer::peerTreeViewRow() const noexcept {
+gui::PeerTableRowModel * Peer::peerTreeViewRow() const noexcept {
     return _peerTreeViewRow.get();
 }
 
-void Peer::setPeerTreeViewRow(gui::PeerTreeViewRow * peerTreeViewRow) {
+void Peer::setPeerTreeViewRow(gui::PeerTableRowModel * peerTreeViewRow) {
     _peerTreeViewRow.reset(peerTreeViewRow);
 }
 

@@ -19,7 +19,7 @@ namespace core {
 }
 namespace classic {
 namespace gui {
-    class PeerTreeViewRow;
+    class PeerTableRowModel;
 }
 namespace controller {
 
@@ -28,9 +28,9 @@ class PeerPlugin : public QObject {
 public:
 
     PeerPlugin(core::PeerPlugin * peerPlugin,
-               gui::PeerTreeViewRow * peerTreeViewRow);
+               gui::PeerTableRowModel * peerTreeViewRow);
 
-    void setPeerTreeViewRow(gui::PeerTreeViewRow * row);
+    void setPeerTreeViewRow(gui::PeerTableRowModel * row);
     void unsetPeerTreeViewRow();
 
 public slots:
@@ -43,7 +43,7 @@ private:
 
     core::PeerPlugin * _peerPlugin;
 
-    gui::PeerTreeViewRow * _peerTreeViewRow;
+    gui::PeerTableRowModel * _peerTreeViewRow;
 };
 
 }

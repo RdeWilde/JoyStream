@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_CLASSIC_CONTROLLER_TORRENT_HPP
 #define JOYSTREAM_CLASSIC_CONTROLLER_TORRENT_HPP
 
-#include <gui/MainWindow/TorrentTreeViewRow.hpp>
+#include <gui/MainWindow/TorrentTableRowModel.hpp>
 
 #include <libtorrent/socket.hpp>
 #include <libtorrent/torrent_status.hpp>
@@ -16,6 +16,8 @@
 #include <boost/optional.hpp>
 #include <cstdint>
 #include <memory>
+
+class QStandardItem;
 
 namespace joystream {
 namespace core {
@@ -44,8 +46,7 @@ class Torrent : public QObject {
 public:
 
     Torrent(core::Torrent * torrent,
-            ApplicationController * applicationController,
-            gui::TorrentTreeViewRow * torrentTreeViewRow);
+            gui::TorrentTableRowModel * rowModel);
 
     ~Torrent();
 
@@ -72,13 +73,17 @@ public slots:
 
     //
 
+    void setName(const std::string & name);
+
+    void setSize();
+
     void setState(libtorrent::torrent_status::state_t state, float progress);
 
-    void setPaused(bool);
+    void setUploadSpeed(int speed);
 
     void setDownloadSpeed(int speed);
 
-    void setUploadSpeed(int speed);
+    void setPaused(bool);
 
     /// view events
 
@@ -94,15 +99,8 @@ public:
 
     /// Torrent tree view row
 
-    gui::TorrentTreeViewRow * torrentTreeViewRow() const noexcept;
-
-    /**
-     * @brief Sets peer tree view row, frees any previously set instance
-     * @param peerTreeViewRow row to be set
-     */
-    void setTorrentTreeViewRow(gui::TorrentTreeViewRow * torrentTreeViewRow);
-
-    void dropTorrentTreeViewRow();
+    void setTorrentTreeViewRow(gui::TorrentTableRowModel & row);
+    void unsetTorrentTreeViewRow();
 
     bool peerTorrentTreeViewRow() const noexcept;
 
@@ -111,12 +109,7 @@ private:
 
     core::Torrent * _torrent;
 
-    ApplicationController * _applicationController;
-
-    // Could be by value, since all torrents are represented with
-    // a row in the main window, however this may change, so we may
-    // as well make this as general as possible
-    std::unique_ptr<gui::TorrentTreeViewRow> _torrentTreeViewRow;
+    gui::TorrentTableRowModel * _rowModel;
 
     std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>> _peers;
 

@@ -8,7 +8,11 @@
 #ifndef JOYSTREAM_CLASSIC_CONTROLLER_APPLICATIONCONTROLLER_HPP
 #define JOYSTREAM_CLASSIC_CONTROLLER_APPLICATIONCONTROLLER_HPP
 
-#include <libtorrent/socket.hpp>
+#include <QStandardItemModel>
+
+#include <gui/gui.hpp>
+
+#include <libtorrent/sha1_hash.hpp>
 
 #include <map>
 #include <memory>
@@ -30,34 +34,39 @@ class ApplicationController {
 
 public:
 
+    static void setTorrentTableModelHorizontalHeaderLabels(QStandardItemModel * model) noexcept;
+
     ApplicationController();
 
     ~ApplicationController();
 
-    /// Events from core
-
-
     void addTorrent(core::Torrent * torrent);
 
-    //
     void removeTorrent(const libtorrent::tcp::endpoint & endPoint);
 
-    /// Events from application
-
+signals:
 
 private:
 
-    // appkit (core+wallet)
+    // Primary app kit
+    // Appkit _appkit
 
-    // main window?
-    //gui::MainWindow * _mainWindow;
+    core::Node _node;
 
-    // tray manager?
+    //bitcoin::SPVWallet _wallet;
 
+    // Main window
+    gui::MainWindow _mainWindow;
 
+    // TrayMenuManager _trayMenyManager
+
+    // Model for torrent table in
+    //QStandardItemModel _mainWindowTorrentTableModel;
+
+    gui::TorrentTableModel _mainWindowTorrentTableModel;
 
     // Mapping of endpoint to torrent
-    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Torrent>> _torrents;
+    std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrents;
 };
 
 }

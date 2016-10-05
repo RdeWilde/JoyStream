@@ -15,7 +15,7 @@ namespace classic {
 namespace controller {
 
 PeerPlugin::PeerPlugin(core::PeerPlugin * peerPlugin,
-                       gui::PeerTreeViewRow * peerTreeViewRow)
+                       gui::PeerTableRowModel * peerTreeViewRow)
     : _peerPlugin(peerPlugin)
     , _peerTreeViewRow(peerTreeViewRow) {
 
@@ -30,7 +30,7 @@ PeerPlugin::PeerPlugin(core::PeerPlugin * peerPlugin,
                      &PeerPlugin::setPeerBitSwaprBEPSupportStatus);
 }
 
-void PeerPlugin::setPeerTreeViewRow(gui::PeerTreeViewRow * row) {
+void PeerPlugin::setPeerTreeViewRow(gui::PeerTableRowModel * row) {
 
     _peerTreeViewRow = row;
 

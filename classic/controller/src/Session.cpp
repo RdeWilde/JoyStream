@@ -46,7 +46,7 @@ Session::SubState & Session::subState() noexcept {
     return _subState;
 }
 
-void Session::setTorrentTreeViewRow(gui::TorrentTreeViewRow * row) {
+void Session::setTorrentTreeViewRow(gui::TorrentTableRowModel * row) {
     _torrentTreeViewRow = row;
 }
 

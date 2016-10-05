@@ -29,7 +29,7 @@ namespace core {
 namespace classic {
 namespace gui {
     class PeersDialog;
-    class TorrentTreeViewRow;
+    class TorrentTableRowModel;
 }
 namespace controller {
 
@@ -53,7 +53,7 @@ public:
 
     SubState & subState() noexcept;
 
-    void setTorrentTreeViewRow(gui::TorrentTreeViewRow * row);
+    void setTorrentTreeViewRow(gui::TorrentTableRowModel * row);
     void unsetTorrentTreeViewRow();
 
     void setPeersDialog(gui::PeersDialog * peersDialog);
@@ -77,7 +77,7 @@ private:
 
     SubState _subState;
 
-    gui::TorrentTreeViewRow * _torrentTreeViewRow;
+    gui::TorrentTableRowModel * _torrentTreeViewRow;
 
     gui::PeersDialog * _peersDialog;
 };

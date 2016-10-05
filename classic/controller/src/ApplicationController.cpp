@@ -7,67 +7,56 @@
 
 #include <controller/ApplicationController.hpp>
 #include <controller/Torrent.hpp>
+#include <core/core.hpp>
 
 namespace joystream {
 namespace classic {
 namespace controller {
 
-ApplicationController::ApplicationController() {
+void ApplicationController::setTorrentTableModelHorizontalHeaderLabels(QStandardItemModel * model) noexcept {
 
+    /**
+     * Add columns to model view model
+     */
+    QStringList columnNames;
+
+    columnNames << "Name"
+                << "Size"
+                << "State"
+                << "Upload Speed"
+                << "Download Speed"
+                << "#Buyers"
+                << "#Sellers"
+                << "Mode"
+                << "Balance";
+
+    model->setHorizontalHeaderLabels(columnNames);
+}
+
+ApplicationController::ApplicationController()
+    : _mainWindowTorrentTableModel(0, 9) {
+
+    setTorrentTableModelHorizontalHeaderLabels(&_mainWindowTorrentTableModel);
 }
 
 ApplicationController::~ApplicationController() {
+
 }
 
-void ApplicationController::addTorrent(core::Torrent *) {
+void ApplicationController::addTorrent(core::Torrent * t) {
 
-    /**
-    // Create items
-    QStandardItem * nameItem = new QStandardItem(),
-                  * sizeItem = new QStandardItem(),
-                  * stateItem = new QStandardItem(),
-                  * uploadSpeedItem = new QStandardItem(),
-                  * downloadSpeedItem = new QStandardItem(),
-                  * numberOfBuyerPeersItem = new QStandardItem(),
-                  * numberOfSellerPeersitem = new QStandardItem(),
-                  * sessionModeItem = new QStandardItem(),
-                  * balanceItem = new QStandardItem();
+    if(_torrents.find(t->infoHash()) != _torrents.cend())
+        throw std::runtime_error("Torrent already added");
 
-    // Center content
-    nameItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    sizeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    stateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    uploadSpeedItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    downloadSpeedItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    numberOfBuyerPeersItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    numberOfSellerPeersitem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    sessionModeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    balanceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-
-    // Don't allow edits
-    nameItem->setEditable(false);
-    sizeItem->setEditable(false);
-    stateItem->setEditable(false);
-    uploadSpeedItem->setEditable(false);
-    downloadSpeedItem->setEditable(false);
-    numberOfBuyerPeersItem->setEditable(false);
-    numberOfSellerPeersitem->setEditable(false);
-    sessionModeItem->setEditable(false);
-    balanceItem->setEditable(false);
+    // Create row model
+    gui::TorrentTableRowModel * rowModel = _mainWindowTorrentTableModel.add(t->infoHash());
 
     // Create row
-    return new TorrentTreeViewRow(settings,
-                                  nameItem,
-                                  sizeItem,
-                                  stateItem,
-                                  uploadSpeedItem,
-                                  downloadSpeedItem,
-                                  numberOfBuyerPeersItem,
-                                  numberOfSellerPeersitem,
-                                  sessionModeItem,
-                                  balanceItem);
+    Torrent * torrent = new Torrent(t,
+                                    rowModel);
 
-    */
+    //
+    _torrents[t->infoHash()] = torrent;
 
     /**
     // Set inital values
@@ -88,7 +77,6 @@ void ApplicationController::addTorrent(core::Torrent *) {
         setTorrentPluginAbsent();
 
     */
-
 }
 
 void ApplicationController::removeTorrent(const libtorrent::tcp::endpoint &) {
@@ -254,9 +242,6 @@ void ApplicationController::removeTorrent(const libtorrent::tcp::endpoint &) {
 //            showAddTorrentFromMagnetLinkDialog(config);
 //        }
 //    }
-
-
-
 
 }
 }
