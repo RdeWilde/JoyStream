@@ -17,12 +17,14 @@ TorrentIdentifier::TorrentIdentifier(const libtorrent::sha1_hash & infoHash)
 
 TorrentIdentifier::TorrentIdentifier(const MagnetLink & magnetLink)
     : _type(Type::MagnetLink)
-    , _magnetLink(magnetLink) {
+    , _magnetLink(magnetLink)
+    , _infoHash(magnetLink.infoHash()) {
 }
 
 TorrentIdentifier::TorrentIdentifier(const boost::shared_ptr<libtorrent::torrent_info> & torrentFile)
     : _type(Type::TorrentFile)
-    , _torrentFile(torrentFile) {
+    , _torrentFile(torrentFile)
+    , _infoHash(torrentFile->info_hash()) {
 }
 
 TorrentIdentifier::Type TorrentIdentifier::type() const noexcept {
