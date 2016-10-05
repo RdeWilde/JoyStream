@@ -7,15 +7,17 @@
 
 #include <gui/MainWindow/TorrentTableModel.hpp>
 #include <gui/MainWindow/TorrentTableRowModel.hpp>
-
 #include <common/BitcoinDisplaySettings.hpp>
+
+#include <gui/Common.hpp>
+Q_DECLARE_METATYPE(libtorrent::sha1_hash)
 
 namespace joystream {
 namespace classic {
 namespace gui {
 
 TorrentTableModel::TorrentTableModel(BitcoinDisplaySettings * settings)
-    : _standardItemModel(0, 9)
+    : _model(0, 9)
     , _settings(settings) {
 
     /**
@@ -33,19 +35,14 @@ TorrentTableModel::TorrentTableModel(BitcoinDisplaySettings * settings)
                 << "Mode"
                 << "Balance";
 
-    _standardItemModel.setHorizontalHeaderLabels(columnNames);
+    _model.setHorizontalHeaderLabels(columnNames);
+
+    for(int i = 0; i < 9;i++)
+        _model.setHeaderData(i, Qt::Horizontal, Qt::AlignCenter, Qt::TextAlignmentRole);
+
 }
 
-TorrentTableModel::~TorrentTableModel() {
-
-    for(auto mapping : _rowModels)
-        delete mapping.second;
-}
-
-TorrentTableRowModel * TorrentTableModel::add(const libtorrent::sha1_hash & infoHash) {
-
-    if(_rowModels.count(infoHash) > 0)
-        throw std::runtime_error("Torrent already added.");
+TorrentTableRowModel * TorrentTableModel::add(const libtorrent::sha1_hash & infoHash) noexcept {
 
     // Create items
     QStandardItem * nameItem  = new QStandardItem(),
@@ -57,6 +54,11 @@ TorrentTableRowModel * TorrentTableModel::add(const libtorrent::sha1_hash & info
                   * numberOfSellerPeersitem = new QStandardItem(),
                   * sessionModeItem = new QStandardItem(),
                   * balanceItem = new QStandardItem();
+
+    // Make info hash recoverable from name item, is used to do reverse lookup
+    QVariant var;
+    var.setValue(infoHash);
+    nameItem->setData(var, Qt::UserRole);
 
     // Center content
     nameItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
@@ -93,55 +95,29 @@ TorrentTableRowModel * TorrentTableModel::add(const libtorrent::sha1_hash & info
           << sessionModeItem
           << balanceItem;
 
-    _standardItemModel.appendRow(items);
+    _model.appendRow(items);
 
-    // Create row model
-    TorrentTableRowModel * rowModel = new TorrentTableRowModel(nullptr,
-                                                               nameItem,
-                                                               sizeItem,
-                                                               stateItem,
-                                                               uploadSpeedItem,
-                                                               downloadSpeedItem,
-                                                               numberOfBuyerPeersItem,
-                                                               numberOfSellerPeersitem,
-                                                               sessionModeItem,
-                                                               balanceItem,
-                                                               _settings);
-
-    // Add to row model mapping
-    _rowModels[infoHash] = rowModel;
-
-    return rowModel;
+    // Create and return row
+    return new TorrentTableRowModel(&_model,
+                                    nameItem,
+                                    sizeItem,
+                                    stateItem,
+                                    uploadSpeedItem,
+                                    downloadSpeedItem,
+                                    numberOfBuyerPeersItem,
+                                    numberOfSellerPeersitem,
+                                    sessionModeItem,
+                                    balanceItem,
+                                    _settings);
 }
 
-void TorrentTableModel::remove(const libtorrent::sha1_hash & infoHash) {
-
-    auto it = _rowModels.find(infoHash);
-
-    if(it == _rowModels.cend())
-        throw std::runtime_error("No such torrent exists.");
-    else {
-
-        TorrentTableRowModel * rowModel = it->second;
-
-        // Remove from standard model
-        _standardItemModel.removeRow(rowModel->row());
-
-        // Delete row model
-        delete rowModel;
-
-        // Remove from mapping
-        _rowModels.erase(it);
-
-    }
+libtorrent::sha1_hash TorrentTableModel::infoHash(int row) const {
+    return gui::Common::getUserRoleDataFromTableModel<libtorrent::sha1_hash>(_model, row, 0);
 }
 
-std::map<libtorrent::sha1_hash, TorrentTableRowModel *> TorrentTableModel::rowModels() const noexcept {
-    return _rowModels;
-}
 
-QStandardItemModel * TorrentTableModel::standardItemModel() noexcept {
-    return &_standardItemModel;
+QAbstractItemModel * TorrentTableModel::model() noexcept {
+    return &_model;
 }
 
 }
