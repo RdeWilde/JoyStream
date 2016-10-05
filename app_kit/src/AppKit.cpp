@@ -67,6 +67,12 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &data
       _bitcoinPort(port) {
 
     syncWallet(_bitcoinHost, _bitcoinPort);
+
+    _timer = new QTimer();
+
+    QObject::connect(_timer, &QTimer::timeout, [this](){
+        _node->updateStatus();
+    });
 }
 
 core::Node *AppKit::node() {
@@ -75,6 +81,11 @@ core::Node *AppKit::node() {
 
 bitcoin::SPVWallet* AppKit::wallet() {
     return _wallet.get();
+}
+
+void AppKit::start() {
+    if(_timer)
+        _timer->start(1000);
 }
 
 void AppKit::syncWallet(std::string host, int port) {
@@ -91,14 +102,19 @@ void AppKit::syncWallet(std::string host, int port) {
     }
 }
 
-void AppKit::shutdown(const Callback & callback) {
-    std::cout << "Wallet::stopSync()" << std::endl;
-    _wallet->stopSync();
+void AppKit::shutdown(const Callback & shutdownComplete) {
 
-    std::cout << "Node::Pause()" << std::endl;
-    _node->pause(callback);
+    std::cout << "Shuttind down AppKit" << std::endl;
+    _node->pause([shutdownComplete, this](){
+        std::cout << "Node paused" << std::endl;
+        _timer->stop();
 
-    std::cout << "AppKit::Shutdown Done" << std::endl;
+        std::cout << "Stopping wallet" << std::endl;
+        _wallet->stopSync();
+
+        std::cout << "AppKit shutdown complete" << std::endl;
+        shutdownComplete();
+    });
 }
 
 void AppKit::buyTorrent(const core::Torrent *torrent,
