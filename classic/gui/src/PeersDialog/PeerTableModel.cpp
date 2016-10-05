@@ -8,12 +8,15 @@
 #include <gui/PeersDialog/PeerTableModel.hpp>
 #include <gui/PeersDialog/PeerTableRowModel.hpp>
 
+#include <gui/Common.hpp>
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
+
 namespace joystream {
 namespace classic {
 namespace gui {
 
 PeerTableModel::PeerTableModel(BitcoinDisplaySettings * settings)
-    : _standardItemModel(0, 3)
+    : _model(0, 3)
     , _settings(settings) {
 
     /**
@@ -25,24 +28,24 @@ PeerTableModel::PeerTableModel(BitcoinDisplaySettings * settings)
                 << QObject::tr("Client")
                 << QObject::tr("Extension");
 
-    _standardItemModel.setHorizontalHeaderLabels(columnNames);
+    _model.setHorizontalHeaderLabels(columnNames);
+
+    // Center text
+    for(int i = 0; i < 3;i++)
+        _model.setHeaderData(i, Qt::Horizontal, Qt::AlignCenter, Qt::TextAlignmentRole);
 }
 
-PeerTableModel::~PeerTableModel() {
-
-    for(auto mapping : _rowModels)
-        delete mapping.second;
-}
-
-PeerTableRowModel * PeerTableModel::add(const libtorrent::tcp::endpoint & endPoint) {
-
-    if(_rowModels.count(endPoint) > 0)
-        throw std::runtime_error("Torrent already added.");
+PeerTableRowModel * PeerTableModel::add(const libtorrent::tcp::endpoint & endPoint) noexcept {
 
     // Create items
     QStandardItem * hostItem = new QStandardItem(),
                   * clientItem = new QStandardItem(),
                   * extensionItem = new QStandardItem();
+
+    // Make info hash recoverable from name item, is used to do reverse lookup
+    QVariant var;
+    var.setValue(endPoint);
+    hostItem->setData(var, Qt::UserRole);
 
     // Center content
     hostItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
@@ -61,47 +64,21 @@ PeerTableRowModel * PeerTableModel::add(const libtorrent::tcp::endpoint & endPoi
           << clientItem
           << extensionItem;
 
-    _standardItemModel.appendRow(items);
+    _model.appendRow(items);
 
     // Create row model
-    PeerTableRowModel * rowModel = new PeerTableRowModel(hostItem,
-                                                         clientItem,
-                                                         extensionItem);
-
-    // Add to row model mapping
-    _rowModels[endPoint] = rowModel;
-
-    return rowModel;
+    return new PeerTableRowModel(&_model,
+                                 hostItem,
+                                 clientItem,
+                                 extensionItem);
 }
 
-void PeerTableModel::remove(const libtorrent::tcp::endpoint & endPoint) {
-
-    auto it = _rowModels.find(endPoint);
-
-    if(it == _rowModels.cend())
-        throw std::runtime_error("No such torrent exists.");
-    else {
-
-        PeerTableRowModel * rowModel = it->second;
-
-        // Remove from standard model
-        _standardItemModel.removeRow(rowModel->row());
-
-        // Delete row model
-        delete rowModel;
-
-        // Remove from mapping
-        _rowModels.erase(it);
-
-    }
+libtorrent::tcp::endpoint PeerTableModel::endPoint(int row) const {
+    return gui::Common::getUserRoleDataFromTableModel<libtorrent::tcp::endpoint>(_model, row, 0);
 }
 
-std::map<libtorrent::tcp::endpoint, PeerTableRowModel *> PeerTableModel::rowModels() const noexcept {
-    return _rowModels;
-}
-
-QStandardItemModel * PeerTableModel::standardItemModel() noexcept {
-    return &_standardItemModel;
+QAbstractItemModel * PeerTableModel::model() noexcept {
+    return &_model;
 }
 
 }

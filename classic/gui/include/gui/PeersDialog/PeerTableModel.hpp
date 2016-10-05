@@ -25,21 +25,15 @@ public:
 
     PeerTableModel(BitcoinDisplaySettings * settings);
 
-    ~PeerTableModel();
+    PeerTableRowModel * add(const libtorrent::tcp::endpoint & endPoint) noexcept;
 
-    PeerTableRowModel * add(const libtorrent::tcp::endpoint & endPoint);
+    libtorrent::tcp::endpoint endPoint(int row) const;
 
-    void remove(const libtorrent::tcp::endpoint & endPoint);
-
-    std::map<libtorrent::tcp::endpoint, PeerTableRowModel *> rowModels() const noexcept;
-
-    QStandardItemModel * standardItemModel() noexcept;
+    QAbstractItemModel * model() noexcept;
 
 private:
 
-    std::map<libtorrent::tcp::endpoint, PeerTableRowModel *> _rowModels;
-
-    QStandardItemModel _standardItemModel;
+    QStandardItemModel _model;
 
     const BitcoinDisplaySettings * _settings;
 };
@@ -48,5 +42,4 @@ private:
 }
 }
 
-#endif // JOYSTREAM_CLASSIC_GUI_PEERTABLEMODEL_HPPs
-
+#endif // JOYSTREAM_CLASSIC_GUI_PEERTABLEMODEL_HPP
