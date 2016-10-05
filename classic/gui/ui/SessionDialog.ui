@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>818</width>
+    <height>491</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,30 +19,30 @@
   <property name="modal">
    <bool>true</bool>
   </property>
+  <widget class="QLabel" name="sessionModeValueLabel">
+   <property name="geometry">
+    <rect>
+     <x>59</x>
+     <y>10</y>
+     <width>56</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;mode&gt;</string>
+   </property>
+  </widget>
   <widget class="QLabel" name="sessionModeTitleLabel">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>67</width>
-     <height>21</height>
+     <width>43</width>
+     <height>17</height>
     </rect>
    </property>
    <property name="text">
     <string>Mode:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="sessionModeValueLabel">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>10</y>
-     <width>67</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>&lt;mode&gt;</string>
    </property>
   </widget>
  </widget>

@@ -21,6 +21,8 @@ SessionDialog::SessionDialog(QWidget * parent)
     , ui(new Ui::SessionDialog)
     , _sellingWidget(nullptr)
     , _buyingWidget(nullptr){
+
+    ui->setupUi(this);
 }
 
 SessionDialog::~SessionDialog()
@@ -37,12 +39,15 @@ void SessionDialog::showSellModeWidget(SellingModeSessionWidget * widget) {
         _buyingWidget =  nullptr;
     }
 
-    _sellingWidget = widget;
+    //_sellingWidget = widget;
 
-    // Position widget
+    // Adjust widget
+    widget->setParent(this);
+    widget->setGeometry(10, 40, widget->width(), widget->height());
+    widget->show();
 
-    // Resize dialog
-
+    // Adjust dialog size: use layout later
+    setGeometry(QRect(this->geometry().left(), this->geometry().top(), widget->width() + 20, 40 + widget->height() + 20));
 }
 
 void SessionDialog::showBuyModeWidget(BuyingModeSessionWidget * widget) {
@@ -56,10 +61,13 @@ void SessionDialog::showBuyModeWidget(BuyingModeSessionWidget * widget) {
 
     _buyingWidget = widget;
 
-    // Position widget
+    // Adjust widget
+    widget->setParent(this);
+    widget->setGeometry(10, 40, widget->width(), widget->height());
+    widget->show();
 
-    // Resize dialog
-
+    // Adjust dialog size: use layout later
+    setGeometry(QRect(this->geometry().left(), this->geometry().top(), widget->width() + 20, 40 + widget->height() + 20));
 }
 
 }
