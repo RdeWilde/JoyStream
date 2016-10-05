@@ -38,14 +38,18 @@ SOURCES += \
     src/SelectTorrentForDownloadDialog.cpp \
     src/TrayMenuManager.cpp \
     src/Common.cpp \
-    src/PeersDialog/BuyerConnectionTreeViewRow.cpp \
-    src/PeersDialog/SellerConnectionTreeViewRow.cpp \
-    src/PeersDialog/ObserverConnectionTreeViewRow.cpp \
-    src/SessionDialog/ConnectionTreeViewRow.cpp \
     src/MainWindow/TorrentTableModel.cpp \
     src/MainWindow/TorrentTableRowModel.cpp \
     src/PeersDialog/PeerTableModel.cpp \
-    src/PeersDialog/PeerTableRowModel.cpp
+    src/PeersDialog/PeerTableRowModel.cpp \
+    src/PeersDialog/BuyerTableModel.cpp \
+    src/PeersDialog/BuyerTableRowModel.cpp \
+    src/PeersDialog/SellerTableModel.cpp \
+    src/PeersDialog/SellerTableRowModel.cpp \
+    src/PeersDialog/ObserverTableRowModel.cpp \
+    src/PeersDialog/ObserverTableModel.cpp \
+    src/SessionDialog/ConnectionTableRowModel.cpp \
+    src/SessionDialog/ConnectionTableModel.cpp
 
 HEADERS += \
     include/gui/MainWindow/MainWindow.hpp \
@@ -65,14 +69,18 @@ HEADERS += \
     include/gui/TrayMenuManager.hpp \
     include/gui/gui.hpp \
     include/gui/PeersDialog/PeersDialog.hpp \
-    include/gui/PeersDialog/BuyerConnectionTreeViewRow.hpp \
-    include/gui/PeersDialog/SellerConnectionTreeViewRow.hpp \
-    include/gui/PeersDialog/ObserverConnectionTreeViewRow.hpp \
-    include/gui/SessionDialog/ConnectionTreeViewRow.hpp \
     include/gui/MainWindow/TorrentTableModel.hpp \
     include/gui/MainWindow/TorrentTableRowModel.hpp \
     include/gui/PeersDialog/PeerTableModel.hpp \
-    include/gui/PeersDialog/PeerTableRowModel.hpp
+    include/gui/PeersDialog/PeerTableRowModel.hpp \
+    include/gui/PeersDialog/BuyerTableModel.hpp \
+    include/gui/PeersDialog/BuyerTableRowModel.hpp \
+    include/gui/PeersDialog/SellerTableModel.hpp \
+    include/gui/PeersDialog/SellerTableRowModel.hpp \
+    include/gui/PeersDialog/ObserverTableRowModel.hpp \
+    include/gui/PeersDialog/ObserverTableModel.hpp \
+    include/gui/SessionDialog/ConnectionTableRowModel.hpp \
+    include/gui/SessionDialog/ConnectionTableModel.hpp
 
 FORMS += \
     ui/MainWindow.ui \
