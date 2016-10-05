@@ -124,9 +124,6 @@ int main(int argc, char *argv[])
 
     std::cout << "Wallet Deposit Address: " <<  depositAddress << std::endl;
     std::cout << "Wallet Balance: " << kit->wallet()->unconfirmedBalance() << std::endl;
-    std::cout << "Starting Wallet Sync.. this could take a while while loading blocktree\n";
-
-    kit->syncWallet();
 
     QTimer *timer = new QTimer();
 

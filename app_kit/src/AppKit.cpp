@@ -37,7 +37,7 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
     return nullptr;
 }
 
-AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network)
+AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network, std::string host, int port)
 {
     bitcoin::SPVWallet* wallet = getWallet(dataDirectory, network);
 
@@ -56,14 +56,17 @@ AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network netwo
         return nullptr;
     }
 
-    return new AppKit(node, wallet, dataDirectory);
+    return new AppKit(node, wallet, dataDirectory, host , port);
 }
 
-AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &dataDirectory)
-    : _node(node),
+AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &dataDirectory, std::string host, int port)
+    : _dataDirectory(dataDirectory),
+      _node(node),
       _wallet(wallet),
-      _dataDirectory(dataDirectory) {
+      _bitcoinHost(host),
+      _bitcoinPort(port) {
 
+    syncWallet(_bitcoinHost, _bitcoinPort);
 }
 
 core::Node *AppKit::node() {
@@ -78,6 +81,8 @@ void AppKit::syncWallet(std::string host, int port) {
     if(host.empty()) {
         if(_wallet->network() == Coin::Network::testnet3) {
             _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
+        } else if(_wallet->network() == Coin::Network::mainnet) {
+            _wallet->sync("seed.bitcoin.sipa.be", 8333);
         }else{
             throw std::runtime_error("No host provided to sync wallet");
         }
