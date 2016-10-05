@@ -46,12 +46,10 @@ public:
     //typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    static AppKit* createInstance(const QString &dataDirectory, Coin::Network network);
+    static AppKit* createInstance(const QString &dataDirectory, Coin::Network network, std::string host = "", int port = 0);
 
     bitcoin::SPVWallet* wallet();
     core::Node* node();
-
-    void syncWallet(std::string host = "", int port = 0);
 
     void shutdown(const Callback &);
 
@@ -102,13 +100,18 @@ private:
 
     AppKit();
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, const QString &dataDirectory);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, const QString &dataDirectory, std::string host = "", int port = 0);
+
+    void syncWallet(std::string host, int port);
 
     QString _dataDirectory;
 
     std::unique_ptr<core::Node> _node;
 
     std::unique_ptr<bitcoin::SPVWallet> _wallet;
+
+    std::string _bitcoinHost;
+    int _bitcoinPort;
 };
 
 }
