@@ -27,6 +27,12 @@ public:
 
     static RedeemScript deserialize(const uchar_vector & script);
 
+    // Optional data that must used in the scriptSig to spend the p2sh output in a refund tx by the Payor (Buyer)
+    static uchar_vector PayorOptionalData();
+
+    // Optional data that must used in the scriptSig to spend the p2sh output in the settlement tx by the Payee (Seller)
+    static uchar_vector PayeeOptionalData();
+
 private:
     Coin::PublicKey _payorPk;
     Coin::PublicKey _payeePk;

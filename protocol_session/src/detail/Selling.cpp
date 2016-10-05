@@ -377,7 +377,7 @@ namespace detail {
             Coin::KeyPair contractKeyPair = _generateP2SHKeyPair([&](const Coin::PublicKey &pubKey){
                 paymentchannel::RedeemScript redeemScript(c->payee().payorContractPk(), pubKey, c->payee().lockTime());
                 return redeemScript.serialized();
-            }, uchar_vector(0x01) /*OP_TRUE */);
+            }, paymentchannel::RedeemScript::PayeeOptionalData());
 
             Coin::PubKeyHash finalPkHash = _generateReceiveAddresses(1).front().pubKeyHash();
             c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));

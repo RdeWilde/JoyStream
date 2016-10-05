@@ -567,20 +567,26 @@ namespace detail {
         std::vector<paymentchannel::Commitment> commitments;
 
         for(uint32_t i = 0; i < numberOfSellers; i++) {
-            Coin::KeyPair keyPair = _generateP2SHKeyPair([&](const Coin::PublicKey & pubKey){
 
-                paymentchannel::Commitment commitment(funds[i],
-                                                      pubKey,
-                                                      selected[i]->payor().payeeContractPk(),
-                                                      terms[i].minLock());
+            auto value = funds[i];
+            auto payeeContractPk = selected[i]->payor().payeeContractPk();
+            auto lockTime = terms[i].minLock();
 
-                commitments.push_back(commitment);
+            // Generate new buyer keypair for commitment
+            Coin::KeyPair payorCommitmentKeyPair = _generateP2SHKeyPair([payeeContractPk, lockTime](const Coin::PublicKey & payorCommitmentPk){
 
-                return commitment.redeemScript().serialized();
+                paymentchannel::RedeemScript redeemScript(payorCommitmentPk, payeeContractPk, lockTime);
+                return redeemScript.serialized();
 
-            }, uchar_vector(0x00) /* OP_FALSE */);
+            }, paymentchannel::RedeemScript::PayorOptionalData());
 
-            contractKeyPairs.push_back(keyPair);
+            paymentchannel::Commitment commitment(value,
+                                                  payorCommitmentKeyPair.pk(),
+                                                  payeeContractPk,
+                                                  lockTime);
+            commitments.push_back(commitment);
+
+            contractKeyPairs.push_back(payorCommitmentKeyPair);
         }
 
         assert(contractKeyPairs.size() == numberOfSellers);
