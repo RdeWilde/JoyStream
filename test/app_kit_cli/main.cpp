@@ -57,6 +57,15 @@ uint32_t future_unix_timestamp(const unsigned int minutes) {
     return std::chrono::duration_cast<std::chrono::seconds>(delta).count();
 }
 
+libtorrent::sha1_hash sha1_hash_from_hex_string(const char * hex) {
+  char buf[21];
+
+  if(!libtorrent::from_hex(hex, 40, buf)){
+    throw std::runtime_error("Invalid info hash string");
+  }
+  return libtorrent::sha1_hash(buf);
+}
+
 int main(int argc, char *argv[])
 {
     const int nsellers = 1;
@@ -82,6 +91,30 @@ int main(int argc, char *argv[])
     {
         std::cerr << "usage: ./app_kit_cli [buy, sell] [torrent-file]" << std::endl;
         return 1;
+    }
+
+    libtorrent::error_code ec;
+    boost::shared_ptr<libtorrent::torrent_info> ti;
+
+    if(argc == 3) {
+        // If argument is a valid path to a file, treat it as a filename
+        if(QFile::exists(argv[2])) {
+            ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[2]), boost::ref(ec), 0);
+            if (ec) {
+                std::cerr << ec.message().c_str() << std::endl;
+                return 1;
+            }
+        } else {
+            // otherwise treat it as an infohash
+            try {
+                ti = boost::make_shared<libtorrent::torrent_info>(sha1_hash_from_hex_string(argv[2]), 0);
+            } catch(std::exception &e) {
+                std::cerr << "Failed to parse info hash: " << e.what() << std::endl;
+                return 1;
+            }
+        }
+
+        std::cout << "Torrent InfoHash: " << ti->info_hash() << std::endl;
     }
 
     QCoreApplication app(argc, argv);
@@ -133,18 +166,6 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, &handleSignal);
     signal(SIGTERM, &handleSignal);
-
-    libtorrent::error_code ec;
-    boost::shared_ptr<libtorrent::torrent_info> ti;
-
-    if(argc == 3) {
-        ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[2]), boost::ref(ec), 0);
-        if (ec) {
-            std::cerr << ec.message().c_str() << std::endl;
-            return 1;
-        }
-        std::cout << "Torrent InfoHash: " << ti->info_hash() << std::endl;
-    }
 
     auto startIt = [](const std::exception_ptr &eptr, joystream::core::Torrent* torrent) {
         if(eptr){
