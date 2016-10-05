@@ -14,6 +14,8 @@
 
 #include <typeindex>
 
+#include <QStandardItemModel>
+
 namespace joystream {
 namespace protocol_session {
     enum class SessionMode;
@@ -35,6 +37,21 @@ public:
     static QString toString(const std::type_index & index);
     static QString toString(const extension::BEPSupportStatus & status);
     static QString toString(const libtorrent::tcp::endpoint & endPoint);
+
+    // move later
+    template<class T>
+    static T getUserRoleDataFromTableModel(const QStandardItemModel & model, int row, int col, int roleOffset = 0) {
+
+        if(model.rowCount() <= row)
+            throw std::runtime_error("Invalid row index provided");
+
+        // Return user role data from first (name) column
+        QVariant var = model.item(row, col)->data(Qt::UserRole + roleOffset);
+
+        assert(var.canConvert<T>());
+
+        return var.value<T>();
+    }
 };
 
 }
