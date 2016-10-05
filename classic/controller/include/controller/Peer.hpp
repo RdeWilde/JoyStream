@@ -10,9 +10,6 @@
 
 #include <libtorrent/socket.hpp>
 #include <QObject>
-#include <boost/cstdint.hpp>
-#include <boost/optional.hpp>
-#include <memory>
 
 namespace joystream {
 namespace core {
@@ -38,24 +35,6 @@ public:
 
     ~Peer();
 
-    /**
-     * @brief Creates a peer tree view row
-     * @return
-     */
-    gui::PeerTableRowModel * create() const noexcept;
-
-    gui::PeerTableRowModel * peerTreeViewRow() const noexcept;
-
-    /**
-     * @brief Sets peer tree view row, frees any previously set instance
-     * @param peerTreeViewRow row to be set
-     */
-    void setPeerTreeViewRow(gui::PeerTableRowModel * peerTreeViewRow);
-
-    void dropPeerTreeViewRow();
-
-    bool peerTreeViewRowSet() const noexcept;
-
 public slots:
 
     /// The slots below will forward the state chagne to the
@@ -64,17 +43,17 @@ public slots:
 
     void setHost(const libtorrent::tcp::endpoint & endPoint);
 
-    void setClientName(std::string & client);
+    void setClientName(const std::string & client);
 
     void setBEPSupport(const extension::BEPSupportStatus & status);
 
 private:
 
     // Not being used for anything, since
-    // type has no operations, but may be of use in the future.
+    // core::Peer has no operations, but may be of use in the future.
     core::Peer * _peer;
 
-    std::unique_ptr<gui::PeerTableRowModel> _peerTreeViewRow;
+    gui::PeerTableRowModel * _row;
 };
 
 }

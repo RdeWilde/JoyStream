@@ -6,7 +6,7 @@
  */
 
 #include <controller/Peer.hpp>
-#include <gui/PeersDialog/PeerTableRowModel.hpp>
+#include <gui/gui.hpp>
 #include <core/core.hpp>
 
 namespace joystream {
@@ -14,52 +14,30 @@ namespace classic {
 namespace controller {
 
 Peer::Peer(core::Peer * peer,
-           gui::PeerTableRowModel * peerTreeViewRow)
+           gui::PeerTableRowModel * row)
     : _peer(peer)
-    , _peerTreeViewRow(peerTreeViewRow) {
+    , _row(row) {
 
     QObject::connect(peer,
                      &core::Peer::clientChanged,
                      this,
                      &Peer::setClientName);
+
+    setHost(peer->endPoint()); // no signal
+    setClientName(peer->client());
+
 }
 
-Peer::~Peer() {
-
+void Peer::setHost(const boost::asio::ip::tcp::endpoint &endPoint) {
+    _row->setHost(endPoint);
 }
 
-gui::PeerTableRowModel * Peer::peerTreeViewRow() const noexcept {
-    return _peerTreeViewRow.get();
-}
-
-void Peer::setPeerTreeViewRow(gui::PeerTableRowModel * peerTreeViewRow) {
-    _peerTreeViewRow.reset(peerTreeViewRow);
-}
-
-void Peer::dropPeerTreeViewRow() {
-    _peerTreeViewRow.release();
-}
-
-bool Peer::peerTreeViewRowSet() const noexcept {
-    return _peerTreeViewRow.get() != nullptr;
-}
-
-void Peer::setHost(const libtorrent::tcp::endpoint & endPoint) {
-
-    if(peerTreeViewRowSet())
-        _peerTreeViewRow->setHost(endPoint);
-}
-
-void Peer::setClientName(std::string & client) {
-
-    if(peerTreeViewRowSet())
-        _peerTreeViewRow->setClientName(client);
+void Peer::setClientName(const std::string &client) {
+    _row->setClientName(client);
 }
 
 void Peer::setBEPSupport(const extension::BEPSupportStatus & status) {
-
-    if(peerTreeViewRowSet())
-        _peerTreeViewRow->setBEPSupport(status);
+    _row->setBEPSupport(status);
 }
 
 }
