@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
                                                            secondsBeforePieceTimeout,
                                                            joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
-    if (argc < 3)
+    if (argc != 1 && argc < 3)
     {
         std::cerr << "usage: ./app_kit_cli [buy, sell] [torrent-file]" << std::endl;
         return 1;
@@ -105,9 +105,7 @@ int main(int argc, char *argv[])
     }
 
     std::cout << "Wallet Deposit Address: " <<  depositAddress << std::endl;
-
     std::cout << "Wallet Balance: " << kit->wallet()->unconfirmedBalance() << std::endl;
-
     std::cout << "Starting Wallet Sync.. this could take a while while loading blocktree\n";
 
     kit->syncWallet();
@@ -132,82 +130,77 @@ int main(int argc, char *argv[])
     signal(SIGTERM, &handleSignal);
 
     libtorrent::error_code ec;
-    auto ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[2]), boost::ref(ec), 0);
-    if (ec)
-    {
-        std::cerr << ec.message().c_str() << std::endl;
-        return 1;
+    boost::shared_ptr<libtorrent::torrent_info> ti;
+
+    if(argc == 3) {
+        ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[2]), boost::ref(ec), 0);
+        if (ec) {
+            std::cerr << ec.message().c_str() << std::endl;
+            return 1;
+        }
     }
 
-    // process addedTorrent Signal when torrent is added
-    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&ti, &kit, argv, &buyerTerms, &sellerTerms, &buyingPolicy](const joystream::core::Torrent *torrent){
-        std::cout << "Got torrent added signal, waiting for plugin added signal" << std::endl;
-        assert(torrent->infoHash() == ti->info_hash());
+    auto startIt = [](const std::exception_ptr &eptr, joystream::core::Torrent* torrent) {
+        if(eptr){
+            std::rethrow_exception(eptr);
+        }else {
+            torrent->torrentPlugin()->start([](const std::exception_ptr &eptr){
+                if(eptr){
+                   std::rethrow_exception(eptr);
+                }else {
+                    std::cout << "Torrent Started" << std::endl;
+                }
+            });
+        }
+    };
 
-        // wait for torrent pluging to be added before we can go to buy mode...
-        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&kit, torrent, argv, &buyerTerms, &sellerTerms, &buyingPolicy](const joystream::core::TorrentPlugin *plugin){
+    auto buyIt = [&kit, &buyerTerms, &buyingPolicy, &startIt](joystream::core::Torrent* torrent) {
+        kit->buyTorrent(torrent, buyingPolicy, buyerTerms, [torrent, &startIt](const std::exception_ptr &eptr){
+            startIt(eptr, torrent);
+        });
+    };
 
-            assert(plugin->infoHash() == torrent->infoHash());
+    auto sellIt = [&kit, &sellerTerms, &startIt](joystream::core::Torrent* torrent) {
+        kit->sellTorrent(torrent, joystream::protocol_session::SellingPolicy(), sellerTerms, [torrent, &startIt](const std::exception_ptr &eptr){
+            startIt(eptr, torrent);
+        });
+    };
 
+    auto onPluginAdded = [&buyIt, &sellIt, &argv](joystream::core::Torrent* torrent) {
+        // wait for torrent pluging to be added before we can go to buy/sell mode...
+        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&buyIt, &sellIt, &argv, torrent](const joystream::core::TorrentPlugin *plugin){
+            // assuming this signal will only ever be emitted once
             if(std::string(argv[1]) == "buy") {
-                kit->buyTorrent(torrent, buyingPolicy, buyerTerms, [torrent](const std::exception_ptr &eptr){
-                    if(eptr){
-                        std::cerr << "Error Buying Torrent" << std::endl;
-                        std::rethrow_exception(eptr);
-                    }else {
-                        std::cout << "Success going to BuyMode" << std::endl;
-                        torrent->torrentPlugin()->start([](const std::exception_ptr &eptr){
-                            if(eptr){
-                               std::cerr << "Error Starting Torrent" << std::endl;
-                               std::rethrow_exception(eptr);
-                            }else {
-                                std::cout << "Torrent Started" << std::endl;
-                            }
-                        });
-                    }
-                });
+                buyIt(torrent);
             } else {
-              kit->sellTorrent(torrent, joystream::protocol_session::SellingPolicy(), sellerTerms, [torrent](const std::exception_ptr &eptr){
-                  if(eptr){
-                      std::cerr << "Error Selling Torrent" << std::endl;
-                      std::rethrow_exception(eptr);
-                  }else {
-                      std::cout << "Success going to SellMode" << std::endl;
-                      torrent->torrentPlugin()->start([](const std::exception_ptr &eptr){
-                          if(eptr){
-                             std::cerr << "Error Starting Torrent" << std::endl;
-                             std::rethrow_exception(eptr);
-                          }else {
-                              std::cout << "Torrent Started" << std::endl;
-                          }
-                      });
-                  }
-              });
+                sellIt(torrent);
             }
         });
+    };
 
-    });
+    if(ti) {
+        std::cout << "Adding Torrent" << std::endl;
 
-    std::cout << "Adding Torrent" << std::endl;
+        auto savePath = (dataDirectory + QDir::separator() + "downloads").toStdString();
 
-    auto savePath = (dataDirectory + QDir::separator() + "downloads").toStdString();
+        kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, true, joystream::core::TorrentIdentifier(ti),
+                               [&kit, &onPluginAdded](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+            if(ecode) {
+                std::cerr << "Node::addTorrent() failed: " << ecode.message().c_str() << std::endl;
+                return;
+            }
 
-    kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, true, joystream::core::TorrentIdentifier(ti),
-                           [&kit](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+            // make sure to have metadata before gonig to buy or sell torrent
+            auto torrent = kit->node()->torrents()[th.info_hash()];
 
-        if(ecode) {
-            std::cerr << "Node::addTorrent() failed: " << ecode.message().c_str() << std::endl;
-            return;
-        }
-
-        std::cout << "Torrent Added" << std::endl;
-    });
+            onPluginAdded(torrent);
+        });
+    }
 
     std::cout << "Starting Qt Application Event loop\n";
     int ret = app.exec();
 
     std::cout << "Exited Qt Application event loop with code: " << ret << std::endl;
-
     return ret;
 }
 
