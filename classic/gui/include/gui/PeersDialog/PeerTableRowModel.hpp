@@ -27,7 +27,8 @@ class PeerTableRowModel : public QObject {
 
 public:
 
-    PeerTableRowModel(QStandardItem * host,
+    PeerTableRowModel(QObject * parent,
+                      QStandardItem * host,
                       QStandardItem * clientName,
                       QStandardItem * BEPSupportStatus);
 

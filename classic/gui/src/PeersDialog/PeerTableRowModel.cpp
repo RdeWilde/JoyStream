@@ -15,10 +15,12 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-PeerTableRowModel::PeerTableRowModel(QStandardItem * host,
-                             QStandardItem * clientName,
-                             QStandardItem * BEPSupportStatus)
-    : _hostItem(host)
+PeerTableRowModel::PeerTableRowModel(QObject * parent,
+                                     QStandardItem * host,
+                                     QStandardItem * clientName,
+                                     QStandardItem * BEPSupportStatus)
+    : QObject(parent)
+    , _hostItem(host)
     , _clientNameItem(clientName)
     , _BEPSupportStatusItem(BEPSupportStatus) {
 }
