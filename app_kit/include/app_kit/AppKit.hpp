@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <QString>
+#include <QTimer>
 
 //#include <iostream>
 
@@ -50,6 +51,10 @@ public:
 
     bitcoin::SPVWallet* wallet();
     core::Node* node();
+
+    // Starts internal timer for performing tasks at regular intervals
+    // such as doing node status updates and re-establishing connection to the bitcoin network
+    void start();
 
     void shutdown(const Callback &);
 
@@ -112,6 +117,8 @@ private:
 
     std::string _bitcoinHost;
     int _bitcoinPort;
+
+    QTimer *_timer;
 };
 
 }

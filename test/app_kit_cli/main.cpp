@@ -126,20 +126,18 @@ int main(int argc, char *argv[])
     std::cout << "Wallet Balance: " << kit->wallet()->unconfirmedBalance() << std::endl;
 
     QTimer *timer = new QTimer();
-
     QObject::connect(timer, &QTimer::timeout, [&timer, &app, &kit](){
-        kit->node()->updateStatus();
-
         if(!shuttingDown) return;
-        timer->stop();
-        std::cout << "Stopping..." << std::endl;
 
+        timer->stop();
+
+        std::cout << "Stopping..." << std::endl;
         kit->shutdown([&app](){
             app.quit();
         });
     });
 
-    timer->start(1000);
+    timer->start(500);
 
     signal(SIGINT, &handleSignal);
     signal(SIGTERM, &handleSignal);
@@ -200,6 +198,8 @@ int main(int argc, char *argv[])
             onPluginAdded(torrent);
         });
     }
+
+    kit->start();
 
     std::cout << "Starting Qt Application Event loop\n";
     int ret = app.exec();
