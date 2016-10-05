@@ -278,12 +278,15 @@ libtorrent::add_torrent_params Node::toAddTorrentParams(const boost::optional<ui
     // NB: initial flags set in params is
     // default_flags = flag_pinned | flag_update_subscribe | flag_auto_managed | flag_paused | flag_apply_ip_filter
 
-    // Pause, if paused
-    if(pause)
-        params.flags += libtorrent::add_torrent_params::flags_t::flag_paused;
+    //  bitwise OR or in a flag to set it:  params.flags |= flag_x
+    //  bitwise AND the inverse of a flag to clear it:  params.flags &= ~flags_x;
+
+    // If we wish to start unpaused, unset flag_paused which is set by default
+    if(!pause)
+        params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_paused;
 
     // Remove auto-managing
-    params.flags -= libtorrent::add_torrent_params::flags_t::flag_auto_managed;
+    params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_auto_managed;
 
     // Torrent refernce (usual, and safer, visitor pattern is a bit too heavy)
     switch(torrentIdentifier.type()) {
