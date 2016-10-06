@@ -36,6 +36,5 @@ rpc.addTorrent = function(torrent, callback ) {
 }
 
 rpc.sayHello = function(callback) {
-  console.log('Hello');
   clientHello.sayHello({}, callback);
 };

@@ -16,6 +16,8 @@ app.listen(3000, function () {
 		} else {
 			console.log(answer)
 		}
+	}, function() {
+		console.log('Happy');
 	});
 
 	rpc.listTorrents(function(err, t){
