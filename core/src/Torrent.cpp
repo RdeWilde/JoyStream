@@ -177,18 +177,21 @@ void Torrent::updateStatus(const libtorrent::torrent_status & status) {
 
     assert(_status.info_hash == status.info_hash);
 
-    if(_status.state != status.state)
+    // Update the status before emitting the signals
+    auto previousStatus = _status;
+    _status = status;
+
+    if(previousStatus.state != status.state)
         emit stateChanged(status.state, status.progress);
 
-    if(_status.total_download != status.total_download)
+    if(previousStatus.total_download != status.total_download)
         emit downloadRateChanged(status.total_download);
 
-    if(_status.total_upload != status.total_upload)
+    if(previousStatus.total_upload != status.total_upload)
         emit uploadRateChanged(status.total_upload);
 
     updatePaused(status.paused);
 
-    _status = status;
 }
 
 void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
