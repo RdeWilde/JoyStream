@@ -422,7 +422,7 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
     const libtorrent::torrent_info torrentInfo = torrent()->torrent_file();
 
     if(!torrentInfo.files().is_valid()){
-        throw exception::InvalidTorrentInfo();
+        throw exception::MetadataNotSet();
     }
 
     const int numberOfPieces = torrentInfo.num_pieces();
