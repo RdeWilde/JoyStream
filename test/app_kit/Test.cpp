@@ -15,13 +15,6 @@
 
 #include <protocol_session/Exceptions.hpp>
 
-// Explicit template instantiation of IdToString()
-// used in joystream::protocol_session::exception::ConnectionAlreadyAddedException
-template <>
-std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(boost::asio::ip::basic_endpoint<boost::asio::ip::tcp> const&id){
-    return id.address().to_string();
-}
-
 void Test::initTestCase()
 {
     _tempDataPath = QDir::tempPath() + QDir::separator() + "joystream" + QDir::separator();

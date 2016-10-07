@@ -29,14 +29,6 @@
 #include <signal.h>
 #include <string>
 
-// Explicit template instantiation of IdToString()
-// used in joystream::protocol_session::exception::ConnectionAlreadyAddedException
-template <>
-std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(boost::asio::ip::basic_endpoint<boost::asio::ip::tcp> const&id){
-    return id.address().to_string();
-}
-
-
 bool shuttingDown = false;
 int shutdownAttempts = 0;
 

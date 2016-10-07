@@ -687,7 +687,6 @@ protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anch
     };
 }
 
+
 }
 }
-
-
