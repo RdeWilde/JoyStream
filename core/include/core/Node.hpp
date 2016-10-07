@@ -118,6 +118,12 @@ public:
     bool assistedPeerDiscovery() const noexcept;
     void setAssistedPeerDiscovery(bool assistedPeerDiscovery) noexcept;
 
+    int announceTimerIntervalSeconds() const noexcept;
+    void setAnnounceTimerIntervalSeconds(int seconds) noexcept;
+
+    int getPeersTimerIntervalSeconds() const noexcept;
+    void setGetPeersTimerIntervalSeconds(int seconds) noexcept;
+
     /**
      * @brief Returns map with all torrent handles, indexed by their info hashes
      * @return Map of all torrent handles, indexed by their info hashes

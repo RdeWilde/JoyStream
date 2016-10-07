@@ -11,6 +11,7 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <extension/extension.hpp>
+#include <QObject>
 
 namespace joystream {
 namespace core {
@@ -26,7 +27,13 @@ NodeImpl::NodeImpl(libtorrent::session * session,
     , _assistedPeerDiscovery(false)
     , _startedListening(startedListening)
     , _addedTorrent(addedTorrent)
-    , _removedTorrent(removedTorrent){
+    , _removedTorrent(removedTorrent)
+{
+    _announceTimer.setInterval(2*3600*1000); // Every 2 hours
+    _getPeersTimer.setInterval(5*60*1000); // Every 5 minutes
+
+    _announceTimer.connect(&_announceTimer, &QTimer::timeout, [&](){ announceAllTorrentsSecondaryHash(); });
+    _getPeersTimer.connect(&_announceTimer, &QTimer::timeout, [&](){ getPeersAllTorrentsSecondaryHash(); });
 }
 
 NodeImpl::~NodeImpl() {
@@ -518,6 +525,16 @@ void NodeImpl::process(const extension::alert::PluginStatus * p) {
     }
 
     // Do other stuff when plugin status is extended
+}
+
+void NodeImpl::announceAllTorrentsSecondaryHash()
+{
+
+}
+
+void NodeImpl::getPeersAllTorrentsSecondaryHash()
+{
+
 }
 
 

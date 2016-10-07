@@ -177,7 +177,39 @@ void Node::setAssistedPeerDiscovery(bool assistedPeerDiscovery) noexcept {
 
     _pimpl._assistedPeerDiscovery = assistedPeerDiscovery;
     emit assistedPeerDiscoveryChanged(assistedPeerDiscovery);
+
+    // If this is enabled, start timers and execute a single announce and getPeers for all torrents
+    if(assistedPeerDiscovery) {
+        _pimpl._getPeersTimer.start();
+        _pimpl._announceTimer.start();
+        _pimpl.announceAllTorrentsSecondaryHash();
+        _pimpl.getPeersAllTorrentsSecondaryHash();
+    } else {
+        _pimpl._getPeersTimer.stop();
+        _pimpl._announceTimer.stop();
+    }
 }
+
+int Node::announceTimerIntervalSeconds() const noexcept
+{
+    return _pimpl._announceTimer.interval()/1000; // convert from ms to seconds
+}
+
+void Node::setAnnounceTimerIntervalSeconds(int seconds) noexcept
+{
+    _pimpl._announceTimer.setInterval(1000*seconds); // convert from seconds to ms
+}
+
+int Node::getPeersTimerIntervalSeconds() const noexcept
+{
+    return _pimpl._getPeersTimer.interval()/1000; // convert from ms to seconds
+}
+
+void Node::setGetPeersTimerIntervalSeconds(int seconds) noexcept
+{
+    _pimpl._getPeersTimer.setInterval(seconds*1000); // convert from seconds to ms
+}
+
 
 std::map<libtorrent::sha1_hash, Torrent *> Node::torrents() const noexcept {
     return detail::getRawMap<libtorrent::sha1_hash, Torrent>(_pimpl._torrents);

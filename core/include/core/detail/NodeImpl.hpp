@@ -7,7 +7,7 @@
 
 #ifndef JOYSTREAM_CORE_DETAIL_LIBTORRENTALERTPROCESSOR_HPP
 #define JOYSTREAM_CORE_DETAIL_LIBTORRENTALERTPROCESSOR_HPP
-
+#include <QTimer>
 #include <extension/extension.hpp>
 #include <libtorrent/socket.hpp>
 #include <boost/shared_ptr.hpp>
@@ -133,9 +133,11 @@ struct NodeImpl {
     // Torrents in session
     std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrents;
 
-    // Secondary DHT for faster JS peer discovery
+    // Secondary hash for faster JS peer discovery
     std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrenstBySecondaryHash;
     bool _assistedPeerDiscovery;
+    QTimer _announceTimer;
+    QTimer _getPeersTimer;
 
     /// Callbacks called in response to inbound alerts
     StartedListening _startedListening;
@@ -143,6 +145,11 @@ struct NodeImpl {
     RemovedTorrent _removedTorrent;
 
     void removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it);
+
+public slots:
+    // Secondary hash for faster JS peer discovery
+    void getPeersAllTorrentsSecondaryHash();
+    void announceAllTorrentsSecondaryHash();
 };
 
 }
