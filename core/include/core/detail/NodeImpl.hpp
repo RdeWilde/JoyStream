@@ -18,6 +18,7 @@ namespace libtorrent {
     class session;
     class sha1_hash;
     class alert;
+    struct dht_get_peers_reply_alert;
     struct listen_succeeded_alert;
     struct metadata_received_alert;
     struct metadata_failed_alert;
@@ -103,6 +104,7 @@ struct NodeImpl {
     void processAlert(const libtorrent::alert * a);
 
     // Processing (standard) libtorrent alerts of given type
+    void process(const libtorrent::dht_get_peers_reply_alert *);
     void process(const libtorrent::listen_succeeded_alert *);
     void process(const libtorrent::metadata_received_alert *);
     void process(const libtorrent::metadata_failed_alert *);
@@ -134,7 +136,9 @@ struct NodeImpl {
     std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrents;
 
     // Secondary hash for faster JS peer discovery
-    std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrenstBySecondaryHash;
+    std::map<libtorrent::sha1_hash, libtorrent::sha1_hash> _torrentsBySecondaryHash;
+    Torrent *getTorrentBySecondaryHash(const libtorrent::sha1_hash &hash);
+
     bool _assistedPeerDiscovery;
     QTimer _announceTimer;
     QTimer _getPeersTimer;

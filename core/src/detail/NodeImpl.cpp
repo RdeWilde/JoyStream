@@ -12,6 +12,7 @@
 #include <libtorrent/alert_types.hpp>
 #include <extension/extension.hpp>
 #include <QObject>
+#include <boost/asio/ip/detail/endpoint.hpp>
 
 namespace joystream {
 namespace core {
@@ -166,6 +167,18 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
+}
+
+void NodeImpl::process(const libtorrent::dht_get_peers_reply_alert *p) {
+    if(!getTorrentBySecondaryHash(p->info_hash)) return; // Didn't find the torrent corresponding to this hash
+    Torrent &t = *getTorrentBySecondaryHash(p->info_hash);
+
+    std::vector<libtorrent::tcp::endpoint> peers;
+    p->peers(peers); // Fill vector with new peers
+
+    for(const libtorrent::tcp::endpoint &ep : peers) {
+        t.handle().connect_peer(ep);
+    }
 }
 
 void NodeImpl::process(const libtorrent::listen_succeeded_alert * p) {
@@ -527,23 +540,27 @@ void NodeImpl::process(const extension::alert::PluginStatus * p) {
     // Do other stuff when plugin status is extended
 }
 
+Torrent *NodeImpl::getTorrentBySecondaryHash(const libtorrent::sha1_hash &hash)
+{
+    if(_torrentsBySecondaryHash.count(hash) == 0) return nullptr;
+    const libtorrent::sha1_hash &primaryHash = _torrentsBySecondaryHash[hash];
+    if(_torrents.count(primaryHash) == 0) return nullptr;
+    return _torrents[primaryHash].get();
+}
+
 void NodeImpl::announceAllTorrentsSecondaryHash()
 {
-    libtorrent::session &session = *_session;
-
-    for(auto it = _torrents.begin();it != _torrents.end(); it++) {
-        Torrent &t = *it->second;
-        session.dht_announce(t.secondaryInfoHash(), session.listen_port());
+    for(auto &pair : _torrents) {
+        Torrent &t = *pair.second;
+        _session->dht_announce(t.secondaryInfoHash(), _session->listen_port());
     }
 }
 
 void NodeImpl::getPeersAllTorrentsSecondaryHash()
 {
-    libtorrent::session &session = *_session;
-
-    for(auto it = _torrents.begin();it != _torrents.end(); it++) {
-        Torrent &t = *it->second;
-        session.dht_get_peers(t.secondaryInfoHash());
+    for(auto &pair : _torrents) {
+        Torrent &t = *pair.second;
+        _session->dht_get_peers(t.secondaryInfoHash());
     }
 }
 
