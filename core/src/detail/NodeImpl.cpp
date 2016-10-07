@@ -328,6 +328,7 @@ void NodeImpl::process(const libtorrent::add_torrent_alert * p) {
 
         // add to map
         _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(t)));
+        _torrentsBySecondaryHash.insert(std::make_pair(t->secondaryInfoHash(), infoHash));
 
         // send notification signal
         _addedTorrent(t);
@@ -567,9 +568,10 @@ void NodeImpl::getPeersAllTorrentsSecondaryHash()
 
 
 void NodeImpl::removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it) {
+    Torrent &t = *it->second;
+    _torrentsBySecondaryHash.erase(t.secondaryInfoHash());
 
     libtorrent::sha1_hash info_hash = it->first;
-
     _torrents.erase(it);
 
     _removedTorrent(info_hash);
