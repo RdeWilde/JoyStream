@@ -115,13 +115,41 @@ public:
      */
     void port() const noexcept;
 
+    /**
+     * @brief Returns if assisted peer discovery is enabled. Assisted peer discovery adds an additional
+     * DHT announce and peer search for all torrents with <INFOHASH>_JS to find JoyStream nodes.
+     * connections
+     * @return Assisted peer discovery enabled.
+     */
     bool assistedPeerDiscovery() const noexcept;
+
+    /**
+     * @brief Enable/disable assisted peer discovery.
+     */
     void setAssistedPeerDiscovery(bool assistedPeerDiscovery) noexcept;
 
+    /**
+     * @brief Returns how often (in seconds) we announce all torrents to the
+     * assisted peer discovery network. Default: every 2 hours.
+     * @return Assisted peer discovery announce interval.
+     */
     int announceTimerIntervalSeconds() const noexcept;
+    /**
+     * @brief Sets how often (in seconds) we announce all torrents to the
+     * assisted peer discovery network.
+     */
     void setAnnounceTimerIntervalSeconds(int seconds) noexcept;
 
+    /**
+     * @brief Returns how often (in seconds) we search for JoyStream peers for
+     * all torrents. Default: every 5 minutes.
+     * @return Assisted peer discovery refresh interval.
+     */
     int getPeersTimerIntervalSeconds() const noexcept;
+    /**
+     * @brief Sets how often (in seconds) we search for JoyStream peers for
+     * all torrents.
+     */
     void setGetPeersTimerIntervalSeconds(int seconds) noexcept;
 
     /**
@@ -149,6 +177,9 @@ signals:
     // Torrent with given info hash was removed
     void removedTorrent(const libtorrent::sha1_hash & info_hash);
 
+    /**
+     * @brief Assisted peer discovery is enabled/disabled
+     */
     void assistedPeerDiscoveryChanged(bool assistedPeerDiscovery);
 
 private:
