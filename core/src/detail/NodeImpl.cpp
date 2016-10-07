@@ -544,7 +544,8 @@ Torrent *NodeImpl::getTorrentBySecondaryHash(const libtorrent::sha1_hash &hash)
 {
     if(_torrentsBySecondaryHash.count(hash) == 0) return nullptr;
     const libtorrent::sha1_hash &primaryHash = _torrentsBySecondaryHash[hash];
-    if(_torrents.count(primaryHash) == 0) return nullptr;
+    Q_ASSERT(_torrents.count(primaryHash)>0);
+
     return _torrents[primaryHash].get();
 }
 
