@@ -28,6 +28,7 @@
 #include <QJsonObject>
 
 #include <iostream>
+#include <signal.h>
 #include <string>
 
 #include <cli.hpp>
@@ -235,3 +236,4 @@ int main(int argc, char *argv[])
     int ret = app.run();
     return ret;
 }
+
