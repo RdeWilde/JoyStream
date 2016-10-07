@@ -284,6 +284,11 @@ void Torrent::setMetadata(const boost::shared_ptr<const libtorrent::torrent_info
     emit metadataReady();
 }
 
+libtorrent::torrent_handle Torrent::handle() const
+{
+    return _handle;
+}
+
 /*
 void Torrent::addStream(Stream * stream) {
     _streams.insert(stream);

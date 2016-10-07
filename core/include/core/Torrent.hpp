@@ -124,6 +124,8 @@ public:
 
     int downloadLimit() const noexcept;
 
+    libtorrent::torrent_handle handle() const;
+
 signals:
 
     void peerAdded(Peer *);
