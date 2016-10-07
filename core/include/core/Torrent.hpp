@@ -78,6 +78,12 @@ public:
     libtorrent::sha1_hash infoHash() const noexcept;
 
     /**
+     * @brief Returns hash of the _JS appended infohash for faster peer discovery
+     * @return sha1_hash of _JS appended infohash
+     */
+    libtorrent::sha1_hash secondaryInfoHash() const noexcept;
+
+    /**
      * @brief Returns map of Peer handles, and endpoint is used as key.
      * @return Map of Peer handles with endpoint as key
      */
