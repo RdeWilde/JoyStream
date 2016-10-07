@@ -15,6 +15,15 @@
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
 namespace joystream {
+
+namespace protocol_session {
+    // Explicit template instantiation of template function:  std::string IdToString(T)
+    template <>
+    std::string IdToString<libtorrent::tcp::endpoint>(libtorrent::tcp::endpoint const&id){
+        return id.address().to_string();
+    }
+}
+
 namespace extension {
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin,

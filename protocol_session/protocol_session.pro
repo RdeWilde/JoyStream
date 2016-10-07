@@ -34,7 +34,8 @@ HEADERS += \
     include/protocol_session/detail/Observing.hpp \
     include/protocol_session/BuyingState.hpp \
     include/protocol_session/PieceState.hpp \
-    include/protocol_session/SellerState.hpp
+    include/protocol_session/SellerState.hpp \
+    include/protocol_session/common.hpp
 
 
 SOURCES += \
