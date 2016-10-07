@@ -20,7 +20,7 @@ namespace protocol_session {
     // Explicit template instantiation of template function:  std::string IdToString(T)
     template <>
     std::string IdToString<libtorrent::tcp::endpoint>(libtorrent::tcp::endpoint const&id){
-        return id.address().to_string();
+        return libtorrent::print_endpoint(id);
     }
 }
 
