@@ -8,6 +8,7 @@
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Plugin.hpp>
 #include <extension/Request.hpp>
+#include <extension/Exception.hpp>
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection_handle.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
@@ -299,6 +300,10 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallba
     if(_session.mode() == protocol_session::SessionMode::buying)
         _outstandingFullPieceArrivedCalls.clear();
 
+    if(_torrent.status().state != libtorrent::torrent_status::state_t::seeding) {
+        throw exception::InvalidModeTransition();
+    }
+
     const libtorrent::torrent_info torrentInfo = torrent()->torrent_file();
 
     // Get maximum number of pieces
@@ -329,6 +334,10 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
     // NB: We are doing clearing regardless of whether operation is successful!
     if(_session.mode() == protocol_session::SessionMode::selling)
         _outstandingLoadPieceForBuyerCalls.clear();
+
+    if(_torrent.status().state != libtorrent::torrent_status::state_t::downloading) {
+        throw exception::InvalidModeTransition();
+    }
 
     _session.toBuyMode(removeConnection(),
                        generateKeyPairCallbackHandler,
@@ -402,6 +411,10 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
     //size = getTorrent()->block_size() * picker.blocks_in_piece() or picker.blocks_in_last_piece();
 
     const libtorrent::torrent_info torrentInfo = torrent()->torrent_file();
+
+    if(!torrentInfo.files().is_valid()){
+        throw exception::InvalidTorrentInfo();
+    }
 
     const int numberOfPieces = torrentInfo.num_pieces();
 
