@@ -13,11 +13,6 @@
 using namespace joystream;
 using namespace joystream::core;
 
-template <>
-std::string IdToString(const libtorrent::tcp::endpoint & endPoint) {
-    return libtorrent::print_endpoint(endPoint);
-}
-
 void Test::initTestCase() {
     Node::registerMetaTypes();
 }
