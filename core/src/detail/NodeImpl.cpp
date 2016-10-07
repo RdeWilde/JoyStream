@@ -529,12 +529,22 @@ void NodeImpl::process(const extension::alert::PluginStatus * p) {
 
 void NodeImpl::announceAllTorrentsSecondaryHash()
 {
+    libtorrent::session &session = *_session;
 
+    for(auto it = _torrents.begin();it != _torrents.end(); it++) {
+        Torrent &t = *it->second;
+        session.dht_announce(t.secondaryInfoHash(), session.listen_port());
+    }
 }
 
 void NodeImpl::getPeersAllTorrentsSecondaryHash()
 {
+    libtorrent::session &session = *_session;
 
+    for(auto it = _torrents.begin();it != _torrents.end(); it++) {
+        Torrent &t = *it->second;
+        session.dht_get_peers(t.secondaryInfoHash());
+    }
 }
 
 
