@@ -17,10 +17,6 @@ namespace core {
     class Connection;
 }
 namespace classic {
-namespace gui {
-    class PeersDialog;
-    class TorrentTableRowModel;
-}
 namespace controller {
 
 class Connection : public QObject {
