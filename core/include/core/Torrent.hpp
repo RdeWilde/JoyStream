@@ -14,6 +14,7 @@
 
 #include <QObject>
 #include <memory>
+#include <chrono>
 
 namespace joystream {
 namespace core {
@@ -36,6 +37,7 @@ public:
 
     typedef extension::request::SubroutineHandler TorrentPaused;
     typedef extension::request::SubroutineHandler TorrentResumed;
+    typedef std::chrono::system_clock::time_point Timestamp;
 
     /**
      * @brief Does MOC registration of all custome types used as signal arguments
@@ -101,6 +103,23 @@ public:
      * @return Torrent plugin handle
      */
     TorrentPlugin * torrentPlugin() const;
+
+    /**
+     * @brief Returns map of announced JoyStream peers with the timestamp of the getPeersReply alert.
+     * @return Map of peers with format <endpoint, timestamp>
+     */
+    std::map<libtorrent::tcp::endpoint, Timestamp> announcedJSPeersAtTimestamp() const noexcept;
+
+    /**
+     * @brief Adds a JS peer with this torrent to list of JS peers. Note that we might have not
+     * connected and validated the peers.
+     */
+    void addJSPeerAtTimestamp(libtorrent::tcp::endpoint peer, Timestamp timestamp) noexcept;
+
+    /**
+     * @brief Loops through all announced JS peers and removes them if they they aren't updated for a while.
+     */
+    void invalidateOldJSPeers() noexcept;
 
     libtorrent::torrent_status::state_t state() const noexcept;
 
@@ -209,6 +228,8 @@ private:
 
     // TorrentPlugin
     std::unique_ptr<TorrentPlugin> _torrentPlugin;
+
+    std::map<libtorrent::tcp::endpoint, Timestamp> _announcedJSPeersAtTimestamp;
 
     // All streams for this torrent.
     // Not quite sure if multiple separate streams for one torrent

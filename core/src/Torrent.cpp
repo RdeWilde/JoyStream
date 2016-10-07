@@ -90,6 +90,28 @@ TorrentPlugin * Torrent::torrentPlugin() const {
         throw exception::HandleNotSet();
 }
 
+std::map<libtorrent::tcp::endpoint, Torrent::Timestamp> Torrent::announcedJSPeersAtTimestamp() const noexcept {
+    return _announcedJSPeersAtTimestamp;
+}
+
+void Torrent::invalidateOldJSPeers() noexcept {
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    for (auto it = _announcedJSPeersAtTimestamp.cbegin(); it != _announcedJSPeersAtTimestamp.cend() /* not hoisted */; /* no increment */)
+    {
+        Timestamp timestamp = it->second;
+
+        if(std::chrono::duration_cast<std::chrono::hours>(now - timestamp).count() > 10) {
+            _announcedJSPeersAtTimestamp.erase(it++);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void Torrent::addJSPeerAtTimestamp(libtorrent::tcp::endpoint peer, Timestamp timestamp) noexcept {
+    _announcedJSPeersAtTimestamp[peer] = timestamp; // Replace if exists
+}
+
 libtorrent::torrent_status::state_t Torrent::state() const noexcept {
     return _status.state;
 }

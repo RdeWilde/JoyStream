@@ -177,7 +177,6 @@ void Node::setAssistedPeerDiscovery(bool assistedPeerDiscovery) noexcept {
 
     _pimpl._assistedPeerDiscovery = assistedPeerDiscovery;
     emit assistedPeerDiscoveryChanged(assistedPeerDiscovery);
-
     // If this is enabled, start timers and execute a single announce and getPeers for all torrents
     if(assistedPeerDiscovery) {
         _pimpl._getPeersTimer.start();

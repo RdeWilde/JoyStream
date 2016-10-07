@@ -13,6 +13,7 @@
 #include <extension/extension.hpp>
 #include <QObject>
 #include <boost/asio/ip/detail/endpoint.hpp>
+#include <ctime>
 
 namespace joystream {
 namespace core {
@@ -164,6 +165,8 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::PluginStatus const * p = libtorrent::alert_cast<extension::alert::PluginStatus>(a))
         process(p);
+    else if(libtorrent::dht_get_peers_reply_alert const * p = libtorrent::alert_cast<libtorrent::dht_get_peers_reply_alert>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
@@ -173,11 +176,13 @@ void NodeImpl::process(const libtorrent::dht_get_peers_reply_alert *p) {
     if(!getTorrentBySecondaryHash(p->info_hash)) return; // Didn't find the torrent corresponding to this hash
     Torrent &t = *getTorrentBySecondaryHash(p->info_hash);
 
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+
     std::vector<libtorrent::tcp::endpoint> peers;
     p->peers(peers); // Fill vector with new peers
-
     for(const libtorrent::tcp::endpoint &ep : peers) {
-        t.handle().connect_peer(ep);
+        t.addJSPeerAtTimestamp(ep, now); // Add to list of JS peers
+        t.handle().connect_peer(ep); // Ask libtorrent to connect to peer
     }
 }
 
@@ -329,6 +334,10 @@ void NodeImpl::process(const libtorrent::add_torrent_alert * p) {
         // add to map
         _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(t)));
         _torrentsBySecondaryHash.insert(std::make_pair(t->secondaryInfoHash(), infoHash));
+
+        // announce the new torrent with secondary info hash
+        _session->dht_announce(t->secondaryInfoHash(), _session->listen_port());
+        _session->dht_get_peers(t->secondaryInfoHash());
 
         // send notification signal
         _addedTorrent(t);
@@ -562,6 +571,7 @@ void NodeImpl::getPeersAllTorrentsSecondaryHash()
 {
     for(auto &pair : _torrents) {
         Torrent &t = *pair.second;
+        t.invalidateOldJSPeers();
         _session->dht_get_peers(t.secondaryInfoHash());
     }
 }
