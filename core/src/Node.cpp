@@ -166,6 +166,19 @@ void Node::port() const noexcept {
     _pimpl.port();
 }
 
+bool Node::assistedPeerDiscovery() const noexcept {
+    return _pimpl._assistedPeerDiscovery;
+}
+
+void Node::setAssistedPeerDiscovery(bool assistedPeerDiscovery) noexcept {
+    if(assistedPeerDiscovery == _pimpl._assistedPeerDiscovery) {
+        return;
+    }
+
+    _pimpl._assistedPeerDiscovery = assistedPeerDiscovery;
+    emit assistedPeerDiscoveryChanged(assistedPeerDiscovery);
+}
+
 std::map<libtorrent::sha1_hash, Torrent *> Node::torrents() const noexcept {
     return detail::getRawMap<libtorrent::sha1_hash, Torrent>(_pimpl._torrents);
 }

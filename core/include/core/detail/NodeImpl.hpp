@@ -133,6 +133,10 @@ struct NodeImpl {
     // Torrents in session
     std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrents;
 
+    // Secondary DHT for faster JS peer discovery
+    std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrenstBySecondaryHash;
+    bool _assistedPeerDiscovery;
+
     /// Callbacks called in response to inbound alerts
     StartedListening _startedListening;
     AddedTorrent _addedTorrent;

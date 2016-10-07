@@ -115,6 +115,9 @@ public:
      */
     void port() const noexcept;
 
+    bool assistedPeerDiscovery() const noexcept;
+    void setAssistedPeerDiscovery(bool assistedPeerDiscovery) noexcept;
+
     /**
      * @brief Returns map with all torrent handles, indexed by their info hashes
      * @return Map of all torrent handles, indexed by their info hashes
@@ -139,6 +142,8 @@ signals:
 
     // Torrent with given info hash was removed
     void removedTorrent(const libtorrent::sha1_hash & info_hash);
+
+    void assistedPeerDiscoveryChanged(bool assistedPeerDiscovery);
 
 private:
 

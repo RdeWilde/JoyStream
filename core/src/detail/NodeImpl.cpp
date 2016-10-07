@@ -23,6 +23,7 @@ NodeImpl::NodeImpl(libtorrent::session * session,
                    const RemovedTorrent & removedTorrent)
     : _session(session)
     , _plugin(plugin)
+    , _assistedPeerDiscovery(false)
     , _startedListening(startedListening)
     , _addedTorrent(addedTorrent)
     , _removedTorrent(removedTorrent){
@@ -76,7 +77,6 @@ void NodeImpl::updateTorrentPluginStatus() const {
 void NodeImpl::updatePeerStatus() const {
 
     for(auto & mapping : _torrents) {
-
         // Get handle for torrent
         //libtorrent::sha1_hash infoHash = mapping.second->infoHash();
         //libtorrent::torrent_handle h = _session->find_torrent(infoHash);
