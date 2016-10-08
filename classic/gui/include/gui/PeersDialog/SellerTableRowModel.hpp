@@ -37,6 +37,8 @@ public:
                         QStandardItem * settlementFeeItem,
                         const BitcoinDisplaySettings * settings);
 
+    int row() const noexcept;
+
 public slots:
 
     void setHost(const libtorrent::tcp::endpoint & endPoint) noexcept;

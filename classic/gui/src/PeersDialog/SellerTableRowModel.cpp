@@ -36,6 +36,10 @@ SellerTableRowModel::SellerTableRowModel(QObject * parent,
     , _settings(settings) {
 }
 
+int SellerTableRowModel::row() const noexcept{
+    return _hostItem->row();
+}
+
 void SellerTableRowModel::setHost(const libtorrent::tcp::endpoint & endPoint) noexcept {
     _hostItem->setText(Common::toString(endPoint));
 }
