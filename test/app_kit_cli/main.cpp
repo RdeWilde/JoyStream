@@ -67,7 +67,15 @@ int main(int argc, char *argv[])
 {
     const int nsellers = 1;
     const uint64_t price = 10; //satoshis per piece
-    const uint32_t locktime = future_unix_timestamp(5); // 5 minute locktime
+
+    //Fixed locktime is problematic when peers are trying to match satisfying terms
+    //because the locktime is calculated once, and each peer will calculate the locktime at differnet times.
+    //locktime should really be relative to the time when the contract is broadcasted
+    //This is the main reason we want to update our payment channel to use check sequence verify rather than check locktime verify
+    //even using block height has the same problem... as time passes buyer waiting for sellers will find less and less potential candidates
+    //and at the point where the locktime is "in the past".. no sellers will satisfy the terms
+    //const uint32_t locktime = future_unix_timestamp(5); // 5 minute locktime
+    const uint32_t locktime = 0; //setting to zero just for testing for now
     const uint64_t refund_fee = 0; // refund fee is remeniscent of old protocol is it still needed?
     const uint64_t settlement_fee = 0;
     const uint64_t contractFeeRate = 20;   //satoshis/KByte - ref https://bitcoinfees.github.io/
