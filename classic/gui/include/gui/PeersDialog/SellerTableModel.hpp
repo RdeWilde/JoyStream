@@ -28,6 +28,13 @@ public:
 
     SellerTableRowModel * add(const libtorrent::tcp::endpoint & endPoint) noexcept;
 
+    /**
+     * @brief Remove row with given index from model
+     * @param row index of row to be removed
+     * @throws std::runtime_error if index is invalid
+     */
+    void remove(int row);
+
     libtorrent::tcp::endpoint endPoint(int row) const;
 
     QAbstractItemModel * model() noexcept;
