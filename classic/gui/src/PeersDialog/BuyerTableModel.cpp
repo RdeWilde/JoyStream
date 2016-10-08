@@ -85,6 +85,14 @@ BuyerTableRowModel * BuyerTableModel::add(const libtorrent::tcp::endpoint & endP
                                   _settings);
 }
 
+void BuyerTableModel::remove(int row) {
+
+    if(row < 0 || _model.rowCount() <= row)
+        throw std::runtime_error("Invalid row index");
+    else
+        _model.removeRow(row);
+}
+
 libtorrent::tcp::endpoint BuyerTableModel::endPoint(int row) const {
     return gui::Common::getUserRoleDataFromTableModel<libtorrent::tcp::endpoint>(_model, row, 0);
 }
