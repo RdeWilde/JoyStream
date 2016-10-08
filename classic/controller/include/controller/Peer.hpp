@@ -8,20 +8,24 @@
 #ifndef JOYSTREAM_CLASSIC_CONTROLLER_PEER_HPP
 #define JOYSTREAM_CLASSIC_CONTROLLER_PEER_HPP
 
+#include <core/core.hpp> // InnerStateIndex
+#include <controller/detail.hpp>
 #include <libtorrent/socket.hpp>
 #include <QObject>
 
 namespace joystream {
 namespace core {
     class Peer;
+    class PeerPlugin;
+    class Connection;
 }
 namespace extension {
     enum class BEPSupportStatus;
 }
-namespace classic {
-namespace gui {
-    class PeerTableRowModel;
+namespace protocol_statemachine {
+    class AnnouncedModeAndTerms;
 }
+namespace classic {
 namespace controller {
 
 class Peer : public QObject {
@@ -31,29 +35,59 @@ class Peer : public QObject {
 public:
 
     Peer(core::Peer * peer,
-         gui::PeerTableRowModel * peerTreeViewRow);
+         gui::PeerTableRowModel * classicTableRowModel,
+         gui::BuyerTableModel * buyerTableModel,
+         gui::ObserverTableModel * observerTableModel,
+         gui::SellerTableModel * sellerTableModel);
 
     ~Peer();
 
+    void setPeerPlugin(core::PeerPlugin * peerPlugin);
+
+    void setConnection(core::Connection * connection);
+
 public slots:
 
-    /// The slots below will forward the state chagne to the
-    /// relevant gui type, if gui is present, otherwise it will
-    /// ignore the signal.
+    /// core::Peer signal handlers
 
     void setHost(const libtorrent::tcp::endpoint & endPoint);
 
     void setClientName(const std::string & client);
 
+    /// core::PeerPlugin signal handlers
+
     void setBEPSupport(const extension::BEPSupportStatus & status);
+
+    /// core::CBStateMachine signal handlers
+
+    void setAnnouncedModeAndTermsFromPeer(const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTerms);
+
+    void setInnerStateIndex(const core::CBStateMachine::InnerStateIndex & index);
+
+    /// core::Payor signal handlers
+
+
+    /// core::Payee signal handlers
+
 
 private:
 
-    // Not being used for anything, since
-    // core::Peer has no operations, but may be of use in the future.
+    libtorrent::tcp::endpoint _endPoint;
+
+    /// Core references
+
     core::Peer * _peer;
 
-    gui::PeerTableRowModel * _row;
+    core::PeerPlugin * _peerPlugin;
+
+    core::Connection * _connection;
+
+    /// View model references
+
+    detail::PeerDialogModelManager _peerDialogModels;
+
+    detail::SessionDialogModels _sessionDialogModels;
+
 };
 
 }
