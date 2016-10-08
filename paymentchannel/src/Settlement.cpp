@@ -118,7 +118,7 @@ namespace paymentchannel {
 
         scriptSig += payorTransactionSignature.opPushForScriptSigSerialized();
         scriptSig += payeeTransactionSignature.opPushForScriptSigSerialized();
-        scriptSig += uchar_vector(0x01); // OP_TRUE
+        scriptSig += RedeemScript::PayeeOptionalData();
         uchar_vector redeemScript(_commitment.redeemScript().serialized());
         scriptSig += Coin::opPushData(redeemScript.size());
         scriptSig += redeemScript;
