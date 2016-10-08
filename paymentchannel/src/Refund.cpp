@@ -28,7 +28,7 @@ namespace paymentchannel {
 
         return Coin::UnspentP2SHOutput(_payorContractKeyPair,
                                        _commitment.redeemScript().serialized(),
-                                       uchar_vector(0x00), /*OP_FALSE*/
+                                       RedeemScript::PayorOptionalData(),
                                        _contractOutPoint,
                                        _commitment.value());
     }
