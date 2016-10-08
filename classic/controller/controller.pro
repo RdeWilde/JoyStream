@@ -32,6 +32,7 @@ HEADERS += \
     include/controller/Selling.hpp \
     include/controller/Seller.hpp \
     include/controller/Buying.hpp \
+    include/controller/detail.hpp
 
 SOURCES += \
     src/ApplicationController.cpp \
@@ -47,6 +48,7 @@ SOURCES += \
     src/Selling.cpp \
     src/Seller.cpp \
     src/Buying.cpp \
+    src/detail.cpp
 
 # gui
 INCLUDEPATH += $$PWD/../gui/include
