@@ -8,8 +8,10 @@
 #ifndef PAYMENT_CHANNEL_SETTLEMENT_HPP
 #define PAYMENT_CHANNEL_SETTLEMENT_HPP
 
-#include <paymentchannel/Termination.hpp>
+#include <paymentchannel/Commitment.hpp>
 #include <common/Payment.hpp>
+#include <common/typesafeOutPoint.hpp>
+#include <common/Utilities.hpp>
 
 namespace Coin {
     class Transaction;

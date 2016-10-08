@@ -13,7 +13,6 @@
 #include <paymentchannel/Payor.hpp>
 #include <paymentchannel/Refund.hpp>
 #include <paymentchannel/Settlement.hpp>
-#include <paymentchannel/Termination.hpp>
 #include <paymentchannel/Contract.hpp>
 
 #endif // JOYSTREAM_PAYMENTCHANNEL_PAYMENTCHANNEL_HPP
