@@ -35,7 +35,7 @@ class Peer : public QObject {
 public:
 
     Peer(core::Peer * peer,
-         gui::PeerTableRowModel * classicTableRowModel,
+         gui::PeerTableModel * classicPeerTableModel,
          gui::BuyerTableModel * buyerTableModel,
          gui::ObserverTableModel * observerTableModel,
          gui::SellerTableModel * sellerTableModel);
@@ -84,7 +84,12 @@ private:
 
     /// View model references
 
-    detail::PeerDialogModelManager _peerDialogModels;
+    // Model for classic view of this peer
+    gui::PeerTableModel * _classicTableModel;
+
+    gui::PeerTableRowModel * _classicTableRowModel;
+
+    detail::ModeAnnouncedTableModelManager _peerDialogModels;
 
     detail::SessionDialogModels _sessionDialogModels;
 

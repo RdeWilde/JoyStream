@@ -18,48 +18,39 @@ namespace detail {
 
 /// PeerDialogModels
 
-PeerDialogModelManager::PeerDialogModelManager(const libtorrent::tcp::endpoint & endPoint,
-                                               gui::PeerTableRowModel * classicTableRowModel,
-                                               gui::BuyerTableModel * buyerTableModel,
-                                               gui::ObserverTableModel * observerTableModel,
-                                               gui::SellerTableModel * sellerTableModel)
+ModeAnnouncedTableModelManager::ModeAnnouncedTableModelManager(const libtorrent::tcp::endpoint & endPoint,
+                                                               gui::BuyerTableModel * buyerTableModel,
+                                                               gui::ObserverTableModel * observerTableModel,
+                                                               gui::SellerTableModel * sellerTableModel)
     : _endPoint(endPoint)
-    , _classicTableRowModel(classicTableRowModel)
     , _buyerTableModel(buyerTableModel)
     , _observerTableModel(observerTableModel)
     , _sellerTableModel(sellerTableModel) {
 }
 
-void PeerDialogModelManager::noneModeAnnounced() {
+ModeAnnouncedTableModelManager::~ModeAnnouncedTableModelManager() {
 
-    if(_modeAnnouncedRowModel.is_initialized()) {
-
-        detail::PeerDialogModelManager::ModeAnnouncedRowModel activeRow = _modeAnnouncedRowModel.get();
-
-        switch(activeRow.which()) {
-
-            case 0: _buyerTableModel->remove(boost::get<gui::BuyerTableRowModel *>(activeRow)->row()); break;
-            case 1: _observerTableModel->remove(boost::get<gui::ObserverTableRowModel *>(activeRow)->row()); break;
-            case 2: _sellerTableModel->remove(boost::get<gui::SellerTableRowModel *>(activeRow)->row()); break;
-
-            default:
-                assert(false);
-        }
-
-    }
+    // Remove from announced mode table models
+    removeFromAnnouncedModeTables();
 }
 
-void PeerDialogModelManager::observeModeAnnounced() {
+void ModeAnnouncedTableModelManager::removeFromAnnouncedModeTables() {
+
+    if(_modeAnnouncedRowModel.is_initialized())
+        removeFromTableModel(_modeAnnouncedRowModel.get());
+}
+
+void ModeAnnouncedTableModelManager::showInObserverTable() {
 
     if(_modeAnnouncedRowModel.is_initialized()) {
 
-        detail::PeerDialogModelManager::ModeAnnouncedRowModel activeRow = _modeAnnouncedRowModel.get();
+        ModeAnnouncedRowModel row = _modeAnnouncedRowModel.get();
 
-        switch(activeRow.which()) {
+        switch(row.which()) {
 
-            case 0: _buyerTableModel->remove(boost::get<gui::BuyerTableRowModel *>(activeRow)->row()); break;
+            case 0: _buyerTableModel->remove(boost::get<gui::BuyerTableRowModel *>(row)->row()); break;
             case 1: break; // nothing to do, already in observe mode
-            case 2: _sellerTableModel->remove(boost::get<gui::SellerTableRowModel *>(activeRow)->row()); break;
+            case 2: _sellerTableModel->remove(boost::get<gui::SellerTableRowModel *>(row)->row()); break;
 
             default:
                 assert(false);
@@ -69,17 +60,17 @@ void PeerDialogModelManager::observeModeAnnounced() {
         _modeAnnouncedRowModel = _observerTableModel->add(_endPoint);
 }
 
-void PeerDialogModelManager::sellModeAnnounced(const protocol_wire::SellerTerms & terms) {
+void ModeAnnouncedTableModelManager::showInSellerTable(const protocol_wire::SellerTerms & terms) {
 
     if(_modeAnnouncedRowModel.is_initialized()) {
 
-        detail::PeerDialogModelManager::ModeAnnouncedRowModel activeRow = _modeAnnouncedRowModel.get();
+        ModeAnnouncedRowModel row = _modeAnnouncedRowModel.get();
 
-        switch(activeRow.which()) {
+        switch(row.which()) {
 
-            case 0: _buyerTableModel->remove(boost::get<gui::BuyerTableRowModel *>(activeRow)->row()); break;
-            case 1: _observerTableModel->remove(boost::get<gui::ObserverTableRowModel *>(activeRow)->row()); break;
-            case 2: boost::get<gui::SellerTableRowModel *>(activeRow)->setTerms(terms); break;
+            case 0: _buyerTableModel->remove(boost::get<gui::BuyerTableRowModel *>(row)->row()); break;
+            case 1: _observerTableModel->remove(boost::get<gui::ObserverTableRowModel *>(row)->row()); break;
+            case 2: boost::get<gui::SellerTableRowModel *>(row)->setTerms(terms); break;
 
             default:
                 assert(false);
@@ -89,17 +80,17 @@ void PeerDialogModelManager::sellModeAnnounced(const protocol_wire::SellerTerms 
         _modeAnnouncedRowModel = _sellerTableModel->add(_endPoint);
 }
 
-void PeerDialogModelManager::buyModeAnnounced(const protocol_wire::BuyerTerms & terms) {
+void ModeAnnouncedTableModelManager::showInBuyerTable(const protocol_wire::BuyerTerms & terms) {
 
     if(_modeAnnouncedRowModel.is_initialized()) {
 
-        detail::PeerDialogModelManager::ModeAnnouncedRowModel activeRow = _modeAnnouncedRowModel.get();
+        ModeAnnouncedRowModel row = _modeAnnouncedRowModel.get();
 
-        switch(activeRow.which()) {
+        switch(row.which()) {
 
-            case 0: boost::get<gui::BuyerTableRowModel *>(activeRow)->setTerms(terms); break;
-            case 1: _observerTableModel->remove(boost::get<gui::ObserverTableRowModel *>(activeRow)->row()); break;
-            case 2: _sellerTableModel->remove(boost::get<gui::SellerTableRowModel *>(activeRow)->row()); break;
+            case 0: boost::get<gui::BuyerTableRowModel *>(row)->setTerms(terms); break;
+            case 1: _observerTableModel->remove(boost::get<gui::ObserverTableRowModel *>(row)->row()); break;
+            case 2: _sellerTableModel->remove(boost::get<gui::SellerTableRowModel *>(row)->row()); break;
 
             default:
                 assert(false);
@@ -107,6 +98,19 @@ void PeerDialogModelManager::buyModeAnnounced(const protocol_wire::BuyerTerms & 
 
     } else
         _modeAnnouncedRowModel = _buyerTableModel->add(_endPoint);
+}
+
+void ModeAnnouncedTableModelManager::removeFromTableModel(const ModeAnnouncedRowModel & row) const noexcept {
+
+    switch(row.which()) {
+
+        case 0: _buyerTableModel->remove(boost::get<gui::BuyerTableRowModel *>(row)->row()); break;
+        case 1: _observerTableModel->remove(boost::get<gui::ObserverTableRowModel *>(row)->row()); break;
+        case 2: _sellerTableModel->remove(boost::get<gui::SellerTableRowModel *>(row)->row()); break;
+
+        default:
+            assert(false);
+    }
 }
 
 }

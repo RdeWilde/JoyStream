@@ -20,6 +20,7 @@ namespace protocol_wire {
 }
 namespace classic {
 namespace gui {
+    class PeerTableModel;
     class PeerTableRowModel;
     class BuyerTableModel;
     class BuyerTableRowModel;
@@ -31,32 +32,26 @@ namespace gui {
 namespace controller {
 namespace detail {
 
-struct PeerDialogModelManager {
+struct ModeAnnouncedTableModelManager {
 
-    PeerDialogModelManager(const libtorrent::tcp::endpoint & endPoint,
-                           gui::PeerTableRowModel * classicTableRowModel,
-                           gui::BuyerTableModel * buyerTableModel,
-                           gui::ObserverTableModel * observerTableModel,
-                           gui::SellerTableModel * sellerTableModel);
+    ModeAnnouncedTableModelManager(const libtorrent::tcp::endpoint & endPoint,
+                                   gui::BuyerTableModel * buyerTableModel,
+                                   gui::ObserverTableModel * observerTableModel,
+                                   gui::SellerTableModel * sellerTableModel);
 
-    /// Mode announcement handlers
+    ~ModeAnnouncedTableModelManager();
 
-    void noneModeAnnounced();
+    void removeFromAnnouncedModeTables();
 
-    void observeModeAnnounced();
+    void showInObserverTable();
 
-    void sellModeAnnounced(const protocol_wire::SellerTerms & terms);
+    void showInSellerTable(const protocol_wire::SellerTerms & terms);
 
-    void buyModeAnnounced(const protocol_wire::BuyerTerms & terms);
+    void showInBuyerTable(const protocol_wire::BuyerTerms & terms);
 
-    /// Members
-
+    // Peer endpoint
     libtorrent::tcp::endpoint _endPoint;
 
-    // Model for classic view of this peer
-    gui::PeerTableRowModel * _classicTableRowModel;
-
-    // this has to be moved
     typedef boost::variant<gui::BuyerTableRowModel *,
                            gui::ObserverTableRowModel *,
                            gui::SellerTableRowModel *> ModeAnnouncedRowModel;
@@ -64,11 +59,15 @@ struct PeerDialogModelManager {
     // Model for connection view of peer
     boost::optional<ModeAnnouncedRowModel> _modeAnnouncedRowModel;
 
-    // Table View Models
-    // Are required to manage presence of connection depending on peer terms at any given time
+    // Table view models are required to manage presence of connection
+    // depending on peer terms at any given time
     gui::BuyerTableModel * _buyerTableModel;
     gui::ObserverTableModel * _observerTableModel;
     gui::SellerTableModel * _sellerTableModel;
+
+private:
+
+    void removeFromTableModel(const ModeAnnouncedRowModel & row) const noexcept;
 };
 
 struct SessionDialogModels {

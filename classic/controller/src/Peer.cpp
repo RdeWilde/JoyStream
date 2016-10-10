@@ -16,7 +16,7 @@ namespace classic {
 namespace controller {
 
 Peer::Peer(core::Peer * peer,
-           gui::PeerTableRowModel * classicTableRowModel,
+           gui::PeerTableModel * classicPeerTableModel,
            gui::BuyerTableModel * buyerTableModel,
            gui::ObserverTableModel * observerTableModel,
            gui::SellerTableModel * sellerTableModel)
@@ -24,8 +24,9 @@ Peer::Peer(core::Peer * peer,
     , _peer(peer)
     , _peerPlugin(nullptr)
     , _connection(nullptr)
+    , _classicTableModel(classicPeerTableModel)
+    , _classicTableRowModel(_classicTableModel->add(_endPoint))
     , _peerDialogModels(_endPoint,
-                        classicTableRowModel,
                         buyerTableModel,
                         observerTableModel,
                         sellerTableModel) {
@@ -40,6 +41,12 @@ Peer::Peer(core::Peer * peer,
                      &Peer::setClientName);
 
     setClientName(peer->client());
+}
+
+Peer::~Peer() {
+
+    // Drop from classic model
+    _classicTableModel->remove(_classicTableRowModel->row());
 }
 
 void Peer::setPeerPlugin(core::PeerPlugin * peerPlugin) {
@@ -76,15 +83,15 @@ void Peer::setConnection(core::Connection * connection) {
 }
 
 void Peer::setHost(const boost::asio::ip::tcp::endpoint &endPoint) {
-     _peerDialogModels._classicTableRowModel->setHost(endPoint);
+     _classicTableRowModel->setHost(endPoint);
 }
 
 void Peer::setClientName(const std::string &client) {
-    _peerDialogModels._classicTableRowModel->setClientName(client);
+    _classicTableRowModel->setClientName(client);
 }
 
 void Peer::setBEPSupport(const extension::BEPSupportStatus & status) {
-    _peerDialogModels._classicTableRowModel->setBEPSupport(status);
+    _classicTableRowModel->setBEPSupport(status);
 }
 
 void Peer::setAnnouncedModeAndTermsFromPeer(const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTerms) {
@@ -93,10 +100,10 @@ void Peer::setAnnouncedModeAndTermsFromPeer(const protocol_statemachine::Announc
 
     switch(announcedModeAndTerms.modeAnnounced()) {
 
-        case protocol_statemachine::ModeAnnounced::none: _peerDialogModels.noneModeAnnounced(); break;
-        case protocol_statemachine::ModeAnnounced::observe: _peerDialogModels.observeModeAnnounced(); break;
-        case protocol_statemachine::ModeAnnounced::sell: _peerDialogModels.sellModeAnnounced(announcedModeAndTerms.sellModeTerms()); break;
-        case protocol_statemachine::ModeAnnounced::buy: _peerDialogModels.buyModeAnnounced(announcedModeAndTerms.buyModeTerms()); break;
+        case protocol_statemachine::ModeAnnounced::none: _peerDialogModels.removeFromAnnouncedModeTables(); break;
+        case protocol_statemachine::ModeAnnounced::observe: _peerDialogModels.showInObserverTable(); break;
+        case protocol_statemachine::ModeAnnounced::sell: _peerDialogModels.showInSellerTable(announcedModeAndTerms.sellModeTerms()); break;
+        case protocol_statemachine::ModeAnnounced::buy: _peerDialogModels.showInBuyerTable(announcedModeAndTerms.buyModeTerms()); break;
 
         default:
             assert(false);
