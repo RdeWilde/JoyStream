@@ -12,10 +12,10 @@
 namespace joystream {
 namespace paymentchannel {
 
-RedeemScript::RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t lockTime)
+RedeemScript::RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t relativeLockTime)
     : _payorPk(payorPk)
     , _payeePk(payeePk)
-    , _lockTime(lockTime) {
+    , _lockTime(relativeLockTime) {
 
 }
 
@@ -30,7 +30,7 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x67); // OP_ELSE
     // Branch for when channel is settled with full refund to payor
-    uchar_vector locktime = Coin::serializeScriptNum(_lockTime);
+    uchar_vector locktime = dataCSVRelativeLockTime(_lockTime);
     script += Coin::opPushData(locktime.size());
     script += locktime;
     script.push_back(0xb2); // OP_CHECKSEQUENCEVERIFY (BIP 68)
@@ -106,6 +106,10 @@ uchar_vector RedeemScript::PayorOptionalData() {
 
 uchar_vector RedeemScript::PayeeOptionalData() {
     return uchar_vector(0x01); /* OP_TRUE */
+}
+
+uchar_vector RedeemScript::dataCSVRelativeLockTime(const uint16_t blocks) {
+    return Coin::serializeScriptNum(blocks);
 }
 
 }}

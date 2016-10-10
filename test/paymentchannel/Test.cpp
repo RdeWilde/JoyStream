@@ -192,6 +192,24 @@ void Test::paychan_one_to_one() {
 
 }
 
+void Test::CSVRelativeLockTimeEncoding_Blocks() {
+
+    uint16_t relativeLockTime = 0xffff;
+
+    uchar_vector data = joystream::paymentchannel::RedeemScript::dataCSVRelativeLockTime(relativeLockTime);
+
+    // 3-byte signed integer for use in bitcoin scripts as a 3-byte PUSHDATA
+    QCOMPARE((int)data.size(), 3);
+
+    // sign bit unset and most significant bit (after the sign bit) should be unset
+    // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
+    // in blocks (not time)
+    QCOMPARE(data.at(2) & 0xc0, 0x00);
+
+    // 16-bits representing locktime value
+    QCOMPARE(data.at(1), uchar(0xff));
+    QCOMPARE(data.at(0), uchar(0xff));
+}
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"

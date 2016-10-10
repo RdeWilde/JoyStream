@@ -31,9 +31,12 @@ namespace paymentchannel {
                const Commitment & commitment, const Coin::KeyPair &payorContractKeyPair);
 
         // Get an UnspentP2SHOutput to spend the entire commitment
-        // Important : The transaction which spends this output must set nSequence to equal the locktime of the commitment
+        // Important : The transaction which spends this output must set correct nSequence value
         // or the OP_CHECSEQUENCEVERIFY will fail
         Coin::UnspentP2SHOutput getUnspentOutput() const;
+
+        // Returns correct nSequence value to use for the transaction input
+        uint32_t nSequence() const;
 
         // Wether refund is still locked
         bool isLocked(uint32_t currentBlockHeight, uint32_t contractMinedInBlock) const;
