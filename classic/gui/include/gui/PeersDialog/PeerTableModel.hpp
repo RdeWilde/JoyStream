@@ -27,6 +27,8 @@ public:
 
     PeerTableRowModel * add(const libtorrent::tcp::endpoint & endPoint) noexcept;
 
+    void remove(int row);
+
     libtorrent::tcp::endpoint endPoint(int row) const;
 
     QAbstractItemModel * model() noexcept;
