@@ -21,7 +21,7 @@ namespace paymentchannel {
 class RedeemScript
 {
 public:
-    explicit RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime);
+    explicit RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t lockTime);
 
     uchar_vector serialized() const;
 
@@ -36,7 +36,7 @@ public:
 private:
     Coin::PublicKey _payorPk;
     Coin::PublicKey _payeePk;
-    uint32_t _lockTime;
+    uint16_t _lockTime;
 };
 
 }}

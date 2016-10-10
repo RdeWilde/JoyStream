@@ -24,7 +24,7 @@ namespace paymentchannel {
 
     Coin::UnspentP2SHOutput Refund::getUnspentOutput() const {
         // Todo: replace this with a typesafe output which is will ensure that a transaction
-        // which spends it will have nLockTime set to the commitment locktime
+        // which spends it will have nSequence set to the commitment locktime
 
         return Coin::UnspentP2SHOutput(_payorContractKeyPair,
                                        _commitment.redeemScript().serialized(),
@@ -33,18 +33,14 @@ namespace paymentchannel {
                                        _commitment.value());
     }
 
-    uint32_t Refund::lockedUntil() const {
-        return _commitment.lockTime();
+    uint32_t Refund::lockedUntil(uint32_t contractMinedInBlock) const {
+        return _commitment.lockTime() + contractMinedInBlock;
     }
 
-    bool Refund::isLocked(uint32_t currentBlockHeight) const {
-        uint32_t locktime = lockedUntil();
+    bool Refund::isLocked(uint32_t currentBlockHeight, uint32_t contractMinedInBlock) const {
+        uint32_t unlockedIn = lockedUntil(contractMinedInBlock);
 
-        if(locktime < uint32_t(500000000)){
-            return locktime >= currentBlockHeight;
-        } else {
-            return locktime > std::time(nullptr);
-        }
+        return currentBlockHeight < unlockedIn;
     }
 
 }

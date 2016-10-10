@@ -43,7 +43,7 @@ namespace paymentchannel {
                 quint64 numberOfPaymentsMade,
                 quint64 funds,
                 quint64 settlementFee,
-                quint32 refundLockTime,
+                quint16 refundLockTime,
                 const Coin::typesafeOutPoint & anchor,
                 const Coin::KeyPair & payorContractKeyPair,
                 const Coin::PubKeyHash & payorFinalPkHash,
@@ -82,8 +82,8 @@ namespace paymentchannel {
         quint64 settlementFee() const;
         void setSettlementFee(quint64);
 
-        quint32 refundLockTime() const;
-        void setRefundLockTime(quint32);
+        quint16 refundLockTime() const;
+        void setRefundLockTime(quint16);
 
         Coin::typesafeOutPoint anchor() const;
         void setAnchor(const Coin::typesafeOutPoint &);
@@ -115,7 +115,7 @@ namespace paymentchannel {
         quint64 _settlementFee;
 
         // Lock time of refund, received in
-        quint32 _refundLockTime;
+        quint16 _refundLockTime;
 
         // Anchor for channel in contract transaction
         Coin::typesafeOutPoint _anchor;

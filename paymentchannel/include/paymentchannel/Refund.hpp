@@ -30,25 +30,23 @@ namespace paymentchannel {
         Refund(const Coin::typesafeOutPoint & contractOutPoint,
                const Commitment & commitment, const Coin::KeyPair &payorContractKeyPair);
 
-        // Get an UnspentP2SHOutput to spend the refund
-        // Important : The transaction which spends this output must set nLockTime to equal lockTime
-        // or the OP_CHECKLOCKTIMEVERIFY will fail
+        // Get an UnspentP2SHOutput to spend the entire commitment
+        // Important : The transaction which spends this output must set nSequence to equal the locktime of the commitment
+        // or the OP_CHECSEQUENCEVERIFY will fail
         Coin::UnspentP2SHOutput getUnspentOutput() const;
 
         // Wether refund is still locked
-        // If the locktime is a block height it will be compared to the currentBlockHeight argument
-        // otherwise it will be compared to current time
-        bool isLocked(uint32_t currentBlockHeight) const;
+        bool isLocked(uint32_t currentBlockHeight, uint32_t contractMinedInBlock) const;
 
-        // when refund is unlocked
-        uint32_t lockedUntil() const;
+        // At which block height refund is unlocked
+        uint32_t lockedUntil(uint32_t contractMinedInBlock) const;
 
     private:
 
         // Contract to which commitment corresponds
         Coin::typesafeOutPoint _contractOutPoint;
 
-        // Commitment being terminated
+        // Commitment being refunded
         Commitment _commitment;
 
         // KeyPair of payor that controls the payment channel output

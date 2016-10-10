@@ -28,7 +28,7 @@ namespace paymentchannel {
         Commitment();
 
         // Constructor based on members
-        Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime);
+        Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t lockTime);
 
         // Copy constructor
         Commitment(const Commitment& o);
@@ -55,8 +55,8 @@ namespace paymentchannel {
         Coin::PublicKey payeePk() const;
         void setPayeePk(const Coin::PublicKey & payeePk);
 
-        void setLockTime(uint32_t lockTime);
-        uint32_t lockTime() const;
+        void setLockTime(uint16_t lockTime);
+        uint16_t lockTime() const;
 
     private:
 
@@ -70,7 +70,7 @@ namespace paymentchannel {
         Coin::PublicKey _payeePk;
 
         // How long the output is locked before payor can spend it
-        uint32_t _lockTime;
+        uint16_t _lockTime;
     };
 
 }

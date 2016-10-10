@@ -27,7 +27,7 @@ namespace paymentchannel {
     }
 
     Payee::Payee(quint64 numberOfPaymentsMade,
-                 quint32 lockTime,
+                 quint16 lockTime,
                  quint64 price,
                  quint64 funds,
                  quint64 settlementFee,
@@ -117,11 +117,11 @@ namespace paymentchannel {
         _numberOfPaymentsMade = numberOfPaymentsMade;
     }
 
-    quint32 Payee::lockTime() const {
+    quint16 Payee::lockTime() const {
         return _lockTime;
     }
 
-    void Payee::setLockTime(quint32 lockTime) {
+    void Payee::setLockTime(quint16 lockTime) {
         _lockTime = lockTime;
     }
 

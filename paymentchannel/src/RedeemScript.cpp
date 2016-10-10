@@ -12,7 +12,7 @@
 namespace joystream {
 namespace paymentchannel {
 
-RedeemScript::RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime)
+RedeemScript::RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t lockTime)
     : _payorPk(payorPk)
     , _payeePk(payeePk)
     , _lockTime(lockTime) {
@@ -33,7 +33,7 @@ uchar_vector RedeemScript::serialized() const {
     uchar_vector locktime = Coin::serializeScriptNum(_lockTime);
     script += Coin::opPushData(locktime.size());
     script += locktime;
-    script.push_back(0xb1); // OP_CHECKLOCKTIMEVERIFY
+    script.push_back(0xb2); // OP_CHECKSEQUENCEVERIFY (BIP 68)
     script.push_back(0x75); // OP_DROP
 
     script.push_back(0x68); // OP_ENDIF
@@ -76,7 +76,7 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
     }
 
     // decode the locktime
-    uint32_t locktime = Coin::deserializeScriptNum(rawLockTime);
+    uint16_t locktime = Coin::deserializeScriptNum(rawLockTime);
 
     // get a subscript to the start of the payor publick key push data operation
     subscript = uchar_vector(subscript.begin() + 3, subscript.end());

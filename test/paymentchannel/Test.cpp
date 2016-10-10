@@ -64,12 +64,12 @@ void Test::refund() {
 
     joystream::paymentchannel::Refund R(p.refund());
 
-    QCOMPARE(R.lockedUntil(), lockTime);
+    QCOMPARE(R.lockedUntil(0), lockTime);
 
     // The output is locked until the block height is greater than the locktime
-    QCOMPARE(R.isLocked(99), true); // locked
-    QCOMPARE(R.isLocked(100), true); // locked
-    QCOMPARE(R.isLocked(101), false); // unlocked
+    QCOMPARE(R.isLocked(99,1), true); // locked
+    QCOMPARE(R.isLocked(100,1), true); // locked
+    QCOMPARE(R.isLocked(101,1), false); // unlocked
 
     QCOMPARE(R.getUnspentOutput().value(), channelValue);
 

@@ -37,7 +37,7 @@ namespace paymentchannel {
         Payee();
 
         Payee(quint64 numberOfPaymentsMade,
-              quint32 lockTime,
+              quint16 lockTime,
               quint64 price,
               quint64 funds,
               quint64 settlementFee,
@@ -78,8 +78,8 @@ namespace paymentchannel {
         quint64 numberOfPaymentsMade() const;
         void setNumberOfPaymentsMade(quint64);
 
-        quint32 lockTime() const;
-        void setLockTime(quint32);
+        quint16 lockTime() const;
+        void setLockTime(quint16);
 
         quint64 price() const;
         void setPrice(quint64);
@@ -114,7 +114,7 @@ namespace paymentchannel {
         quint64 _numberOfPaymentsMade;
 
         // Payment channel lock time
-        quint32 _lockTime;
+        quint16 _lockTime;
 
         // Price (#satoshies) increment per payment
         quint64 _price;
