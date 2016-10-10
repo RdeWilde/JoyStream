@@ -30,7 +30,7 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x67); // OP_ELSE
     // Branch for when channel is settled with full refund to payor
-    uchar_vector locktime = dataCSVRelativeLockTime(_lockTime);
+    uchar_vector locktime = dataCSVRelativeLockTime_Blocks(_lockTime);
     script += Coin::opPushData(locktime.size());
     script += locktime;
     script.push_back(0xb2); // OP_CHECKSEQUENCEVERIFY (BIP 68)
@@ -108,8 +108,28 @@ uchar_vector RedeemScript::PayeeOptionalData() {
     return uchar_vector(0x01); /* OP_TRUE */
 }
 
-uchar_vector RedeemScript::dataCSVRelativeLockTime(const uint16_t blocks) {
+uchar_vector RedeemScript::dataCSVRelativeLockTime_Blocks(const uint16_t blocks) {
     return Coin::serializeScriptNum(blocks);
+}
+
+uchar_vector RedeemScript::dataCSVRelativeLockTime_Time(const uint16_t time) {
+    uint32_t value = time;
+    value |= 0x00400000;
+    return Coin::serializeScriptNum(value);
+}
+
+uint32_t RedeemScript::nSequence_Blocks(const uint16_t blocks) {
+    // nSequence is interpreted as relative locktime in blocks
+    // (bit 1<<31 unset, bit 1<<22 unset)
+    uint32_t seq = blocks;
+    return seq;
+}
+
+uint32_t RedeemScript::nSequence_Time(const uint16_t time)  {
+    // nSequence is interpreted as relative locktime as time
+    // (bit 1<<31 unset,  bit 1<<22 set)
+    uint32_t seq = time;
+    return seq |= 0x00400000;
 }
 
 }}

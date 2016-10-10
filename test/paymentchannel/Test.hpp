@@ -39,6 +39,7 @@ private slots:
     void paychan_one_to_one();
 
     void CSVRelativeLockTimeEncoding_Blocks();
+    void CSVRelativeLockTimeEncoding_Time();
 };
 
 #endif // TEST_HPP

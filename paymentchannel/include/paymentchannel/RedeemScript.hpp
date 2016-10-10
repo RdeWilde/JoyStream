@@ -34,13 +34,21 @@ public:
     static uchar_vector PayeeOptionalData();
 
     // Data to be pushed to stack to be used with OP_CHECKSEQUENCEVERIFY
-    static uchar_vector dataCSVRelativeLockTime(const uint16_t blocks);
+    static uchar_vector dataCSVRelativeLockTime_Blocks(const uint16_t blocks);
+
+    // Data to be pushed to stack to be used with OP_CHECKSEQUENCEVERIFY
+    static uchar_vector dataCSVRelativeLockTime_Time(const uint16_t time);
+
+
+    // Returns correct nSequence value to use for the transaction input
+    static uint32_t nSequence_Blocks(const uint16_t blocks);
+    static uint32_t nSequence_Time(const uint16_t time);
 
 private:
     Coin::PublicKey _payorPk;
     Coin::PublicKey _payeePk;
 
-    // Relative locktime: number of blocks
+    // Relative locktime
     uint16_t _lockTime;
 };
 

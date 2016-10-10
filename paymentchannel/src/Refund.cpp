@@ -25,18 +25,13 @@ namespace paymentchannel {
     Coin::UnspentP2SHOutput Refund::getUnspentOutput() const {
         // Todo: replace this with a typesafe output which is will ensure that a transaction
         // which spends it will have nSequence set to correct value - helper function
-        // nSequence() is available for now
+        // paymentchannel::RedeemScript::nSequence_Blocks() is available for now
 
         return Coin::UnspentP2SHOutput(_payorContractKeyPair,
                                        _commitment.redeemScript().serialized(),
                                        RedeemScript::PayorOptionalData(),
                                        _contractOutPoint,
                                        _commitment.value());
-    }
-
-    uint32_t Refund::nSequence() const {
-        // locktime is interpreted in blocks (bit 1<<31 and 1<<22 are unset)
-        return _commitment.lockTime() & 0x0000ffff;
     }
 
     uint32_t Refund::lockedUntil(uint32_t contractMinedInBlock) const {

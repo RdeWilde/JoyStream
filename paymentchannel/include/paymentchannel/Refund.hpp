@@ -35,9 +35,6 @@ namespace paymentchannel {
         // or the OP_CHECSEQUENCEVERIFY will fail
         Coin::UnspentP2SHOutput getUnspentOutput() const;
 
-        // Returns correct nSequence value to use for the transaction input
-        uint32_t nSequence() const;
-
         // Wether refund is still locked
         bool isLocked(uint32_t currentBlockHeight, uint32_t contractMinedInBlock) const;
 

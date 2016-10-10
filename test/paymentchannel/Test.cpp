@@ -196,19 +196,43 @@ void Test::CSVRelativeLockTimeEncoding_Blocks() {
 
     uint16_t relativeLockTime = 0xffff;
 
-    uchar_vector data = joystream::paymentchannel::RedeemScript::dataCSVRelativeLockTime(relativeLockTime);
+    uchar_vector data = joystream::paymentchannel::RedeemScript::dataCSVRelativeLockTime_Blocks(relativeLockTime);
 
     // 3-byte signed integer for use in bitcoin scripts as a 3-byte PUSHDATA
     QCOMPARE((int)data.size(), 3);
 
     // sign bit unset and most significant bit (after the sign bit) should be unset
     // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
-    // in blocks (not time)
+    // as blocks
     QCOMPARE(data.at(2) & 0xc0, 0x00);
 
     // 16-bits representing locktime value
     QCOMPARE(data.at(1), uchar(0xff));
     QCOMPARE(data.at(0), uchar(0xff));
+
+    QCOMPARE(uint32_t(0x0000ffff), joystream::paymentchannel::RedeemScript::nSequence_Blocks(relativeLockTime));
+}
+
+void Test::CSVRelativeLockTimeEncoding_Time() {
+
+    uint16_t relativeLockTime = 0xffff;
+
+    uchar_vector data = joystream::paymentchannel::RedeemScript::dataCSVRelativeLockTime_Time(relativeLockTime);
+
+    // 3-byte signed integer for use in bitcoin scripts as a 3-byte PUSHDATA
+    QCOMPARE((int)data.size(), 3);
+
+    // sign bit unset,
+    // most significant bit (after the sign bit) should be set
+    // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
+    // as time
+    QCOMPARE(data.at(2) & 0xc0, 0x40);
+
+    // 16-bits representing locktime value
+    QCOMPARE(data.at(1), uchar(0xff));
+    QCOMPARE(data.at(0), uchar(0xff));
+
+    QCOMPARE(uint32_t(0x0040ffff), joystream::paymentchannel::RedeemScript::nSequence_Time(relativeLockTime));
 }
 
 QTEST_MAIN(Test)
