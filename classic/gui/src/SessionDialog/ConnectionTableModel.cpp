@@ -98,6 +98,14 @@ ConnectionTableRowModel * ConnectionTableModel::add(const libtorrent::tcp::endpo
                                        _settings);
 }
 
+void ConnectionTableModel::remove(int row) {
+
+    if(row < 0 || _model.rowCount() <= row)
+        throw std::runtime_error("Invalid row index");
+    else
+        _model.removeRow(row);
+}
+
 libtorrent::tcp::endpoint ConnectionTableModel::endPoint(int row) const {
     return gui::Common::getUserRoleDataFromTableModel<libtorrent::tcp::endpoint>(_model, row, 0);
 }
