@@ -38,7 +38,7 @@ public:
           quint64 numberOfPaymentsMade,
           quint64 funds,
           quint64 settlementFee,
-          quint32 refundLockTime,
+          quint16 refundLockTime,
           const Coin::typesafeOutPoint & anchor);
 
     static Payor * create(const paymentchannel::Payor &);
@@ -56,7 +56,7 @@ public:
     quint64 settlementFee() const noexcept;
 
     // Lock time of refund, received in
-    quint32 refundLockTime() const noexcept;
+    quint16 refundLockTime() const noexcept;
 
     // Anchor for channel in contract transaction
     Coin::typesafeOutPoint anchor() const noexcept;
@@ -80,7 +80,7 @@ signals:
     void settlementFeeChanged(quint64);
 
     // Lock time of refund, received in
-    void refundLockTimeChanged(quint32);
+    void refundLockTimeChanged(quint16);
 
     // Anchor for channel in contract transaction
     void anchorChanged(const Coin::typesafeOutPoint &);
@@ -100,7 +100,7 @@ private:
     quint64 _settlementFee;
 
     // Lock time of refund, received in
-    quint32 _refundLockTime;
+    quint16 _refundLockTime;
 
     // Anchor for channel in contract transaction
     Coin::typesafeOutPoint _anchor;

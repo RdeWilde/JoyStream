@@ -16,7 +16,7 @@ namespace protocol_wire {
         : BuyerTerms(0,0,0,0,0) {
     }
 
-    BuyerTerms::BuyerTerms(quint64 maxPrice, quint32 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee)
+    BuyerTerms::BuyerTerms(quint64 maxPrice, quint16 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee)
         : _maxPrice(maxPrice)
         , _maxLock(maxLock)
         , _minNumberOfSellers(minNumberOfSellers)
@@ -59,11 +59,11 @@ namespace protocol_wire {
         _maxPrice = maxPrice;
     }
 
-    quint32 BuyerTerms::maxLock() const {
+    quint16 BuyerTerms::maxLock() const {
         return _maxLock;
     }
 
-    void BuyerTerms::setMaxLock(quint32 maxLock) {
+    void BuyerTerms::setMaxLock(quint16 maxLock) {
         _maxLock = maxLock;
     }
 

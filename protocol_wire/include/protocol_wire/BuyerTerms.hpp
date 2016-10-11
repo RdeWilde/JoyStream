@@ -23,7 +23,7 @@ namespace protocol_wire {
 
         BuyerTerms();
 
-        BuyerTerms(quint64 maxPrice, quint32 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee);
+        BuyerTerms(quint64 maxPrice, quint16 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee);
 
         bool operator==(const BuyerTerms & rhs) const;
 
@@ -40,8 +40,8 @@ namespace protocol_wire {
         quint64 maxPrice() const;
         void setMaxPrice(quint64 maxPrice);
 
-        quint32 maxLock() const;
-        void setMaxLock(quint32 maxLock);
+        quint16 maxLock() const;
+        void setMaxLock(quint16 maxLock);
 
         quint32 minNumberOfSellers() const;
         void setMinNumberOfSellers(quint32 minNumberOfSellers);
@@ -58,9 +58,8 @@ namespace protocol_wire {
         //int64_t _maxPrice;
         quint64 _maxPrice;
 
-        // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
-        //uint32_t _maxLock;
-        quint32 _maxLock;
+        // Maximum lock time
+        quint16 _maxLock;
 
         // Minimum number of sellers
         //uint32_t _numberOfSellers;

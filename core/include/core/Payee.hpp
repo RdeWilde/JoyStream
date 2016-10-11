@@ -35,7 +35,7 @@ public:
     static void registerMetaTypes();
 
     Payee(quint64 numberOfPaymentsMade,
-          quint32 lockTime,
+          quint16 lockTime,
           quint64 price,
           quint64 funds,
           quint64 settlementFee,
@@ -47,7 +47,7 @@ public:
     quint64 numberOfPaymentsMade() const noexcept;
 
     // Payment channel lock time
-    quint32 lockTime() const noexcept;
+    quint16 lockTime() const noexcept;
 
     // Price (#satoshies) increment per payment
     quint64 price() const noexcept;
@@ -71,7 +71,7 @@ signals:
     void numberOfPaymentsMadeChanged(quint64);
 
     // Cahnged payment channel lock time
-    void lockTimeChanged(quint32);
+    void lockTimeChanged(quint16);
 
     // Changed price (#satoshies) increment per payment
     void priceChanged(quint64);
@@ -91,7 +91,7 @@ private:
     quint64 _numberOfPaymentsMade;
 
     // Payment channel lock time
-    quint32 _lockTime;
+    quint16 _lockTime;
 
     // Price (#satoshies) increment per payment
     quint64 _price;
