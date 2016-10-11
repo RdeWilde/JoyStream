@@ -19,7 +19,9 @@ Peer::Peer(core::Peer * peer,
            gui::PeerTableModel * classicPeerTableModel,
            gui::BuyerTableModel * buyerTableModel,
            gui::ObserverTableModel * observerTableModel,
-           gui::SellerTableModel * sellerTableModel)
+           gui::SellerTableModel * sellerTableModel,
+           gui::ConnectionTableModel * sellersTableModel,
+           gui::ConnectionTableModel * buyersTableModel)
     : _endPoint(peer->endPoint())
     , _peer(peer)
     , _peerPlugin(nullptr)
@@ -29,7 +31,10 @@ Peer::Peer(core::Peer * peer,
     , _peerDialogModels(_endPoint,
                         buyerTableModel,
                         observerTableModel,
-                        sellerTableModel) {
+                        sellerTableModel)
+    , _sessionDialogModels(_endPoint,
+                           sellersTableModel,
+                           buyersTableModel) {
 
     // Host (always set): no signal
     setHost(peer->endPoint());
@@ -80,6 +85,26 @@ void Peer::setConnection(core::Connection * connection) {
                      &Peer::setInnerStateIndex);
 
     setInnerStateIndex(machine->innerStateTypeIndex());
+
+    // core::Payor signals
+
+    auto payor = machine->payor();
+    QObject::connect(payor, &core::Payor::priceChanged, this, &Peer::setPrice);
+    QObject::connect(payor, &core::Payor::numberOfPaymentsMadeChanged, this, &Peer::setNumberOfPayments);
+    QObject::connect(payor, &core::Payor::fundsChanged, this, &Peer::setFunds);
+    QObject::connect(payor, &core::Payor::settlementFeeChanged, this, &Peer::setSettlementFee);
+    QObject::connect(payor, &core::Payor::refundLockTimeChanged, this, &Peer::setRefundLockTime);
+    QObject::connect(payor, &core::Payor::anchorChanged, this, &Peer::setAnchorChanged);
+
+    // core::Peer signals
+
+    auto payee = machine->payee();
+    QObject::connect(payee, &core::Payee::priceChanged, this, &Peer::setPrice);
+    QObject::connect(payee, &core::Payee::numberOfPaymentsMadeChanged, this, &Peer::setNumberOfPayments);
+    QObject::connect(payee, &core::Payee::fundsChanged, this, &Peer::setFunds);
+    QObject::connect(payee, &core::Payee::settlementFeeChanged, this, &Peer::setSettlementFee);
+    QObject::connect(payee, &core::Payee::lockTimeChanged, this, &Peer::setRefundLockTime);
+    QObject::connect(payee, &core::Payee::anchorChanged, this, &Peer::setAnchorChanged);
 }
 
 void Peer::setHost(const boost::asio::ip::tcp::endpoint &endPoint) {
@@ -111,9 +136,32 @@ void Peer::setAnnouncedModeAndTermsFromPeer(const protocol_statemachine::Announc
 
 }
 
-void Peer::setInnerStateIndex(const core::CBStateMachine::InnerStateIndex &) {
-    // update stuff in session dialog views?
-    // gui::BuyingModeSessionWidget
+void Peer::setInnerStateIndex(const core::CBStateMachine::InnerStateIndex & index) {
+    _sessionDialogModels.setInnerStateIndex(index);
+}
+
+void Peer::setPrice(quint64 price) {
+    _sessionDialogModels.setPrice(price);
+}
+
+void Peer::setNumberOfPayments(quint64 num) {
+    _sessionDialogModels.setNumberOfPayments(num);
+}
+
+void Peer::setFunds(quint64 funds) {
+    _sessionDialogModels.setFunds(funds);
+}
+
+void Peer::setSettlementFee(quint64 fee) {
+    _sessionDialogModels.setSettlementFee(fee);
+}
+
+void Peer::setRefundLockTime(quint32 refundLockTime) {
+    _sessionDialogModels.setRefundLockTime(refundLockTime);
+}
+
+void Peer::setAnchorChanged(const Coin::typesafeOutPoint & anchor) {
+    _sessionDialogModels.setAnchorChanged(anchor);
 }
 
 }

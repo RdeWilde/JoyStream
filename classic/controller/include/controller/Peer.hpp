@@ -38,7 +38,9 @@ public:
          gui::PeerTableModel * classicPeerTableModel,
          gui::BuyerTableModel * buyerTableModel,
          gui::ObserverTableModel * observerTableModel,
-         gui::SellerTableModel * sellerTableModel);
+         gui::SellerTableModel * sellerTableModel,
+         gui::ConnectionTableModel * sellersTableModel,
+         gui::ConnectionTableModel * buyersTableModel);
 
     ~Peer();
 
@@ -64,11 +66,25 @@ public slots:
 
     void setInnerStateIndex(const core::CBStateMachine::InnerStateIndex & index);
 
-    /// core::Payor signal handlers
+    /// core::Payor | core::Payee signal handlers
 
+    // Size of single payment
+    void setPrice(quint64);
 
-    /// core::Payee signal handlers
+    // Number of payments made
+    void setNumberOfPayments(quint64);
 
+    // Funds allocated to output
+    void setFunds(quint64);
+
+    // Settlement fee
+    void setSettlementFee(quint64);
+
+    // Lock time of refund, received in
+    void setRefundLockTime(quint32);
+
+    // Anchor for channel in contract transaction
+    void setAnchorChanged(const Coin::typesafeOutPoint &);
 
 private:
 
