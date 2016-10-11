@@ -67,7 +67,7 @@ struct ModeAnnouncedTableModelManager {
 
 private:
 
-    void removeFromTableModel(const ModeAnnouncedRowModel & row) const noexcept;
+    void removeFromTableModel(const ModeAnnouncedRowModel & row);
 };
 
 struct SessionDialogModels {

@@ -100,7 +100,7 @@ void ModeAnnouncedTableModelManager::showInBuyerTable(const protocol_wire::Buyer
         _modeAnnouncedRowModel = _buyerTableModel->add(_endPoint);
 }
 
-void ModeAnnouncedTableModelManager::removeFromTableModel(const ModeAnnouncedRowModel & row) const noexcept {
+void ModeAnnouncedTableModelManager::removeFromTableModel(const ModeAnnouncedRowModel & row) {
 
     switch(row.which()) {
 
