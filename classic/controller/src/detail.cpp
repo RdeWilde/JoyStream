@@ -129,25 +129,68 @@ SessionDialogModels::~SessionDialogModels() {
     removeFromTableModel();
 }
 
-void SessionDialogModels::setInnerStateIndex(const core::CBStateMachine::InnerStateIndex &) {
+void SessionDialogModels::setInnerStateIndex(const core::CBStateMachine::InnerStateIndex & index) {
 
     /**
      * Redo this when we finally get structure on the state of the statemachine
      */
 
+    // We only ignore, no need to remove, as this
+    // only happens before before any state has been entered
+    // and never again
+    if(!index.is_initialized())
+        return;
 
-    //new state is buying:
-    // if it was in neither, then create
-    // remove if it was previously in selling
-    // if it was in buying, just update state
+    std::type_index tIndex = index.get();
 
-    //new state selling:
-    // new state neither
-    // remove if in neither
+    if(tIndex == typeid(protocol_statemachine::WaitingToStart) ||
+       tIndex == typeid(protocol_statemachine::ReadyForPieceRequest) ||
+       tIndex == typeid(protocol_statemachine::LoadingPiece) ||
+       tIndex == typeid(protocol_statemachine::WaitingForPayment)) {
 
-    // new stat is neither: removeFromTableModel
+        // Active selling state
+
+        if(_inTableModel == InTableModel::none) {
+
+            assert(_activeRow == nullptr);
+            _activeRow = _sellersTableModel->add(_endPoint);
+
+        } else if(_inTableModel ==InTableModel::buyers_table_model) {
+
+            assert(_activeRow != nullptr);
+            _buyersTableModel->remove(_activeRow->row());
+            _activeRow = _sellersTableModel->add(_endPoint);
+
+        }
+
+        _activeRow->setState(tIndex);
+
+    } else if (tIndex == typeid(protocol_statemachine::PreparingContract) ||
+               tIndex == typeid(protocol_statemachine::ReadyToRequestPiece) ||
+               tIndex == typeid(protocol_statemachine::WaitingForFullPiece) ||
+               tIndex == typeid(protocol_statemachine::ProcessingPiece)) {
+
+        // Active buying state
+
+        if(_inTableModel == InTableModel::none) {
+
+            assert(_activeRow == nullptr);
+            _activeRow = _buyersTableModel->add(_endPoint);
+
+        } else if(_inTableModel ==InTableModel::sellers_table_model) {
+
+            assert(_activeRow != nullptr);
+            _sellersTableModel->remove(_activeRow->row());
+            _activeRow = _buyersTableModel->add(_endPoint);
+
+        }
+
+        _activeRow->setState(tIndex);
 
 
+    } else
+        // neither
+        removeFromTableModel();
 }
 
 void SessionDialogModels::setPrice(quint64 price) {
@@ -216,6 +259,8 @@ void SessionDialogModels::removeFromTableModel() {
         default:
             assert(false);
     }
+
+    _activeRow = nullptr;
 }
 
 }
