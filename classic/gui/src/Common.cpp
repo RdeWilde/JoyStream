@@ -96,6 +96,11 @@ QString Common::toString(const protocol_session::BuyingState & state) {
 
 QString Common::toString(const std::type_index & index) {
 
+    /**
+     * Gets state name for inner state.
+     * Redo this when we finally get structure on the state of the statemachine
+     */
+
     // not set state
     if(index == typeid(protocol_statemachine::ChooseMode))
         return "Choose mode";
@@ -115,6 +120,8 @@ QString Common::toString(const std::type_index & index) {
         return "Ready for piece request";
     else if(index == typeid(protocol_statemachine::LoadingPiece))
         return "Loading piece";
+    else if(index == typeid(protocol_statemachine::WaitingForPayment))
+        return "Waiting for payment";
 
     // **buying state**
 
@@ -126,8 +133,6 @@ QString Common::toString(const std::type_index & index) {
         return "Preparing contract";
     else if(index == typeid(protocol_statemachine::ReadyToRequestPiece))
         return "Ready to request piece";
-    else if(index == typeid(protocol_statemachine::WaitingForFullPiece))
-        return "Waiting for full piece";
     else if(index == typeid(protocol_statemachine::WaitingForFullPiece))
         return "Waiting for full piece";
     else if(index == typeid(protocol_statemachine::ProcessingPiece))
