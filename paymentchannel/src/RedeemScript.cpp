@@ -76,7 +76,7 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
     }
 
     // decode the locktime
-    uint16_t locktime = Coin::deserializeScriptNum(rawLockTime);
+    uint16_t locktime = Coin::deserializeScriptNum(rawLockTime) & 0x0000ffff;
 
     // get a subscript to the start of the payor publick key push data operation
     subscript = uchar_vector(subscript.begin() + 3, subscript.end());
