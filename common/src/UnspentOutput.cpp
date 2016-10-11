@@ -6,6 +6,7 @@
  */
 
 #include <common/UnspentOutput.hpp>
+#include <CoinCore/CoinNodeData.h>
 
 namespace Coin {
 
@@ -44,4 +45,11 @@ void UnspentOutput::setValue(uint64_t value) {
     _value = value;
 }
 
+uint32_t UnspentOutput::spendingInputSequenceNumber() const {
+    return 0xFFFFFFFF; //DEFAULT_SEQUENCE_NUMBER
+}
+
+Coin::TxIn UnspentOutput::unsignedSpendingInput() const {
+    return Coin::TxIn(outPoint().getClassicOutPoint(), uchar_vector(), spendingInputSequenceNumber());
+}
 }
