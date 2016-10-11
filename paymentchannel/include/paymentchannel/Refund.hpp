@@ -35,11 +35,11 @@ namespace paymentchannel {
         // or the OP_CHECSEQUENCEVERIFY will fail
         Coin::UnspentP2SHOutput getUnspentOutput() const;
 
-        // Wether refund is still locked
-        bool isLocked(uint32_t currentBlockHeight, uint32_t contractMinedInBlock) const;
+        // Wether refund is still locked or not
+        bool isLocked(uint32_t currentTime, uint32_t contractMinedAt) const;
 
-        // At which block height refund is unlocked
-        uint32_t lockedUntil(uint32_t contractMinedInBlock) const;
+        // Whene the refund is unlocked
+        uint32_t lockedUntil(uint32_t contractMinedAt) const;
 
     private:
 

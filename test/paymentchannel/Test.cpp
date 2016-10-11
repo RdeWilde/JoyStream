@@ -57,19 +57,19 @@ void Test::refund() {
     Coin::P2PKScriptPubKey payeeScriptPubKey(payeeFinalPair.pk());
     Coin::RedeemScriptHash payeeScriptHash(payeeScriptPubKey);
 
-    uint32_t lockTime = 100;
+    uint32_t lockTime = 3;
     uint64_t channelValue = 180;
 
     joystream::paymentchannel::Payor p(1, 0, channelValue, 1000, lockTime,contractOutPoint, payorContractPair, payorScriptHash, payeeContractPair.pk(), payeeScriptHash);
 
     joystream::paymentchannel::Refund R(p.refund());
 
-    QCOMPARE(R.lockedUntil(0), lockTime);
+    QCOMPARE(R.lockedUntil(0), (unsigned int)1536);
 
-    // The output is locked until the block height is greater than the locktime
-    QCOMPARE(R.isLocked(99,1), true); // locked
-    QCOMPARE(R.isLocked(100,1), true); // locked
-    QCOMPARE(R.isLocked(101,1), false); // unlocked
+    // The output is locked until 3 * 512 seconds pass since the time that the contracted was mined (T = 0)
+    QCOMPARE(R.isLocked( 512, 0), true); // locked
+    QCOMPARE(R.isLocked(1024, 0), true); // locked
+    QCOMPARE(R.isLocked(1536, 0), false); // unlocked
 
     QCOMPARE(R.getUnspentOutput().value(), channelValue);
 
@@ -192,32 +192,11 @@ void Test::paychan_one_to_one() {
 
 }
 
-void Test::CSVRelativeLockTimeEncoding_Blocks() {
+void Test::CSVRelativeLockTimeEncoding() {
 
     uint16_t relativeLockTime = 0xffff;
 
-    uchar_vector data = joystream::paymentchannel::RedeemScript::dataCSVRelativeLockTime_Blocks(relativeLockTime);
-
-    // 3-byte signed integer for use in bitcoin scripts as a 3-byte PUSHDATA
-    QCOMPARE((int)data.size(), 3);
-
-    // sign bit unset and most significant bit (after the sign bit) should be unset
-    // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
-    // as blocks
-    QCOMPARE(data.at(2) & 0xc0, 0x00);
-
-    // 16-bits representing locktime value
-    QCOMPARE(data.at(1), uchar(0xff));
-    QCOMPARE(data.at(0), uchar(0xff));
-
-    QCOMPARE(uint32_t(0x0000ffff), joystream::paymentchannel::RedeemScript::nSequence_Blocks(relativeLockTime));
-}
-
-void Test::CSVRelativeLockTimeEncoding_Time() {
-
-    uint16_t relativeLockTime = 0xffff;
-
-    uchar_vector data = joystream::paymentchannel::RedeemScript::dataCSVRelativeLockTime_Time(relativeLockTime);
+    uchar_vector data = joystream::paymentchannel::RedeemScript::dataCSVRelativeLockTime(relativeLockTime);
 
     // 3-byte signed integer for use in bitcoin scripts as a 3-byte PUSHDATA
     QCOMPARE((int)data.size(), 3);
@@ -232,7 +211,7 @@ void Test::CSVRelativeLockTimeEncoding_Time() {
     QCOMPARE(data.at(1), uchar(0xff));
     QCOMPARE(data.at(0), uchar(0xff));
 
-    QCOMPARE(uint32_t(0x0040ffff), joystream::paymentchannel::RedeemScript::nSequence_Time(relativeLockTime));
+    QCOMPARE(uint32_t(0x0040ffff), joystream::paymentchannel::RedeemScript::nSequence(relativeLockTime));
 }
 
 QTEST_MAIN(Test)

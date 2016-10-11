@@ -34,14 +34,14 @@ namespace paymentchannel {
                                        _commitment.value());
     }
 
-    uint32_t Refund::lockedUntil(uint32_t contractMinedInBlock) const {
-        return _commitment.lockTime() + contractMinedInBlock;
+    uint32_t Refund::lockedUntil(uint32_t contractMinedAt) const {
+        return RedeemScript::relativeLockTimeToSeconds(_commitment.lockTime()) + contractMinedAt;
     }
 
-    bool Refund::isLocked(uint32_t currentBlockHeight, uint32_t contractMinedInBlock) const {
-        uint32_t unlockedIn = lockedUntil(contractMinedInBlock);
+    bool Refund::isLocked(uint32_t currentTime, uint32_t contractMinedAt) const {
+        uint32_t unlockedAt = lockedUntil(contractMinedAt);
 
-        return currentBlockHeight < unlockedIn;
+        return currentTime < unlockedAt;
     }
 
 }
