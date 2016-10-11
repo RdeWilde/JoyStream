@@ -44,6 +44,9 @@ public:
     static uint32_t nSequence_Blocks(const uint16_t blocks);
     static uint32_t nSequence_Time(const uint16_t time);
 
+    // Number of seconds represented by the relative locktime
+    static uint32_t relativeTimeToSeconds(const uint16_t time);
+
 private:
     Coin::PublicKey _payorPk;
     Coin::PublicKey _payeePk;

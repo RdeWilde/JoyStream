@@ -132,4 +132,10 @@ uint32_t RedeemScript::nSequence_Time(const uint16_t time)  {
     return seq |= 0x00400000;
 }
 
+uint32_t RedeemScript::relativeTimeToSeconds(const uint16_t time) {
+    uint32_t seconds = time;
+    seconds = seconds << 9;
+    return seconds;
+}
+
 }}
