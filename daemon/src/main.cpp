@@ -15,11 +15,10 @@ using grpc::ServerContext;
 using grpc::ServerCompletionQueue;
 using grpc::ServerAsyncResponseWriter;
 using grpc::Status;
-
 using joystream::daemon::rpc::Daemon;
-using joystream::daemon::rpc::Hello;
+using joystream::daemon::rpc::Callback;
 using joystream::daemon::rpc::Void;
-using joystream::daemon::rpc::Answer;
+using joystream::daemon::rpc::Torrent;
 
 // Explicit template instantiation of IdToString()
 // used in joystream::protocol_session::exception::ConnectionAlreadyAddedException
@@ -28,12 +27,58 @@ std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(bo
     return id.address().to_string();
 }
 
-class SyncService : public Daemon::Service {
-  public:
-    SyncService(joystream::core::Node* node, QCoreApplication* app, Hello::AsyncService* service, ServerCompletionQueue* cq)
-        : node_(node), app_(app), service_(service), cq_(cq), responder_(&ctx_)
-    {}
+class CallData {
+ public:
+  CallData(Callback::AsyncService* service, ServerCompletionQueue* cq)
+      : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+    // Invoke the serving logic right away.
+    Proceed();
+  }
 
+  void Proceed() {
+    if (status_ == CREATE) {
+
+      service_->RequestTorrentAdded(&ctx_, &request_, &responder_, cq_, cq_,this);
+      status_ = PROCESS;
+
+    } else if (status_ == PROCESS) {
+
+      new CallData(service_, cq_);
+
+    } else {
+
+      GPR_ASSERT(status_ == FINISH);
+      std::cout << "Destroy" << std::endl;
+      delete this;
+
+    }
+  }
+
+  void Announce(Torrent torrent) {
+    if(status_ != PROCESS){
+      return;
+    }
+
+    status_ = FINISH;
+
+    responder_.Finish(torrent, Status::OK, this);
+  }
+
+ private:
+
+  Callback::AsyncService* service_;
+  ServerCompletionQueue* cq_;
+  ServerContext ctx_;
+
+  Void request_;
+  Torrent reply_;
+  ServerAsyncResponseWriter<Torrent> responder_;
+
+  enum CallStatus { CREATE, PROCESS, FINISH };
+  CallStatus status_;  // The current serving state.
+};
+
+class DaemonServiceImpl : public Daemon::Service {
 
     Status Pause(ServerContext* context, const Void* request, Void* reply) override {
       std::cout << "Received Pause Request" << std::endl;
@@ -53,10 +98,6 @@ class SyncService : public Daemon::Service {
         writer->Write(torrent);
       }
 
-      service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,(void*)1);
-      reply_.set_what("What");
-      responder_.Finish(reply_, Status::OK, (void*)2);
-
       return Status::OK;
     }
 
@@ -69,49 +110,48 @@ class SyncService : public Daemon::Service {
        boost::optional<uint> download_limit = -1;
        bool paused = 1;
        joystream::core::TorrentIdentifier torrent_identifier = joystream::core::TorrentIdentifier(info_hash);
-       joystream::core::Node::AddedTorrent added_torrent;
-       bool done = 0;
        std::cout << "We are adding the torrent" << std::endl;
        std::cout << request->infohash() << std::endl;
-       node_->addTorrent(upload_limit,download_limit,name,resume_data,save_path,paused,torrent_identifier,[&done](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
+       node_->addTorrent(upload_limit,download_limit,name,resume_data,save_path,paused,torrent_identifier,[&name, &info_hash, this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
+
+           Torrent reply_;
+
            std::cout << "New torrent added" << std::endl;
-           done = 1;
+           std::cout << ecode << std::endl;
+           reply_.set_name(name);
+           reply_.set_infohash(info_hash.to_string());
+           if(this->tag_)
+             static_cast<CallData*>(tag_)->Announce(reply_);
        });
-       // Waiting for the callback to be done
-       // Should be async
-       while(true){
-          if (done){
-           return Status::OK;
-          }
-       }
+       return Status::OK;
      }
+
+
+  public:
+    DaemonServiceImpl(joystream::core::Node* node, QCoreApplication* app)
+        : node_(node), app_(app)
+    {}
+
+    void setTag(void* t) {
+        std::cout << "setTag : " << t << std::endl;
+        tag_ = t;
+    }
 
   private:
     joystream::core::Node *node_;
     QCoreApplication *app_;
-    Hello::AsyncService *service_;
-    ServerCompletionQueue *cq_;
-
-    ServerContext ctx_;
-
-    // What we get from the client.
-    Void request_;
-    // What we send back to the client.
-    Answer reply_;
-
-    // The means to get back to the client.
-    ServerAsyncResponseWriter<Answer> responder_;
+    void* tag_;
 };
 
-class DaemonServiceImpl final {
+class ServerImpl final {
   public:
 
-    DaemonServiceImpl(joystream::core::Node* node, QCoreApplication* app)
+    ServerImpl(joystream::core::Node* node, QCoreApplication* app)
         : node_(node),
           app_(app)
     {}
 
-    ~DaemonServiceImpl() {
+    ~ServerImpl() {
       server_->Shutdown();
       // Always shutdown the completion queue after the server.
       cq_->Shutdown();
@@ -122,32 +162,39 @@ class DaemonServiceImpl final {
       std::string server_address("0.0.0.0:3002");
 
       ServerBuilder builder;
-      SyncService syncService_(node_,app_, &service_, cq_.get());
-      // Listen on the given address without any authentication mechanism.
+      DaemonServiceImpl syncService_(node_,app_);
+
       builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-      // Register "service_" as the instance through which we'll communicate with
-      // clients. In this case it corresponds to an *asynchronous* service.
-      builder.RegisterService(&syncService_);
-      builder.RegisterService(&service_);
-      // Get hold of the completion queue used for the asynchronous communication
-      // with the gRPC runtime.
+
+      builder.RegisterService(&syncService_); // sync service
+      builder.RegisterService(&asyncService_); // async service
+
       cq_ = builder.AddCompletionQueue();
-      // Finally assemble the server.
       server_ = builder.BuildAndStart();
       std::cout << "Server listening on " << server_address << std::endl;
 
-      // We need a Qt event loop
-
-      // Proceed to the server's main loop.
-      //HandleRpcs();
+      HandleRpcs(&syncService_);
     }
 
   private:
+    // This can be run in multiple threads if needed.
+    void HandleRpcs(DaemonServiceImpl *syncService) {
+      new CallData(&asyncService_, cq_.get());
+      void* tag;
+      bool ok;
+      while (true) {
+        GPR_ASSERT(cq_->Next(&tag, &ok));
+        GPR_ASSERT(ok);
+        syncService->setTag(tag);
+        static_cast<CallData*>(tag)->Proceed();
+      }
+    }
+
     joystream::core::Node *node_;
     QCoreApplication *app_;
     std::unique_ptr<ServerCompletionQueue> cq_;
-    Hello::AsyncService service_;
     std::unique_ptr<Server> server_;
+    Callback::AsyncService asyncService_;
 };
 
 int main(int argc, char *argv[])
@@ -159,10 +206,9 @@ int main(int argc, char *argv[])
         // broadcast tx
     });
 
-    DaemonServiceImpl service(node, &a);
+    ServerImpl server(node, &a);
 
-    service.Run();
+    server.Run();
 
-    a.exec();
-
+    return 0;
 }

@@ -10,16 +10,6 @@ var torrent = {
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 
-	rpc.sayHello(function(err, answer) {
-		if (err) {
-			console.log(err)
-		} else {
-			console.log(answer)
-		}
-	}, function() {
-		console.log('Happy');
-	});
-
 	rpc.listTorrents(function(err, t){
 		if(err){
 			console.log(err);
@@ -30,13 +20,12 @@ app.listen(3000, function () {
 		console.log("Got All Torrents");
 	});
 
+	rpc.addTorrent(torrent, function(err) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log('The torrent is being added, waiting for callback...')
+		}
+	});
+
 });
-
-/*rpc.addTorrent(torrent, function(err, t) {
-	if (err) {
-		console.log(err);
-	} else {
-		console.log('This torrent hash has been added to the node: ',t);
-
-
-});*/

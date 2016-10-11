@@ -2,22 +2,20 @@ syntax = "proto3";
 
 package joystream.daemon.rpc;
 
-service Hello {
-  rpc SayHello(Void) returns (Answer) {}
+service Callback {
+  rpc TorrentAdded(Void) returns (Torrent) {}
 }
 
 service Daemon {
   rpc Pause(Void) returns (Void) {}
   //rpc Resume(Void) returns (Void) {}
 
-  rpc GetEvents(Void) returns (stream Event) {}
+  rpc SuscribeEvents(Void) returns (stream Event) {}
 
   rpc AddTorrent(Torrent) returns (Torrent) {}
   rpc RemoveTorrent(Torrent) returns (TorrentState) {}
   rpc ListTorrents(Void) returns (stream Torrent) {}
   rpc GetTorrentState (Torrent) returns (TorrentState) {}
-
-  rpc AddedTorrent(Void) returns (Torrent) {}
 }
 
 message Void {
@@ -35,8 +33,4 @@ message TorrentState {
 
 message Event {
   string name = 1;
-}
-
-message Answer {
-  string what = 1;
 }
