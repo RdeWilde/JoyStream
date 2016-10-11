@@ -113,6 +113,111 @@ void ModeAnnouncedTableModelManager::removeFromTableModel(const ModeAnnouncedRow
     }
 }
 
+/// SessionDialogModels
+
+SessionDialogModels::SessionDialogModels(const libtorrent::tcp::endpoint & endPoint,
+                                         gui::ConnectionTableModel * sellersTableModel,
+                                         gui::ConnectionTableModel * buyersTableModel)
+    : _endPoint(endPoint)
+    , _inTableModel(InTableModel::none)
+    , _activeRow(nullptr)
+    , _sellersTableModel(sellersTableModel)
+    , _buyersTableModel(buyersTableModel) {
+}
+
+SessionDialogModels::~SessionDialogModels() {
+    removeFromTableModel();
+}
+
+void SessionDialogModels::setInnerStateIndex(const core::CBStateMachine::InnerStateIndex &) {
+
+    /**
+     * Redo this when we finally get structure on the state of the statemachine
+     */
+
+
+    //new state is buying:
+    // if it was in neither, then create
+    // remove if it was previously in selling
+    // if it was in buying, just update state
+
+    //new state selling:
+    // new state neither
+    // remove if in neither
+
+    // new stat is neither: removeFromTableModel
+
+
+}
+
+void SessionDialogModels::setPrice(quint64 price) {
+
+    if(_activeRow == nullptr)
+        throw std::runtime_error("Inappropriate machine state");
+
+    _activeRow->setPrice(price);
+}
+
+void SessionDialogModels::setNumberOfPayments(quint64 numberOfPayments) {
+
+    if(_activeRow == nullptr)
+        throw std::runtime_error("Inappropriate machine state");
+
+    _activeRow->setNumberOfPayments(numberOfPayments);
+}
+
+void SessionDialogModels::setFunds(quint64 funds) {
+
+    if(_activeRow == nullptr)
+        throw std::runtime_error("Inappropriate machine state");
+
+    _activeRow->setFunds(funds);
+}
+
+void SessionDialogModels::setSettlementFee(quint64) {
+
+    if(_activeRow == nullptr)
+        throw std::runtime_error("Inappropriate machine state");
+
+    //
+}
+
+void SessionDialogModels::setRefundLockTime(quint32 refundLockTime) {
+
+    if(_activeRow == nullptr)
+        throw std::runtime_error("Inappropriate machine state");
+
+    _activeRow->setRefundLockTime(refundLockTime);
+}
+
+void SessionDialogModels::setAnchorChanged(const Coin::typesafeOutPoint &) {
+
+    if(_activeRow == nullptr)
+        throw std::runtime_error("Inappropriate machine state");
+
+    //
+}
+
+void SessionDialogModels::removeFromTableModel() {
+
+    switch(_inTableModel) {
+
+        case InTableModel::none:
+            assert(_activeRow == nullptr);
+            break;
+        case InTableModel::sellers_table_model:
+            assert(_activeRow != nullptr);
+            _sellersTableModel->remove(_activeRow->row());
+            break;
+        case InTableModel::buyers_table_model:
+            assert(_activeRow != nullptr);
+            _buyersTableModel->remove(_activeRow->row());
+            break;
+        default:
+            assert(false);
+    }
+}
+
 }
 }
 }
