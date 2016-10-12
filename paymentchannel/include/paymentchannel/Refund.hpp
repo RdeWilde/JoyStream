@@ -22,6 +22,7 @@ namespace joystream {
 namespace paymentchannel {
 
     class Commitment;
+    class UnspentBuyerRefundOutput;
 
     class Refund {
 
@@ -30,10 +31,8 @@ namespace paymentchannel {
         Refund(const Coin::typesafeOutPoint & contractOutPoint,
                const Commitment & commitment, const Coin::KeyPair &payorContractKeyPair);
 
-        // Get an UnspentP2SHOutput to spend the entire commitment
-        // Important : The transaction which spends this output must set correct nSequence value
-        // or the OP_CHECSEQUENCEVERIFY will fail
-        Coin::UnspentP2SHOutput getUnspentOutput() const;
+        // Get an UnspentContractOutput to spend the entire commitment (full refund)
+        UnspentBuyerRefundOutput getUnspentOutput() const;
 
         // Wether refund is still locked or not
         bool isLocked(uint32_t currentTime, uint32_t contractMinedAt) const;

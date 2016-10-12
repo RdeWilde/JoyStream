@@ -24,6 +24,17 @@ namespace paymentchannel {
         , _lockTime(lockTime){
     }
 
+    Commitment::Commitment(int64_t value, const uchar_vector redeemScript)
+        : _value(value) {
+
+        // Validate the script
+        RedeemScript paychanScript = RedeemScript::deserialize(redeemScript);
+
+        setPayorPk(paychanScript.payorPk());
+        setPayeePk(paychanScript.payeePk());
+        setLockTime(paychanScript.lockTime());
+    }
+
     Commitment::Commitment(const Commitment & o)
         : Commitment::Commitment(o.value(), o.payorPk(), o.payeePk(), o.lockTime()) {
     }

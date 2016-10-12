@@ -43,6 +43,14 @@ public:
     static uint32_t relativeLockTimeToSeconds(const uint16_t time);
     static uint16_t secondsToRelativeLockTime(const uint32_t seconds);
 
+    bool isPayorPublicKey(const Coin::PublicKey &) const;
+    bool isPayeePublicKey(const Coin::PublicKey &) const;
+
+    Coin::PublicKey payorPk() const;
+    Coin::PublicKey payeePk() const;
+
+    uint16_t lockTime() const;
+
 private:
     Coin::PublicKey _payorPk;
     Coin::PublicKey _payeePk;

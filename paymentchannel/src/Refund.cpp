@@ -6,6 +6,7 @@
  */
 
 #include <paymentchannel/Refund.hpp>
+#include <paymentchannel/UnspentBuyerRefundOutput.hpp>
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER, sighash
 #include <common/TransactionSignature.hpp>
 #include <common/PrivateKey.hpp>
@@ -22,16 +23,12 @@ namespace paymentchannel {
         , _payorContractKeyPair(payorContractKeyPair) {
     }
 
-    Coin::UnspentP2SHOutput Refund::getUnspentOutput() const {
-        // Todo: replace this with a typesafe output which is will ensure that a transaction
-        // which spends it will have nSequence set to correct value - helper function
-        // paymentchannel::RedeemScript::nSequence_Blocks() is available for now
+    UnspentBuyerRefundOutput Refund::getUnspentOutput() const {
 
-        return Coin::UnspentP2SHOutput(_payorContractKeyPair,
-                                       _commitment.redeemScript().serialized(),
-                                       RedeemScript::PayorOptionalData(),
-                                       _contractOutPoint,
-                                       _commitment.value());
+        return UnspentBuyerRefundOutput(_payorContractKeyPair,
+                                     _commitment.redeemScript().serialized(),
+                                     _contractOutPoint,
+                                     _commitment.value());
     }
 
     uint32_t Refund::lockedUntil(uint32_t contractMinedAt) const {

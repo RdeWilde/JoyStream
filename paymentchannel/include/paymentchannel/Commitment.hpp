@@ -30,6 +30,9 @@ namespace paymentchannel {
         // Constructor based on members
         Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t lockTime);
 
+        // Constructor from raw p2sh redeem script
+        Commitment(int64_t value, const uchar_vector redeemScript);
+
         // Copy constructor
         Commitment(const Commitment& o);
 

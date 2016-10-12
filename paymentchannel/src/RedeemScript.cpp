@@ -141,4 +141,24 @@ uint16_t RedeemScript::secondsToRelativeLockTime(const uint32_t seconds) {
     return seconds >> 9;
 }
 
+bool RedeemScript::isPayorPublicKey(const Coin::PublicKey & pk) const {
+    return _payorPk == pk;
+}
+
+bool RedeemScript::isPayeePublicKey(const Coin::PublicKey & pk) const {
+    return _payeePk == pk;
+}
+
+uint16_t RedeemScript::lockTime() const {
+    return _lockTime;
+}
+
+Coin::PublicKey RedeemScript::payorPk() const {
+    return _payorPk;
+}
+
+Coin::PublicKey RedeemScript::payeePk() const {
+    return _payeePk;
+}
+
 }}

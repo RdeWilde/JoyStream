@@ -22,7 +22,8 @@ HEADERS += \
     include/paymentchannel/Settlement.hpp \
     include/paymentchannel/Payor.hpp \
     include/paymentchannel/paymentchannel.hpp \
-    include/paymentchannel/Contract.hpp
+    include/paymentchannel/Contract.hpp \
+    include/paymentchannel/UnspentBuyerRefundOutput.hpp
 
 SOURCES += \
     src/RedeemScript.cpp \
@@ -31,7 +32,8 @@ SOURCES += \
     src/Refund.cpp \
     src/Settlement.cpp \
     src/Payor.cpp \
-    src/Contract.cpp
+    src/Contract.cpp \
+    src/UnspentBuyerRefundOutput.cpp
 
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
