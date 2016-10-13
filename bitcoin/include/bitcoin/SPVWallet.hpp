@@ -100,7 +100,9 @@ public:
     Coin::PrivateKey generateReceivePrivateKey();
     Coin::PrivateKey generateChangePrivateKey();
 
-    Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0, const Store::RedeemScriptFilter &scriptFilter = nullptr);
+    Coin::UnspentOutputSet lockOutputs(const std::vector<Store::UnspentOutputSelector> &outputSelectors,
+                                       uint64_t minValue, uint32_t minimalConfirmations = 0);
+
     uint unlockOutputs(const Coin::UnspentOutputSet & outputs);
 
     uint64_t balance() const;
@@ -115,6 +117,9 @@ public:
     std::string getSeedWords() const;
     
     std::vector<Coin::P2PKHAddress> listReceiveAddresses() const;
+
+    static Store::UnspentOutputSelector standardP2PKHOutputSelector();
+    static Store::UnspentOutputSelector standardP2SHOutputSelector();
 
 signals:
 

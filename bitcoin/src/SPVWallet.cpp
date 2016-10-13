@@ -387,6 +387,44 @@ std::vector<Coin::P2PKHAddress> SPVWallet::listReceiveAddresses() const {
     return addresses;
 }
 
+Store::UnspentOutputSelector SPVWallet::standardP2PKHOutputSelector() {
+    return [](const Store::KeychainType &chainType, const Coin::KeyPair &keyPair,
+              const uchar_vector &script, const uchar_vector &optionalData,
+              const Coin::typesafeOutPoint outPoint, const int64_t &value,
+              bool &processNextSelector) -> Coin::UnspentOutput* {
+
+        if(chainType == Store::KeychainType::External || chainType == Store::KeychainType::Internal) {
+            processNextSelector = false;
+            return new Coin::UnspentP2PKHOutput(keyPair, outPoint, value);
+        }
+
+        processNextSelector = true;
+        return nullptr;
+    };
+}
+
+Store::UnspentOutputSelector SPVWallet::standardP2SHOutputSelector() {
+    return [](const Store::KeychainType &chainType, const Coin::KeyPair &keyPair,
+              const uchar_vector &script, const uchar_vector &optionalData,
+              const Coin::typesafeOutPoint outPoint, const int64_t &value,
+              bool &processNextSelector) -> Coin::UnspentOutput* {
+
+        processNextSelector = true;
+
+        if(chainType == Store::KeychainType::Other && optionalData.empty()) {
+            // The standard p2sh output, uses P2PK as the redeemScript
+            Coin::P2PKScriptPubKey redeemScript(keyPair.pk());
+
+            if(redeemScript.serialize() == script) {
+                processNextSelector = false;
+                return new Coin::UnspentP2SHOutput(keyPair, script, uchar_vector(), outPoint, value);
+            }
+        }
+
+        return nullptr;
+    };
+}
+
 void SPVWallet::broadcastTx(Coin::Transaction cointx) {
     if(!isConnected()) {
         throw std::runtime_error("cannot broadcast tx, wallet offline");
@@ -412,7 +450,7 @@ std::string SPVWallet::getSeedWords() const {
 }
 
 Coin::UnspentOutputSet
-SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const Store::RedeemScriptFilter &scriptFilter) {
+SPVWallet::lockOutputs(const std::vector<Store::UnspentOutputSelector> &outputSelectors, uint64_t minValue, uint32_t minimalConfirmations) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -422,7 +460,7 @@ SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const S
     Coin::UnspentOutputSet selectedOutputs;
 
     // Assume outputs are sorted in descending value
-    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight(), scriptFilter));
+    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(outputSelectors, minimalConfirmations, bestHeight()));
 
     for(std::shared_ptr<Coin::UnspentOutput> & utxo : unspentOutputs) {
         if(_lockedOutpoints.find(utxo->outPoint()) != _lockedOutpoints.end()) continue;
@@ -736,7 +774,7 @@ Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SH
 Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const uchar_vector & scriptPubKey, uint64_t fee) {
 
     // Get UnspentUTXO
-    auto utxos(lockOutputs(value + fee, 0));
+    auto utxos(lockOutputs({standardP2PKHOutputSelector()}, value + fee, 0));
 
     if(utxos.value() < (value+fee)) {
         throw std::runtime_error("Not Enough Funds");

@@ -845,7 +845,7 @@ bool Store::loadKey(const Coin::P2SHAddress & p2shaddress, Coin::PrivateKey & sk
 */
 
 std::list<std::shared_ptr<Coin::UnspentOutput>>
-Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_height, const RedeemScriptFilter &scriptFilter) const {
+Store::getUnspentTransactionsOutputs(const std::vector<UnspentOutputSelector> & outputSelectors, int32_t confirmations, int32_t main_chain_height) const {
     if(!connected()) {
         throw NotConnected();
     }
@@ -862,6 +862,9 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
         return std::list<std::shared_ptr<Coin::UnspentOutput>>();
     }
 
+    if(outputSelectors.empty())
+        return std::list<std::shared_ptr<Coin::UnspentOutput>>();
+
     typedef odb::result<detail::store::outputs_view_t> outputs_r;
     odb::session s;
     odb::transaction t(_db->begin());
@@ -871,21 +874,25 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
 
     for(auto & output : outputs) {
 
-        // Filter addresses with a script filter
-        if(scriptFilter && !scriptFilter(uchar_vector(output.address->redeemScript()))){
-            continue;
-        }
-
         Coin::KeyPair keypair(derivePrivateKey((KeychainType)output.address->key()->change(), output.address->key()->index()));
         Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(uchar_vector(output.txid())));
         Coin::typesafeOutPoint outpoint(txid, output.index());
 
-        if(output.address->redeemScript() != "") {
-            std::shared_ptr<Coin::UnspentOutput> utxo(new Coin::UnspentP2SHOutput(keypair, uchar_vector(output.address->redeemScript()), uchar_vector(output.address->optionalData()), outpoint, output.value()));
-            utxos.insert(utxos.end(), utxo);
-        } else {
-            std::shared_ptr<Coin::UnspentOutput> utxo(new Coin::UnspentP2PKHOutput(keypair, outpoint, output.value()));
-            utxos.insert(utxos.end(), utxo);
+        for(const UnspentOutputSelector & selector : outputSelectors) {
+
+            bool runNextSelector;
+
+            Coin::UnspentOutput *utxo = selector((KeychainType)output.address->key()->change(), keypair,
+                                                 uchar_vector(output.address->redeemScript()), uchar_vector(output.address->optionalData()),
+                                                 outpoint, output.value(),
+                                                 runNextSelector);
+            if(utxo) {
+                utxos.insert(utxos.end(), std::shared_ptr<Coin::UnspentOutput>(utxo));
+                break;
+            }
+
+            if(!runNextSelector)
+                break;
         }
     }
 

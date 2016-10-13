@@ -44,7 +44,10 @@ public:
 
     typedef std::function<void(Coin::TransactionId, int confirmations)> transactionUpdatedCallback;
     typedef std::function<RedeemScriptInfo(const Coin::PublicKey &, uint32_t n)> MultiRedeemScriptGenerator;
-    typedef std::function<bool(const uchar_vector &script)> RedeemScriptFilter;
+    typedef std::function<Coin::UnspentOutput*(const KeychainType &, const Coin::KeyPair &,
+                                               const uchar_vector &script, const uchar_vector &optionalData,
+                                               const Coin::typesafeOutPoint, const int64_t &value,
+                                               bool &processNextSelector)> UnspentOutputSelector;
 
     // Custom Store Exceptions
     class BlockHeaderNotFound : public std::runtime_error {
@@ -139,7 +142,9 @@ public:
     bool transactionExists(const Coin::TransactionId & txid);
     //bool loadKey(const Coin::P2SHAddress &p2shaddress, Coin::PrivateKey & sk);
 
-    std::list<std::shared_ptr<Coin::UnspentOutput> > getUnspentTransactionsOutputs(int32_t confirmations = 0, int32_t main_chain_height = 0, const RedeemScriptFilter & scriptFilter = nullptr) const;
+    std::list<std::shared_ptr<Coin::UnspentOutput> > getUnspentTransactionsOutputs(const std::vector<UnspentOutputSelector> & outputSelectors,
+                                                                                   int32_t confirmations = 0,
+                                                                                   int32_t main_chain_height = 0) const;
     uint64_t getWalletBalance(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
 
     std::vector<std::string> getLatestBlockHeaderHashes();
