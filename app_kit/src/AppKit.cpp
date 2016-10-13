@@ -39,16 +39,19 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
 
 AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network, std::string host, int port)
 {
+    //try to lock access to the data directory with a system mutex ?
     bitcoin::SPVWallet* wallet = getWallet(dataDirectory, network);
 
     if(!wallet)
         return nullptr;
 
+    wallet->loadBlockTree();
+
     core::Node* node = nullptr;
 
     try {
         node = core::Node::create([wallet](const Coin::Transaction &tx){
-            wallet->broadcastTx(tx);
+            wallet->broadcastTx(tx); // queue TX for rebroadcast if wallet is offline
         });
 
     } catch(std::exception &e) {
@@ -66,12 +69,11 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &data
       _bitcoinHost(host),
       _bitcoinPort(port) {
 
-    syncWallet(_bitcoinHost, _bitcoinPort);
-
     _timer = new QTimer();
 
     QObject::connect(_timer, &QTimer::timeout, [this](){
         _node->updateStatus();
+        // try to reconnect to bitcoin network if wallet went offline... rebroadcast transactions..
     });
 }
 
