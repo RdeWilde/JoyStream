@@ -13,9 +13,17 @@
 namespace Coin {
     class KeyPair;
     class typesafeOutPoint;
+    class UnspentOutput;
 }
 namespace joystream {
 namespace paymentchannel {
+
+    class RedeemScript;
+
+    typedef std::function<Coin::UnspentOutput*(const int &chainType, const Coin::KeyPair &,
+                                           const uchar_vector &script, const uchar_vector &optionalData,
+                                           const Coin::typesafeOutPoint, const int64_t &value,
+                                           bool &processNextSelector)> UnspentBuyerRefundOutputSelector;
 
 // This class is primarily used to to safely construct an UnspentOutput
 // for the buyer to finance a transaction to claim a full refund
@@ -23,9 +31,11 @@ namespace paymentchannel {
 class UnspentBuyerRefundOutput : public Coin::UnspentP2SHOutput {
 public:
 
-    UnspentBuyerRefundOutput(const Coin::KeyPair & keyPair, const uchar_vector & redeemScript, const Coin::typesafeOutPoint & outPoint, uint64_t outputValue);
+    UnspentBuyerRefundOutput(const Coin::KeyPair & keyPair, const RedeemScript &redeemScript, const Coin::typesafeOutPoint & outPoint, uint64_t outputValue);
 
     virtual uint32_t spendingInputSequenceNumber() const;
+
+    static UnspentBuyerRefundOutputSelector buyerRefundOutputSelector();
 
 private:
     uint32_t _sequenceNumber;
