@@ -29,7 +29,7 @@ namespace {
     std::vector<detail::store::TxHasOutput> transactionLoadOutputs(std::unique_ptr<odb::database> &db, std::string txid);
     bool transactionLoad(std::unique_ptr<odb::database> &db, std::string txid, Coin::Transaction &coin_tx);
     void transactionDelete(std::unique_ptr<odb::database> &db, std::string txid);
-    odb::result<detail::store::outputs_view_t> getOutputs(const std::unique_ptr<odb::database> & db, int32_t confirmations, int32_t main_chain_height);
+    odb::result<detail::store::outputs_view_t> queryOutputs(const std::unique_ptr<odb::database> & db, int32_t confirmations, int32_t main_chain_height);
 
     uchar_vector aes_128_gcm_encrypt(uchar_vector plaintext, uchar_vector key)
     {
@@ -90,6 +90,10 @@ namespace {
     }
 
 }
+
+const Store::UnspentOutputGenerator Store::standardOutputSelectors = Store::standardOutputSelectorsFunction;
+const Store::UnspentOutputGenerator Store::standardP2PKHOutputSelector = Store::standardP2PKHOutputSelectorFunction;
+const Store::UnspentOutputGenerator Store::standardP2SHOutputSelector = Store::standardP2SHOutputSelectorFunction;
 
 // open existing store
 // used Store::connected() to check if store was opened successfully
@@ -843,9 +847,28 @@ bool Store::loadKey(const Coin::P2SHAddress & p2shaddress, Coin::PrivateKey & sk
     return found;
 }
 */
-
+// take only a single selector (leave composition of more complex selection to be implemented by the application)
+// drop the processNextSelector argument
 std::list<std::shared_ptr<Coin::UnspentOutput>>
-Store::getUnspentTransactionsOutputs(const std::vector<UnspentOutputSelector> & outputSelectors, int32_t confirmations, int32_t main_chain_height) const {
+Store::getUnspentTransactionsOutputs(int32_t confirmations, const UnspentOutputGenerator &outputGenerator) const {
+
+    if(!outputGenerator)
+        return std::list<std::shared_ptr<Coin::UnspentOutput>>();
+
+    std::list<std::shared_ptr<Coin::UnspentOutput>> utxos;
+
+    for(const StoreControlledOutput &output : getControlledOutputs(confirmations)) {
+
+        Coin::UnspentOutput *utxo = outputGenerator(output);
+
+        if(utxo)
+            utxos.insert(utxos.end(), std::shared_ptr<Coin::UnspentOutput>(utxo));
+    }
+
+    return utxos;
+}
+
+std::vector<Store::StoreControlledOutput> Store::getControlledOutputs(int32_t confirmations) const {
     if(!connected()) {
         throw NotConnected();
     }
@@ -854,58 +877,50 @@ Store::getUnspentTransactionsOutputs(const std::vector<UnspentOutputSelector> & 
         throw OperationNotAllowed();
     }
 
-    if(confirmations > 0  && main_chain_height == 0) {
-        throw std::runtime_error("getUnspentTransactionOutputs: must provide main_chain_height");
+    auto main_chain_height = getBestHeaderHeight();
+
+    if(confirmations > 0 && main_chain_height == 0) {
+        return std::vector<StoreControlledOutput>();
     }
 
     if(confirmations > 0 && confirmations > main_chain_height) {
-        return std::list<std::shared_ptr<Coin::UnspentOutput>>();
+        return std::vector<StoreControlledOutput>();
     }
 
-    if(outputSelectors.empty())
-        return std::list<std::shared_ptr<Coin::UnspentOutput>>();
-
-    typedef odb::result<detail::store::outputs_view_t> outputs_r;
     odb::session s;
     odb::transaction t(_db->begin());
-    auto outputs = getOutputs(_db, confirmations, main_chain_height);
 
-    std::list<std::shared_ptr<Coin::UnspentOutput>> utxos;
+    std::vector<StoreControlledOutput> outputs;
 
-    for(auto & output : outputs) {
+    for(auto & output : queryOutputs(_db, confirmations, main_chain_height)) {
 
         Coin::KeyPair keypair(derivePrivateKey((KeychainType)output.address->key()->change(), output.address->key()->index()));
         Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(uchar_vector(output.txid())));
         Coin::typesafeOutPoint outpoint(txid, output.index());
 
-        for(const UnspentOutputSelector & selector : outputSelectors) {
+        StoreControlledOutput o;
+        o.chainType = (KeychainType)output.address->key()->change();
+        o.keyPair = keypair;
+        o.redeemScript = uchar_vector(output.address->redeemScript());
+        o.optionalData = uchar_vector(output.address->optionalData());
+        o.outPoint = outpoint;
+        o.value = output.value();
 
-            bool runNextSelector;
-
-            Coin::UnspentOutput *utxo = selector((KeychainType)output.address->key()->change(), keypair,
-                                                 uchar_vector(output.address->redeemScript()), uchar_vector(output.address->optionalData()),
-                                                 outpoint, output.value(),
-                                                 runNextSelector);
-            if(utxo) {
-                utxos.insert(utxos.end(), std::shared_ptr<Coin::UnspentOutput>(utxo));
-                break;
-            }
-
-            if(!runNextSelector)
-                break;
-        }
+        outputs.push_back(o);
     }
 
-    return utxos;
+    return outputs;
 }
 
-uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_height) const {
+uint64_t Store::getWalletBalance(int32_t confirmations) const {
     if(!connected()) {
         throw NotConnected();
     }
 
+    auto main_chain_height = getBestHeaderHeight();
+
     if(confirmations > 0  && main_chain_height == 0) {
-        throw std::runtime_error("getWalletBalance: must provide main_chain_height");
+        return 0;
     }
 
     if(confirmations > 0 && confirmations > main_chain_height) {
@@ -917,7 +932,7 @@ uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_heigh
     odb::session s;
     odb::transaction t(_db->begin());
 
-    for(auto & output : getOutputs(_db, confirmations, main_chain_height)) {
+    for(auto & output : queryOutputs(_db, confirmations, main_chain_height)) {
         balance += output.value();
     }
 
@@ -1032,6 +1047,37 @@ uint32_t Store::getBestHeaderHeight() const {
     }
     std::shared_ptr<detail::store::BlockHeader> best(headers.begin().load());
     return best->height();
+}
+
+Coin::UnspentOutput* Store::standardP2PKHOutputSelectorFunction(const Store::StoreControlledOutput & output) {
+
+    if(output.chainType == Store::KeychainType::External || output.chainType == Store::KeychainType::Internal) {
+        return new Coin::UnspentP2PKHOutput(output.keyPair, output.outPoint, output.value);
+    }
+
+    return nullptr;
+}
+
+Coin::UnspentOutput* Store::standardP2SHOutputSelectorFunction(const Store::StoreControlledOutput & output) {
+    if(output.chainType == Store::KeychainType::Other && output.optionalData.empty()) {
+        // The standard p2sh output, uses P2PK as the redeemScript
+        Coin::P2PKScriptPubKey redeemScript(output.keyPair.pk());
+
+        if(redeemScript.serialize() == output.redeemScript) {
+            return new Coin::UnspentP2SHOutput(output.keyPair, output.redeemScript, uchar_vector(), output.outPoint, output.value);
+        }
+    }
+
+    return nullptr;
+}
+
+Coin::UnspentOutput* Store::standardOutputSelectorsFunction(const Store::StoreControlledOutput & output) {
+    auto ptr = standardP2PKHOutputSelector(output);
+
+    if(ptr)
+        return ptr;
+
+    return standardP2SHOutputSelector(output);
 }
 
 namespace {
@@ -1173,7 +1219,7 @@ namespace {
     }
 
     odb::result<outputs_view_t>
-    getOutputs(const std::unique_ptr<odb::database> &db, int32_t confirmations, int32_t main_chain_height) {
+    queryOutputs(const std::unique_ptr<odb::database> &db, int32_t confirmations, int32_t main_chain_height) {
 
         uint32_t maxHeight = main_chain_height - confirmations + 1;
         // a transaction has  main_chain_height - block_height  = confirmations

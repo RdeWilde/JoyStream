@@ -100,14 +100,12 @@ public:
     Coin::PrivateKey generateReceivePrivateKey();
     Coin::PrivateKey generateChangePrivateKey();
 
-    // Lock any types supported by the output selectors provided
-    Coin::UnspentOutputSet lockOutputs(const std::vector<Store::UnspentOutputSelector> &outputSelectors,
-                                       uint64_t minValue, uint32_t minimalConfirmations = 0);
-
-    // Lock only standard output types
-    Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
+    // Lock any types supported by the output generator provided
+    Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0, const Store::UnspentOutputGenerator &outputGenerator = Store::standardOutputSelectors);
 
     uint unlockOutputs(const Coin::UnspentOutputSet & outputs);
+
+    std::vector<Store::StoreControlledOutput> getStoreControlledOutputs(uint32_t minimalConfirmations);
 
     uint64_t balance() const;
     uint64_t unconfirmedBalance() const;
@@ -122,9 +120,6 @@ public:
     
     std::vector<Coin::P2PKHAddress> listReceiveAddresses() const;
 
-    static Store::UnspentOutputSelector standardP2PKHOutputSelector();
-    static Store::UnspentOutputSelector standardP2SHOutputSelector();
-    static std::vector<Store::UnspentOutputSelector> standardOutputSelectors();
 signals:
 
     void syncStarted();
@@ -212,9 +207,9 @@ private:
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
     int32_t test_netsyncBestHeight() const { return _networkSync.getBestHeight(); }
-    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee, Store::UnspentOutputSelector customSelector = nullptr);
-    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee, Store::UnspentOutputSelector = nullptr);
-    Coin::Transaction test_sendToAddress(uint64_t value, const uchar_vector &scriptPubKey, uint64_t fee, Store::UnspentOutputSelector = nullptr);
+    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee, Store::UnspentOutputGenerator = Store::standardOutputSelectors);
+    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee, Store::UnspentOutputGenerator = Store::standardOutputSelectors);
+    Coin::Transaction test_sendToAddress(uint64_t value, const uchar_vector &scriptPubKey, uint64_t fee, Store::UnspentOutputGenerator = Store::standardOutputSelectors);
 
 };
 

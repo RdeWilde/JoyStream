@@ -320,8 +320,7 @@ void Test::Utxo() {
 
     // Check existence of all UTXOs
     {
-        auto utxos(_walletA->lockOutputs({joystream::bitcoin::SPVWallet::standardP2PKHOutputSelector()},
-                                         100000, 2));
+        auto utxos(_walletA->lockOutputs(100000, 2));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(100000));
         QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr1.pubKeyHash()).serialize().getHex());
@@ -329,8 +328,7 @@ void Test::Utxo() {
     }
 
     {
-        auto utxos(_walletA->lockOutputs({joystream::bitcoin::SPVWallet::standardP2PKHOutputSelector()},
-                                         50000, 1));
+        auto utxos(_walletA->lockOutputs(50000, 1));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(50000));
         QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr2.pubKeyHash()).serialize().getHex());
@@ -339,14 +337,12 @@ void Test::Utxo() {
 
     // An empty utxo list should be returned when not enough funds available
     {
-        auto utxos(_walletA->lockOutputs({joystream::bitcoin::SPVWallet::standardP2PKHOutputSelector()},
-                                         100000, 0));
+        auto utxos(_walletA->lockOutputs(100000, 0));
         QCOMPARE(int(utxos.size()), 0);
     }
 
     {
-        auto utxos(_walletA->lockOutputs({joystream::bitcoin::SPVWallet::standardP2PKHOutputSelector()},
-                                         25000, 0));
+        auto utxos(_walletA->lockOutputs(25000, 0));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(25000));
         QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr3.pubKeyHash()).serialize().getHex());
@@ -445,29 +441,27 @@ void Test::UsingOptionalDataInP2SHSpend() {
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(100000));
 
     {
-        auto utxos = _walletA->lockOutputs({
-                                               joystream::bitcoin::SPVWallet::standardP2SHOutputSelector(),
-                                               joystream::bitcoin::SPVWallet::standardP2PKHOutputSelector()
-                                           }, 0, 0);
-        // Our custom p2sh output should not be recognised as a standard p2sh output
+        auto utxos = _walletA->lockOutputs(0, 0);
+        // Our custom p2sh output should not be recognised as a standard output
         QCOMPARE(uint(utxos.size()), uint(0));
         _walletA->unlockOutputs(utxos);
     }
 
-    // Selector for out custom p2sh output
-    auto selector = [&script, &data](const joystream::bitcoin::Store::KeychainType &keychainType, const Coin::KeyPair &keyPair,
-                                const uchar_vector &redeemScript, const uchar_vector &optionalData,
-                                const Coin::typesafeOutPoint outPoint, const int64_t &value,
-                                bool &processNextSelector) -> Coin::UnspentOutput* {
-            if(redeemScript == script && optionalData == data) {
-                return new Coin::UnspentP2SHOutput(keyPair, redeemScript, optionalData, outPoint, value);
+    // Selector for our custom p2sh output
+    auto selector = [&script, &data](const joystream::bitcoin::Store::StoreControlledOutput &output) -> Coin::UnspentOutput* {
+            if(output.redeemScript == script && output.optionalData == data) {
+                return new Coin::UnspentP2SHOutput(output.keyPair,
+                                                   output.redeemScript,
+                                                   output.optionalData,
+                                                   output.outPoint,
+                                                   output.value);
             }
 
             return nullptr;
     };
 
     {
-        auto utxos = _walletA->lockOutputs({selector}, 0, 0);
+        auto utxos = _walletA->lockOutputs(0, 0, selector);
         QCOMPARE(uint(utxos.size()), uint(1));
         _walletA->unlockOutputs(utxos);
     }
@@ -504,8 +498,8 @@ void Test::FinanceTxFromMultipleSets() {
     QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
     QSignalSpy spy_balance_changedB(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
-    auto utxoSet1(_walletA->lockOutputs({joystream::bitcoin::SPVWallet::standardP2PKHOutputSelector()}, 50000));
-    auto utxoSet2(_walletA->lockOutputs({joystream::bitcoin::SPVWallet::standardP2PKHOutputSelector()}, 50000));
+    auto utxoSet1(_walletA->lockOutputs(50000));
+    auto utxoSet2(_walletA->lockOutputs(50000));
 
     Coin::Transaction tx;
 
@@ -547,37 +541,25 @@ void Test::RedeemScriptFiltering() {
 
     QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    std::vector<joystream::bitcoin::Store::UnspentOutputSelector> selectors;
-
-    selectors.push_back([&script](const joystream::bitcoin::Store::KeychainType &keychainType, const Coin::KeyPair &keyPair,
-                                  const uchar_vector &redeemScript, const uchar_vector &optionalData,
-                                  const Coin::typesafeOutPoint outPoint, const int64_t &value,
-                                  bool &processNextSelector) -> Coin::UnspentOutput* {
-        processNextSelector = false;
+    auto selector1 = [&script](const joystream::bitcoin::Store::StoreControlledOutput &output) -> Coin::UnspentOutput* {
         return nullptr;
-    });
+    };
 
-    auto outputs1 = _walletA->lockOutputs(selectors, 10000,0);
+    auto outputs1 = _walletA->lockOutputs(10000,0, selector1);
 
     QCOMPARE(uint(outputs1.size()), uint(0));
 
 
-    selectors.clear();
+    auto selector2 = [&script](const joystream::bitcoin::Store::StoreControlledOutput &output) -> Coin::UnspentOutput* {
 
-    selectors.push_back([&script](const joystream::bitcoin::Store::KeychainType &keychainType, const Coin::KeyPair &keyPair,
-                                  const uchar_vector &redeemScript, const uchar_vector &optionalData,
-                                  const Coin::typesafeOutPoint outPoint, const int64_t &value,
-                                  bool &processNextSelector) -> Coin::UnspentOutput* {
-        processNextSelector = false;
-
-        if(script == redeemScript) {
-            return new Coin::UnspentP2SHOutput(keyPair, redeemScript, optionalData, outPoint, value);
+        if(script == output.redeemScript) {
+            return new Coin::UnspentP2SHOutput(output.keyPair, output.redeemScript, output.optionalData, output.outPoint, output.value);
         }
 
         return nullptr;
-    });
+    };
 
-    auto outputs2 = _walletA->lockOutputs(selectors, 10000,0);
+    auto outputs2 = _walletA->lockOutputs(10000,0, selector2);
 
     QCOMPARE(uint(outputs2.size()), uint(1));
 
