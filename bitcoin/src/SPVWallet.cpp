@@ -761,20 +761,24 @@ void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
     _networkSync.syncBlocks(height);
 }
 
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee) {
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee, Store::UnspentOutputSelector customSelector) {
     auto scriptPubKey = Coin::P2PKHScriptPubKey(destinationAddr.pubKeyHash()).serialize();
-    return test_sendToAddress(value, scriptPubKey, fee);
+    return test_sendToAddress(value, scriptPubKey, fee, customSelector);
 }
 
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee) {
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee, Store::UnspentOutputSelector customSelector) {
     auto scriptPubKey = destinationAddr.toP2SHScriptPubKey().serialize();
-    return test_sendToAddress(value, scriptPubKey, fee);
+    return test_sendToAddress(value, scriptPubKey, fee, customSelector);
 }
 
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const uchar_vector & scriptPubKey, uint64_t fee) {
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const uchar_vector & scriptPubKey, uint64_t fee, Store::UnspentOutputSelector customSelector) {
+
+    std::vector<Store::UnspentOutputSelector> selectors = {standardP2PKHOutputSelector(), standardP2SHOutputSelector()};
+    if(customSelector)
+        selectors.push_back(customSelector);
 
     // Get UnspentUTXO
-    auto utxos(lockOutputs({standardP2PKHOutputSelector()}, value + fee, 0));
+    auto utxos(lockOutputs(selectors, value + fee, 0));
 
     if(utxos.value() < (value+fee)) {
         throw std::runtime_error("Not Enough Funds");
