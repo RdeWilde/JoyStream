@@ -50,3 +50,10 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
 
 
 include(../../config.pri)
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/release/ -lbitcoin_regtest_framework
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/debug/ -lbitcoin_regtest_framework
+else:unix: LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/ -lbitcoin_regtest_framework
+
+INCLUDEPATH += $$PWD/../bitcoin_regtest_framework
+DEPENDPATH += $$PWD/../bitcoin_regtest_framework

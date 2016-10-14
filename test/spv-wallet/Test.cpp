@@ -7,6 +7,8 @@
 
 #include <Test.hpp>
 
+#include "bitcoin_regtest_framework.hpp"
+
 #include <bitcoin/SPVWallet.hpp>
 #include <bitcoin/Common.hpp>
 
@@ -25,63 +27,13 @@
 #include <boost/filesystem.hpp>
 #include <boost/asio/impl/src.hpp>
 
-/*
- *  path to bitcoind and bitcoin-cli need to be
- *  added to the Qt project 'Build Environment' PATH variable
- */
-
-// Helper Functions for starting stopping and issuing commands to bitcoind
-int make_temp_directory() {
-    return system("mkdir -p bitcoind-test/");
-}
-
-int bitcoind_start() {
-    return system("bitcoind -regtest -daemon -datadir=bitcoind-test/ -rpcuser=test -rpcpassword=test");
-}
-
-int bitcoin_rpc(std::string command) {
-    std::string sys_string = "bitcoin-cli -regtest -rpcuser=test -rpcpassword=test ";
-    std::string full_commandline = sys_string + command;
-
-    return system(full_commandline.c_str());
-}
-
-int bitcoind_wait_for_ready() {
-    return bitcoin_rpc("-rpcwait getinfo");
-}
-
-int bitcoind_stop() {
-    return bitcoin_rpc("stop");
-}
-
-int bitcoind_reset_data() {
-    return system("rm -fr bitcoind-test/");
-}
-
-void Test::init_bitcoind() {
-    // Leaving state of blockchain at discretion of tester..
-    // Unit tests should work irrespective of the state of the chain.
-    // But will fail if there are no UTXO in the bitcoind wallet to spend (make sure to generate
-    // at least the first 101 blocks to make first coinbase tx spendable)
-    // Reset regtest blockchain
-    // bitcoind_reset_data();
-
-    // Prepare local temporary directory for bitcoind
-    QVERIFY(make_temp_directory() == 0);
-
-    // start bitcoin server
-    QVERIFY(bitcoind_start() == 0);
-
-    // Wait for it to start
-    QVERIFY(bitcoind_wait_for_ready() == 0);
-
-    // Generate a block start unit tests with an empty mempool
-    QVERIFY(bitcoin_rpc("generate 1") == 0);
-}
+using namespace joystream::test::bitcoin;
 
 void Test::initTestCase() {
-    bitcoind_stop();
-    init_bitcoind();
+
+    QVERIFY(regtest::init() == 0);
+
+    // SPVWallet - CoinQ netsync log
     if(getenv("NETSYNC_LOGGER") != NULL) {
         INIT_LOGGER("sync.log");
     }
@@ -109,7 +61,7 @@ void Test::cleanup() {
 
 void Test::cleanupTestCase() {
     // Stop bitcoind
-    bitcoind_stop();
+    regtest::shutdown();
 }
 
 void Test::walletCreation() {
@@ -237,7 +189,7 @@ void Test::Synching() {
     int32_t lastCount = spy_blocks_synched.count();
 
     // Generate one more block
-    bitcoin_rpc("generate 1");
+    QVERIFY(regtest::generate_blocks(1) == 0);
 
     // Wait to receive the new block
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, 10000);
@@ -248,7 +200,7 @@ void Test::Synching() {
     lastCount = spy_blocks_synched.count();
 
     // Generate one more block
-    bitcoin_rpc("generate 1");
+    QVERIFY(regtest::generate_blocks(1) == 0);
 
     // Wait to receive the new block
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, 10000);
@@ -284,7 +236,7 @@ void Test::BalanceCheck() {
     int lastBalanceChangeCount = spy_balance_changed.count();
 
     // Send 0.005BTC to our wallet
-    bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
+    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.005") == 0);
 
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
@@ -295,7 +247,7 @@ void Test::BalanceCheck() {
     lastBalanceChangeCount = spy_balance_changed.count();
 
     // Generate a block to confirm the last transaction
-    bitcoin_rpc("generate 1");
+    QVERIFY(regtest::generate_blocks(1) == 0);
 
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
@@ -303,7 +255,7 @@ void Test::BalanceCheck() {
     lastBalanceChangeCount = spy_balance_changed.count();
 
     // Send another 0.005BTC to our wallet
-    bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
+    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.005") == 0);
 
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
@@ -315,8 +267,8 @@ void Test::BalanceCheck() {
 
     int startAtHeight = _walletA->bestHeight() - 1;
     // Send another 0.003BTC to our wallet
-    bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.003");
-    bitcoin_rpc("generate 3");
+    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.003") == 0);
+    QVERIFY(regtest::generate_blocks(3) == 0);
 
     _walletA->test_syncBlocksStaringAtHeight(startAtHeight);
     QTest::qWait(15000);
@@ -336,10 +288,13 @@ void Test::Utxo() {
     auto addr2 = _walletA->generateReceiveAddress();
     auto addr3 = _walletA->generateReceiveAddress();
 
-    bitcoin_rpc("sendtoaddress " + addr1.toBase58CheckEncoding().toStdString() + " 0.00100"); // 100,000 satoshi (2 conf)
-    bitcoin_rpc("generate 1");
-    bitcoin_rpc("sendtoaddress " + addr2.toBase58CheckEncoding().toStdString() + " 0.00050"); //  50,000 satoshi (1 conf)
-    bitcoin_rpc("generate 1");
+    // 100,000 satoshi (2 conf)
+    QVERIFY(regtest::send_to_address(addr1.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
+    QVERIFY(regtest::generate_blocks(1) == 0);
+
+    //  50,000 satoshi (1 conf)
+    QVERIFY(regtest::send_to_address(addr2.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
+    QVERIFY(regtest::generate_blocks(1) == 0);
 
 
     QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
@@ -351,7 +306,8 @@ void Test::Utxo() {
 
     QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
-    bitcoin_rpc("sendtoaddress " + addr3.toBase58CheckEncoding().toStdString() + " 0.00025"); //  25,000 satoshi (0 conf)
+    //  25,000 satoshi (0 conf)
+    QVERIFY(regtest::send_to_address(addr3.toBase58CheckEncoding().toStdString(), "0.00025") == 0);
 
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, 10000);
@@ -420,9 +376,9 @@ void Test::BroadcastingTx() {
     auto addrA = _walletA->generateReceiveAddress();
     auto addrB = _walletB->generateReceiveAddress();
 
-    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
-    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
-    bitcoin_rpc("generate 1");
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
+    QVERIFY(regtest::generate_blocks(1) == 0);
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));
 
@@ -473,8 +429,8 @@ void Test::UsingOptionalDataInP2SHSpend() {
 
     Coin::P2SHAddress addrA = Coin::P2SHAddress(Coin::Network::regtest, Coin::RedeemScriptHash::fromRawScript(script));
 
-    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00100");
-    bitcoin_rpc("generate 1");
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
+    QVERIFY(regtest::generate_blocks(1) == 0);
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));
 
@@ -516,7 +472,7 @@ void Test::UsingOptionalDataInP2SHSpend() {
 
     _walletA->test_sendToAddress(10000, addrA, 5000, selector);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 8000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 10000);
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(95000));
 }
 
@@ -527,9 +483,9 @@ void Test::FinanceTxFromMultipleSets() {
     auto addrA = _walletA->generateReceiveAddress();
     auto addrB = _walletB->generateReceiveAddress();
 
-    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
-    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
-    bitcoin_rpc("generate 1");
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
+    QVERIFY(regtest::generate_blocks(1) == 0);
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));
 
@@ -580,8 +536,8 @@ void Test::RedeemScriptFiltering() {
 
     Coin::P2SHAddress addrA = Coin::P2SHAddress(Coin::Network::regtest, Coin::RedeemScriptHash::fromRawScript(script));
 
-    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00100");
-    bitcoin_rpc("generate 1");
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
+    QVERIFY(regtest::generate_blocks(1) == 0);
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));
 

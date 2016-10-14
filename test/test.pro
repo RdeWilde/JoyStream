@@ -7,6 +7,7 @@ TEMPLATE    = subdirs
 
 SUBDIRS     = \
             common \
+            bitcoin_regtest_framework \
             blockcypher \
             blockcypher-websocket \
             spv-wallet \
