@@ -100,8 +100,12 @@ public:
     Coin::PrivateKey generateReceivePrivateKey();
     Coin::PrivateKey generateChangePrivateKey();
 
+    // Lock any types supported by the output selectors provided
     Coin::UnspentOutputSet lockOutputs(const std::vector<Store::UnspentOutputSelector> &outputSelectors,
                                        uint64_t minValue, uint32_t minimalConfirmations = 0);
+
+    // Lock only standard output types
+    Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
 
     uint unlockOutputs(const Coin::UnspentOutputSet & outputs);
 
@@ -120,7 +124,7 @@ public:
 
     static Store::UnspentOutputSelector standardP2PKHOutputSelector();
     static Store::UnspentOutputSelector standardP2SHOutputSelector();
-
+    static std::vector<Store::UnspentOutputSelector> standardOutputSelectors();
 signals:
 
     void syncStarted();

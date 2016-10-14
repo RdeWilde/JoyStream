@@ -425,6 +425,10 @@ Store::UnspentOutputSelector SPVWallet::standardP2SHOutputSelector() {
     };
 }
 
+std::vector<Store::UnspentOutputSelector> SPVWallet::standardOutputSelectors() {
+    return {standardP2PKHOutputSelector(), standardP2SHOutputSelector()};
+}
+
 void SPVWallet::broadcastTx(Coin::Transaction cointx) {
     if(!isConnected()) {
         throw std::runtime_error("cannot broadcast tx, wallet offline");
@@ -483,6 +487,11 @@ SPVWallet::lockOutputs(const std::vector<Store::UnspentOutputSelector> &outputSe
     }
 
     return selectedOutputs;
+}
+
+Coin::UnspentOutputSet
+SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
+    return lockOutputs(standardOutputSelectors(), minValue, minimalConfirmations);
 }
 
 uint SPVWallet::unlockOutputs(const Coin::UnspentOutputSet &outputs) {
