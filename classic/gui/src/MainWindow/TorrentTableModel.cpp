@@ -111,6 +111,14 @@ TorrentTableRowModel * TorrentTableModel::add(const libtorrent::sha1_hash & info
                                     _settings);
 }
 
+void TorrentTableModel::remove(int row) {
+
+    if(row < 0 || _model.rowCount() <= row)
+        throw std::runtime_error("Invalid row index");
+    else
+        _model.removeRow(row);
+}
+
 libtorrent::sha1_hash TorrentTableModel::infoHash(int row) const {
     return gui::Common::getUserRoleDataFromTableModel<libtorrent::sha1_hash>(_model, row, 0);
 }

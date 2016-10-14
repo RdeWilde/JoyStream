@@ -34,6 +34,13 @@ public:
     TorrentTableRowModel * add(const libtorrent::sha1_hash & infoHash) noexcept;
 
     /**
+     * @brief Remove row with given index from model
+     * @param row index of row to be removed
+     * @throws std::runtime_error if index is invalid
+     */
+    void remove(int row);
+
+    /**
      * @brief Recover info has of torrrent which corresponds to row with given index
      * @param row index of row
      * @return info hash of torrent
