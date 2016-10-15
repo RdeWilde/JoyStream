@@ -6,6 +6,7 @@
  */
 
 #include <controller/Peer.hpp>
+#include <controller/Torrent.hpp>
 #include <gui/gui.hpp>
 #include <core/core.hpp>
 #include <protocol_wire/protocol_wire.hpp>
@@ -16,6 +17,7 @@ namespace classic {
 namespace controller {
 
 Peer::Peer(core::Peer * peer,
+           Torrent * torrent,
            gui::PeerTableModel * classicPeerTableModel,
            gui::BuyerTableModel * buyerTableModel,
            gui::ObserverTableModel * observerTableModel,
@@ -24,8 +26,11 @@ Peer::Peer(core::Peer * peer,
            gui::ConnectionTableModel * buyersTableModel)
     : _endPoint(peer->endPoint())
     , _peer(peer)
+    , _torrent(torrent)
     , _peerPlugin(nullptr)
     , _connection(nullptr)
+    , _balance(0)
+    , _modeAnnounced(protocol_statemachine::ModeAnnounced::none)
     , _classicTableModel(classicPeerTableModel)
     , _classicTableRowModel(_classicTableModel->add(_endPoint))
     , _peerDialogModels(_endPoint,
@@ -56,6 +61,14 @@ Peer::~Peer() {
 
 void Peer::setPeerPlugin(core::PeerPlugin * peerPlugin) {
 
+    if(peerPlugin == nullptr)
+        throw std::runtime_error("Cannot set peer plugin: is a null pointer");
+
+    if(_peerPlugin != nullptr)
+        throw std::runtime_error("Cannot set peer plugin: is already set");
+    else
+        _peerPlugin = peerPlugin;
+
     // PeerBitSwaprBEPSupportStatus
     QObject::connect(peerPlugin,
                      &core::PeerPlugin::peerBitSwaprBEPSupportStatusChanged,
@@ -66,6 +79,14 @@ void Peer::setPeerPlugin(core::PeerPlugin * peerPlugin) {
 }
 
 void Peer::setConnection(core::Connection * connection) {
+
+    if(connection == nullptr)
+        throw std::runtime_error("Cannot set connection: is a null pointer");
+
+    if(_connection != nullptr)
+        throw std::runtime_error("Cannot set connection: is already set");
+    else
+        _connection = connection;
 
     /// CBStateMachine signals
     core::CBStateMachine * machine = connection->machine();
@@ -121,9 +142,20 @@ void Peer::setBEPSupport(const extension::BEPSupportStatus & status) {
 
 void Peer::setAnnouncedModeAndTermsFromPeer(const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTerms) {
 
-    // Peer dialog handling
+    protocol_statemachine::ModeAnnounced newModeAnnounced = announcedModeAndTerms.modeAnnounced();
 
-    switch(announcedModeAndTerms.modeAnnounced()) {
+    // Update peer counts if they have changed
+    if(newModeAnnounced != _modeAnnounced) {
+
+        // Decrement count for current mode
+        updatePeerCountOnTorrent(_modeAnnounced, -1);
+
+        // Increment count for new mode
+        updatePeerCountOnTorrent(newModeAnnounced, +1);
+    }
+
+    // Peer dialog handling
+    switch(newModeAnnounced) {
 
         case protocol_statemachine::ModeAnnounced::none: _peerDialogModels.removeFromAnnouncedModeTables(); break;
         case protocol_statemachine::ModeAnnounced::observe: _peerDialogModels.showInObserverTable(); break;
@@ -134,6 +166,7 @@ void Peer::setAnnouncedModeAndTermsFromPeer(const protocol_statemachine::Announc
             assert(false);
     }
 
+    _modeAnnounced = newModeAnnounced;
 }
 
 void Peer::setInnerStateIndex(const core::CBStateMachine::InnerStateIndex & index) {
@@ -146,6 +179,8 @@ void Peer::setPrice(quint64 price) {
 
 void Peer::setNumberOfPayments(quint64 num) {
     _sessionDialogModels.setNumberOfPayments(num);
+
+    _torrent->setBalance(num * price?);
 }
 
 void Peer::setFunds(quint64 funds) {
@@ -163,6 +198,25 @@ void Peer::setRefundLockTime(quint32 refundLockTime) {
 void Peer::setAnchorChanged(const Coin::typesafeOutPoint & anchor) {
     _sessionDialogModels.setAnchorChanged(anchor);
 }
+
+void Peer::updatePeerCountOnTorrent(protocol_statemachine::ModeAnnounced modeAnnounced, int change) {
+
+    switch(modeAnnounced) {
+
+        case protocol_statemachine::ModeAnnounced::none: _torrent->setNumberOfUnannounced(_torrent->numberOfUnannounced() + change); break;
+        case protocol_statemachine::ModeAnnounced::sell: _torrent->setNumberOfSellers(_torrent->numberOfSellers() + change); break;
+        case protocol_statemachine::ModeAnnounced::buy: _torrent->setNumberOfBuyers(_torrent->numberOfBuyers() + change); break;
+        case protocol_statemachine::ModeAnnounced::observe: _torrent->setNumberOfObservers(_torrent->numberOfObservers() + change); break;
+        default:
+            assert(false);
+    }
+}
+
+/**
+void Peer::updateBalanceOnTorrent(qint64 change) {
+    _torrent->setBalance(_torrent->balance() + change);
+}
+*/
 
 }
 }

@@ -52,8 +52,7 @@ void ApplicationController::addTorrent(core::Torrent * t) {
     gui::TorrentTableRowModel * rowModel = _mainWindowTorrentTableModel.add(t->infoHash());
 
     // Create row
-    Torrent * torrent = new Torrent(t,
-                                    rowModel);
+    Torrent * torrent = new Torrent(t, rowModel);
 
     //
     _torrents[t->infoHash()] = torrent;

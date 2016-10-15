@@ -8,8 +8,6 @@
 #ifndef JOYSTREAM_CLASSIC_CONTROLLER_TORRENT_HPP
 #define JOYSTREAM_CLASSIC_CONTROLLER_TORRENT_HPP
 
-#include <gui/MainWindow/TorrentTableRowModel.hpp>
-
 #include <libtorrent/socket.hpp>
 #include <libtorrent/torrent_status.hpp>
 #include <QObject>
@@ -17,13 +15,14 @@
 #include <cstdint>
 #include <memory>
 
-class QStandardItem;
+class BitcoinDisplaySettings;
 
 namespace joystream {
 namespace core {
     class Torrent;
     class Peer;
     class TorrentPlugin;
+    class PeerPlugin;
     class Session;
     class Connection;
 }
@@ -32,7 +31,18 @@ namespace protocol_session {
 }
 namespace classic {
 namespace gui {
-    class PeersDialog;
+    class PeerTableModel;
+    class PeerTableRowModel;
+    class BuyerTableModel;
+    class BuyerTableRowModel;
+    class ObserverTableModel;
+    class ObserverTableRowModel;
+    class SellerTableModel;
+    class SellerTableRowModel;
+    class ConnectionTableRowModel;
+    class ConnectionTableModel;
+    class TorrentTableRowModel;
+    class TorrentTableModel;
 }
 namespace controller {
 
@@ -46,93 +56,113 @@ class Torrent : public QObject {
 public:
 
     Torrent(core::Torrent * torrent,
-            gui::TorrentTableRowModel * rowModel);
+            gui::TorrentTableModel * torrentTableModel,
+            const BitcoinDisplaySettings * settings);
 
     ~Torrent();
 
+    /**
+     * @brief Update display status of this torrent in the main window
+     * @param show whether to show (true) or hide (false) in main window
+     * @throws std::runtime_error if show && visibleInMainWindow()
+     * @throws std::runtime_error if !show && !visibleInMainWindow()
+     */
+    void showInMainWindow(bool show);
+
+    /**
+     * @brief Returns whether this torrent is visible in main window
+     * @return whether visible in main window
+     */
+    bool visibleInMainWindow() const noexcept;
+
 public slots:
 
-    /// core events
+    /// core::Torrent events
+
+    void setName(const std::string & name);
+
+    void setSize(boost::int64_t totalSize);
+
+    void setState(libtorrent::torrent_status::state_t state, float progress);
+
+    void setPaused(bool);
+
+    void setDownloadSpeed(int speed);
+
+    void setUploadSpeed(int speed);
 
     void addPeer(core::Peer * peer);
 
     void removePeer(const libtorrent::tcp::endpoint & endPoint);
 
-
-    void pluginModeChanged(protocol_session::SessionMode mode);
-
-    void connectionAdded(const core::Connection *);
-
-    void connectionRemoved(const libtorrent::tcp::endpoint &);
-
-    void setTorrentPluginPresent(core::TorrentPlugin * model);
+    void setTorrentPluginPresent(core::TorrentPlugin * plugin);
 
     void setTorrentPluginAbsent();
 
-    void updateBalance();
+    /// core::TorrentPlugin events
 
-    //
+    void addPeerPlugin(core::PeerPlugin * peerPlugin);
 
-    void setName(const std::string & name);
+    void removePeerPlugin(const libtorrent::tcp::endpoint & endPoint);
 
-    void setSize();
+    /// core::Session events
 
-    void setState(libtorrent::torrent_status::state_t state, float progress);
+    void setSessionMode(protocol_session::SessionMode mode);
 
-    void setUploadSpeed(int speed);
+    void addConnection(core::Connection * connection);
 
-    void setDownloadSpeed(int speed);
+    void removeConnection(const libtorrent::tcp::endpoint & endPoint);
 
-    void setPaused(bool);
+    /// core::Session|core::Connection events
 
-    /// view events
+    quint32 numberOfBuyers() const;
+    void setNumberOfBuyers(quint32 numberOfBuyers);
 
-public:
+    quint32 numberOfSellers() const;
+    void setNumberOfSellers(quint32 numberOfSellers);
 
-    /// Peers Dialog
+    quint32 numberOfObservers() const;
+    void setNumberOfObservers(quint32 numberOfObservers);
 
-    void showPeersDialog();
+    quint32 numberOfUnannounced() const;
+    void setNumberOfUnannounced(quint32 numberOfUnannounced);
 
-    void hidePeersDialog();
+    /// core::CBStateMachine events/values
 
-    bool peersDialogDisplayed();
-
-    /// Torrent tree view row
-
-    void setTorrentTreeViewRow(gui::TorrentTableRowModel & row);
-    void unsetTorrentTreeViewRow();
-
-    bool peerTorrentTreeViewRow() const noexcept;
-
+    quint64 balance() const;
+    void setBalance(quint64 balance);
 
 private:
 
     core::Torrent * _torrent;
 
-    gui::TorrentTableRowModel * _rowModel;
+    /// Derived state: not immediately avaiable from references
+
+    // Number of peers in buyer mode (from corresponding core::CBStateMachine)
+    quint32 _numberOfBuyers,
+            _numberOfSellers,
+            _numberOfObservers,
+            _numberOfUnannounced;
+
+    // Total balance of (unconfirmed) spending or income, for
+    // buying and selling mode respectively,
+    // (not including transaction fees: fix later)
+    quint64 _balance;
+
+    /// View models
+
+    // Torrent row view model: _torrentRowModel is set <=> visible in main window
+    gui::TorrentTableModel * _torrentTableModel;
+    std::unique_ptr<gui::TorrentTableRowModel> _torrentRowModel;
+
+    // Table view models
+    gui::PeerTableModel _classicPeerTableModel;
+    gui::BuyerTableModel _buyerTableModel;
+    gui::ObserverTableModel _observerTableModel;
+    gui::SellerTableModel _sellerTableModel;
+    gui::ConnectionTableModel _sellersTableModel, _buyersTableModel;
 
     std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>> _peers;
-
-    std::unique_ptr<gui::PeersDialog> _peersDialog;
-
-    // Updates the peer counts
-    void updateConnectionCounts(const core::Session * session);
-
-    // Utility routine for getting counts on number of different peer types
-    static void numberOf(const core::Session * session,
-                         unsigned int & numberOfBuyers,
-                         unsigned int & numberOfSellers,
-                         unsigned int & numberOfObservers,
-                         unsigned int & numberOfUnAnnounced);
-
-    // Get balance
-    int64_t getBalance(const core::Session * session);
-
-    // Utility routine for figuring out the balance in the corresponding mode
-    static int64_t getBalanceInBuyingMode(const core::Session * session);
-    static int64_t getBalanceInSellingMode(const core::Session * session);
-
-    core::Session * getSession() const;
 };
 
 }

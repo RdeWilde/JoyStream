@@ -10,34 +10,44 @@
 #include <core/core.hpp>
 #include <gui/gui.hpp>
 
-#include <QStandardItem>
-
 namespace joystream {
 namespace classic {
 namespace controller {
 
 Torrent::Torrent(core::Torrent * torrent,
-                 QStandardItem * nameItem,
-                 QStandardItem * sizeItem,
-                 QStandardItem * stateItem,
-                 QStandardItem * uploadSpeedItem,
-                 QStandardItem * downloadSpeedItem,
-                 QStandardItem * numberOfBuyerPeersItem,
-                 QStandardItem * numberOfSellerPeersitem,
-                 QStandardItem * sessionModeItem,
-                 QStandardItem * balanceItem)
+                 gui::TorrentTableModel * torrentTableModel,
+                 const BitcoinDisplaySettings * settings)
     : _torrent(torrent)
-    , _nameItem(nameItem)
-    , _sizeItem(sizeItem)
-    , _stateItem(stateItem)
-    , _uploadSpeedItem(uploadSpeedItem)
-    , _downloadSpeedItem(downloadSpeedItem)
-    , _numberOfBuyerPeersItem(numberOfBuyerPeersItem)
-    , _numberOfSellerPeersitem(numberOfSellerPeersitem)
-    , _sessionModeItem(sessionModeItem)
-    , _balanceItem(balanceItem) {
+    , _numberOfBuyers(0)
+    , _numberOfSellers(0)
+    , _numberOfObservers(0)
+    , _numberOfUnannounced(0)
+    , _balance(0)
+    , _torrentTableModel(torrentTableModel)
+    , _torrentRowModel(nullptr)
+    , _classicPeerTableModel(settings)
+    , _buyerTableModel(settings)
+    , _observerTableModel(settings)
+    , _sellerTableModel(settings)
+    , _sellersTableModel(settings)
+    , _buyersTableModel(settings) {
 
-    // Connect model signals to slots on this object
+    setName(_torrent->name());
+
+    if(auto metadata = _torrent->metaData().lock())
+        setSize(metadata->total_size());
+
+    setState(_torrent->state(), _torrent->progress());
+    setPaused(_torrent->isPaused());
+    setDownloadSpeed(_torrent->downloadRate());
+    setUploadSpeed(_torrent->uploadRate());
+
+    for(auto mapping : _torrent->peers())
+        addPeer(mapping.second);
+
+    if(torrent->torrentPluginSet())
+        setTorrentPluginPresent(torrent->torrentPlugin());
+
     QObject::connect(torrent,
                      &core::Torrent::torrentPluginAdded,
                      this,
@@ -70,6 +80,71 @@ Torrent::Torrent(core::Torrent * torrent,
 }
 
 Torrent::~Torrent() {
+
+    // If visible in the main window, the remove from the corresponding
+    // entry in the view model
+    if(visibleInMainWindow())
+        _torrentTableModel->remove(_torrentRowModel->row());
+}
+
+void Torrent::showInMainWindow(bool show) {
+
+    if(show) {
+
+        if(visibleInMainWindow())
+            throw std::runtime_error("Cannot show torrent in main window: is already showing");
+        else
+            _torrentRowModel = _torrentTableModel->add(_torrent->infoHash());
+
+    } else {
+
+        if(!visibleInMainWindow())
+            throw std::runtime_error("Cannot hide torrent in main window: is already not showing");
+        else {
+            _torrentTableModel->remove(_torrentRowModel->row());
+            _torrentRowModel.release();
+        }
+    }
+}
+
+bool Torrent::visibleInMainWindow() const noexcept {
+    return _torrentRowModel.get() != nullptr;
+}
+
+void Torrent::setName(const std::string & name) {
+
+    if(visibleInMainWindow())
+        _torrentRowModel->setName(name);
+}
+
+void Torrent::setSize(boost::int64_t totalSize) {
+
+    if(visibleInMainWindow())
+        _torrentRowModel->setSize(totalSize);
+}
+
+void Torrent::setState(libtorrent::torrent_status::state_t state, float progress) {
+
+    if(visibleInMainWindow())
+        _torrentRowModel->setState(state, progress);
+}
+
+void Torrent::setPaused(bool paused) {
+
+    if(visibleInMainWindow())
+        _torrentRowModel->setPaused(paused);
+}
+
+void Torrent::setDownloadSpeed(int speed) {
+
+    if(visibleInMainWindow())
+        _torrentRowModel->setDownloadSpeed(speed);
+}
+
+void Torrent::setUploadSpeed(int speed) {
+
+    if(visibleInMainWindow())
+        _torrentRowModel->setUploadSpeed(speed);
 }
 
 void Torrent::addPeer(core::Peer * peer) {
@@ -77,23 +152,14 @@ void Torrent::addPeer(core::Peer * peer) {
     if(_peers.count(peer->endPoint()) > 0)
         throw std::runtime_error("Peer already added.");
 
-    // Row for peers dialog
-    gui::PeerTableRowModel * row = nullptr;
-
-    // If Peers dialogue is displayed
-    if(peersDialogDisplayed()) {
-
-        // Create row
-        row = _peersDialog->addPeerTreeViewRow();
-
-        // Set initial values
-        row->setHost(peer->endPoint());
-        row->setClientName(peer->client());
-        row->setBEPSupport(extension::BEPSupportStatus::unknown);
-    }
-
     // Create controller::Peer, and add to map
-    _peers[peer->endPoint()] = std::unique_ptr<Peer>(new Peer(peer, row));
+    _peers[peer->endPoint()] = std::unique_ptr<Peer>(new Peer(peer,
+                                                              &_classicPeerTableModel,
+                                                              &_buyerTableModel,
+                                                              &_observerTableModel,
+                                                              &_sellerTableModel,
+                                                              &_sellersTableModel,
+                                                              &_buyersTableModel));
 }
 
 void Torrent::removePeer(const libtorrent::tcp::endpoint & endPoint) {
@@ -104,250 +170,177 @@ void Torrent::removePeer(const libtorrent::tcp::endpoint & endPoint) {
    if(it == _peers.cend())
        throw std::runtime_error("Peer not present.");
 
-   std::unique_ptr<Peer> & peer = it->second;
-
-   // If Peers dialuge is displayed, then we need to remove this peer
-   if(peersDialogDisplayed()) {
-
-       // Currently, all rows should be added
-       assert(peer->peerTreeViewRowSet());
-
-       // Find the row
-       gui::PeerTableRowModel * row = peer->peerTreeViewRow();
-
-       int rowIndex = row->row();
-
-       // Remove from dialog
-       /////_peersDialog->removePeer(rowIndex);
-   }
-
    // Remove peer
    _peers.erase(it);
 }
 
-void Torrent::pluginModeChanged(protocol_session::SessionMode mode) {
+void Torrent::setTorrentPluginPresent(core::TorrentPlugin *) {
 
-    _torrentTreeViewRow->setSessionMode(mode);
+    /// TorrentPlugin
 
-    updateBalance();
-}
+    core::TorrentPlugin * plugin = _torrent->torrentPlugin();
 
-void Torrent::connectionAdded(const core::Connection * connection)  {
+    for(auto mapping : plugin->peers())
+        addPeerPlugin(mapping.second);
 
-    assert(_torrent->torrentPlugin());
-
-    core::Session * session = _torrent->torrentPlugin()->session();
-
-    // update connectino counts
-    // NB: here we could do more intelligent approach by just subtracting balance in this connection
-    updateConnectionCounts(session);
-
-    // and update balance when a payment is made/received
-
-    QObject::connect(connection->machine()->payor(),
-                     &core::Payor::numberOfPaymentsMadeChanged,
+    QObject::connect(plugin,
+                     &core::TorrentPlugin::peerPluginAdded,
                      this,
-                     &Torrent::updateBalance);
+                     &Torrent::addPeerPlugin);
 
-    QObject::connect(connection->machine()->payee(),
-                     &core::Payee::numberOfPaymentsMadeChanged,
+    QObject::connect(plugin,
+                     &core::TorrentPlugin::peerPluginRemoved,
                      this,
-                     &Torrent::updateBalance);
+                     &Torrent::removePeerPlugin);
 
-}
+    /// Session
 
-void Torrent::connectionRemoved(const libtorrent::tcp::endpoint &) {
+    core::Session * session = plugin->session();
 
-    // here we could do more intelligent approach by just subtracting balance in this connection
-    updateConnectionCounts(getSession());
-}
+    assert(session != nullptr);
 
+    // Set peer counts
 
-void Torrent::setTorrentPluginPresent(core::TorrentPlugin * model) {
+    {
+        unsigned int numberOfBuyers, numberOfSellers, numberOfObservers, numberOfUnAnnounced;
 
-    core::Session * session = model->session();
+        getPeerCounts(session, numberOfBuyers, numberOfSellers, numberOfObservers, numberOfUnAnnounced);
 
-    // Set session mode
-    _torrentTreeViewRow->setSessionMode(session->mode());
+        setNumberOfBuyers(numberOfBuyers);
+        setNumberOfSellers(numberOfSellers);
+    }
 
-    // and update when it is changed
+    setBalance(getBalance(session));
+    setSessionMode(session->mode());
+
+    for(auto mapping : session->connections())
+        addConnection(mapping.second);
+
     QObject::connect(session,
                      &core::Session::modeChanged,
                      this,
                      &Torrent::pluginModeChanged);
 
-    // Set initial peer counts
-    updateConnectionCounts(session);
-
-    // When a connection is made
     QObject::connect(session,
                      &core::Session::connectionAdded,
                      this,
                      &Torrent::connectionAdded);
 
-    // or removed
     QObject::connect(session,
                      &core::Session::connectionRemoved,
                      this,
                      &Torrent::connectionRemoved);
-
-    // Set initial balance
-    updateBalance();
 }
 
 void Torrent::setTorrentPluginAbsent() {
-    _torrentTreeViewRow->unsetTorrentPluginPresence();
-}
 
-void Torrent::updateBalance() {
+    if(visibleInMainWindow()) {
+        _torrentRowModel->unsetTorrentPluginPresence();
 
-    // Get session
-    core::Session * session = getSession();
-
-    // Recompute new balance
-    int64_t balance = getBalance(session);
-
-    // Update view
-    _torrentTreeViewRow->setBalance(balance);
-}
-
-void Torrent::setState(libtorrent::torrent_status::state_t state, float progress) {
-    _torrentTreeViewRow->setState(state, progress);
-}
-
-void Torrent::setPaused(bool paused) {
-    _torrentTreeViewRow->setPaused(paused);
-}
-
-void Torrent::setDownloadSpeed(int speed) {
-    _torrentTreeViewRow->setDownloadSpeed(speed);
-}
-
-void Torrent::setUploadSpeed(int speed) {
-    _torrentTreeViewRow->setUploadSpeed(speed);
-}
-
-void Torrent::showPeersDialog() {
-
-    if(peersDialogDisplayed())
-        throw std::runtime_error("Already displayed");
-
-    // Create a peers dialog window
-    // add all sorts of peers and connections
-
-    /**
-    /// Populate models
-
-    // Add all peers
-    for(auto mapping : torrent->peers())
-        addPeer(mapping.second);
-
-    // Add all peer plugins
-    std::shared_ptr<core::TorrentPlugin> plugin = torrent->torrentPlugin();
-
-    if(plugin.get() != NULL) {
-        for(auto mapping : plugin->peers())
-            addPeerPlugin(mapping.second);
+        // Iterate peers and unset peer plugin?
     }
-
-    // Add all connections
-    std::shared_ptr<core::Session> session = plugin->session();
-    for(auto mapping : session->connections())
-        addConnection(mapping.second);
-        */
 }
 
-void Torrent::hidePeersDialog() {
+void Torrent::addPeerPlugin(core::PeerPlugin * peerPlugin) {
 
-    if(!peersDialogDisplayed())
-        throw std::runtime_error("Not displayed");
+    auto it = _peers.find(peerPlugin->endPoint());
 
-    // Go through all peers and unset PeerTreeViewRow
+    if(it == _peers.cend())
+        throw std::runtime_error("Cannot add peer plugin: no corresponding peer exists");
 
-    _peersDialog.release();
+    it->second->setPeerPlugin(peerPlugin);
 }
 
-bool Torrent::peersDialogDisplayed() {
-    return _peersDialog.get() != nullptr;
+void Torrent::removePeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
+
+    auto it = _peers.find(endPoint);
+
+    if(it == _peers.cend())
+        throw std::runtime_error("Cannot remove peer plugin: no correspondin peer exists");
+
+    // Not yet supported: it->second->unSetPeerPlugin();
 }
 
-gui::TorrentTableRowModel * Torrent::torrentTreeViewRow() const noexcept {
-    return _torrentTreeViewRow.get();
+void Torrent::setSessionMode(protocol_session::SessionMode mode) {
+
+    if(visibleInMainWindow())
+        _torrentRowModel->setSessionMode(mode);
+
+    // what happens to other values? like balance, etc
 }
 
-void Torrent::setTorrentTreeViewRow(gui::TorrentTableRowModel * torrentTreeViewRow) {
-    _torrentTreeViewRow.reset(torrentTreeViewRow);
+void Torrent::addConnection(core::Connection * connection) {
+
+    auto it = _peers.find(peerPlugin->endPoint());
+
+    if(it == _peers.cend())
+        throw std::runtime_error("Cannot add connection: no corresponding peer exists");
+
+    it->second->setConnection(connection);
 }
 
-void Torrent::unsetTorrentTreeViewRow() {
-    _torrentTreeViewRow.reset();
+void Torrent::removeConnection(const libtorrent::tcp::endpoint & endPoint) {
+
+    auto it = _peers.find(endPoint);
+
+    if(it == _peers.cend())
+        throw std::runtime_error("Cannot remove connection: no correspondin peer exists");
+
+    // Not yet supported: it->second->unSetConnection();
 }
 
-bool Torrent::peerTorrentTreeViewRow() const noexcept {
-    return _torrentTreeViewRow.get() != nullptr;
+quint32 Torrent::numberOfSellers() const {
+    return _numberOfSellers;
 }
 
-int64_t Torrent::getBalance(const core::Session * session) {
+void Torrent::setNumberOfSellers(quint32 numberOfSellers) {
+    _numberOfSellers = numberOfSellers;
 
-    if(session->mode() == protocol_session::SessionMode::buying)
-        return getBalanceInBuyingMode(session);
-    else if(session->mode() == protocol_session::SessionMode::selling)
-        return getBalanceInSellingMode(session);
-    else
-        return 0;
+   if(visibleInMainWindow())
+       _torrentRowModel->setNumberOfSellers(numberOfSellers);
 }
 
-int64_t Torrent::getBalanceInBuyingMode(const core::Session * session) {
-
-    int64_t balance = 0;
-
-    // Does not include contract fees,
-    // we need to know state information in state machine
-    // to properly account for it.
-
-    // Iterate connections and count towards balance
-    for(auto mapping : session->connections()) {
-
-        core::CBStateMachine * machine = mapping.second->machine();
-
-        auto payor = machine->payor();
-
-        balance -= payor->numberOfPaymentsMade() * payor->price();
-    }
-
-    return balance;
+quint32 Torrent::numberOfBuyers() const {
+    return _numberOfBuyers;
 }
 
-int64_t Torrent::getBalanceInSellingMode(const core::Session * session) {
+void Torrent::setNumberOfBuyers(quint32 numberOfBuyers) {
+    _numberOfBuyers = numberOfBuyers;
 
-    int64_t balance = 0;
-
-    // Does not include settlement fees,
-    // we need to know state information in state machine
-    // to properly account for it.
-
-    // Iterate connections and count towards balance
-    for(auto mapping : session->connections()) {
-
-        core::CBStateMachine * machine = mapping.second->machine();
-
-        auto payee = machine->payee();
-
-        balance += payee->numberOfPaymentsMade() * payee->price();
-    }
-
-    return balance;
+    if(visibleInMainWindow())
+        _torrentRowModel->setNumberOfBuyers(numberOfBuyers);
 }
 
-core::Session * Torrent::getSession() const {
-
-    if(_torrent == nullptr || _torrent->torrentPlugin() == nullptr)
-        throw std::runtime_error("Session not present");
-    else
-        return _torrent->torrentPlugin()->session();
-
+quint32 Torrent::numberOfUnannounced() const {
+    return _numberOfUnannounced;
 }
 
+void Torrent::setNumberOfUnannounced(quint32 numberOfUnannounced) {
+    _numberOfUnannounced = numberOfUnannounced;
+
+    // no ui representation to update
+}
+
+quint32 Torrent::numberOfObservers() const {
+    return _numberOfObservers;
+}
+
+void Torrent::setNumberOfObservers(quint32 numberOfObservers) {
+    _numberOfObservers = numberOfObservers;
+
+    // no ui representation to update
+}
+
+quint64 Torrent::balance() const {
+    return _balance;
+}
+
+void Torrent::setBalance(quint64 balance) {
+    _balance = balance;
+
+    if(visibleInMainWindow())
+        _torrentRowModel->setBalance(balance);
+}
 
 }
 }

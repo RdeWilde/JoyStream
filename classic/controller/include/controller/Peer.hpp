@@ -28,6 +28,8 @@ namespace protocol_statemachine {
 namespace classic {
 namespace controller {
 
+class Torrent;
+
 class Peer : public QObject {
 
     Q_OBJECT
@@ -35,6 +37,7 @@ class Peer : public QObject {
 public:
 
     Peer(core::Peer * peer,
+         Torrent * torrent,
          gui::PeerTableModel * classicPeerTableModel,
          gui::BuyerTableModel * buyerTableModel,
          gui::ObserverTableModel * observerTableModel,
@@ -94,9 +97,20 @@ private:
 
     core::Peer * _peer;
 
+    // Core representation of torrent to which this peer corresponds
+    Torrent * _torrent;
+
     core::PeerPlugin * _peerPlugin;
 
     core::Connection * _connection;
+
+    /// Derived state
+
+    // Current (unconfirmed) spending balance, including tx fee
+    qint64 _balance;
+
+    // Last mode announced status of peer
+    protocol_statemachine::ModeAnnounced _modeAnnounced;
 
     /// View model references
 
@@ -109,6 +123,11 @@ private:
 
     detail::SessionDialogModels _sessionDialogModels;
 
+    /// Utility routines to update state of torrent
+
+    void updatePeerCountOnTorrent(protocol_statemachine::ModeAnnounced modeAnnounced, int change);
+
+    //void updateBalanceOnTorrent(qint64 change);
 };
 
 }
