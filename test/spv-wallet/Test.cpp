@@ -29,6 +29,8 @@
 
 using namespace joystream::test::bitcoin;
 
+#define DEFAULT_SIGNAL_TIMEOUT 20 * 1000
+
 void Test::initTestCase() {
 
     QVERIFY(regtest::init() == 0);
@@ -182,7 +184,7 @@ void Test::Synching() {
     // Should connect and synch headers
     _walletA->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     int32_t startingHeight = _walletA->bestHeight();
 
@@ -192,7 +194,7 @@ void Test::Synching() {
     QVERIFY(regtest::generate_blocks(1) == 0);
 
     // Wait to receive the new block
-    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, DEFAULT_SIGNAL_TIMEOUT);
 
     // One block was mined height should increase by one
     QCOMPARE(_walletA->bestHeight(), startingHeight + 1);
@@ -203,7 +205,7 @@ void Test::Synching() {
     QVERIFY(regtest::generate_blocks(1) == 0);
 
     // Wait to receive the new block
-    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, DEFAULT_SIGNAL_TIMEOUT);
 
     // One block was mined height should increase by one
     QCOMPARE(_walletA->bestHeight(), startingHeight + 2);
@@ -228,7 +230,7 @@ void Test::BalanceCheck() {
     // Should connect and synch headers
     _walletA->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     uint64_t startingConfirmedBalance = _walletA->balance();
     uint64_t startingUnconfirmedBalance = _walletA->unconfirmedBalance();
@@ -239,7 +241,7 @@ void Test::BalanceCheck() {
     QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.005") == 0);
 
     // Wait for balance to change
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, DEFAULT_SIGNAL_TIMEOUT);
 
     QCOMPARE(_walletA->balance(), startingConfirmedBalance);
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
@@ -250,7 +252,7 @@ void Test::BalanceCheck() {
     QVERIFY(regtest::generate_blocks(1) == 0);
 
     // Wait for balance to change
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, DEFAULT_SIGNAL_TIMEOUT);
 
     lastBalanceChangeCount = spy_balance_changed.count();
 
@@ -258,7 +260,7 @@ void Test::BalanceCheck() {
     QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.005") == 0);
 
     // Wait for balance to change
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, DEFAULT_SIGNAL_TIMEOUT);
 
     QCOMPARE(_walletA->balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
@@ -302,7 +304,7 @@ void Test::Utxo() {
     // Should connect and synch headers
     _walletA->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
@@ -310,7 +312,7 @@ void Test::Utxo() {
     QVERIFY(regtest::send_to_address(addr3.toBase58CheckEncoding().toStdString(), "0.00025") == 0);
 
     // Wait for balance to change
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(175000));
 
@@ -384,21 +386,21 @@ void Test::BroadcastingTx() {
 
     _walletA->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QSignalSpy synchedB(_walletB, SIGNAL(synched()));
 
     _walletB->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
     QSignalSpy spy_balance_changedB(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
     _walletA->test_sendToAddress(70000, addrB, 5000);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 10000);
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(70000));
 
@@ -436,7 +438,7 @@ void Test::UsingOptionalDataInP2SHSpend() {
 
     _walletA->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
@@ -472,7 +474,7 @@ void Test::UsingOptionalDataInP2SHSpend() {
 
     _walletA->test_sendToAddress(10000, addrA, 5000, selector);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(95000));
 }
 
@@ -491,13 +493,13 @@ void Test::FinanceTxFromMultipleSets() {
 
     _walletA->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QSignalSpy synchedB(_walletB, SIGNAL(synched()));
 
     _walletB->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
     QSignalSpy spy_balance_changedB(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
@@ -515,8 +517,8 @@ void Test::FinanceTxFromMultipleSets() {
 
     _walletA->broadcastTx(tx);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 10000);
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(70000));
 
@@ -543,7 +545,7 @@ void Test::RedeemScriptFiltering() {
 
     _walletA->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
     std::vector<joystream::bitcoin::Store::UnspentOutputSelector> selectors;
 
