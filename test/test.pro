@@ -13,6 +13,7 @@ SUBDIRS     = \
             spv-wallet \
             spv-wallet-client \
             paymentchannel \
+            paymentchannel_regtest \
             mixpanel \
             protocol_statemachine \
             protocol_session \
