@@ -18,8 +18,11 @@ namespace joystream {
 namespace extension {
 
 Plugin::Plugin(const TransactionBroadcaster broadcaster,
-               uint minimumMessageId)
-    : _session(nullptr)
+               uint minimumMessageId,
+               libtorrent::alert_manager * alertManager,
+               libtorrent::aux::session_impl * session)
+    : _alertManager(alertManager)
+    ,_session(session)
     , _broadcaster(broadcaster)
     , _minimumMessageId(minimumMessageId)
     , _addedToSession(false) {
@@ -49,7 +52,7 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     _plugins[h.info_hash()] = boost::static_pointer_cast<TorrentPlugin>(plugin);
 
     // Send alert notification
-    _session->alerts().emplace_alert<alert::TorrentPluginAdded>(h);
+    _alertManager->emplace_alert<alert::TorrentPluginAdded>(h);
 
     return plugin;
 }
@@ -59,6 +62,7 @@ void Plugin::added(libtorrent::session_handle h) {
     std::clog << "Plugin added to session." << std::endl;
 
     _session = h.native_handle();
+    _alertManager = &h.native_handle()->alerts();
     _addedToSession = true;
 }
 
@@ -117,7 +121,7 @@ status::Plugin Plugin::status() const {
 
 void Plugin::processesRequestQueue() {
 
-    detail::RequestVariantVisitor visitor(this);
+    detail::RequestVariantVisitor visitor(this, _session, _alertManager);
 
     // Synchronized dispatching of requests
     _requestQueueMutex.lock();

@@ -95,7 +95,7 @@ void RequestVariantVisitor::operator()(const request::ToBuyMode & r) {
 }
 
 void RequestVariantVisitor::operator()(const request::UpdateStatus &) {
-    _plugin->_session->alerts().emplace_alert<alert::PluginStatus>(_plugin->status());
+    _alertManager->emplace_alert<alert::PluginStatus>(_plugin->status());
 }
 
 void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r) {
@@ -119,7 +119,7 @@ void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r)
 void RequestVariantVisitor::operator()(const request::PauseLibtorrent & r) {
 
     // Synchronous pause
-    _plugin->_session->pause();
+    _session->pause();
 
     // Send the result that we are done
     sendRequestResult(r.handler);
@@ -128,7 +128,7 @@ void RequestVariantVisitor::operator()(const request::PauseLibtorrent & r) {
 void RequestVariantVisitor::operator()(const request::AddTorrent & r) {
 
     libtorrent::error_code ec;
-    libtorrent::torrent_handle h = _plugin->_session->add_torrent(r.params, ec);
+    libtorrent::torrent_handle h = _session->add_torrent(r.params, ec);
 
     // Bind to handler and send back to user
     sendRequestResult(std::bind(r.handler, ec, h));
@@ -136,14 +136,14 @@ void RequestVariantVisitor::operator()(const request::AddTorrent & r) {
 
 void RequestVariantVisitor::operator()(const request::RemoveTorrent & r) {
 
-    libtorrent::torrent_handle h = _plugin->_session->find_torrent_handle(r.infoHash);
+    libtorrent::torrent_handle h = _session->find_torrent_handle(r.infoHash);
 
     alert::LoadedCallback callback;
 
     if(!h.is_valid())
         callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
     else
-        _plugin->_session->remove_torrent(h, 0);
+        _session->remove_torrent(h, 0);
 
     // Send back to user
     sendRequestResult(callback);
@@ -152,7 +152,7 @@ void RequestVariantVisitor::operator()(const request::RemoveTorrent & r) {
 void RequestVariantVisitor::operator()(const request::PauseTorrent & r) {
 
     // Find torrent
-    boost::weak_ptr<libtorrent::torrent> w = _plugin->_session->find_torrent(r.infoHash);
+    boost::weak_ptr<libtorrent::torrent> w = _session->find_torrent(r.infoHash);
 
     alert::LoadedCallback callback;
 
@@ -169,7 +169,7 @@ void RequestVariantVisitor::operator()(const request::PauseTorrent & r) {
 void RequestVariantVisitor::operator()(const request::ResumeTorrent & r) {
 
     // Find torrent
-    boost::weak_ptr<libtorrent::torrent> w = _plugin->_session->find_torrent(r.infoHash);
+    boost::weak_ptr<libtorrent::torrent> w = _session->find_torrent(r.infoHash);
 
     alert::LoadedCallback callback;
 
@@ -217,7 +217,7 @@ std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorre
 }
 
 void RequestVariantVisitor::sendRequestResult(const alert::LoadedCallback & c) {
-    _plugin->_session->alerts().emplace_alert<alert::RequestResult>(c);
+    _alertManager->emplace_alert<alert::RequestResult>(c);
 }
 
 }

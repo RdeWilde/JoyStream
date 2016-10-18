@@ -35,7 +35,9 @@ class Plugin : public libtorrent::plugin {
 public:
 
     Plugin(const TransactionBroadcaster broadcaster,
-           uint minimumMessageId);
+           uint minimumMessageId,
+           libtorrent::alert_manager * alertManager = nullptr,
+           libtorrent::aux::session_impl * session = nullptr);
 
     ~Plugin();
 
@@ -63,8 +65,10 @@ private:
 
     friend class detail::RequestVariantVisitor;
 
+    // Libtorrent alert manager
+    libtorrent::alert_manager * _alertManager;
+
     // Libtorrent session.
-    // NB: Is set by added() libtorrent callback, not constructor
     libtorrent::aux::session_impl * _session;
 
     // Broadcaster for transactions
