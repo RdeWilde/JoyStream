@@ -48,6 +48,9 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     // Storing weak reference to plugin
     _plugins[h.info_hash()] = boost::static_pointer_cast<TorrentPlugin>(plugin);
 
+    // Send alert notification
+    _session->alerts().emplace_alert<alert::TorrentPluginAdded>(h);
+
     return plugin;
 }
 
