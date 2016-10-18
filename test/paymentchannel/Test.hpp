@@ -37,8 +37,6 @@ private slots:
     //void payee();
 
     void paychan_one_to_one();
-
-    void CSVRelativeLockTimeEncoding();
 };
 
 #endif // TEST_HPP

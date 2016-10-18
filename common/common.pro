@@ -58,7 +58,8 @@ HEADERS += \
     include/common/P2PKScriptPubKey.hpp \
     include/common/Payment.hpp \
     include/common/UnspentOutputSet.hpp \
-    include/common/Script.hpp
+    include/common/Script.hpp \
+    include/common/RelativeLockTime.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -93,6 +94,7 @@ SOURCES += \
     src/Payment.cpp \
     src/TransactionId.cpp \
     src/UnspentOutputSet.cpp \
-    src/RedeemScriptHash.cpp
+    src/RedeemScriptHash.cpp \
+    src/RelativeLockTime.cpp
 
 include(../config.pri)

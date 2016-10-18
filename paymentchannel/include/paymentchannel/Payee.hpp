@@ -11,12 +11,14 @@
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/RedeemScriptHash.hpp>
+#include <common/RelativeLockTime.hpp>
 #include <common/Signature.hpp>
 
 namespace Coin {
     class Transaction;
     class P2SHScriptPubKey;
     class TxOut;
+    class RelativeLockTime;
 }
 
 namespace joystream {
@@ -37,7 +39,7 @@ namespace paymentchannel {
         Payee();
 
         Payee(quint64 numberOfPaymentsMade,
-              quint16 lockTime,
+              Coin::RelativeLockTime lockTime,
               quint64 price,
               quint64 funds,
               quint64 settlementFee,
@@ -78,8 +80,8 @@ namespace paymentchannel {
         quint64 numberOfPaymentsMade() const;
         void setNumberOfPaymentsMade(quint64);
 
-        quint16 lockTime() const;
-        void setLockTime(quint16);
+        Coin::RelativeLockTime lockTime() const;
+        void setLockTime(Coin::RelativeLockTime);
 
         quint64 price() const;
         void setPrice(quint64);
@@ -114,7 +116,7 @@ namespace paymentchannel {
         quint64 _numberOfPaymentsMade;
 
         // Payment channel lock time
-        quint16 _lockTime;
+        Coin::RelativeLockTime _lockTime;
 
         // Price (#satoshies) increment per payment
         quint64 _price;

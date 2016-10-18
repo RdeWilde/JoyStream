@@ -25,14 +25,14 @@ namespace paymentchannel {
         , _numberOfPaymentsMade(0)
         , _funds(0)
         , _settlementFee(0)
-        , _refundLockTime(0) {
+        , _refundLockTime() {
     }
 
     Payor::Payor(quint64 price,
                      quint64 numberOfPaymentsMade,
                      quint64 funds,
                      quint64 settlementFee,
-                     quint16 refundLockTime,
+                     Coin::RelativeLockTime refundLockTime,
                      const Coin::typesafeOutPoint & anchor,
                      const Coin::KeyPair & payorContractKeyPair,
                      const Coin::PubKeyHash &payorFinalPkHash,
@@ -136,11 +136,11 @@ namespace paymentchannel {
         _settlementFee = settlementFee;
     }
 
-    quint16 Payor::refundLockTime() const {
+    Coin::RelativeLockTime Payor::refundLockTime() const {
         return _refundLockTime;
     }
 
-    void Payor::setRefundLockTime(quint16 refundLockTime) {
+    void Payor::setRefundLockTime(Coin::RelativeLockTime refundLockTime) {
         _refundLockTime = refundLockTime;
     }
 

@@ -32,7 +32,7 @@ namespace paymentchannel {
     }
 
     uint32_t Refund::lockedUntil(uint32_t contractMinedAt) const {
-        return RedeemScript::relativeLockTimeToSeconds(_commitment.lockTime()) + contractMinedAt;
+        return _commitment.lockTime().getDuration().count() + contractMinedAt;
     }
 
     bool Refund::isLocked(uint32_t currentTime, uint32_t contractMinedAt) const {

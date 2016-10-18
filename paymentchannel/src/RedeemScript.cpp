@@ -6,17 +6,17 @@
  */
 
 #include <paymentchannel/RedeemScript.hpp>
+#include <common/RelativeLockTime.hpp>
 #include <common/PublicKey.hpp>
 #include <common/Utilities.hpp>
 
 namespace joystream {
 namespace paymentchannel {
 
-RedeemScript::RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t relativeLockTime)
+RedeemScript::RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, const Coin::RelativeLockTime &relativeLockTime)
     : _payorPk(payorPk)
     , _payeePk(payeePk)
     , _lockTime(relativeLockTime) {
-
 }
 
 uchar_vector RedeemScript::serialized() const {
@@ -30,7 +30,7 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x67); // OP_ELSE
     // Branch for when channel is settled with full refund to payor
-    uchar_vector locktime = dataCSVRelativeLockTime(_lockTime);
+    uchar_vector locktime = _lockTime.toScriptData();
     script += Coin::opPushData(locktime.size());
     script += locktime;
     script.push_back(0xb2); // OP_CHECKSEQUENCEVERIFY (BIP 68)
@@ -71,24 +71,7 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
 
     subscript = Coin::popData(subscript, rawLockTime);
 
-    if(rawLockTime.empty()) {
-        throw std::runtime_error("Unable to retreive Locktime from redeem script");
-    }
-
-    // decode the locktime
-    int32_t decodedLockTime = Coin::deserializeScriptNum(rawLockTime);
-
-    if(decodedLockTime < 0) {
-        throw std::runtime_error("locktime is negative!");
-    }
-
-    uchar locktimeType = (decodedLockTime >> 16) & 0x40;
-
-    if(locktimeType != 0x40) {
-        throw std::runtime_error("locktime is not in time units");
-    }
-
-    uint16_t locktime = decodedLockTime & 0x0000ffff;
+    Coin::RelativeLockTime locktime = Coin::RelativeLockTime::fromScriptData(rawLockTime);
 
     // get a subscript to the start of the payor publick key push data operation
     subscript = uchar_vector(subscript.begin() + 3, subscript.end());
@@ -120,27 +103,6 @@ uchar_vector RedeemScript::PayeeOptionalData() {
     return uchar_vector(0x01); /* OP_TRUE */
 }
 
-uchar_vector RedeemScript::dataCSVRelativeLockTime(const uint16_t time) {
-    uint32_t value = time;
-    value |= 0x00400000;
-    return Coin::serializeScriptNum(value);
-}
-
-uint32_t RedeemScript::nSequence(const uint16_t time)  {
-    // nSequence is interpreted as relative locktime as time
-    // (bit 1<<31 unset,  bit 1<<22 set)
-    uint32_t seq = time;
-    return seq |= 0x00400000;
-}
-
-uint32_t RedeemScript::relativeLockTimeToSeconds(const uint16_t time) {
-    return time << 9;
-}
-
-uint16_t RedeemScript::secondsToRelativeLockTime(const uint32_t seconds) {
-    return seconds >> 9;
-}
-
 bool RedeemScript::isPayorPublicKey(const Coin::PublicKey & pk) const {
     return _payorPk == pk;
 }
@@ -149,7 +111,7 @@ bool RedeemScript::isPayeePublicKey(const Coin::PublicKey & pk) const {
     return _payeePk == pk;
 }
 
-uint16_t RedeemScript::lockTime() const {
+Coin::RelativeLockTime RedeemScript::lockTime() const {
     return _lockTime;
 }
 

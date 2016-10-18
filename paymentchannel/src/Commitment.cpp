@@ -17,7 +17,7 @@ namespace paymentchannel {
         : _value(0) {
     }
 
-    Commitment::Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t lockTime)
+    Commitment::Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, Coin::RelativeLockTime lockTime)
         : _value(value)
         , _payorPk(payorPk)
         , _payeePk(payeePk)
@@ -85,11 +85,11 @@ namespace paymentchannel {
         _payeePk = payeePk;
     }
 
-    void Commitment::setLockTime(uint16_t lockTime) {
+    void Commitment::setLockTime(Coin::RelativeLockTime lockTime) {
         _lockTime = lockTime;
     }
 
-    uint16_t Commitment::lockTime() const {
+    Coin::RelativeLockTime Commitment::lockTime() const {
         return _lockTime;
     }
 }

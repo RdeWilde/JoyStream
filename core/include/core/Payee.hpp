@@ -9,6 +9,7 @@
 #define JOYSTREAM_CORE_PAYEE_HPP
 
 #include <common/typesafeOutPoint.hpp>
+#include <common/RelativeLockTime.hpp>
 
 #include <QObject>
 
@@ -35,7 +36,7 @@ public:
     static void registerMetaTypes();
 
     Payee(quint64 numberOfPaymentsMade,
-          quint16 lockTime,
+          Coin::RelativeLockTime lockTime,
           quint64 price,
           quint64 funds,
           quint64 settlementFee,
@@ -47,7 +48,7 @@ public:
     quint64 numberOfPaymentsMade() const noexcept;
 
     // Payment channel lock time
-    quint16 lockTime() const noexcept;
+    Coin::RelativeLockTime lockTime() const noexcept;
 
     // Price (#satoshies) increment per payment
     quint64 price() const noexcept;
@@ -71,7 +72,7 @@ signals:
     void numberOfPaymentsMadeChanged(quint64);
 
     // Cahnged payment channel lock time
-    void lockTimeChanged(quint16);
+    void lockTimeChanged(Coin::RelativeLockTime);
 
     // Changed price (#satoshies) increment per payment
     void priceChanged(quint64);
@@ -91,7 +92,7 @@ private:
     quint64 _numberOfPaymentsMade;
 
     // Payment channel lock time
-    quint16 _lockTime;
+    Coin::RelativeLockTime _lockTime;
 
     // Price (#satoshies) increment per payment
     quint64 _price;

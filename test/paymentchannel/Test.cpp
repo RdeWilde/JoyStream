@@ -30,9 +30,9 @@ void Test::redeemScript() {
 
     Coin::KeyPair payeePair = Coin::KeyPair::generate();
 
-    uint32_t lockTime = std::time(nullptr);
+    Coin::RelativeLockTime locktime;
 
-    RedeemScript rs(payorPair.pk(), payeePair.pk(), lockTime);
+    RedeemScript rs(payorPair.pk(), payeePair.pk(), locktime);
 
     uchar_vector serialized = rs.serialized();
 
@@ -57,23 +57,24 @@ void Test::refund() {
     Coin::P2PKScriptPubKey payeeScriptPubKey(payeeFinalPair.pk());
     Coin::RedeemScriptHash payeeScriptHash(payeeScriptPubKey);
 
-    uint32_t lockTime = 3;
+    Coin::RelativeLockTime lockTime = Coin::RelativeLockTime::fromTimeUnits(3);
     uint64_t channelValue = 180;
 
     joystream::paymentchannel::Payor p(1, 0, channelValue, 1000, lockTime,contractOutPoint, payorContractPair, payorScriptHash, payeeContractPair.pk(), payeeScriptHash);
 
     joystream::paymentchannel::Refund R(p.refund());
 
-    QCOMPARE(R.lockedUntil(0), (unsigned int)1536);
+    QCOMPARE(R.getUnspentOutput().value(), channelValue);
 
-    // The output is locked until 3 * 512 seconds pass since the time that the contracted was mined (T = 0)
+    QVERIFY(R.getUnspentOutput().outPoint() == contractOutPoint);
+
+    // The output is locked until 3 * 512 seconds pass from the time that the contracted was mined (T = 0)
+    QCOMPARE(lockTime.getDuration().count(), (unsigned int)1536);
+    QCOMPARE(R.lockedUntil(0), (unsigned int)1536);
     QCOMPARE(R.isLocked( 512, 0), true); // locked
     QCOMPARE(R.isLocked(1024, 0), true); // locked
     QCOMPARE(R.isLocked(1536, 0), false); // unlocked
 
-    QCOMPARE(R.getUnspentOutput().value(), channelValue);
-
-    QVERIFY(R.getUnspentOutput().outPoint() == contractOutPoint);
 }
 
 void Test::settlement() {
@@ -82,7 +83,7 @@ void Test::settlement() {
     Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
     Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
     Coin::KeyPair payeeFinalPair = Coin::KeyPair::generate();
-    uint32_t lockTime = 100;
+    Coin::RelativeLockTime lockTime = Coin::RelativeLockTime::fromBlockUnits(1);
 
     Coin::typesafeOutPoint contractOutPoint;
     joystream::paymentchannel::Commitment commitment(180, payorContractPair.pk(), payeeContractPair.pk(), lockTime);
@@ -141,7 +142,7 @@ void Test::paychan_one_to_one() {
     Contract c(Coin::UnspentOutputSet({funding}));
 
     // Terms
-    uint32_t lockTime = 1000;
+    Coin::RelativeLockTime lockTime;
     uint64_t price = 8;
 
     c.addCommitment(Commitment(amount_in_channel, payorContractKeyPair.pk(), payeeContractKeyPair.pk(), lockTime));
@@ -190,28 +191,6 @@ void Test::paychan_one_to_one() {
         QVERIFY(payee.registerPayment(paymentSignature));
     }
 
-}
-
-void Test::CSVRelativeLockTimeEncoding() {
-
-    uint16_t relativeLockTime = 0xffff;
-
-    uchar_vector data = joystream::paymentchannel::RedeemScript::dataCSVRelativeLockTime(relativeLockTime);
-
-    // 3-byte signed integer for use in bitcoin scripts as a 3-byte PUSHDATA
-    QCOMPARE((int)data.size(), 3);
-
-    // sign bit unset,
-    // most significant bit (after the sign bit) should be set
-    // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
-    // as time
-    QCOMPARE(data.at(2) & 0xc0, 0x40);
-
-    // 16-bits representing locktime value
-    QCOMPARE(data.at(1), uchar(0xff));
-    QCOMPARE(data.at(0), uchar(0xff));
-
-    QCOMPARE(uint32_t(0x0040ffff), joystream::paymentchannel::RedeemScript::nSequence(relativeLockTime));
 }
 
 QTEST_MAIN(Test)

@@ -9,6 +9,7 @@
 #define PAYMENT_CHANNEL_REDEEMSCRIPT_H
 
 #include <common/PublicKey.hpp>
+#include <common/RelativeLockTime.hpp>
 #include <stdutils/uchar_vector.h>
 
 namespace Coin {
@@ -21,7 +22,7 @@ namespace paymentchannel {
 class RedeemScript
 {
 public:
-    explicit RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint16_t relativeLockTime);
+    explicit RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, const Coin::RelativeLockTime&);
 
     uchar_vector serialized() const;
 
@@ -33,30 +34,20 @@ public:
     // Optional data that must used in the scriptSig to spend the p2sh output in the settlement tx by the Payee (Seller)
     static uchar_vector PayeeOptionalData();
 
-    // Data to be pushed to stack to be used with OP_CHECKSEQUENCEVERIFY
-    static uchar_vector dataCSVRelativeLockTime(const uint16_t time);
-
-    // Returns correct nSequence value to use for the transaction input
-    static uint32_t nSequence(const uint16_t time);
-
-    // Number of seconds represented by the relative locktime
-    static uint32_t relativeLockTimeToSeconds(const uint16_t time);
-    static uint16_t secondsToRelativeLockTime(const uint32_t seconds);
-
     bool isPayorPublicKey(const Coin::PublicKey &) const;
     bool isPayeePublicKey(const Coin::PublicKey &) const;
 
     Coin::PublicKey payorPk() const;
     Coin::PublicKey payeePk() const;
 
-    uint16_t lockTime() const;
+    Coin::RelativeLockTime lockTime() const;
 
 private:
     Coin::PublicKey _payorPk;
     Coin::PublicKey _payeePk;
 
     // Relative locktime
-    uint16_t _lockTime;
+    Coin::RelativeLockTime _lockTime;
 };
 
 }}

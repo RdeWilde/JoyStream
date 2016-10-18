@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <QtGlobal>
+#include <common/RelativeLockTime.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -31,7 +32,7 @@ namespace protocol_wire {
 
         SellerTerms();
 
-        SellerTerms(quint64 minPrice, quint16 minLock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee);
+        SellerTerms(quint64 minPrice, uint16_t minLock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee);
 
         bool operator==(const SellerTerms & rhs) const;
 
@@ -54,8 +55,8 @@ namespace protocol_wire {
         quint64 minPrice() const;
         void setMinPrice(quint64 minPrice);
 
-        quint16 minLock() const;
-        void setMinLock(quint16 minLock);
+        uint16_t minLock() const;
+        void setMinLock(const uint16_t & minLock);
 
         quint32 maxSellers() const;
         void setMaxSellers(quint32 maxSellers);
@@ -72,8 +73,8 @@ namespace protocol_wire {
         //int64_t _price;
         quint64 _minPrice;
 
-        // When refund is spendable at the earliest
-        quint16 _minLock;
+        // Minimum Relative LockTime (unit is defined at the protocol session layer)
+        uint16_t _minLock;
 
         // Maximum number of sellers accepted in contract
         //uint32_t _maxSellers;

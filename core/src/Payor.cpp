@@ -22,7 +22,7 @@ Payor::Payor(quint64 price,
              quint64 numberOfPaymentsMade,
              quint64 funds,
              quint64 settlementFee,
-             quint16 refundLockTime,
+             Coin::RelativeLockTime refundLockTime,
              const Coin::typesafeOutPoint & anchor)
     : _price(price)
     , _numberOfPaymentsMade(numberOfPaymentsMade)
@@ -57,7 +57,7 @@ quint64 Payor::settlementFee() const noexcept {
     return _settlementFee;
 }
 
-quint16 Payor::refundLockTime() const noexcept {
+Coin::RelativeLockTime Payor::refundLockTime() const noexcept {
     return _refundLockTime;
 }
 

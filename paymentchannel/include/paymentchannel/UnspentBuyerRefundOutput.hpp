@@ -35,10 +35,6 @@ public:
 
     virtual uint32_t spendingInputSequenceNumber() const;
 
-    static UnspentBuyerRefundOutputSelector buyerRefundOutputSelector();
-
-private:
-    uint32_t _sequenceNumber;
 };
 
 }
