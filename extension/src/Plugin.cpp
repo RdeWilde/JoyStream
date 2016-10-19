@@ -45,6 +45,7 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
                                                                            h,
                                                                            _broadcaster,
                                                                            _minimumMessageId,
+                                                                           _alertManager,
                                                                            TorrentPlugin::Policy(),
                                                                            TorrentPlugin::LibtorrentInteraction::None));
 
