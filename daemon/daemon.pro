@@ -108,3 +108,6 @@ LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf
 
 include(../config.pri)
 
+HEADERS += \
+    async-call-handler.h
+

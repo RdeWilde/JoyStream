@@ -4,7 +4,6 @@ var grpc = require('grpc');
 
 var rpc = grpc.load(PROTO_PATH).joystream.daemon.rpc;
 
-var clientCallback = new rpc.Callback('localhost:3002', grpc.credentials.createInsecure());
 var clientDaemon = new rpc.Daemon('localhost:3002', grpc.credentials.createInsecure());
 
 var rpc = module.exports;
@@ -29,10 +28,6 @@ rpc.listTorrents = function(data, done ) {
   });
 }
 
-rpc.torrentAdded = function(callback) {
-  clientCallback.torrentAdded({}, callback);
-};
-
 rpc.addTorrent = function(torrent, callback ) {
   // we prepare the async callback request
   rpc.torrentAdded(function(err, torrent) {
@@ -45,3 +40,7 @@ rpc.addTorrent = function(torrent, callback ) {
   });
   clientDaemon.addTorrent(torrent, callback);
 }
+
+rpc.test1 = function(request, callback) {
+  clientDaemon.test1(request, callback);
+};

@@ -4,8 +4,12 @@
 
 #include <boost/asio/impl/src.hpp>
 
+#include <unistd.h>
+#include <syscall.h>
 #include <thread>
-#include <grpc++/grpc++.h>
+#include <chrono>
+#include <grpc++/alarm.h>
+#include "async-call-handler.h"
 
 #include "protos/daemon.grpc.pb.h"
 
@@ -16,9 +20,39 @@ using grpc::ServerCompletionQueue;
 using grpc::ServerAsyncResponseWriter;
 using grpc::Status;
 using joystream::daemon::rpc::Daemon;
-using joystream::daemon::rpc::Callback;
 using joystream::daemon::rpc::Void;
 using joystream::daemon::rpc::Torrent;
+using joystream::daemon::rpc::TestResponce;
+using joystream::daemon::rpc::TestRequest;
+
+///////////////////////////////////////////////////////////////////
+
+static std::string ssprintf(const char * format, ...)
+  __attribute__ ((__format__ (__printf__, 1, 2)));
+
+static std::string ssprintf(const char * format, ...)
+{
+  va_list arglist;
+  char buf[1024] = "";
+
+  va_start(arglist, format);
+  vsnprintf(buf, sizeof(buf) - 1, format, arglist);
+  va_end(arglist);
+
+  return buf;
+}
+
+static inline pid_t gettid(void)
+{
+  return (pid_t) syscall (SYS_gettid);
+}
+
+#define PDBG(...) \
+    fprintf(stderr, "[%d] %s(): %6d ", gettid(), __func__, __LINE__), \
+    fprintf(stderr, __VA_ARGS__), \
+    fputc('\n', stderr), \
+    fflush(stderr)
+
 
 // Explicit template instantiation of IdToString()
 // used in joystream::protocol_session::exception::ConnectionAlreadyAddedException
@@ -27,134 +61,53 @@ std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(bo
     return id.address().to_string();
 }
 
-class CallData {
- public:
-  CallData(Callback::AsyncService* service, ServerCompletionQueue* cq)
-      : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
-    // Invoke the serving logic right away.
-    Proceed();
+///////////////////////////////////////////////////////////////////
+
+
+class AsyncDaemonService
+  : public AsyncCallHandler<Daemon::AsyncService> {
+
+public:
+
+  AsyncDaemonService() {
+    AddMethod(&NormalRpcDaemon::OnCall, &Daemon::AsyncService::Requesttest1);
   }
 
-  void Proceed() {
-    if (status_ == CREATE) {
+private:
 
-      service_->RequestTorrentAdded(&ctx_, &request_, &responder_, cq_, cq_,this);
-      status_ = PROCESS;
+  ///////
 
-    } else if (status_ == PROCESS) {
-
-      new CallData(service_, cq_);
-
-    } else {
-
-      GPR_ASSERT(status_ == FINISH);
-      std::cout << "Destroy" << std::endl;
-      delete this;
-
+  class NormalRpcDaemon {
+    TestResponce responce;
+  public:
+    bool OnCall(bool fok, ServerContext* context, ServerCompletionQueue * cq, const TestRequest * request,
+        ServerAsyncResponseWriter<TestResponce>* response_writer, void * tag)
+    {
+      (void)(fok);
+      (void) (context);
+      (void) (cq);
+      PDBG("GOT %s", request->clientmessage().c_str());
+      responce.set_servermessage("This is a server message");
+      response_writer->Finish(responce, Status::OK, tag);
+      return true;
     }
-  }
-
-  void Announce(Torrent torrent) {
-    if(status_ != PROCESS){
-      return;
-    }
-
-    status_ = FINISH;
-
-    responder_.Finish(torrent, Status::OK, this);
-  }
-
- private:
-
-  Callback::AsyncService* service_;
-  ServerCompletionQueue* cq_;
-  ServerContext ctx_;
-
-  Void request_;
-  Torrent reply_;
-  ServerAsyncResponseWriter<Torrent> responder_;
-
-  enum CallStatus { CREATE, PROCESS, FINISH };
-  CallStatus status_;  // The current serving state.
+  };
 };
 
-class DaemonServiceImpl : public Daemon::Service {
+  ///////
 
-    Status Pause(ServerContext* context, const Void* request, Void* reply) override {
-      std::cout << "Received Pause Request" << std::endl;
-      node_->pause([this](){
-        std::cout << "Node was paused" << std::endl;
-            this->app_->exit();
-        });
-
-        return Status::OK;
-    }
-
-    Status ListTorrents(grpc::ServerContext *context, const joystream::daemon::rpc::Void *request, ::grpc::ServerWriter<joystream::daemon::rpc::Torrent> *writer) override {
-      joystream::daemon::rpc::Torrent torrent;
-      std::cout << "Torrents list" << std::endl;
-      for (const auto &e : node_->torrents()) {
-        std::cout << std::get<0>(e) << std::endl;
-        writer->Write(torrent);
-      }
-
-      return Status::OK;
-    }
-
-    Status AddTorrent(grpc::ServerContext *context, const joystream::daemon::rpc::Torrent* request, joystream::daemon::rpc::Torrent* torrent) override {
-       libtorrent::sha1_hash info_hash = libtorrent::sha1_hash(request->infohash());
-       std::string save_path = std::string("/home/lola/joystream");
-       std::vector<char> resume_data = std::vector<char>();
-       std::string name = std::string(request->name());
-       boost::optional<uint> upload_limit = -1;
-       boost::optional<uint> download_limit = -1;
-       bool paused = 1;
-       joystream::core::TorrentIdentifier torrent_identifier = joystream::core::TorrentIdentifier(info_hash);
-       std::cout << "We are adding the torrent" << std::endl;
-       std::cout << request->infohash() << std::endl;
-       node_->addTorrent(upload_limit,download_limit,name,resume_data,save_path,paused,torrent_identifier,[&name, &info_hash, this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
-
-           Torrent reply_;
-
-           std::cout << "New torrent added" << std::endl;
-           std::cout << ecode << std::endl;
-           reply_.set_name(name);
-           reply_.set_infohash(info_hash.to_string());
-           if(this->tag_)
-             static_cast<CallData*>(tag_)->Announce(reply_);
-       });
-       return Status::OK;
-     }
-
-
+class ServerImpl final
+{
   public:
-    DaemonServiceImpl(joystream::core::Node* node, QCoreApplication* app)
-        : node_(node), app_(app)
-    {}
-
-    void setTag(void* t) {
-        std::cout << "setTag : " << t << std::endl;
-        tag_ = t;
-    }
-
-  private:
-    joystream::core::Node *node_;
-    QCoreApplication *app_;
-    void* tag_;
-};
-
-class ServerImpl final {
-  public:
-
     ServerImpl(joystream::core::Node* node, QCoreApplication* app)
-        : node_(node),
-          app_(app)
-    {}
+      : node_(node),
+        app_(app)
+      {}
 
     ~ServerImpl() {
       server_->Shutdown();
       // Always shutdown the completion queue after the server.
-      cq_->Shutdown();
+      //cq_->Shutdown();
     }
 
     // There is no shutdown handling in this code.
@@ -162,53 +115,39 @@ class ServerImpl final {
       std::string server_address("0.0.0.0:3002");
 
       ServerBuilder builder;
-      DaemonServiceImpl syncService_(node_,app_);
 
       builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 
-      builder.RegisterService(&syncService_); // sync service
-      builder.RegisterService(&asyncService_); // async service
+      builder.RegisterService(&daemonService);
+      daemonService.setCompletionQueue(builder.AddCompletionQueue());
 
-      cq_ = builder.AddCompletionQueue();
       server_ = builder.BuildAndStart();
       std::cout << "Server listening on " << server_address << std::endl;
 
-      HandleRpcs(&syncService_);
+      daemonService.run();
     }
 
   private:
-    // This can be run in multiple threads if needed.
-    void HandleRpcs(DaemonServiceImpl *syncService) {
-      new CallData(&asyncService_, cq_.get());
-      void* tag;
-      bool ok;
-      while (true) {
-        GPR_ASSERT(cq_->Next(&tag, &ok));
-        GPR_ASSERT(ok);
-        syncService->setTag(tag);
-        static_cast<CallData*>(tag)->Proceed();
-      }
-    }
-
     joystream::core::Node *node_;
     QCoreApplication *app_;
-    std::unique_ptr<ServerCompletionQueue> cq_;
     std::unique_ptr<Server> server_;
-    Callback::AsyncService asyncService_;
+    AsyncDaemonService daemonService;
 };
+
+
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+  QCoreApplication a(argc, argv);
 
-    // Create the objects we need here to pass to the daemon
-    auto node = joystream::core::Node::create([](const Coin::Transaction &tx){
-        // broadcast tx
-    });
+  // Create the objects we need here to pass to the daemon
+  auto node = joystream::core::Node::create([](const Coin::Transaction &tx){
+    // broadcast tx
+  });
 
-    ServerImpl server(node, &a);
+  ServerImpl server(node, &a);
 
-    server.Run();
+  server.Run();
 
-    return 0;
+  return 0;
 }
