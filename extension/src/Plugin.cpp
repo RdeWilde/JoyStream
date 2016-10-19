@@ -38,7 +38,7 @@ boost::uint32_t Plugin::implemented_features() {
 
 boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent_handle const & h, void*) {
 
-    assert(_plugins.count(h.info_hash()) == 0);
+    assert(_torrentPlugins.count(h.info_hash()) == 0);
 
     // Create a torrent plugin
     boost::shared_ptr<libtorrent::torrent_plugin> plugin(new TorrentPlugin(this,
@@ -50,7 +50,7 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
                                                                            TorrentPlugin::LibtorrentInteraction::None));
 
     // Storing weak reference to plugin
-    _plugins[h.info_hash()] = boost::static_pointer_cast<TorrentPlugin>(plugin);
+    _torrentPlugins[h.info_hash()] = boost::static_pointer_cast<TorrentPlugin>(plugin);
 
     // Send alert notification
     _alertManager->emplace_alert<alert::TorrentPluginAdded>(h);
@@ -75,9 +75,9 @@ void Plugin::on_alert(libtorrent::alert const * a) {
         const libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
         // Piece is not relevant unless we have a seller for given torrent
-        auto it = _plugins.find(infoHash);
+        auto it = _torrentPlugins.find(infoHash);
 
-        if(it == _plugins.cend())
+        if(it == _torrentPlugins.cend())
             return;
 
         boost::shared_ptr<TorrentPlugin> plugin = it->second.lock();
@@ -103,12 +103,16 @@ void Plugin::save_state(libtorrent::entry &) const {
 void Plugin::load_state(const libtorrent::bdecode_node &) {
 }
 
+const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > & Plugin::torrentPlugins() const noexcept {
+    return _torrentPlugins;
+}
+
 status::Plugin Plugin::status() const {
 
     status::Plugin status;
 
     // Get state of each plugin
-    for(auto mapping : _plugins) {
+    for(auto mapping : _torrentPlugins) {
 
         boost::shared_ptr<TorrentPlugin> plugin = mapping.second.lock();
 

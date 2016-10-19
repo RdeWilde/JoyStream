@@ -61,9 +61,10 @@ public:
     template<class T>
     void submit(const T &);
 
-private:
+    // Get map of weak torrent plugin references
+    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > & torrentPlugins() const noexcept;
 
-    friend class detail::RequestVariantVisitor;
+private:
 
     // Libtorrent alert manager
     libtorrent::alert_manager * _alertManager;
@@ -83,7 +84,7 @@ private:
     bool _addedToSession;
 
     // Maps torrent hash to corresponding plugin
-    std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > _plugins;
+    std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > _torrentPlugins;
 
     // Request queue
     std::deque<detail::RequestVariant> _requestQueue;

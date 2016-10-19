@@ -101,7 +101,7 @@ void RequestVariantVisitor::operator()(const request::UpdateStatus &) {
 void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r) {
 
     // Stop all torrent plugins which can be stopped
-    auto pluginMap = _plugin->_plugins;
+    auto pluginMap = _plugin->torrentPlugins();
 
     for(auto m : pluginMap) {
 
@@ -191,13 +191,15 @@ void RequestVariantVisitor::operator()(const request::ResumeTorrent & r) {
 std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorrent::sha1_hash & infoHash,
                                                                   const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const {
 
+    auto pluginMap = _plugin->torrentPlugins();
+
     // Make sure there is a torrent plugin for this torrent
-    auto it = _plugin->_plugins.find(infoHash);
+    auto it = pluginMap.find(infoHash);
 
     std::exception_ptr e;
 
     // If there is no torrent plugin, then tell client
-    if(it == _plugin->_plugins.cend())
+    if(it == pluginMap.cend())
         e = std::make_exception_ptr(exception::MissingTorrent());
     else {
 
