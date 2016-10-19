@@ -20,12 +20,14 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const libtorrent::torrent_handle & torrent,
                              const TransactionBroadcaster broadcaster,
                              uint minimumMessageId,
+                             libtorrent::alert_manager * alertManager,
                              const Policy & policy,
                              LibtorrentInteraction libtorrentInteraction)
     : _plugin(plugin)
     , _torrent(torrent)
     , _broadcaster(broadcaster)
     , _minimumMessageId(minimumMessageId)
+    , _alertManager(alertManager)
     , _policy(policy)
     , _libtorrentInteraction(libtorrentInteraction)
     , _infoHash(torrent.info_hash())

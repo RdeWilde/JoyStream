@@ -78,6 +78,7 @@ public:
                   const libtorrent::torrent_handle & torrent,
                   const TransactionBroadcaster broadcaster,
                   uint minimumMessageId,
+                  libtorrent::alert_manager * alertManager,
                   const Policy & policy,
                   LibtorrentInteraction libtorrentInteraction);
 
@@ -193,6 +194,9 @@ private:
     // Lowest all message id where libtorrent client can guarantee we will not
     // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
     const uint _minimumMessageId;
+
+    // Libtorrent alert manager
+    libtorrent::alert_manager * _alertManager;
 
     // Parametrised runtime behaviour
     Policy _policy;
