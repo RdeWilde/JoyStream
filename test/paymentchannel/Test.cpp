@@ -64,9 +64,9 @@ void Test::refund() {
 
     joystream::paymentchannel::Refund R(p.refund());
 
-    QCOMPARE(R.getUnspentOutput().value(), channelValue);
+    QCOMPARE(R.getUnspentOutput()->value(), channelValue);
 
-    QVERIFY(R.getUnspentOutput().outPoint() == contractOutPoint);
+    QVERIFY(R.getUnspentOutput()->outPoint() == contractOutPoint);
 
     // The output is locked until 3 * 512 seconds pass from the time that the contracted was mined (T = 0)
     QCOMPARE(lockTime.getDuration().count(), (unsigned int)1536);

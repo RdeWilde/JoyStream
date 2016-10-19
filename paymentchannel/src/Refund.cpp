@@ -23,9 +23,9 @@ namespace paymentchannel {
         , _payorContractKeyPair(payorContractKeyPair) {
     }
 
-    UnspentBuyerRefundOutput Refund::getUnspentOutput() const {
+    UnspentBuyerRefundOutput* Refund::getUnspentOutput() const {
 
-        return UnspentBuyerRefundOutput(_payorContractKeyPair,
+        return new UnspentBuyerRefundOutput(_payorContractKeyPair,
                                      _commitment.redeemScript(),
                                      _contractOutPoint,
                                      _commitment.value());

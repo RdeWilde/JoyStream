@@ -32,7 +32,7 @@ namespace paymentchannel {
                const Commitment & commitment, const Coin::KeyPair &payorContractKeyPair);
 
         // Get an UnspentContractOutput to spend the entire commitment (full refund)
-        UnspentBuyerRefundOutput getUnspentOutput() const;
+        UnspentBuyerRefundOutput* getUnspentOutput() const;
 
         // Wether refund is still locked or not
         bool isLocked(uint32_t currentTime, uint32_t contractMinedAt) const;
