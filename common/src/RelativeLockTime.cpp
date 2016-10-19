@@ -120,7 +120,7 @@ uchar_vector RelativeLockTime::toScriptData() const {
 }
 
 RelativeLockTime RelativeLockTime::fromScriptData(const uchar_vector &data) {
-    if(data.size() != 3) {
+    if(data.empty() || data.size() > 3) {
         throw std::runtime_error("Invalid LockTime data");
     }
 
