@@ -220,7 +220,8 @@ void Test::popData() {
 
         uchar_vector subscript = Coin::popData(script, data);
 
-        QCOMPARE(uint(data.size()), uint(0));
+        QCOMPARE(uint(data.size()), uint(1));
+        QCOMPARE(data[0], uchar(0));
 
         QVERIFY(subscript.empty());
     }
@@ -236,13 +237,13 @@ void Test::popData() {
 
         uchar_vector subscript = Coin::popData(script, data);
 
-        QCOMPARE(uint(data.size()), uint(0));
+        QCOMPARE(uint(data.size()), uint(1));
 
         QCOMPARE(uint(subscript.size()), uint(1));
 
         Coin::popData(subscript, data);
 
-        QCOMPARE(uint(data.size()), uint(0));
+        QCOMPARE(uint(data.size()), uint(1));
     }
 
     {
@@ -529,18 +530,17 @@ void Test::TimeRelativeLockTimeEncoding() {
 
     uchar_vector data = relativeLockTime.toScriptData();
 
-    // 3-byte signed integer for use in bitcoin scripts as a 3-byte PUSHDATA
-    QCOMPARE((int)data.size(), 3);
+    QCOMPARE((int)data.size(), 4);
 
     // sign bit unset,
     // most significant bit (after the sign bit) should be set
     // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
     // as time
-    QCOMPARE(data.at(2) & 0xc0, 0x40);
+    QCOMPARE(data.at(3) & 0xc0, 0x40);
 
     // 16-bits representing locktime value
-    QCOMPARE(data.at(1), uchar(0xbe));
-    QCOMPARE(data.at(0), uchar(0xef));
+    QCOMPARE(data.at(2), uchar(0xbe));
+    QCOMPARE(data.at(1), uchar(0xef));
 
     QCOMPARE(uint32_t(0x0040beef), relativeLockTime.toSequenceNumber());
 }
@@ -550,20 +550,21 @@ void Test::BlockRelativeLockTimeEncoding() {
     uint16_t counter = 0xbeef;
     Coin::RelativeLockTime relativeLockTime = Coin::RelativeLockTime(counter);
 
+    QCOMPARE(relativeLockTime.units(), Coin::RelativeLockTime::Units::Blocks);
+
     uchar_vector data = relativeLockTime.toScriptData();
 
-    // 3-byte signed integer for use in bitcoin scripts as a 3-byte PUSHDATA
-    QCOMPARE((int)data.size(), 3);
+    QCOMPARE((int)data.size(), 4);
 
     // sign bit unset and
     // most significant bit (after the sign bit) should be unset
     // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
     // as blocks
-    QCOMPARE(data.at(2) & 0xc0, 0x00);
+    QCOMPARE(data.at(3) & 0xc0, 0x00);
 
     // 16-bits representing locktime value
-    QCOMPARE(data.at(1), uchar(0xbe));
-    QCOMPARE(data.at(0), uchar(0xef));
+    QCOMPARE(data.at(2), uchar(0xbe));
+    QCOMPARE(data.at(1), uchar(0xef));
 
     QCOMPARE(uint32_t(0x0000beef), relativeLockTime.toSequenceNumber());
 }

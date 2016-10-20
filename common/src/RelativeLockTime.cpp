@@ -110,18 +110,27 @@ RelativeLockTime RelativeLockTime::fromSequenceNumber(const uint32_t & seq) {
         return RelativeLockTime::fromTimeUnits(counter);
 }
 
+//error code: -26
+//error message:
+//64: non-mandatory-script-verify-flag (Data push larger than necessary)
+    // use minimal encodings for all push operations (OP_0... OP_16, OP_1NEGATE where possible, direct
+    // pushes up to 75 bytes, OP_PUSHDATA up to 255 bytes, OP_PUSHDATA2 for anything larger). Evaluating
+    // any other push causes the script to fail (BIP62 rule 3).
+    // In addition, whenever a stack element is interpreted as a number, it must be of minimal length (BIP62 rule 4).
+    // (softfork safe)
+    // bitcore flag: Interpreter.SCRIPT_VERIFY_MINIMALDATA = (1 << 6);
 uchar_vector RelativeLockTime::toScriptData() const {
     uint32_t value = 0x0000ffff & _counter;
 
     if(_units == Units::Time)
         value |= 0x00400000;
 
-    return Coin::serializeScriptNum(value);
+    return opPushNumber(value);
 }
 
 RelativeLockTime RelativeLockTime::fromScriptData(const uchar_vector &data) {
-    if(data.empty() || data.size() > 3) {
-        throw std::runtime_error("Invalid LockTime data");
+    if(data.empty()) {
+        throw std::runtime_error("empty locktime data");
     }
 
     // decode the locktime
