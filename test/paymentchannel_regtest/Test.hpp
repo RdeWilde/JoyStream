@@ -28,6 +28,7 @@ private slots:
 
     // Unit Tests
     void RefundLocking();
+    void Settlement();
 
     // Will be called at the end of all tests
     void cleanupTestCase();
