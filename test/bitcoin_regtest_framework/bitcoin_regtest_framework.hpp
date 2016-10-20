@@ -110,7 +110,6 @@ BITCOIN_REGTEST_FRAMEWORKSHARED_EXPORT int importPrivKey(std::string privKey) {
     return rpc("importprivkey " + privKey);
 }
 
-
 BITCOIN_REGTEST_FRAMEWORKSHARED_EXPORT std::string listunspent() {
     std::string list;
     int err = rpc_output("listunspent 0", list);
@@ -119,6 +118,16 @@ BITCOIN_REGTEST_FRAMEWORKSHARED_EXPORT std::string listunspent() {
         throw std::runtime_error(std::string("bitcoin: unable to get list of unspent outputs") + std::string(strerror(err)));
 
     return list;
+}
+
+BITCOIN_REGTEST_FRAMEWORKSHARED_EXPORT std::string getrawtransaction(std::string txId) {
+    std::string rawtx;
+    int err = rpc_output("getrawtransaction " + txId, rawtx);
+
+    if(err)
+        throw std::runtime_error(std::string("bitcoin: unable to get raw transaction") + std::string(strerror(err)));
+
+    return rawtx;
 }
 
 int start_node() {

@@ -40,6 +40,20 @@ void Test::cleanupTestCase() {
     regtest::shutdown();
 }
 
+Coin::typesafeOutPoint getOutpointFromAddress(std::string &txid, Coin::P2PKHAddress &address) {
+    std::string rawTx = regtest::getrawtransaction(txid);
+    auto scriptPubKey = Coin::P2PKHScriptPubKey(address.pubKeyHash()).serialize();
+    Coin::Transaction tx(rawTx);
+
+    for(uint i = 0; i < tx.outputs.size(); i++) {
+        if(tx.outputs.at(i).scriptPubKey == scriptPubKey) {
+            return Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(txid), i);
+        }
+    }
+
+    return Coin::typesafeOutPoint();
+}
+
 void Test::RefundLocking() {
 
     // Contract funding
@@ -52,19 +66,7 @@ void Test::RefundLocking() {
     std::string fundsTxId;
     QCOMPARE(regtest::send_to_address(fundsAddress.toBase58CheckEncoding().toStdString(), amount_ss.str(), fundsTxId), 0);
 
-    // the sendtoaddress tx output index of our funds is not deterministic, it will either be 0 or 1
-    // so we figure out which is the change address and assume the other one is our output
-    std::string utxoJson = regtest::listunspent();
-    QJsonParseError parseErr;
-    QJsonDocument utxos = QJsonDocument::fromJson(QByteArray(utxoJson.c_str()), &parseErr);
-
-    QCOMPARE(parseErr.error, QJsonParseError::ParseError::NoError);
-    QCOMPARE(utxos.isArray(), true);
-
-    auto firstUtxo = utxos.array().at(0).toObject();
-    int vout = firstUtxo.value("vout").toInt();
-
-    Coin::typesafeOutPoint fundsOutpoint(Coin::TransactionId::fromRPCByteOrder(fundsTxId), vout ^= 1);
+    Coin::typesafeOutPoint fundsOutpoint = getOutpointFromAddress(fundsTxId, fundsAddress);
 
     Coin::UnspentOutputSet funding;
     auto funds = new Coin::UnspentP2PKHOutput(Coin::KeyPair(fundsSk), fundsOutpoint, amount);
