@@ -45,7 +45,7 @@ win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/r
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/debug/ -lpaymentchannel
 else:unix: LIBS += -L$$OUT_PWD/../../paymentchannel/ -lpaymentchannel
 
-INCLUDEPATH += $$PWD/../../paymentchannel
+INCLUDEPATH += $$PWD/../../paymentchannel/include
 DEPENDPATH += $$PWD/../../paymentchannel
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/libpaymentchannel.a
