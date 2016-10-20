@@ -3,7 +3,8 @@
 
 #include <grpc/grpc.h>
 #include <grpc++/grpc++.h>
-
+#include <QObject>
+#include <QMetaObject>
 
 template<class Service>
 class AsyncCallHandler : public Service {
@@ -32,9 +33,12 @@ protected:
   };
 
 
-  struct CallCtx {
-    virtual ~CallCtx() {}
-    virtual void proceed(bool fok) = 0;
+  class CallCtx : public QObject {
+    Q_OBJECT
+
+    public:
+      virtual ~CallCtx() {}
+      Q_INVOKABLE virtual void proceed(bool fok) = 0;
   };
 
 
@@ -181,7 +185,6 @@ protected:
           stream_->~ServerAsyncReaderWriter<RESP,REQ>();
           break;
         }
-
       }
 
       CallHandler(const Method * m)
@@ -327,13 +330,17 @@ public:
   {
     void * tag;
     bool fok;
+    CallCtx* obj;
 
     for ( auto m = methods_.begin(); m != methods_.end(); ++m ) {
       (*m)->requestNewCall();
     }
 
     while ( cq_->Next(&tag, &fok) ) {
-      (static_cast<CallCtx *>(tag))->proceed(fok);
+      //(static_cast<CallCtx *>(tag))->proceed(fok);
+      obj = static_cast<CallCtx *>(tag);
+      std::cout<<"obj is of type: "<<typeid(obj).name()<<std::endl;
+      QMetaObject::invokeMethod(obj, "proceed", Qt::QueuedConnection, Q_ARG(bool, fok));
     }
   }
 };

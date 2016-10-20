@@ -69,11 +69,14 @@ class AsyncDaemonService
 
 public:
 
-  AsyncDaemonService() {
+  AsyncDaemonService(joystream::core::Node* node)
+    : node_(node)
+  {
     AddMethod(&NormalRpcDaemon::OnCall, &Daemon::AsyncService::Requesttest1);
   }
 
 private:
+  joystream::core::Node *node_;
 
   ///////
 
@@ -83,9 +86,9 @@ private:
     bool OnCall(bool fok, ServerContext* context, ServerCompletionQueue * cq, const TestRequest * request,
         ServerAsyncResponseWriter<TestResponce>* response_writer, void * tag)
     {
-      (void)(fok);
+      /*(void)(fok);
       (void) (context);
-      (void) (cq);
+      (void) (cq);*/
       PDBG("GOT %s", request->clientmessage().c_str());
       responce.set_servermessage("This is a server message");
       response_writer->Finish(responce, Status::OK, tag);
@@ -115,6 +118,7 @@ class ServerImpl final
       std::string server_address("0.0.0.0:3002");
 
       ServerBuilder builder;
+      AsyncDaemonService daemonService(node_);
 
       builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 
@@ -131,7 +135,6 @@ class ServerImpl final
     joystream::core::Node *node_;
     QCoreApplication *app_;
     std::unique_ptr<Server> server_;
-    AsyncDaemonService daemonService;
 };
 
 
