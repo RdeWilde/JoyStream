@@ -30,9 +30,7 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x67); // OP_ELSE
     // Branch for when channel is settled with full refund to payor
-    uchar_vector locktime = _lockTime.toScriptData();
-    script += Coin::opPushData(locktime.size());
-    script += locktime;
+    script += _lockTime.toScriptData();
     script.push_back(0xb2); // OP_CHECKSEQUENCEVERIFY (BIP 68)
     script.push_back(0x75); // OP_DROP
 
@@ -96,11 +94,11 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
 }
 
 uchar_vector RedeemScript::PayorOptionalData() {
-    return uchar_vector(0x00); /* OP_FALSE */
+    return Coin::opPushNumber(0); // false
 }
 
 uchar_vector RedeemScript::PayeeOptionalData() {
-    return uchar_vector(0x01); /* OP_TRUE */
+    return Coin::opPushNumber(1); // true
 }
 
 bool RedeemScript::isPayorPublicKey(const Coin::PublicKey & pk) const {
