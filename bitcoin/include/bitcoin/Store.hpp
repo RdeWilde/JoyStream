@@ -42,9 +42,26 @@ public:
     const uint32_t BIP44_COIN_TYPE_BITCOIN = 0x80000000;
     const uint32_t BIP44_COIN_TYPE_BITCOIN_TESTNET = 0x80000001;
 
+    struct StoreControlledOutput {
+        KeychainType chainType;
+        Coin::KeyPair keyPair;
+        uchar_vector redeemScript;
+        uchar_vector optionalData;
+        Coin::typesafeOutPoint outPoint;
+        int64_t value;
+    };
+
     typedef std::function<void(Coin::TransactionId, int confirmations)> transactionUpdatedCallback;
     typedef std::function<RedeemScriptInfo(const Coin::PublicKey &, uint32_t n)> MultiRedeemScriptGenerator;
-    typedef std::function<bool(const uchar_vector &script)> RedeemScriptFilter;
+    typedef std::function<Coin::UnspentOutput*(const StoreControlledOutput &)> UnspentOutputGenerator;
+
+    static Coin::UnspentOutput* standardP2PKHOutputSelectorFunction(const Store::StoreControlledOutput &);
+    static Coin::UnspentOutput* standardP2SHOutputSelectorFunction(const Store::StoreControlledOutput &);
+    static Coin::UnspentOutput* standardOutputSelectorsFunction(const Store::StoreControlledOutput &);
+
+    static const UnspentOutputGenerator standardOutputSelectors;
+    static const UnspentOutputGenerator standardP2PKHOutputSelector;
+    static const UnspentOutputGenerator standardP2SHOutputSelector;
 
     // Custom Store Exceptions
     class BlockHeaderNotFound : public std::runtime_error {
@@ -139,8 +156,12 @@ public:
     bool transactionExists(const Coin::TransactionId & txid);
     //bool loadKey(const Coin::P2SHAddress &p2shaddress, Coin::PrivateKey & sk);
 
-    std::list<std::shared_ptr<Coin::UnspentOutput> > getUnspentTransactionsOutputs(int32_t confirmations = 0, int32_t main_chain_height = 0, const RedeemScriptFilter & scriptFilter = nullptr) const;
-    uint64_t getWalletBalance(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
+    std::list<std::shared_ptr<Coin::UnspentOutput> > getUnspentTransactionsOutputs(int32_t confirmations = 0,
+                                                                                   const UnspentOutputGenerator & outputGenerator = standardOutputSelectors) const;
+
+    std::vector<StoreControlledOutput> getControlledOutputs(int32_t confirmations = 0) const;
+
+    uint64_t getWalletBalance(int32_t confirmations = 0) const;
 
     std::vector<std::string> getLatestBlockHeaderHashes();
 

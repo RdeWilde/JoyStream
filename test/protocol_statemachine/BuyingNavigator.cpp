@@ -10,7 +10,7 @@
 bool BuyingNavigator::Fixture::validatePayment(const Coin::Signature & payment, int numberOfPayments) const {
 
     joystream::paymentchannel::Payee payee(numberOfPayments,
-                                           peerToSellMode.message().terms().minLock(),
+                                           Coin::RelativeLockTime::fromTimeUnits(peerToSellMode.message().terms().minLock()),
                                            peerToSellMode.message().terms().minPrice(),
                                            contractPrepared.value(),
                                            peerToSellMode.message().terms().settlementFee(),

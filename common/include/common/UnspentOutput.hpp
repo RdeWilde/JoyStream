@@ -16,6 +16,7 @@
 namespace Coin {
 
 class TransactionSignature;
+class TxIn;
 
 class UnspentOutput {
 public:
@@ -42,6 +43,12 @@ public:
     virtual TransactionSignature transactionSignature(const Transaction & tx, const SigHashType & sigHashType) const = 0;
     virtual uchar_vector scriptSig(const Transaction & tx, const SigHashType & sigHashType) const = 0;
 
+    // nSequence value to be used for the input in the spending transaction
+    // If not overriden in dervied classes it just returns the default sequence number which disabled nLockTime
+    virtual uint32_t spendingInputSequenceNumber() const;
+
+    // Returns a Coin::TxIn with the correct outpoint and sequence number, without a scriptSig (input script) set
+    Coin::TxIn unsignedSpendingInput() const;
 
 private:
 

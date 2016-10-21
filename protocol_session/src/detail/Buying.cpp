@@ -571,7 +571,7 @@ namespace detail {
 
             auto value = funds[i];
             auto payeeContractPk = selected[i]->payor().payeeContractPk();
-            auto lockTime = terms[i].minLock();
+            auto lockTime = Coin::RelativeLockTime::fromTimeUnits(terms[i].minLock());
 
             // Generate new buyer keypair for commitment
             Coin::KeyPair payorCommitmentKeyPair = _generateP2SHKeyPair([payeeContractPk, lockTime](const Coin::PublicKey & payorCommitmentPk){

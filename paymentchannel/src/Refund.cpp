@@ -6,6 +6,7 @@
  */
 
 #include <paymentchannel/Refund.hpp>
+#include <paymentchannel/UnspentBuyerRefundOutput.hpp>
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER, sighash
 #include <common/TransactionSignature.hpp>
 #include <common/PrivateKey.hpp>
@@ -22,29 +23,22 @@ namespace paymentchannel {
         , _payorContractKeyPair(payorContractKeyPair) {
     }
 
-    Coin::UnspentP2SHOutput Refund::getUnspentOutput() const {
-        // Todo: replace this with a typesafe output which is will ensure that a transaction
-        // which spends it will have nLockTime set to the commitment locktime
+    UnspentBuyerRefundOutput* Refund::getUnspentOutput() const {
 
-        return Coin::UnspentP2SHOutput(_payorContractKeyPair,
-                                       _commitment.redeemScript().serialized(),
-                                       RedeemScript::PayorOptionalData(),
-                                       _contractOutPoint,
-                                       _commitment.value());
+        return new UnspentBuyerRefundOutput(_payorContractKeyPair,
+                                     _commitment.redeemScript(),
+                                     _contractOutPoint,
+                                     _commitment.value());
     }
 
-    uint32_t Refund::lockedUntil() const {
-        return _commitment.lockTime();
+    uint32_t Refund::lockedUntil(uint32_t contractMinedAt) const {
+        return _commitment.lockTime().getDuration().count() + contractMinedAt;
     }
 
-    bool Refund::isLocked(uint32_t currentBlockHeight) const {
-        uint32_t locktime = lockedUntil();
+    bool Refund::isLocked(uint32_t currentTime, uint32_t contractMinedAt) const {
+        uint32_t unlockedAt = lockedUntil(contractMinedAt);
 
-        if(locktime < uint32_t(500000000)){
-            return locktime >= currentBlockHeight;
-        } else {
-            return locktime > std::time(nullptr);
-        }
+        return currentTime < unlockedAt;
     }
 
 }

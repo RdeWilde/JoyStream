@@ -53,18 +53,22 @@ namespace Coin {
     uchar_vector opPushData(uint32_t nBytes)
     {
         uchar_vector rval;
+        // push data upto 75 bytes long
         if (nBytes <= 0x4b) {
             rval.push_back((unsigned char)nBytes);
         }
+        // OP_PUSHDATA1
         else if (nBytes <= 0xff) {
             rval.push_back(0x4c);
             rval.push_back((unsigned char)nBytes);
         }
+        // OP_PUSHDATA2
         else if (nBytes <= 0xffff) {
             rval.push_back(0x4d);
             rval.push_back((unsigned char)(nBytes & 0xff));
             rval.push_back((unsigned char)(nBytes >> 8));
         }
+        // OP_PUSHDATA4
         else {
             rval.push_back(0x4e);
             rval.push_back((unsigned char)(nBytes & 0xff));
@@ -74,6 +78,22 @@ namespace Coin {
         }
 
         return rval;
+    }
+
+    uchar_vector opPushNumber(uint32_t value) {
+        if(value == 0) {
+            return uchar_vector(1, 0x00);
+        }
+
+        if(value < 17) {
+            return uchar_vector(1, 0x51 + (uchar)value - 1);
+        }
+
+        uchar_vector encodedNumber = serializeScriptNum(value);
+        uchar_vector data;
+        data += opPushData(encodedNumber.size());
+        data += encodedNumber;
+        return data;
     }
 
     /*
@@ -94,9 +114,12 @@ namespace Coin {
         uint32_t dataSize = 0;
         uint32_t offset = 0;
 
+        // OP_0 / OP_FALSE
         if (script[0] == 0x00) {
             offset = 1;
+            poppedData = uchar_vector(1, 0x00);
         }
+        // push data upto 75 bytes long
         else if (script[0] <= 0x4b && script.size() > 1) {
             dataSize = script[0];
             offset = 1;
@@ -119,8 +142,13 @@ namespace Coin {
             dataSize += ((uint32_t)script[3]) << 16;
             dataSize += ((uint32_t)script[4]) << 24;
             offset = 5;
-        } else {
-            // operation is not a push data op
+        }
+        // OP_1 ... OP_16
+        else if(script[0] >= 0x51 || script[0] <= 0x60) {
+            offset = 1;
+            poppedData = uchar_vector(1, script[0] - 0x51 + 1);
+        }else{
+            // operation is not a push data op, or not enough data to pop
         }
 
         if(script.size() >= (offset + dataSize)){

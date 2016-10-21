@@ -9,6 +9,7 @@
 #define PAYMENT_CHANNEL_REDEEMSCRIPT_H
 
 #include <common/PublicKey.hpp>
+#include <common/RelativeLockTime.hpp>
 #include <stdutils/uchar_vector.h>
 
 namespace Coin {
@@ -21,7 +22,7 @@ namespace paymentchannel {
 class RedeemScript
 {
 public:
-    explicit RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime);
+    explicit RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, const Coin::RelativeLockTime&);
 
     uchar_vector serialized() const;
 
@@ -33,10 +34,20 @@ public:
     // Optional data that must used in the scriptSig to spend the p2sh output in the settlement tx by the Payee (Seller)
     static uchar_vector PayeeOptionalData();
 
+    bool isPayorPublicKey(const Coin::PublicKey &) const;
+    bool isPayeePublicKey(const Coin::PublicKey &) const;
+
+    Coin::PublicKey payorPk() const;
+    Coin::PublicKey payeePk() const;
+
+    Coin::RelativeLockTime lockTime() const;
+
 private:
     Coin::PublicKey _payorPk;
     Coin::PublicKey _payeePk;
-    uint32_t _lockTime;
+
+    // Relative locktime
+    Coin::RelativeLockTime _lockTime;
 };
 
 }}

@@ -30,8 +30,6 @@ private:
     joystream::bitcoin::SPVWallet *_walletA;
     joystream::bitcoin::SPVWallet *_walletB;
 
-    void init_bitcoind();
-
 private slots:
 
     // Will be called once at the start

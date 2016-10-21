@@ -57,6 +57,10 @@ namespace Coin {
     // Copied from mSIGNA
     uchar_vector opPushData(uint32_t nBytes);
 
+    // used for pushing a number to the stack in scripts for operations that interpret the item on the stack
+    // as a number
+    uchar_vector opPushNumber(uint32_t value);
+
     uchar_vector popData(const uchar_vector & script, uchar_vector & poppedData);
 
     // Deduce address network

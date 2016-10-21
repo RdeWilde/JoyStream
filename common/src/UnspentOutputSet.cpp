@@ -68,7 +68,7 @@ void UnspentOutputSet::finance(Transaction & cointx, const SigHashType & sigHash
 
     // Add new inputs to transaction
     for(auto & utxo : *this) {
-        cointx.inputs.push_back(Coin::TxIn(utxo->outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
+        cointx.inputs.push_back(utxo->unsignedSpendingInput());
     }
 
     // Sign the inputs

@@ -241,7 +241,7 @@ private:
         paymentchannel::Payee getPayee() {
 
             return paymentchannel::Payee(0,
-                                         terms.minLock(),
+                                         Coin::RelativeLockTime::fromTimeUnits(terms.minLock()),
                                          terms.minPrice(),
                                          ready.value(),
                                          terms.settlementFee(),

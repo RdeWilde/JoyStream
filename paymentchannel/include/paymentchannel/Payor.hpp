@@ -12,6 +12,7 @@
 #include <common/KeyPair.hpp>
 #include <common/RedeemScriptHash.hpp>
 #include <common/Signature.hpp>
+#include <common/RelativeLockTime.hpp>
 
 namespace Coin {
     class TransactionId;
@@ -43,7 +44,7 @@ namespace paymentchannel {
                 quint64 numberOfPaymentsMade,
                 quint64 funds,
                 quint64 settlementFee,
-                quint32 refundLockTime,
+                Coin::RelativeLockTime refundLockTime,
                 const Coin::typesafeOutPoint & anchor,
                 const Coin::KeyPair & payorContractKeyPair,
                 const Coin::PubKeyHash & payorFinalPkHash,
@@ -82,8 +83,8 @@ namespace paymentchannel {
         quint64 settlementFee() const;
         void setSettlementFee(quint64);
 
-        quint32 refundLockTime() const;
-        void setRefundLockTime(quint32);
+        Coin::RelativeLockTime refundLockTime() const;
+        void setRefundLockTime(Coin::RelativeLockTime);
 
         Coin::typesafeOutPoint anchor() const;
         void setAnchor(const Coin::typesafeOutPoint &);
@@ -115,7 +116,7 @@ namespace paymentchannel {
         quint64 _settlementFee;
 
         // Lock time of refund, received in
-        quint32 _refundLockTime;
+        Coin::RelativeLockTime _refundLockTime;
 
         // Anchor for channel in contract transaction
         Coin::typesafeOutPoint _anchor;
