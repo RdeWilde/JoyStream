@@ -246,8 +246,6 @@ int main(int argc, char *argv[])
         });
     }
 
-    kit->start();
-
     std::cout << "Starting Qt Application Event loop\n";
     int ret = app.exec();
 

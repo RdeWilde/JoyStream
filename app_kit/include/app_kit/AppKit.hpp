@@ -52,10 +52,6 @@ public:
     bitcoin::SPVWallet* wallet();
     core::Node* node();
 
-    // Starts internal timer for performing tasks at regular intervals
-    // such as doing node status updates and re-establishing connection to the bitcoin network
-    void start();
-
     void shutdown(const Callback &);
 
     // Save Node state to and ostream

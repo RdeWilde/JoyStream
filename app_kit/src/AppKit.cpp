@@ -60,6 +60,7 @@ AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network netwo
     }
 
     return new AppKit(node, wallet, dataDirectory, host , port);
+
 }
 
 AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &dataDirectory, std::string host, int port)
@@ -73,8 +74,14 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &data
 
     QObject::connect(_timer, &QTimer::timeout, [this](){
         _node->updateStatus();
-        // try to reconnect to bitcoin network if wallet went offline... rebroadcast transactions..
+
+        // try to reconnect to bitcoin network if wallet went offline
+        syncWallet(_bitcoinHost, _bitcoinPort);
+
+        //... rebroadcast transactions..
     });
+
+    _timer->start(1000); // 1s interval
 }
 
 core::Node *AppKit::node() {
@@ -83,11 +90,6 @@ core::Node *AppKit::node() {
 
 bitcoin::SPVWallet* AppKit::wallet() {
     return _wallet.get();
-}
-
-void AppKit::start() {
-    if(_timer)
-        _timer->start(1000);
 }
 
 void AppKit::syncWallet(std::string host, int port) {
