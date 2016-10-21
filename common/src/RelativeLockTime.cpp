@@ -7,11 +7,7 @@
 namespace Coin {
 
 RelativeLockTime::RelativeLockTime()
-    : RelativeLockTime(Units::Time, 0)
-    {}
-
-RelativeLockTime::RelativeLockTime(const uint32_t &blocks)
-    : RelativeLockTime(Units::Blocks, blocks)
+    : RelativeLockTime(Units::Blocks, 0)
     {}
 
 RelativeLockTime::RelativeLockTime(const Units &units, const LockTimeCounter &counter)

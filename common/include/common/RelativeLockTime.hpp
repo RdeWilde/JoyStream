@@ -19,13 +19,10 @@ public:
         Time
     };
 
-    // Default constructor
+    // Default Constructor
     RelativeLockTime();
 
     RelativeLockTime(const Units &, const LockTimeCounter &);
-
-    // simple ctor from integer creates a block based relative locktime
-    RelativeLockTime(const uint32_t &);
 
     static RelativeLockTime fromTimeUnits(const LockTimeCounter &);
     static RelativeLockTime fromSecondsDuration(const std::chrono::seconds &);
