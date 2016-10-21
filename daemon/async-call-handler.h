@@ -6,6 +6,14 @@
 #include <QObject>
 #include <QMetaObject>
 
+class CallCtx : public QObject {
+  Q_OBJECT
+
+  public:
+    virtual ~CallCtx() {}
+    Q_INVOKABLE virtual void proceed(bool fok) = 0;
+};
+
 template<class Service>
 class AsyncCallHandler : public Service {
 
@@ -31,16 +39,6 @@ protected:
     callstate_proceed = 1,
     callstate_finish = 2,
   };
-
-
-  class CallCtx : public QObject {
-    Q_OBJECT
-
-    public:
-      virtual ~CallCtx() {}
-      Q_INVOKABLE virtual void proceed(bool fok) = 0;
-  };
-
 
   struct MethodCtx {
     virtual void requestNewCall() const = 0;

@@ -104,13 +104,21 @@ class ServerImpl final
   public:
     ServerImpl(joystream::core::Node* node, QCoreApplication* app)
       : node_(node),
-        app_(app)
-      {}
+        app_(app),
+        the_thread()
+      {
+       Init();
+      }
 
     ~ServerImpl() {
+      if(the_thread.joinable()) the_thread.join();
       server_->Shutdown();
       // Always shutdown the completion queue after the server.
       //cq_->Shutdown();
+    }
+
+    void Init(){
+        the_thread = std::thread(&ServerImpl::Run,this);
     }
 
     // There is no shutdown handling in this code.
@@ -135,6 +143,7 @@ class ServerImpl final
     joystream::core::Node *node_;
     QCoreApplication *app_;
     std::unique_ptr<Server> server_;
+    std::thread the_thread;
 };
 
 
@@ -150,7 +159,5 @@ int main(int argc, char *argv[])
 
   ServerImpl server(node, &a);
 
-  server.Run();
-
-  return 0;
+  return a.exec();
 }
