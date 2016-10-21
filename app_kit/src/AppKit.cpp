@@ -106,7 +106,7 @@ void AppKit::syncWallet(std::string host, int port) {
 
 void AppKit::shutdown(const Callback & shutdownComplete) {
 
-    std::cout << "Shuttind down AppKit" << std::endl;
+    std::cout << "Shutting down AppKit" << std::endl;
     _node->pause([shutdownComplete, this](){
         std::cout << "Node paused" << std::endl;
         _timer->stop();
@@ -137,10 +137,7 @@ void AppKit::buyTorrent(core::TorrentPlugin *plugin,
     // What is the best way to set this value - calculate based on buyer policy/terms ?
     const uint64_t paymentChannelFunds = 5000;
 
-    auto outputs = _wallet->lockOutputs(paymentChannelFunds, 0, [](const uchar_vector &p2sh_redeem_script){
-        // only select p2pkh outputs
-        return p2sh_redeem_script.empty();
-    });
+    auto outputs = _wallet->lockOutputs(paymentChannelFunds, 0);
 
     if(outputs.size() == 0) {
         // Not enough funds
