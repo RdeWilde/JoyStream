@@ -172,6 +172,22 @@ namespace exception {
 
     };
 
+    // Thrown if we attempt to
+    // 1) go to buy mode and torrent is not in libtorrent::torrent_status::state_t::downloading state
+    // 2) go to sell mode and torrent is not in libtorrent::torrent_status::state_t::seeding state
+
+    struct InvalidModeTransition : std::runtime_error {
+        InvalidModeTransition()
+            : std::runtime_error("Torrent cannot transition to desired mode in current state") {}
+    };
+
+    // Thrown if we attempt to get piece information from a Torrent when transitioning to sell mode
+
+    struct MetadataNotSet : std::runtime_error {
+        MetadataNotSet()
+            : std::runtime_error("Torrent files invalid") {}
+    };
+
 }
 }
 }

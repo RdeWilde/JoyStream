@@ -5,6 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, April 9 2016
  */
 
+#include <protocol_session/common.hpp>
 #include <protocol_session/Session.hpp>
 #include <protocol_session/TorrentPieceInformation.hpp>
 #include <protocol_session/Exceptions.hpp>

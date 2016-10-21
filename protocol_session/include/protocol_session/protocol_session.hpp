@@ -8,6 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOL_SESSION_HPP
 #define JOYSTREAM_PROTOCOL_SESSION_HPP
 
+#include <protocol_session/common.hpp>
 #include <protocol_session/Session.hpp>
 #include <protocol_session/Status.hpp>
 #include <protocol_session/Exceptions.hpp>

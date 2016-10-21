@@ -10,10 +10,13 @@
 #include <common/Seed.hpp>
 #include <CoinCore/hdkeys.h>
 
-template<>
-std::string IdToString<ID>(const ID & s) {
-    return std::to_string(s);
-}
+namespace joystream {
+namespace protocol_session {
+    template<>
+    std::string IdToString<ID>(const ID & s) {
+        return std::to_string(s);
+    }
+}}
 
 Test::Test()
     : network(Coin::Network::testnet3)
