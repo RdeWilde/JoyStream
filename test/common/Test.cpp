@@ -548,7 +548,7 @@ void Test::TimeRelativeLockTimeEncoding() {
 void Test::BlockRelativeLockTimeEncoding() {
 
     uint16_t counter = 0xbeef;
-    Coin::RelativeLockTime relativeLockTime = Coin::RelativeLockTime(counter);
+    Coin::RelativeLockTime relativeLockTime = Coin::RelativeLockTime::fromBlockUnits(counter);
 
     QCOMPARE(relativeLockTime.units(), Coin::RelativeLockTime::Units::Blocks);
 

@@ -783,7 +783,7 @@ paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTe
                                 0,
                                 ready.value(),
                                 sellerTerms.settlementFee(),
-                                sellerTerms.minLock(),
+                                Coin::RelativeLockTime::fromTimeUnits(sellerTerms.minLock()),
                                 ready.anchor(),
                                 Coin::KeyPair(payorContractSk),
                                 ready.finalPkHash(),

@@ -13,7 +13,7 @@ event::Recv<protocol_wire::Payment> SellingNavigator::Fixture::goodPayment(const
                                            numberOfPayments,
                                            contractReady.message().value(),
                                            sellModeStarted.terms().settlementFee(),
-                                           sellModeStarted.terms().minLock(),
+                                           Coin::RelativeLockTime::fromTimeUnits(sellModeStarted.terms().minLock()),
                                            contractReady.message().anchor(),
                                            Coin::KeyPair(payorContractSk),
                                            contractReady.message().finalPkHash(),
