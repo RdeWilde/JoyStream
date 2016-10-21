@@ -1,4 +1,5 @@
 QT += core
+QT += widgets
 QT -= gui
 
 CONFIG += c++11
@@ -110,4 +111,3 @@ include(../config.pri)
 
 HEADERS += \
     async-call-handler.h
-

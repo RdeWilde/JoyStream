@@ -5,6 +5,7 @@
 #include <grpc++/grpc++.h>
 #include <QObject>
 #include <QMetaObject>
+#include <QApplication>
 
 class CallCtx : public QObject {
   Q_OBJECT
@@ -188,6 +189,7 @@ protected:
       CallHandler(const Method * m)
           : m_(m), callstate_(callstate_wait_call)
       {
+        std::cout<< "Hello" <<std::endl;
         switch ( m->callType_ )
         {
         case NORMAL_RPC:
@@ -215,6 +217,7 @@ protected:
 
       void proceed(bool fok)
       {
+        std::cout<< "Hello" <<std::endl;
         switch ( callstate_ )
         {
         case callstate_wait_call:
@@ -335,9 +338,10 @@ public:
     }
 
     while ( cq_->Next(&tag, &fok) ) {
-      //(static_cast<CallCtx *>(tag))->proceed(fok);
-      obj = static_cast<CallCtx *>(tag);
-      std::cout<<"obj is of type: "<<typeid(obj).name()<<std::endl;
+      (static_cast<CallCtx *>(tag))->proceed(fok);
+      //obj = static_cast<CallCtx *>(tag);
+      obj->moveToThread(QApplication::instance()->thread());
+      std::cout << "In the loop" << std::endl;
       QMetaObject::invokeMethod(obj, "proceed", Qt::QueuedConnection, Q_ARG(bool, fok));
     }
   }
