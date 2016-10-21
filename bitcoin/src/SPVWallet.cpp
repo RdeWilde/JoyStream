@@ -412,7 +412,7 @@ std::string SPVWallet::getSeedWords() const {
 }
 
 Coin::UnspentOutputSet
-SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const Store::RedeemScriptFilter &scriptFilter) {
+SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const Store::UnspentOutputGenerator & outputGenerator) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -422,7 +422,7 @@ SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const S
     Coin::UnspentOutputSet selectedOutputs;
 
     // Assume outputs are sorted in descending value
-    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight(), scriptFilter));
+    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, outputGenerator));
 
     for(std::shared_ptr<Coin::UnspentOutput> & utxo : unspentOutputs) {
         if(_lockedOutpoints.find(utxo->outPoint()) != _lockedOutpoints.end()) continue;
@@ -457,6 +457,10 @@ uint SPVWallet::unlockOutputs(const Coin::UnspentOutputSet &outputs) {
     }
 
     return unlockedCount;
+}
+
+std::vector<Store::StoreControlledOutput> SPVWallet::getStoreControlledOutputs(uint32_t minimalConfirmations) {
+    return _store.getControlledOutputs(minimalConfirmations);
 }
 
 uint64_t SPVWallet::balance() const {
@@ -707,7 +711,7 @@ void SPVWallet::recalculateBalance() {
     uint64_t confirmed = 0;
 
     if(_store.getBestHeaderHeight() != 0) {
-        confirmed = _store.getWalletBalance(1, _store.getBestHeaderHeight());
+        confirmed = _store.getWalletBalance(1);
     }
 
     uint64_t unconfirmed = _store.getWalletBalance();
@@ -723,20 +727,20 @@ void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
     _networkSync.syncBlocks(height);
 }
 
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee) {
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee, Store::UnspentOutputGenerator customSelector) {
     auto scriptPubKey = Coin::P2PKHScriptPubKey(destinationAddr.pubKeyHash()).serialize();
-    return test_sendToAddress(value, scriptPubKey, fee);
+    return test_sendToAddress(value, scriptPubKey, fee, customSelector);
 }
 
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee) {
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee, Store::UnspentOutputGenerator customSelector) {
     auto scriptPubKey = destinationAddr.toP2SHScriptPubKey().serialize();
-    return test_sendToAddress(value, scriptPubKey, fee);
+    return test_sendToAddress(value, scriptPubKey, fee, customSelector);
 }
 
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const uchar_vector & scriptPubKey, uint64_t fee) {
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const uchar_vector & scriptPubKey, uint64_t fee, Store::UnspentOutputGenerator selector) {
 
     // Get UnspentUTXO
-    auto utxos(lockOutputs(value + fee, 0));
+    auto utxos(lockOutputs(value + fee, 0, selector));
 
     if(utxos.value() < (value+fee)) {
         throw std::runtime_error("Not Enough Funds");

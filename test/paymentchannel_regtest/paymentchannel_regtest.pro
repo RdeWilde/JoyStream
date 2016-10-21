@@ -1,9 +1,8 @@
 # Copyright (C) JoyStream - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
-# Written by Bedeho Mender <bedeho.mender@gmail.com>, September 8 2015
 
-TARGET = spvwallet
+TARGET = paymentchannel_regtest
 TEMPLATE = app
 
 CONFIG  += console
@@ -34,6 +33,28 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../bitcoin/debug/bitcoin.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../bitcoin/libbitcoin.a
 
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/release/ -lbitcoin_regtest_framework
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/debug/ -lbitcoin_regtest_framework
+else:unix: LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/ -lbitcoin_regtest_framework
+
+INCLUDEPATH += $$PWD/../bitcoin_regtest_framework
+DEPENDPATH += $$PWD/../bitcoin_regtest_framework
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/release/ -lpaymentchannel
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/debug/ -lpaymentchannel
+else:unix: LIBS += -L$$OUT_PWD/../../paymentchannel/ -lpaymentchannel
+
+INCLUDEPATH += $$PWD/../../paymentchannel/include
+DEPENDPATH += $$PWD/../../paymentchannel
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/libpaymentchannel.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/libpaymentchannel.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/paymentchannel.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/paymentchannel.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/libpaymentchannel.a
+
+
 # common ###################################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/release/ -lcommon
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../common/debug/ -lcommon
@@ -48,12 +69,4 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/debug/common.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
 
-
 include(../../config.pri)
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/release/ -lbitcoin_regtest_framework
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/debug/ -lbitcoin_regtest_framework
-else:unix: LIBS += -L$$OUT_PWD/../bitcoin_regtest_framework/ -lbitcoin_regtest_framework
-
-INCLUDEPATH += $$PWD/../bitcoin_regtest_framework
-DEPENDPATH += $$PWD/../bitcoin_regtest_framework

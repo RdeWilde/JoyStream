@@ -60,6 +60,13 @@ private slots:
 
     void BIP39();
 
+    /**
+      Relative LockTime
+      */
+
+    void TimeRelativeLockTimeEncoding();
+    void BlockRelativeLockTimeEncoding();
+
 private:
 
     static bool sighash(const QJsonArray & fixture);

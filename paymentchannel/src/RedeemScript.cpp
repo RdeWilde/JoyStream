@@ -6,17 +6,17 @@
  */
 
 #include <paymentchannel/RedeemScript.hpp>
+#include <common/RelativeLockTime.hpp>
 #include <common/PublicKey.hpp>
 #include <common/Utilities.hpp>
 
 namespace joystream {
 namespace paymentchannel {
 
-RedeemScript::RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime)
+RedeemScript::RedeemScript(const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, const Coin::RelativeLockTime &relativeLockTime)
     : _payorPk(payorPk)
     , _payeePk(payeePk)
-    , _lockTime(lockTime) {
-
+    , _lockTime(relativeLockTime) {
 }
 
 uchar_vector RedeemScript::serialized() const {
@@ -30,10 +30,8 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x67); // OP_ELSE
     // Branch for when channel is settled with full refund to payor
-    uchar_vector locktime = Coin::serializeScriptNum(_lockTime);
-    script += Coin::opPushData(locktime.size());
-    script += locktime;
-    script.push_back(0xb1); // OP_CHECKLOCKTIMEVERIFY
+    script += _lockTime.toScriptData();
+    script.push_back(0xb2); // OP_CHECKSEQUENCEVERIFY (BIP 68)
     script.push_back(0x75); // OP_DROP
 
     script.push_back(0x68); // OP_ENDIF
@@ -71,12 +69,7 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
 
     subscript = Coin::popData(subscript, rawLockTime);
 
-    if(rawLockTime.empty()) {
-        throw std::runtime_error("Unable to retreive Locktime from redeem script");
-    }
-
-    // decode the locktime
-    uint32_t locktime = Coin::deserializeScriptNum(rawLockTime);
+    Coin::RelativeLockTime locktime = Coin::RelativeLockTime::fromScriptData(rawLockTime);
 
     // get a subscript to the start of the payor publick key push data operation
     subscript = uchar_vector(subscript.begin() + 3, subscript.end());
@@ -101,11 +94,31 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
 }
 
 uchar_vector RedeemScript::PayorOptionalData() {
-    return uchar_vector(0x00); /* OP_FALSE */
+    return Coin::opPushNumber(0); // false
 }
 
 uchar_vector RedeemScript::PayeeOptionalData() {
-    return uchar_vector(0x01); /* OP_TRUE */
+    return Coin::opPushNumber(1); // true
+}
+
+bool RedeemScript::isPayorPublicKey(const Coin::PublicKey & pk) const {
+    return _payorPk == pk;
+}
+
+bool RedeemScript::isPayeePublicKey(const Coin::PublicKey & pk) const {
+    return _payeePk == pk;
+}
+
+Coin::RelativeLockTime RedeemScript::lockTime() const {
+    return _lockTime;
+}
+
+Coin::PublicKey RedeemScript::payorPk() const {
+    return _payorPk;
+}
+
+Coin::PublicKey RedeemScript::payeePk() const {
+    return _payeePk;
 }
 
 }}

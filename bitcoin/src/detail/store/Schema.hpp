@@ -27,7 +27,7 @@
 namespace joystream {
 namespace bitcoin {
 
-class RedeemScriptInfo;
+struct RedeemScriptInfo;
 
 namespace detail {
 namespace store {

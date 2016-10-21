@@ -21,6 +21,7 @@
 #include <common/Utilities.hpp>
 #include <common/Seed.hpp>
 #include <common/Entropy.hpp>
+#include <common/RelativeLockTime.hpp>
 
 #include <CoinCore/bip39.h>
 #include <CoinCore/secp256k1_openssl.h>
@@ -219,7 +220,8 @@ void Test::popData() {
 
         uchar_vector subscript = Coin::popData(script, data);
 
-        QCOMPARE(uint(data.size()), uint(0));
+        QCOMPARE(uint(data.size()), uint(1));
+        QCOMPARE(data[0], uchar(0));
 
         QVERIFY(subscript.empty());
     }
@@ -235,13 +237,13 @@ void Test::popData() {
 
         uchar_vector subscript = Coin::popData(script, data);
 
-        QCOMPARE(uint(data.size()), uint(0));
+        QCOMPARE(uint(data.size()), uint(1));
 
         QCOMPARE(uint(subscript.size()), uint(1));
 
         Coin::popData(subscript, data);
 
-        QCOMPARE(uint(data.size()), uint(0));
+        QCOMPARE(uint(data.size()), uint(1));
     }
 
     {
@@ -519,6 +521,52 @@ void Test::BIP39()
         QVERIFY(entropy.mnemonic() == "letter advice cage absurd amount doctor acoustic avoid letter advice cage above");
         QVERIFY(entropy.seed("TREZOR").toHex().toStdString() == "d71de856f81a8acc65e6fc851a38d4d7ec216fd0796d0a6827a3ad6ed5511a30fa280f12eb2e47ed2ac03b5c462a0358d18d69fe4f985ec81778c1b370b652a8");
     }
+}
+
+void Test::TimeRelativeLockTimeEncoding() {
+
+    uint16_t counter = 0xbeef;
+    Coin::RelativeLockTime relativeLockTime = Coin::RelativeLockTime::fromTimeUnits(counter);
+
+    uchar_vector data = relativeLockTime.toScriptData();
+
+    QCOMPARE((int)data.size(), 4);
+
+    // sign bit unset,
+    // most significant bit (after the sign bit) should be set
+    // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
+    // as time
+    QCOMPARE(data.at(3) & 0xc0, 0x40);
+
+    // 16-bits representing locktime value
+    QCOMPARE(data.at(2), uchar(0xbe));
+    QCOMPARE(data.at(1), uchar(0xef));
+
+    QCOMPARE(uint32_t(0x0040beef), relativeLockTime.toSequenceNumber());
+}
+
+void Test::BlockRelativeLockTimeEncoding() {
+
+    uint16_t counter = 0xbeef;
+    Coin::RelativeLockTime relativeLockTime = Coin::RelativeLockTime(counter);
+
+    QCOMPARE(relativeLockTime.units(), Coin::RelativeLockTime::Units::Blocks);
+
+    uchar_vector data = relativeLockTime.toScriptData();
+
+    QCOMPARE((int)data.size(), 4);
+
+    // sign bit unset and
+    // most significant bit (after the sign bit) should be unset
+    // so OP_CHECKSEQUENCEVERIFY will interpret the the relative locktime
+    // as blocks
+    QCOMPARE(data.at(3) & 0xc0, 0x00);
+
+    // 16-bits representing locktime value
+    QCOMPARE(data.at(2), uchar(0xbe));
+    QCOMPARE(data.at(1), uchar(0xef));
+
+    QCOMPARE(uint32_t(0x0000beef), relativeLockTime.toSequenceNumber());
 }
 
 QTEST_MAIN(Test)

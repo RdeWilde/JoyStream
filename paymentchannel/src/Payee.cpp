@@ -20,14 +20,14 @@ namespace paymentchannel {
 
     Payee::Payee()
         : _numberOfPaymentsMade(0)
-        , _lockTime(0)
+        , _lockTime()
         , _price(0)
         , _funds(0)
         , _settlementFee(0){
     }
 
     Payee::Payee(quint64 numberOfPaymentsMade,
-                 quint32 lockTime,
+                 Coin::RelativeLockTime lockTime,
                  quint64 price,
                  quint64 funds,
                  quint64 settlementFee,
@@ -117,11 +117,11 @@ namespace paymentchannel {
         _numberOfPaymentsMade = numberOfPaymentsMade;
     }
 
-    quint32 Payee::lockTime() const {
+    Coin::RelativeLockTime Payee::lockTime() const {
         return _lockTime;
     }
 
-    void Payee::setLockTime(quint32 lockTime) {
+    void Payee::setLockTime(Coin::RelativeLockTime lockTime) {
         _lockTime = lockTime;
     }
 
