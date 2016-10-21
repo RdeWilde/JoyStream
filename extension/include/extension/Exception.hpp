@@ -183,8 +183,8 @@ namespace exception {
 
     // Thrown if we attempt to get piece information from a Torrent when transitioning to sell mode
 
-    struct InvalidTorrentInfo : std::runtime_error {
-        InvalidTorrentInfo()
+    struct MetadataNotSet : std::runtime_error {
+        MetadataNotSet()
             : std::runtime_error("Torrent files invalid") {}
     };
 

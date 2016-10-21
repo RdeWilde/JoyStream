@@ -529,7 +529,13 @@ namespace extension {
         } else {
 
             // Process message
-            _plugin->processExtendedMessage(_endPoint, *m);
+            try {
+                _plugin->processExtendedMessage(_endPoint, *m);
+            } catch(std::exception &e) {
+                std::clog << "Error processing Extended Message "<< e.what() << std::endl;
+                libtorrent::error_code ec;
+                drop(ec);
+            }
 
             // Delete message
             delete m;
