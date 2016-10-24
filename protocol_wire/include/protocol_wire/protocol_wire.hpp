@@ -20,10 +20,8 @@
 #include <protocol_wire/Payment.hpp>
 #include <protocol_wire/PieceData.hpp>
 #include <protocol_wire/Ready.hpp>
-#include <protocol_wire/RefundSigned.hpp>
 #include <protocol_wire/RequestFullPiece.hpp>
 #include <protocol_wire/Sell.hpp>
 #include <protocol_wire/SellerTerms.hpp>
-#include <protocol_wire/SignRefund.hpp>
 
 #endif // JOYSTREAM_PROTOCOLWIRE_HPP

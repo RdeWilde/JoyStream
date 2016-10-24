@@ -23,9 +23,7 @@ private slots:
     void joiningContract();
     void payment();
     void ready();
-    void refundSigned();
     void requestFullPiece();
-    void signRefund();
 
 };
 

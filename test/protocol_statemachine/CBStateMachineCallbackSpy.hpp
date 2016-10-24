@@ -66,13 +66,9 @@ public:
 
     protocol_wire::Ready readyMessage() const;
 
-    protocol_wire::RefundSigned refundSignedMessage() const;
-
     protocol_wire::RequestFullPiece requestFullPieceMessage() const;
 
     protocol_wire::Sell sellMessage() const;
-
-    protocol_wire::SignRefund signRefundMessage() const;
 
     bool contractHasBeenPrepared() const;
     Coin::typesafeOutPoint anchor() const;
