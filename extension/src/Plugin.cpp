@@ -41,19 +41,21 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     assert(_torrentPlugins.count(h.info_hash()) == 0);
 
     // Create a torrent plugin
-    boost::shared_ptr<libtorrent::torrent_plugin> plugin(new TorrentPlugin(this,
-                                                                           h,
-                                                                           _broadcaster,
-                                                                           _minimumMessageId,
-                                                                           _alertManager,
-                                                                           TorrentPlugin::Policy(),
-                                                                           TorrentPlugin::LibtorrentInteraction::None));
+    TorrentPlugin * rawTorrentPlugin = new TorrentPlugin(this,
+                                                         h,
+                                                         _broadcaster,
+                                                         _minimumMessageId,
+                                                         _alertManager,
+                                                         TorrentPlugin::Policy(),
+                                                         TorrentPlugin::LibtorrentInteraction::None);
+
+    boost::shared_ptr<libtorrent::torrent_plugin> plugin(rawTorrentPlugin);
 
     // Storing weak reference to plugin
     _torrentPlugins[h.info_hash()] = boost::static_pointer_cast<TorrentPlugin>(plugin);
 
     // Send alert notification
-    _alertManager->emplace_alert<alert::TorrentPluginAdded>(h);
+    _alertManager->emplace_alert<alert::TorrentPluginAdded>(h, rawTorrentPlugin->status());
 
     return plugin;
 }
