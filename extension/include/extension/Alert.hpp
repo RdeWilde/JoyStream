@@ -101,8 +101,10 @@ namespace alert {
     struct TorrentPluginAdded : public libtorrent::torrent_alert {
 
         TorrentPluginAdded(libtorrent::aux::stack_allocator& alloc,
-                           const libtorrent::torrent_handle & h)
-            : libtorrent::torrent_alert(alloc, h) {}
+                           const libtorrent::torrent_handle & h,
+                           const status::TorrentPlugin & status)
+            : libtorrent::torrent_alert(alloc, h)
+            , status(status){}
 
         TORRENT_DEFINE_ALERT(TorrentPluginAdded, libtorrent::user_alert_id + 5)
         static const int static_category = alert::status_notification;
@@ -110,6 +112,8 @@ namespace alert {
             return torrent_alert::message() + " torrent plugin added";
         }
 
+        // Initial status of plugin
+        status::TorrentPlugin status;
     };
 
     struct TorrentPluginRemoved : public libtorrent::torrent_alert {
@@ -150,14 +154,19 @@ namespace alert {
         PeerPluginAdded(libtorrent::aux::stack_allocator & alloc,
                         const libtorrent::torrent_handle & h,
                         const libtorrent::tcp::endpoint & ep,
-                        const libtorrent::peer_id & peer_id)
-            : libtorrent::peer_alert(alloc, h, ep, peer_id) {}
+                        const libtorrent::peer_id & peer_id,
+                        const status::PeerPlugin & status)
+            : libtorrent::peer_alert(alloc, h, ep, peer_id)
+            , status(status) {}
 
         TORRENT_DEFINE_ALERT(PeerPluginAdded, libtorrent::user_alert_id + 8)
 
         virtual std::string message() const override {
             return peer_alert::message() + " peer plugin added";
         }
+
+        // Initial status of plugin
+        status::PeerPlugin status;
     };
 
     struct PeerPluginRemoved : public libtorrent::peer_alert {
