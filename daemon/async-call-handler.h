@@ -320,6 +320,12 @@ protected:
 public:
   AsyncCallHandler()
   {
+      std::cout << "AsyncCallHandler created" << std::endl;
+  }
+
+  ~AsyncCallHandler()
+  {
+      std::cout << "AsyncCallHandler destroyed" << std::endl;
   }
 
   void setCompletionQueue(std::unique_ptr<ServerCompletionQueue> cq)
@@ -338,8 +344,8 @@ public:
     }
 
     while ( cq_->Next(&tag, &fok) ) {
-      (static_cast<CallCtx *>(tag))->proceed(fok);
-      //obj = static_cast<CallCtx *>(tag);
+      // (static_cast<CallCtx *>(tag))->proceed(fok);
+      obj = static_cast<CallCtx *>(tag);
       obj->moveToThread(QApplication::instance()->thread());
       std::cout << "In the loop" << std::endl;
       QMetaObject::invokeMethod(obj, "proceed", Qt::QueuedConnection, Q_ARG(bool, fok));

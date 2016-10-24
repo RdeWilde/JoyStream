@@ -15,6 +15,10 @@ app.listen(3000, function () {
 			console.log(err)
 		} else {
 			console.log(responce);
+			// Exit the app
+			rpc.pause(function() {
+				console.log('Ok we have shutdown server ')
+			});
 		}
 	})
 });

@@ -69,16 +69,41 @@ class AsyncDaemonService
 
 public:
 
-  AsyncDaemonService(joystream::core::Node* node)
-    : node_(node)
+  AsyncDaemonService(joystream::core::Node* node, QCoreApplication* app)
+    : node_(node),
+      app_(app)
   {
     AddMethod(&NormalRpcDaemon::OnCall, &Daemon::AsyncService::Requesttest1);
+    AddMethod(&PauseRpcDaemon::OnCall, &Daemon::AsyncService::RequestPause);
   }
 
 private:
   joystream::core::Node *node_;
+  QCoreApplication *app_;
 
   ///////
+
+  class PauseRpcDaemon {
+    Void response;
+  public:
+    bool OnCall(bool fok, ServerContext* context, ServerCompletionQueue * cq, const Void * request,
+        ServerAsyncResponseWriter<Void>* response_writer, void * tag)
+    {
+      /*(void)(fok);
+      (void) (context);
+      (void) (cq);*/
+      // PDBG("GOT %s", request->clientmessage().c_str());
+      QCoreApplication* app = QApplication::instance();
+      app->exit();
+      response_writer->Finish(response, Status::OK, tag);
+
+      return true;
+    }
+
+  private:
+    joystream::core::Node *node_;
+
+  };
 
   class NormalRpcDaemon {
     TestResponce responce;
@@ -113,8 +138,9 @@ class ServerImpl final
     ~ServerImpl() {
       if(the_thread.joinable()) the_thread.join();
       server_->Shutdown();
+      std::cout << "Server destroyed" << std::endl;
       // Always shutdown the completion queue after the server.
-      //cq_->Shutdown();
+      // cq_->Shutdown();
     }
 
     void Init(){
@@ -126,12 +152,14 @@ class ServerImpl final
       std::string server_address("0.0.0.0:3002");
 
       ServerBuilder builder;
-      AsyncDaemonService daemonService(node_);
+      AsyncDaemonService daemonService(node_, app_);
 
       builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 
       builder.RegisterService(&daemonService);
-      daemonService.setCompletionQueue(builder.AddCompletionQueue());
+     // cq_ = builder.AddCompletionQueue();
+     // daemonService.setCompletionQueue(cq_);
+     daemonService.setCompletionQueue(builder.AddCompletionQueue());
 
       server_ = builder.BuildAndStart();
       std::cout << "Server listening on " << server_address << std::endl;
@@ -144,6 +172,7 @@ class ServerImpl final
     QCoreApplication *app_;
     std::unique_ptr<Server> server_;
     std::thread the_thread;
+    std::unique_ptr<ServerCompletionQueue> cq_;
 };
 
 
