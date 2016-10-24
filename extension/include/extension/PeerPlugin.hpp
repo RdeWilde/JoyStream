@@ -51,6 +51,8 @@ namespace status {
                    const libtorrent::peer_connection_handle & connection,
                    const Policy & policy,
                    uint numberMessageIdsFrom);
+                   uint numberMessageIdsFrom,
+                   libtorrent::alert_manager * alertManager);
 
         virtual ~PeerPlugin();
 
@@ -202,6 +204,9 @@ namespace status {
         // Lowest all message id where libtorrent client can guarantee we will not
         // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
         const uint _minimumMessageId;
+
+        // Libtorrent alert manager
+        libtorrent::alert_manager * _alertManager;
 
         // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
         const libtorrent::tcp::endpoint _endPoint;
