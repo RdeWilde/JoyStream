@@ -18,11 +18,13 @@ namespace joystream {
 namespace extension {
 
     PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
+                           const libtorrent::torrent_handle & torrent,
                            const libtorrent::peer_connection_handle & connection,
                            const Policy & policy,
                            uint minimumMessageId)
         : _undead(false)
         , _plugin(plugin)
+        , _torrent(torrent)
         , _connection(connection)
         , _policy(policy)
         , _minimumMessageId(minimumMessageId)

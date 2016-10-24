@@ -47,6 +47,7 @@ namespace status {
         };
 
         PeerPlugin(TorrentPlugin * plugin,
+                   const libtorrent::torrent_handle & torrent,
                    const libtorrent::peer_connection_handle & connection,
                    const Policy & policy,
                    uint numberMessageIdsFrom);
@@ -188,6 +189,9 @@ namespace status {
 
         // Torrent plugin for torrent
         TorrentPlugin * _plugin;
+
+        // Torrent to which peer corresponds
+        libtorrent::torrent_handle _torrent;
 
         // Connection to peer for this plugin
         libtorrent::peer_connection_handle _connection;
