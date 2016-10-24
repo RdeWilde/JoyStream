@@ -50,7 +50,6 @@ namespace status {
                    const libtorrent::torrent_handle & torrent,
                    const libtorrent::peer_connection_handle & connection,
                    const Policy & policy,
-                   uint numberMessageIdsFrom);
                    uint numberMessageIdsFrom,
                    libtorrent::alert_manager * alertManager);
 
