@@ -8,6 +8,7 @@
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Plugin.hpp>
 #include <extension/Request.hpp>
+#include <libtorrent/alert_manager.hpp>
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection_handle.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
@@ -83,10 +84,16 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
     std::clog << "Installed peer plugin #" << _peers.size() << std::endl;
 
     // Create a new peer plugin
-    boost::shared_ptr<PeerPlugin> plugin(new PeerPlugin(this, connection, _policy.peerPolicy, _minimumMessageId));
+    PeerPlugin * rawPeerPlugin = new PeerPlugin(this, _torrent, connection, _policy.peerPolicy, _minimumMessageId, _alertManager);
+
+    // Wrap for return to libtorrent
+    boost::shared_ptr<PeerPlugin> plugin(rawPeerPlugin);
 
     // Add to collection
     _peers[endPoint] = boost::weak_ptr<PeerPlugin>(plugin);
+
+    // Send alert notification
+    _alertManager->emplace_alert<alert::PeerPluginAdded>(_torrent, endPoint, connection.pid(), rawPeerPlugin->status());
 
     // Return pointer to plugin as required
     return plugin;
@@ -371,10 +378,6 @@ status::TorrentPlugin TorrentPlugin::status() const {
 
 TorrentPlugin::LibtorrentInteraction TorrentPlugin::libtorrentInteraction() const {
     return _libtorrentInteraction;
-}
-
-libtorrent::alert_manager & TorrentPlugin::alert_manager() const {
-    return torrent()->alerts();
 }
 
 PeerPlugin * TorrentPlugin::peer(const libtorrent::tcp::endpoint & endPoint) {
