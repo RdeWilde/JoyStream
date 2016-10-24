@@ -27,7 +27,7 @@ using namespace joystream::protocol_wire;
 void Test::buy() {
 
     // Buy(const BuyerTerms & terms): construct message
-    BuyerTerms terms(2,4,5,6,7);
+    BuyerTerms terms(2,4,5,6);
     Buy m(terms);
 
     QCOMPARE(m.terms(), terms);
