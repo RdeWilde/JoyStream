@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     QString dataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? QString::fromStdString(getenv("JOYSTREAM_DATADIR")) : QDir::homePath();
 
-    joystream::AppKit* kit = joystream::AppKit::createInstance(dataDirectory, Coin::Network::testnet3);
+    joystream::AppKit* kit = joystream::AppKit::create(dataDirectory, Coin::Network::testnet3);
 
     if(!kit) {
         std::cout << "Failed to create appkit instance" << std::endl;

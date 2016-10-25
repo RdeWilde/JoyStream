@@ -4,6 +4,8 @@
 #include <functional>
 #include <QString>
 #include <QTimer>
+#include <QLockFile>
+
 #include <core/core.hpp>
 
 //#include <iostream>
@@ -41,7 +43,7 @@ public:
     //typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    static AppKit* createInstance(const QString &dataDirectory, Coin::Network network, std::string host = "", int port = 0);
+    static AppKit* create(const QString &dataDirectory, Coin::Network network, std::string host = "", int port = 0);
 
     bitcoin::SPVWallet* wallet();
     core::Node* node();
@@ -93,17 +95,20 @@ public:
     static libtorrent::sha1_hash sha1_hash_from_hex_string(const char *);
     static core::TorrentIdentifier* makeTorrentIdentifier(const char *);
 
+    ~AppKit();
+
 private:
 
     static bitcoin::SPVWallet* getWallet(const QString &dataDirectory, Coin::Network network);
 
     AppKit();
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, const QString &dataDirectory, std::string host = "", int port = 0);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, const QString &dataDirectory, QLockFile *dataDirectoryLock, std::string host = "", int port = 0);
 
     void syncWallet(std::string host, int port);
 
     QString _dataDirectory;
+    QLockFile* _dataDirectoryLock;
 
     std::unique_ptr<core::Node> _node;
 
