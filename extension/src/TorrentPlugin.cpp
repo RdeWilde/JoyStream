@@ -347,6 +347,10 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallba
                         policy,
                         terms,
                         maxPieceIndex);
+
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionToSellMode>(_torrent, policy, terms);
 }
 
 void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
