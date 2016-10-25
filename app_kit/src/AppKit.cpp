@@ -1,5 +1,6 @@
 #include <app_kit/AppKit.hpp>
 #include <app_kit/DataDirectory.hpp>
+#include <app_kit/Settings.hpp>
 
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
@@ -27,9 +28,9 @@ bitcoin::SPVWallet * AppKit::getWallet(const DataDirectory &dataDirectory, Coin:
     return wallet;
 }
 
-AppKit* AppKit::create(const QString &dataDirectory, Coin::Network network, std::string host, int port)
+AppKit* AppKit::create(const Settings &settings)
 {
-    DataDirectory *dataDir = new DataDirectory(dataDirectory);
+    DataDirectory *dataDir = new DataDirectory(QString::fromStdString(settings.dataDirectory));
 
     dataDir->lock();
 
@@ -38,7 +39,7 @@ AppKit* AppKit::create(const QString &dataDirectory, Coin::Network network, std:
 
     try {
 
-        wallet = getWallet(*dataDir, network);
+        wallet = getWallet(*dataDir, settings.network);
 
         wallet->loadBlockTree();
 
@@ -53,7 +54,7 @@ AppKit* AppKit::create(const QString &dataDirectory, Coin::Network network, std:
         throw e;
     }
 
-    return new AppKit(node, wallet, dataDir, host , port);
+    return new AppKit(node, wallet, dataDir, settings.host , settings.port);
 }
 
 AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, DataDirectory *dataDirectory, std::string host, int port)
@@ -69,7 +70,7 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, DataDirectory *data
         _node->updateStatus();
 
         // try to reconnect to bitcoin network if wallet went offline
-        syncWallet(_bitcoinHost, _bitcoinPort);
+        syncWallet();
 
         //... rebroadcast transactions..
     });
@@ -85,17 +86,18 @@ bitcoin::SPVWallet* AppKit::wallet() {
     return _wallet.get();
 }
 
-void AppKit::syncWallet(std::string host, int port) {
-    if(host.empty()) {
+void AppKit::syncWallet() {
+    if(_bitcoinHost.empty()) {
         if(_wallet->network() == Coin::Network::testnet3) {
             _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
         } else if(_wallet->network() == Coin::Network::mainnet) {
             _wallet->sync("seed.bitcoin.sipa.be", 8333);
         }else{
-            throw std::runtime_error("No host provided to sync wallet");
+            //this shouldn't throw.. its called from the timer!
+            return;
         }
     } else {
-        _wallet->sync(host, port);
+        _wallet->sync(_bitcoinHost, _bitcoinPort);
     }
 }
 

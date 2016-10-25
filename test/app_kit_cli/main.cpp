@@ -7,6 +7,8 @@
 
 #include <cli.hpp>
 #include <app_kit/AppKit.hpp>
+#include <app_kit/Settings.hpp>
+
 #include <bitcoin/SPVWallet.hpp>
 #include <common/P2PKHAddress.hpp>
 #include <core/core.hpp>
@@ -99,8 +101,10 @@ int main(int argc, char *argv[])
     std::cout << "Creating AppKit Instance\n";
 
     QString dataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? QString::fromStdString(getenv("JOYSTREAM_DATADIR")) : QDir::homePath();
-
-    joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(dataDirectory, Coin::Network::testnet3);
+    joystream::appkit::Settings settings;
+    settings.dataDirectory = dataDirectory.toStdString();
+    settings.network = Coin::Network::testnet3;
+    joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(settings);
 
     if(!kit) {
         std::cout << "Failed to create appkit instance" << std::endl;

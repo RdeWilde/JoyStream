@@ -8,10 +8,12 @@ CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-
 CONFIG  += c++11 # Needed for class enum
 
 SOURCES += src/AppKit.cpp \
-    src/DataDirectory.cpp
+    src/DataDirectory.cpp \
+    src/Settings.cpp
 
 HEADERS += include/app_kit/AppKit.hpp \
-    include/app_kit/DataDirectory.hpp
+    include/app_kit/DataDirectory.hpp \
+    include/app_kit/Settings.hpp
 
 INCLUDEPATH += $$PWD/include
 
