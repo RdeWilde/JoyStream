@@ -7,6 +7,11 @@
 #include <QMetaObject>
 #include <QApplication>
 
+#include <QCoreApplication>
+#include <core/Node.hpp>
+
+Q_DECLARE_METATYPE(joystream::core::Node*)
+
 class CallCtx : public QObject {
   Q_OBJECT
 
@@ -49,7 +54,8 @@ protected:
   std::vector<std::unique_ptr<MethodCtx> > methods_;
   std::unique_ptr<ServerCompletionQueue> cq_;
 
-
+  joystream::core::Node *node_;
+  QCoreApplication *app_;
 
 
   ////////////////////////////////////////////////////////////////////////
@@ -217,12 +223,13 @@ protected:
 
       void proceed(bool fok)
       {
-        std::cout<< "Hello" <<std::endl;
+        std::cout<< "Proceed" <<std::endl;
         switch ( callstate_ )
         {
         case callstate_wait_call:
           m_->requestNewCall();
           if ( !fok ) {
+            std::cout<< "Delete this" <<std::endl;
             delete this;
             break;
           }
@@ -318,7 +325,10 @@ protected:
   }
 
 public:
-  AsyncCallHandler()
+
+  AsyncCallHandler(joystream::core::Node *node, QCoreApplication *app)
+    : node_(node),
+      app_(app)
   {
       std::cout << "AsyncCallHandler created" << std::endl;
   }
@@ -338,6 +348,8 @@ public:
     void * tag;
     bool fok;
     CallCtx* obj;
+
+    //qRegisterMetaType<joystream::core::Node*>();
 
     for ( auto m = methods_.begin(); m != methods_.end(); ++m ) {
       (*m)->requestNewCall();

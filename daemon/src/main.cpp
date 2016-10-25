@@ -70,16 +70,11 @@ class AsyncDaemonService
 public:
 
   AsyncDaemonService(joystream::core::Node* node, QCoreApplication* app)
-    : node_(node),
-      app_(app)
+    : AsyncCallHandler(node, app)
   {
     AddMethod(&NormalRpcDaemon::OnCall, &Daemon::AsyncService::Requesttest1);
     AddMethod(&PauseRpcDaemon::OnCall, &Daemon::AsyncService::RequestPause);
   }
-
-private:
-  joystream::core::Node *node_;
-  QCoreApplication *app_;
 
   ///////
 
@@ -94,15 +89,18 @@ private:
       (void) (cq);*/
       // PDBG("GOT %s", request->clientmessage().c_str());
       QCoreApplication* app = QApplication::instance();
-      app->exit();
+      node_->pause([app](){
+          std::cout << "Node was paused" << std::endl;
+          app->exit();
+      });
+
       response_writer->Finish(response, Status::OK, tag);
 
       return true;
     }
 
-  private:
-    joystream::core::Node *node_;
-
+  private :
+    joystream::core::Node* node_;
   };
 
   class NormalRpcDaemon {
@@ -164,7 +162,10 @@ class ServerImpl final
       server_ = builder.BuildAndStart();
       std::cout << "Server listening on " << server_address << std::endl;
 
+      // run() is blocking
       daemonService.run();
+
+      delete this;
     }
 
   private:
