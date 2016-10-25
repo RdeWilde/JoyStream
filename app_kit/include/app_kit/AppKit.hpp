@@ -1,5 +1,5 @@
-#ifndef JOYSTREAM_APP_KIT_HPP
-#define JOYSTREAM_APP_KIT_HPP
+#ifndef JOYSTREAM_APPKIT_HPP
+#define JOYSTREAM_APPKIT_HPP
 
 #include <functional>
 #include <QString>
@@ -38,6 +38,8 @@ namespace protocol_wire {
 
 namespace appkit {
 
+struct Settings;
+
 class AppKit
 {
 
@@ -45,7 +47,7 @@ public:
     typedef std::function<void()> Callback;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    static AppKit* create(const QString &dataDirectory, Coin::Network network, std::string host = "", int port = 0);
+    static AppKit* create(const Settings&);
 
     bitcoin::SPVWallet* wallet();
     core::Node* node();
@@ -84,9 +86,9 @@ private:
 
     static bitcoin::SPVWallet* getWallet(const DataDirectory &dataDirectory, Coin::Network network);
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, DataDirectory *dataDirectory, std::string host = "", int port = 0);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, DataDirectory *dataDirectory, std::string host, int port);
 
-    void syncWallet(std::string host, int port);
+    void syncWallet();
 
     std::unique_ptr<core::Node> _node;
 
@@ -112,4 +114,4 @@ private:
 
 }
 }
-#endif // JOYSTREAM_APP_KIT_HPP
+#endif // JOYSTREAM_APPKIT_HPP

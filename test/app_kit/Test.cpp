@@ -7,6 +7,7 @@
 
 #include <Test.hpp>
 #include <app_kit/AppKit.hpp>
+#include <app_kit/Settings.hpp>
 
 #include <common/Network.hpp>
 #include <boost/filesystem.hpp>
@@ -38,7 +39,11 @@ void Test::cleanupTestCase()
 
 void Test::walletCreation()
 {
-    auto kit = joystream::appkit::AppKit::create(_tempDataPath, TEST_BITCOIN_NETWORK);
+    joystream::appkit::Settings settings;
+    settings.dataDirectory = _tempDataPath.toStdString();
+    settings.network = TEST_BITCOIN_NETWORK;
+
+    auto kit = joystream::appkit::AppKit::create(settings);
 
     // Make sure the unique_ptr is still managing the interal SPVWallet and Node
     QVERIFY((bool)kit->node());
