@@ -378,6 +378,9 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
                        policy,
                        terms,
                        torrentPieceInformation());
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionToBuyMode>(_torrent, funding, policy, terms);
 }
 
 status::TorrentPlugin TorrentPlugin::status() const {
