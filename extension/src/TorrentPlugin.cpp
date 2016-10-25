@@ -282,7 +282,11 @@ void TorrentPlugin::stop() {
 }
 
 void TorrentPlugin::pause() {
+
     _session.pause();
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionPaused>(_torrent);
 }
 
 void TorrentPlugin::updateTerms(const protocol_wire::SellerTerms & terms) {
