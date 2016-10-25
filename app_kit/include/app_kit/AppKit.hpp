@@ -66,27 +66,12 @@ public:
 
     void addTorrent(const core::TorrentIdentifier &, const core::Node::AddedTorrent &);
 
-    void buyTorrent(core::TorrentPlugin *,
-                    const protocol_session::BuyingPolicy &,
-                    const protocol_wire::BuyerTerms &,
-                    const SubroutineHandler &);
-
     void buyTorrent(const core::Torrent*,
                     const protocol_session::BuyingPolicy &,
                     const protocol_wire::BuyerTerms &,
                     const SubroutineHandler &);
 
-    void buyTorrent(const libtorrent::sha1_hash &info_hash,
-                    const protocol_session::BuyingPolicy&,
-                    const protocol_wire::BuyerTerms&,
-                    const SubroutineHandler &);
-
     void sellTorrent(const core::Torrent *,
-                     const protocol_session::SellingPolicy &,
-                     const protocol_wire::SellerTerms &,
-                     const SubroutineHandler &);
-
-    void sellTorrent(core::TorrentPlugin *,
                      const protocol_session::SellingPolicy &,
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
@@ -113,6 +98,16 @@ private:
     int _bitcoinPort;
 
     QTimer *_timer;
+
+    void buyTorrent(core::TorrentPlugin *,
+                    const protocol_session::BuyingPolicy &,
+                    const protocol_wire::BuyerTerms &,
+                    const SubroutineHandler &);
+
+    void sellTorrent(core::TorrentPlugin *,
+                     const protocol_session::SellingPolicy &,
+                     const protocol_wire::SellerTerms &,
+                     const SubroutineHandler &);
 };
 
 }
