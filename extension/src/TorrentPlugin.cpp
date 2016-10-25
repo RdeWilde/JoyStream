@@ -499,8 +499,18 @@ void TorrentPlugin::removeFromSession(const libtorrent::tcp::endpoint & endPoint
     if(_session.mode() == protocol_session::SessionMode::not_set)
         return;
 
-    if(_session.hasConnection(endPoint))
+    if(_session.hasConnection(endPoint)) {
+
         _session.removeConnection(endPoint);
+
+        // Send notification
+        auto it = _peers.find(endPoint);
+        assert(it != _peers.cend());
+        boost::shared_ptr<PeerPlugin> plugin = it->second.lock();
+        assert(plugin);
+
+        _alertManager->emplace_alert<alert::ConnectionRemovedFromSession>(_torrent, endPoint, plugin->connection().pid());
+    }
 }
 
 void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libtorrent::error_code & ec, bool disconnect)  {
