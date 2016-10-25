@@ -1,22 +1,19 @@
 #include <app_kit/AppKit.hpp>
+#include <app_kit/DataDirectory.hpp>
+
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
 
 #include <QDir>
 
 namespace joystream {
+namespace appkit {
 
-
-AppKit::AppKit()
-{
-}
-
-bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Network network) {
-
-    QString storeFile = dataDirectory + QDir::separator() + "store.sqlite";
-    QString blockTreeFile = dataDirectory + QDir::separator() + "blocktree.dat";
-
-    auto wallet = new bitcoin::SPVWallet(storeFile.toStdString(), blockTreeFile.toStdString(), network);
+bitcoin::SPVWallet * AppKit::getWallet(const DataDirectory &dataDirectory, Coin::Network network) {
+    auto storeFile = dataDirectory.walletFilePath();
+    auto wallet = new bitcoin::SPVWallet(storeFile.toStdString(),
+                                         dataDirectory.blockTreeFilePath().toStdString(),
+                                         network);
 
     std::cout << "Looking for wallet file " << storeFile.toStdString() << std::endl;
     if(!QFile::exists(storeFile)){
@@ -32,55 +29,37 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
 
 AppKit* AppKit::create(const QString &dataDirectory, Coin::Network network, std::string host, int port)
 {
-    {
-        QFileInfo fi(dataDirectory);
+    DataDirectory *dataDir = new DataDirectory(dataDirectory);
 
-        if(!fi.exists()) {
-            throw std::runtime_error("path to data directory doesn't exist");
-        }
+    dataDir->lock();
 
-        if(!fi.isDir()) {
-             throw std::runtime_error("path to data directory is not a directory");
-        }
-
-        if(!fi.isWritable()) {
-            throw std::runtime_error("data directory path is not writeable");
-        }
-    }
-
-    // Prevent other instances of app_kit trying to use the same data directory
-    auto dataDirectoryLock = new QLockFile(dataDirectory);
-    dataDirectoryLock->setStaleLockTime(0);
-    if(!dataDirectoryLock->tryLock(100)) {
-        std::cout << "Lock Error: " << dataDirectoryLock->error() << std::endl;
-        throw std::runtime_error("unable to obtain a lock on the data directory");
-    }
-
-    bitcoin::SPVWallet* wallet = getWallet(dataDirectory, network);
-
-    wallet->loadBlockTree();
-
+    bitcoin::SPVWallet* wallet = nullptr;
     core::Node* node = nullptr;
 
     try {
+
+        wallet = getWallet(*dataDir, network);
+
+        wallet->loadBlockTree();
+
         node = core::Node::create([wallet](const Coin::Transaction &tx){
             wallet->broadcastTx(tx); // queue TX for rebroadcast if wallet is offline
         });
 
     } catch(std::exception &e) {
-        std::cout << "Node Error: " << e.what() << std::endl;
-        return nullptr;
+        if(wallet) delete wallet;
+        if(node) delete node;
+        dataDir->unlock();
+        throw e;
     }
 
-    return new AppKit(node, wallet, dataDirectory, dataDirectoryLock, host , port);
-
+    return new AppKit(node, wallet, dataDir, host , port);
 }
 
-AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &dataDirectory, QLockFile* dataDirectoryLock, std::string host, int port)
-    : _dataDirectory(dataDirectory),
-      _dataDirectoryLock(dataDirectoryLock),
-      _node(node),
+AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, DataDirectory *dataDirectory, std::string host, int port)
+    : _node(node),
       _wallet(wallet),
+      _dataDirectory(dataDirectory),
       _bitcoinHost(host),
       _bitcoinPort(port) {
 
@@ -96,10 +75,6 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &data
     });
 
     _timer->start(1000); // 1s interval
-}
-
-AppKit::~AppKit() {
-    _dataDirectoryLock->unlock();
 }
 
 core::Node *AppKit::node() {
@@ -135,7 +110,7 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
         std::cout << "Stopping wallet" << std::endl;
         _wallet->stopSync();
 
-        _dataDirectoryLock->unlock();
+        _dataDirectory->unlock();
 
         std::cout << "AppKit shutdown complete" << std::endl;
         shutdownComplete();
@@ -148,7 +123,7 @@ void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const c
     _node->addTorrent(0, // default upload bandwidth limit
                       0, // default download bandwidth limit
                       torrentReference.infoHash().to_string(),
-                      std::vector<char>(), downloadsDirectory(),
+                      std::vector<char>(), _dataDirectory->defaultSavePath().toStdString(),
                       false,
                       torrentReference,
                       addedTorrent);
@@ -274,10 +249,6 @@ void AppKit::sellTorrent(const core::Torrent *torrent,
     sellTorrent(plugin, policy, terms, handler);
 }
 
-std::string AppKit::downloadsDirectory() const {
-    return (_dataDirectory + QDir::separator() + "downloads").toStdString();
-}
-
 libtorrent::sha1_hash AppKit::sha1_hash_from_hex_string(const char * hex) {
   char buf[21];
 
@@ -324,4 +295,5 @@ core::TorrentIdentifier* AppKit::makeTorrentIdentifier(const char *str)
     return nullptr;
 }
 
+} // appkit namespace
 } // joystream namespace

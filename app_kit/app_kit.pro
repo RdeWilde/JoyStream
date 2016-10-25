@@ -7,9 +7,11 @@ CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
 
-SOURCES += src/AppKit.cpp
+SOURCES += src/AppKit.cpp \
+    src/DataDirectory.cpp
 
-HEADERS += include/app_kit/AppKit.hpp
+HEADERS += include/app_kit/AppKit.hpp \
+    include/app_kit/DataDirectory.hpp
 
 INCLUDEPATH += $$PWD/include
 

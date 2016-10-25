@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QLockFile>
 
+#include <app_kit/DataDirectory.hpp>
 #include <core/core.hpp>
 
 //#include <iostream>
@@ -35,12 +36,13 @@ namespace protocol_wire {
     class SellerTerms;
 }
 
+namespace appkit {
+
 class AppKit
 {
 
 public:
     typedef std::function<void()> Callback;
-    //typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
     static AppKit* create(const QString &dataDirectory, Coin::Network network, std::string host = "", int port = 0);
@@ -89,30 +91,23 @@ public:
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
 
-    std::string downloadsDirectory() const;
-
     // Utility functions
     static libtorrent::sha1_hash sha1_hash_from_hex_string(const char *);
     static core::TorrentIdentifier* makeTorrentIdentifier(const char *);
 
-    ~AppKit();
-
 private:
 
-    static bitcoin::SPVWallet* getWallet(const QString &dataDirectory, Coin::Network network);
+    static bitcoin::SPVWallet* getWallet(const DataDirectory &dataDirectory, Coin::Network network);
 
-    AppKit();
-
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, const QString &dataDirectory, QLockFile *dataDirectoryLock, std::string host = "", int port = 0);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, DataDirectory *dataDirectory, std::string host = "", int port = 0);
 
     void syncWallet(std::string host, int port);
-
-    QString _dataDirectory;
-    QLockFile* _dataDirectoryLock;
 
     std::unique_ptr<core::Node> _node;
 
     std::unique_ptr<bitcoin::SPVWallet> _wallet;
+
+    std::unique_ptr<DataDirectory> _dataDirectory;
 
     std::string _bitcoinHost;
     int _bitcoinPort;
@@ -120,5 +115,6 @@ private:
     QTimer *_timer;
 };
 
+}
 }
 #endif // JOYSTREAM_APP_KIT_HPP

@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     assert(sellerTerms.satisfiedBy(buyerTerms));
     assert(buyerTerms.satisfiedBy(sellerTerms));
 
-    const double secondsBeforeCreatingContract = 45;
+    const double secondsBeforeCreatingContract = 3;
     const double secondsBeforePieceTimeout = 25;
     joystream::protocol_session::BuyingPolicy buyingPolicy(secondsBeforeCreatingContract,
                                                            secondsBeforePieceTimeout,
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     joystream::core::TorrentIdentifier* torrentIdentifier = nullptr;
 
     if(argc == 3) {
-        torrentIdentifier = joystream::AppKit::makeTorrentIdentifier(argv[2]);
+        torrentIdentifier = joystream::appkit::AppKit::makeTorrentIdentifier(argv[2]);
         if(!torrentIdentifier) {
             return 1;
         }
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     QString dataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? QString::fromStdString(getenv("JOYSTREAM_DATADIR")) : QDir::homePath();
 
-    joystream::AppKit* kit = joystream::AppKit::create(dataDirectory, Coin::Network::testnet3);
+    joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(dataDirectory, Coin::Network::testnet3);
 
     if(!kit) {
         std::cout << "Failed to create appkit instance" << std::endl;
