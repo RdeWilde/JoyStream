@@ -40,6 +40,8 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
 AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network, std::string host, int port)
 {
     //try to lock access to the data directory with a system mutex ?
+    //make sure the dataDirectory exists.. (create it if not?) throw if not found
+
     bitcoin::SPVWallet* wallet = getWallet(dataDirectory, network);
 
     if(!wallet)
@@ -107,11 +109,12 @@ void AppKit::syncWallet(std::string host, int port) {
 }
 
 void AppKit::shutdown(const Callback & shutdownComplete) {
+    _timer->stop();
 
     std::cout << "Shutting down AppKit" << std::endl;
+
     _node->pause([shutdownComplete, this](){
         std::cout << "Node paused" << std::endl;
-        _timer->stop();
 
         std::cout << "Stopping wallet" << std::endl;
         _wallet->stopSync();
@@ -119,6 +122,18 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
         std::cout << "AppKit shutdown complete" << std::endl;
         shutdownComplete();
     });
+}
+
+void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const core::Node::AddedTorrent &addedTorrent) {
+
+    // addTorrent adds a torrent synchronously to libtorrent
+    _node->addTorrent(0, // default upload bandwidth limit
+                      0, // default download bandwidth limit
+                      torrentReference.infoHash().to_string(),
+                      std::vector<char>(), downloadsDirectory(),
+                      false,
+                      torrentReference,
+                      addedTorrent);
 }
 
 void AppKit::buyTorrent(const core::Torrent *torrent,
@@ -239,6 +254,10 @@ void AppKit::sellTorrent(const core::Torrent *torrent,
     core::TorrentPlugin* plugin = torrent->torrentPlugin();
 
     sellTorrent(plugin, policy, terms, handler);
+}
+
+std::string AppKit::downloadsDirectory() const {
+    return (_dataDirectory + QDir::separator() + "downloads").toStdString();
 }
 
 libtorrent::sha1_hash AppKit::sha1_hash_from_hex_string(const char * hex) {

@@ -4,6 +4,7 @@
 #include <functional>
 #include <QString>
 #include <QTimer>
+#include <core/core.hpp>
 
 //#include <iostream>
 
@@ -17,13 +18,6 @@ namespace Coin {
 }
 
 namespace joystream {
-
-namespace core {
-    class Node;
-    class Torrent;
-    class TorrentPlugin;
-    class TorrentIdentifier;
-}
 
 namespace bitcoin {
     class SPVWallet;
@@ -66,6 +60,8 @@ public:
     // Load Node state from torrent data directory
     void loadNodeState();
 
+    void addTorrent(const core::TorrentIdentifier &, const core::Node::AddedTorrent &);
+
     void buyTorrent(core::TorrentPlugin *,
                     const protocol_session::BuyingPolicy &,
                     const protocol_wire::BuyerTerms &,
@@ -90,6 +86,8 @@ public:
                      const protocol_session::SellingPolicy &,
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
+
+    std::string downloadsDirectory() const;
 
     // Utility functions
     static libtorrent::sha1_hash sha1_hash_from_hex_string(const char *);
