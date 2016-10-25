@@ -315,6 +315,9 @@ void TorrentPlugin::toObserveMode() {
         _outstandingFullPieceArrivedCalls.clear();
 
     _session.toObserveMode(removeConnection());
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionToObserveMode>(_torrent);
 }
 
 void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
