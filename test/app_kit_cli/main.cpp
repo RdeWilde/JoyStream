@@ -42,13 +42,6 @@ void handleSignal(int sig)
     }
 }
 
-uint32_t future_unix_timestamp(const unsigned int minutes) {
-    std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
-    auto futureTime = std::chrono::system_clock::now() + std::chrono::minutes(minutes);
-    auto delta = futureTime - epoch;
-    return std::chrono::duration_cast<std::chrono::seconds>(delta).count();
-}
-
 std::string stateToString(libtorrent::torrent_status::state_t state) {
     switch (state) {
         case libtorrent::torrent_status::state_t::allocating: return "allocating";
@@ -66,21 +59,13 @@ std::string stateToString(libtorrent::torrent_status::state_t state) {
 int main(int argc, char *argv[])
 {
     const int nsellers = 1;
-    const uint64_t price = 10; //satoshis per piece
+    const uint64_t price = 100; //satoshis per piece
 
-    //Fixed locktime is problematic when peers are trying to match satisfying terms
-    //because the locktime is calculated once, and each peer will calculate the locktime at differnet times.
-    //locktime should really be relative to the time when the contract is broadcasted
-    //This is the main reason we want to update our payment channel to use check sequence verify rather than check locktime verify
-    //even using block height has the same problem... as time passes buyer waiting for sellers will find less and less potential candidates
-    //and at the point where the locktime is "in the past".. no sellers will satisfy the terms
-    //const uint32_t locktime = future_unix_timestamp(5); // 5 minute locktime
-    const uint32_t locktime = 0; //setting to zero just for testing for now
-    const uint64_t refund_fee = 0; // refund fee is remeniscent of old protocol is it still needed?
-    const uint64_t settlement_fee = 0;
-    const uint64_t contractFeeRate = 20;   //satoshis/KByte - ref https://bitcoinfees.github.io/
+    const uint32_t locktime = 5;
+    const uint64_t settlement_fee = 5000;
+    const uint64_t contractFeeRate = 20000;   //satoshis/KByte - ref https://bitcoinfees.github.io/
 
-    joystream::protocol_wire::BuyerTerms buyerTerms(price, locktime, nsellers, contractFeeRate, refund_fee);
+    joystream::protocol_wire::BuyerTerms buyerTerms(price, locktime, nsellers, contractFeeRate, 0);
     joystream::protocol_wire::SellerTerms sellerTerms(price, locktime, nsellers, contractFeeRate, settlement_fee);
 
     assert(sellerTerms.satisfiedBy(buyerTerms));
@@ -232,17 +217,13 @@ int main(int argc, char *argv[])
     if(torrentIdentifier) {
         std::cout << "Adding Torrent" << std::endl;
 
-        auto savePath = (dataDirectory + QDir::separator() + "downloads").toStdString();
-        // if torrent is added paused, it doesn't get unpaused in torrentPlugin::start()
-        kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, false, *torrentIdentifier,
-                               [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+        kit->addTorrent(*torrentIdentifier, [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
 
             if(ecode) {
                 std::cerr << "addTorrent failed: " << ecode.message().c_str() << std::endl;
             }
 
             std::cout << "Torrent Starting Status:" << stateToString(th.status().state) << std::endl;
-
         });
     }
 
