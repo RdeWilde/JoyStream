@@ -18,34 +18,45 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
 
     auto wallet = new bitcoin::SPVWallet(storeFile.toStdString(), blockTreeFile.toStdString(), network);
 
-    try {
-        std::cout << "Looking for wallet file " << storeFile.toStdString() << std::endl;
-        if(!QFile::exists(storeFile)){
-            std::cout << "Wallet not found.\nCreating a new wallet..." << std::endl;
-            wallet->create();
-        } else {
-            std::cout << "Wallet found, opening..." << std::endl;
-            wallet->open();
-        }
-
-        return wallet;
-    } catch(std::exception & e) {
-        std::cout << "Wallet Error: " << e.what() << std::endl;
-        delete wallet;
+    std::cout << "Looking for wallet file " << storeFile.toStdString() << std::endl;
+    if(!QFile::exists(storeFile)){
+        std::cout << "Wallet not found.\nCreating a new wallet..." << std::endl;
+        wallet->create();
+    } else {
+        std::cout << "Wallet found, opening..." << std::endl;
+        wallet->open();
     }
 
-    return nullptr;
+    return wallet;
 }
 
-AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network, std::string host, int port)
+AppKit* AppKit::create(const QString &dataDirectory, Coin::Network network, std::string host, int port)
 {
-    //try to lock access to the data directory with a system mutex ?
-    //make sure the dataDirectory exists.. (create it if not?) throw if not found
+    {
+        QFileInfo fi(dataDirectory);
+
+        if(!fi.exists()) {
+            throw std::runtime_error("path to data directory doesn't exist");
+        }
+
+        if(!fi.isDir()) {
+             throw std::runtime_error("path to data directory is not a directory");
+        }
+
+        if(!fi.isWritable()) {
+            throw std::runtime_error("data directory path is not writeable");
+        }
+    }
+
+    // Prevent other instances of app_kit trying to use the same data directory
+    auto dataDirectoryLock = new QLockFile(dataDirectory);
+    dataDirectoryLock->setStaleLockTime(0);
+    if(!dataDirectoryLock->tryLock(100)) {
+        std::cout << "Lock Error: " << dataDirectoryLock->error() << std::endl;
+        throw std::runtime_error("unable to obtain a lock on the data directory");
+    }
 
     bitcoin::SPVWallet* wallet = getWallet(dataDirectory, network);
-
-    if(!wallet)
-        return nullptr;
 
     wallet->loadBlockTree();
 
@@ -61,12 +72,13 @@ AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network netwo
         return nullptr;
     }
 
-    return new AppKit(node, wallet, dataDirectory, host , port);
+    return new AppKit(node, wallet, dataDirectory, dataDirectoryLock, host , port);
 
 }
 
-AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &dataDirectory, std::string host, int port)
+AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &dataDirectory, QLockFile* dataDirectoryLock, std::string host, int port)
     : _dataDirectory(dataDirectory),
+      _dataDirectoryLock(dataDirectoryLock),
       _node(node),
       _wallet(wallet),
       _bitcoinHost(host),
@@ -84,6 +96,10 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, const QString &data
     });
 
     _timer->start(1000); // 1s interval
+}
+
+AppKit::~AppKit() {
+    _dataDirectoryLock->unlock();
 }
 
 core::Node *AppKit::node() {
@@ -118,6 +134,8 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
 
         std::cout << "Stopping wallet" << std::endl;
         _wallet->stopSync();
+
+        _dataDirectoryLock->unlock();
 
         std::cout << "AppKit shutdown complete" << std::endl;
         shutdownComplete();
