@@ -274,6 +274,9 @@ void TorrentPlugin::stop() {
     // as we don't initate it in callback from session.
     _session.stop();
 
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionStopped>(_torrent);
+
     // Start handshake
     forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_extensions(); });
 }
