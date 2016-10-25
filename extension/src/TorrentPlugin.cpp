@@ -294,7 +294,11 @@ void TorrentPlugin::updateTerms(const protocol_wire::SellerTerms & terms) {
 }
 
 void TorrentPlugin::updateTerms(const protocol_wire::BuyerTerms & terms) {
+
     _session.updateTerms(terms);
+
+    // Send notification
+    _alertManager->emplace_alert<alert::BuyerTermsUpdated>(_torrent, terms);
 }
 
 void TorrentPlugin::toObserveMode() {
