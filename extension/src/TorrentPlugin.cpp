@@ -246,6 +246,9 @@ void TorrentPlugin::start() {
     // Start session
     _session.start();
 
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionStarted>(_torrent);
+
     // If session was initially stopped (not paused), then initiate extended handshake
     if(initialState == protocol_session::SessionState::stopped)
         forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void {
