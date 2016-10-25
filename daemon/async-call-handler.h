@@ -10,8 +10,6 @@
 #include <QCoreApplication>
 #include <core/Node.hpp>
 
-Q_DECLARE_METATYPE(joystream::core::Node*)
-
 class CallCtx : public QObject {
   Q_OBJECT
 
@@ -175,6 +173,7 @@ protected:
 
       ~CallHandler()
       {
+        std::cout<< "Delete CallHandler" <<std::endl;
         switch ( m_->callType_ )
         {
         case NORMAL_RPC:
@@ -258,6 +257,7 @@ protected:
           break;
 
         case callstate_finish:
+          std::cout<< "Delete this" <<std::endl;
           delete this;
           break;
         }
@@ -326,9 +326,7 @@ protected:
 
 public:
 
-  AsyncCallHandler(joystream::core::Node *node, QCoreApplication *app)
-    : node_(node),
-      app_(app)
+  AsyncCallHandler()
   {
       std::cout << "AsyncCallHandler created" << std::endl;
   }
@@ -348,8 +346,6 @@ public:
     void * tag;
     bool fok;
     CallCtx* obj;
-
-    //qRegisterMetaType<joystream::core::Node*>();
 
     for ( auto m = methods_.begin(); m != methods_.end(); ++m ) {
       (*m)->requestNewCall();

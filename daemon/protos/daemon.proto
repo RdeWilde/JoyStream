@@ -4,7 +4,8 @@ package joystream.daemon.rpc;
 
 service Daemon {
   rpc Pause(Void) returns (Void) {}
-  //rpc Resume(Void) returns (Void) {}
+  rpc Resume(Void) returns (Void) {}
+  rpc Stop(Void) returns (Void) {}
 
   rpc SuscribeEvents(Void) returns (stream Event) {}
 

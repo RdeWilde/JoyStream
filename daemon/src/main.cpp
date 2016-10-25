@@ -69,12 +69,16 @@ class AsyncDaemonService
 
 public:
 
-  AsyncDaemonService(joystream::core::Node* node, QCoreApplication* app)
-    : AsyncCallHandler(node, app)
+  AsyncDaemonService(joystream::core::Node* node)
+    : node_(node)
   {
     AddMethod(&NormalRpcDaemon::OnCall, &Daemon::AsyncService::Requesttest1);
     AddMethod(&PauseRpcDaemon::OnCall, &Daemon::AsyncService::RequestPause);
+    AddMethod(&StopRpcDaemon::OnCall, &Daemon::AsyncService::RequestStop);
   }
+
+private :
+  joystream::core::Node* node_;
 
   ///////
 
@@ -84,17 +88,40 @@ public:
     bool OnCall(bool fok, ServerContext* context, ServerCompletionQueue * cq, const Void * request,
         ServerAsyncResponseWriter<Void>* response_writer, void * tag)
     {
-      /*(void)(fok);
-      (void) (context);
-      (void) (cq);*/
-      // PDBG("GOT %s", request->clientmessage().c_str());
+
+      PDBG("GOT A PAUSE REQUEST");
+      std::cout << "We want to pause the node" << std::endl;
+      node_->pause([this, response_writer, tag](){
+          // Send the response to client
+          // but never print 'Node was paused' ?
+          std::cout << "Node was paused" << std::endl;
+          response_writer->Finish(this->response, Status::OK, tag);
+      });
+
+      return true;
+    }
+
+  private :
+    joystream::core::Node* node_;
+  };
+
+  class StopRpcDaemon {
+    Void response;
+  public:
+    bool OnCall(bool fok, ServerContext* context, ServerCompletionQueue * cq, const Void * request,
+        ServerAsyncResponseWriter<Void>* response_writer, void * tag)
+    {
+       // Answer first because then we shutdown server
+      response_writer->Finish(response, Status::OK, tag);
+
+      std::cout << "We want to stop server then completion queue then node then app" << std::endl;
+
       QCoreApplication* app = QApplication::instance();
       node_->pause([app](){
           std::cout << "Node was paused" << std::endl;
           app->exit();
-      });
 
-      response_writer->Finish(response, Status::OK, tag);
+      });
 
       return true;
     }
@@ -150,7 +177,7 @@ class ServerImpl final
       std::string server_address("0.0.0.0:3002");
 
       ServerBuilder builder;
-      AsyncDaemonService daemonService(node_, app_);
+      AsyncDaemonService daemonService(node_);
 
       builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 
@@ -164,8 +191,6 @@ class ServerImpl final
 
       // run() is blocking
       daemonService.run();
-
-      delete this;
     }
 
   private:
