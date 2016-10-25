@@ -134,6 +134,10 @@ void AppKit::buyTorrent(const core::Torrent *torrent,
                         const protocol_wire::BuyerTerms& terms,
                         const extension::request::SubroutineHandler& handler){
 
+    if(libtorrent::torrent_status::state_t::downloading != torrent->state()) {
+        throw std::runtime_error("torrent must be in downloading state to buy");
+    }
+
     core::TorrentPlugin* plugin = torrent->torrentPlugin();
 
     buyTorrent(plugin, policy, terms, handler);
@@ -196,19 +200,6 @@ void AppKit::buyTorrent(core::TorrentPlugin *plugin,
         });
 }
 
-void AppKit::buyTorrent(const libtorrent::sha1_hash &info_hash,
-                        const protocol_session::BuyingPolicy& policy,
-                        const protocol_wire::BuyerTerms& terms,
-                        const extension::request::SubroutineHandler& handler) {
-
-    auto torrents = _node->torrents();
-
-    if(torrents.find(info_hash) == torrents.end())
-        return;
-
-    buyTorrent(torrents[info_hash], policy, terms, handler);
-}
-
 void AppKit::sellTorrent(core::TorrentPlugin *plugin,
                          const protocol_session::SellingPolicy &policy,
                          const protocol_wire::SellerTerms &terms,
@@ -243,6 +234,10 @@ void AppKit::sellTorrent(const core::Torrent *torrent,
                          const protocol_session::SellingPolicy &policy,
                          const protocol_wire::SellerTerms &terms,
                          const SubroutineHandler& handler){
+
+    if(libtorrent::torrent_status::state_t::seeding != torrent->state()) {
+        throw std::runtime_error("torrent must be in seeding state to sell");
+    }
 
     core::TorrentPlugin* plugin = torrent->torrentPlugin();
 
