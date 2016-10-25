@@ -290,7 +290,11 @@ void TorrentPlugin::pause() {
 }
 
 void TorrentPlugin::updateTerms(const protocol_wire::SellerTerms & terms) {
+
     _session.updateTerms(terms);
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SellerTermsUpdated>(_torrent, terms);
 }
 
 void TorrentPlugin::updateTerms(const protocol_wire::BuyerTerms & terms) {
