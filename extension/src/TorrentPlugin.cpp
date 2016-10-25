@@ -491,7 +491,8 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
     // Send notification
     boost::shared_ptr<PeerPlugin> plugin = wPeerPlugin.lock();
     assert(plugin);
-    _alertManager->emplace_alert<alert::ConnectionAddedToSession>(_torrent, endPoint, plugin->connection().pid());
+    auto s = _session.status(); //<== temporray until issue # is fixed
+    _alertManager->emplace_alert<alert::ConnectionAddedToSession>(_torrent, endPoint, plugin->connection().pid(), s.connections[endPoint]);
 }
 
 void TorrentPlugin::removeFromSession(const libtorrent::tcp::endpoint & endPoint) {

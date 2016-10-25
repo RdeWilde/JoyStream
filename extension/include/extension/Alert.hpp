@@ -208,10 +208,12 @@ namespace alert {
     struct ConnectionAddedToSession : public libtorrent::peer_alert {
 
         ConnectionAddedToSession(libtorrent::aux::stack_allocator & alloc,
-                               const libtorrent::torrent_handle & h,
-                               const libtorrent::tcp::endpoint & ep,
-                               const libtorrent::peer_id & peer_id)
-            : libtorrent::peer_alert(alloc, h, ep, peer_id) {}
+                                 const libtorrent::torrent_handle & h,
+                                 const libtorrent::tcp::endpoint & ep,
+                                 const libtorrent::peer_id & peer_id,
+                                 const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status)
+            : libtorrent::peer_alert(alloc, h, ep, peer_id)
+            , status(status) {}
 
         TORRENT_DEFINE_ALERT(ConnectionAddedToSession, libtorrent::user_alert_id + 11)
 
@@ -219,6 +221,7 @@ namespace alert {
             return peer_alert::message() + " session connection added";
         }
 
+        protocol_session::status::Connection<libtorrent::tcp::endpoint> status;
     };
 
     struct ConnectionRemovedFromSession : public libtorrent::peer_alert {
