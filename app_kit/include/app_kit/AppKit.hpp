@@ -7,6 +7,8 @@
 #include <QLockFile>
 
 #include <app_kit/DataDirectory.hpp>
+#include <app_kit/TransactionSendQueue.hpp>
+
 #include <core/core.hpp>
 
 //#include <iostream>
@@ -82,7 +84,7 @@ private:
 
     static bitcoin::SPVWallet* getWallet(const DataDirectory &dataDirectory, Coin::Network network);
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, DataDirectory *dataDirectory, std::string host, int port);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendQueue *txSendQueue, DataDirectory *dataDirectory, std::string host, int port);
 
     void syncWallet();
 
@@ -96,6 +98,8 @@ private:
     int _bitcoinPort;
 
     QTimer *_timer;
+
+    std::unique_ptr<TransactionSendQueue> _transactionSendQueue;
 
     void buyTorrent(core::TorrentPlugin *,
                     const protocol_session::BuyingPolicy &,
