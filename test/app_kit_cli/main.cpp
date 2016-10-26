@@ -6,8 +6,7 @@
  */
 
 #include <cli.hpp>
-#include <app_kit/AppKit.hpp>
-#include <app_kit/Settings.hpp>
+#include <app_kit/kit.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
 #include <common/P2PKHAddress.hpp>
@@ -89,7 +88,7 @@ int main(int argc, char *argv[])
     joystream::core::TorrentIdentifier* torrentIdentifier = nullptr;
 
     if(argc == 3) {
-        torrentIdentifier = joystream::appkit::AppKit::makeTorrentIdentifier(argv[2]);
+        torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(argv[2]);
         if(!torrentIdentifier) {
             return 1;
         }

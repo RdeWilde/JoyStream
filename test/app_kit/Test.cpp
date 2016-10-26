@@ -6,8 +6,7 @@
  */
 
 #include <Test.hpp>
-#include <app_kit/AppKit.hpp>
-#include <app_kit/Settings.hpp>
+#include <app_kit/kit.hpp>
 
 #include <common/Network.hpp>
 #include <boost/filesystem.hpp>

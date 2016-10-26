@@ -9,11 +9,14 @@ CONFIG  += c++11 # Needed for class enum
 
 SOURCES += src/AppKit.cpp \
     src/DataDirectory.cpp \
-    src/Settings.cpp
+    src/Settings.cpp \
+    src/HelperFunctions.cpp
 
 HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/DataDirectory.hpp \
-    include/app_kit/Settings.hpp
+    include/app_kit/Settings.hpp \
+    include/app_kit/HelperFunctions.hpp \
+    include/app_kit/kit.hpp
 
 INCLUDEPATH += $$PWD/include
 
