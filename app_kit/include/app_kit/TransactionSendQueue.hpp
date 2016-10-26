@@ -8,8 +8,9 @@ namespace appkit {
 
 class TransactionSendQueue
 {
+    typedef std::chrono::duration<double> Interval;
 public:
-    TransactionSendQueue(bitcoin::SPVWallet*, const std::chrono::duration<double>);
+    TransactionSendQueue(bitcoin::SPVWallet*, const Interval = Interval(20));
 
     size_t size() const;
 

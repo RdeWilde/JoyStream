@@ -4,12 +4,12 @@ namespace joystream {
 namespace appkit {
 
 
-TransactionSendQueue::TransactionSendQueue(bitcoin::SPVWallet *wallet, const std::chrono::duration<double> minFlushInterval)
+TransactionSendQueue::TransactionSendQueue(bitcoin::SPVWallet *wallet, const Interval minFlushInterval)
     : _wallet(wallet),
       _minFlushInterval(minFlushInterval) {
 
-    QObject::connect(_wallet, &bitcoin::SPVWallet::txUpdated, 0, [this](Coin::TransactionId txid, int confirmations){
-        // remove transaction from queue
+    QObject::connect(_wallet, &bitcoin::SPVWallet::txUpdated, [this](Coin::TransactionId txid, int confirmations){
+        // remove transaction from queue when it enters the wallet store
         _transactions.erase(txid);
     });
 }
