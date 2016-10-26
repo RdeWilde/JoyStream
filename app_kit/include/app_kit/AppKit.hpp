@@ -104,12 +104,14 @@ private:
     void buyTorrent(core::TorrentPlugin *,
                     const protocol_session::BuyingPolicy &,
                     const protocol_wire::BuyerTerms &,
-                    const SubroutineHandler &);
+                    const SubroutineHandler &, Coin::UnspentOutputSet outputs);
 
     void sellTorrent(core::TorrentPlugin *,
                      const protocol_session::SellingPolicy &,
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
+
+    uint64_t estimateRequiredFundsToBuyTorrent(const core::Torrent *, joystream::protocol_wire::BuyerTerms);
 };
 
 }
