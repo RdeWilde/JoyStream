@@ -54,13 +54,6 @@ static inline pid_t gettid(void)
     fflush(stderr)
 
 
-// Explicit template instantiation of IdToString()
-// used in joystream::protocol_session::exception::ConnectionAlreadyAddedException
-template <>
-std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(boost::asio::ip::basic_endpoint<boost::asio::ip::tcp> const&id){
-    return id.address().to_string();
-}
-
 ///////////////////////////////////////////////////////////////////
 
 
@@ -70,28 +63,26 @@ class AsyncDaemonService
 public:
 
   AsyncDaemonService(joystream::core::Node* node)
-    : node_(node)
+    : AsyncCallHandler(node)
   {
     AddMethod(&NormalRpcDaemon::OnCall, &Daemon::AsyncService::Requesttest1);
     AddMethod(&PauseRpcDaemon::OnCall, &Daemon::AsyncService::RequestPause);
     AddMethod(&StopRpcDaemon::OnCall, &Daemon::AsyncService::RequestStop);
   }
 
-private :
-  joystream::core::Node* node_;
 
   ///////
 
   class PauseRpcDaemon {
     Void response;
   public:
-    bool OnCall(bool fok, ServerContext* context, ServerCompletionQueue * cq, const Void * request,
+    bool OnCall(bool fok, joystream::core::Node* node, ServerContext* context, ServerCompletionQueue * cq, const Void * request,
         ServerAsyncResponseWriter<Void>* response_writer, void * tag)
     {
 
       PDBG("GOT A PAUSE REQUEST");
       std::cout << "We want to pause the node" << std::endl;
-      node_->pause([this, response_writer, tag](){
+      node->pause([this, response_writer, tag](){
           // Send the response to client
           // but never print 'Node was paused' ?
           std::cout << "Node was paused" << std::endl;
@@ -101,14 +92,12 @@ private :
       return true;
     }
 
-  private :
-    joystream::core::Node* node_;
   };
 
   class StopRpcDaemon {
     Void response;
   public:
-    bool OnCall(bool fok, ServerContext* context, ServerCompletionQueue * cq, const Void * request,
+    bool OnCall(bool fok, joystream::core::Node* node, ServerContext* context, ServerCompletionQueue * cq, const Void * request,
         ServerAsyncResponseWriter<Void>* response_writer, void * tag)
     {
        // Answer first because then we shutdown server
@@ -117,7 +106,7 @@ private :
       std::cout << "We want to stop server then completion queue then node then app" << std::endl;
 
       QCoreApplication* app = QApplication::instance();
-      node_->pause([app](){
+      node->pause([app](){
           std::cout << "Node was paused" << std::endl;
           app->exit();
 
@@ -125,15 +114,12 @@ private :
 
       return true;
     }
-
-  private :
-    joystream::core::Node* node_;
-  };
+ };
 
   class NormalRpcDaemon {
     TestResponce responce;
   public:
-    bool OnCall(bool fok, ServerContext* context, ServerCompletionQueue * cq, const TestRequest * request,
+    bool OnCall(bool fok, joystream::core::Node* node, ServerContext* context, ServerCompletionQueue * cq, const TestRequest * request,
         ServerAsyncResponseWriter<TestResponce>* response_writer, void * tag)
     {
       /*(void)(fok);

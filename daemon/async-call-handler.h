@@ -10,12 +10,14 @@
 #include <QCoreApplication>
 #include <core/Node.hpp>
 
+Q_DECLARE_METATYPE(joystream::core::Node*)
+
 class CallCtx : public QObject {
   Q_OBJECT
 
   public:
     virtual ~CallCtx() {}
-    Q_INVOKABLE virtual void proceed(bool fok) = 0;
+    Q_INVOKABLE virtual void proceed(bool fok, joystream::core::Node* node) = 0;
 };
 
 template<class Service>
@@ -53,8 +55,6 @@ protected:
   std::unique_ptr<ServerCompletionQueue> cq_;
 
   joystream::core::Node *node_;
-  QCoreApplication *app_;
-
 
   ////////////////////////////////////////////////////////////////////////
   template<class H, class REQ, class RESP>
@@ -62,6 +62,7 @@ protected:
       : public MethodCtx
   {
     typedef bool (H::*NORMAL_RPC_HANDLER)(bool,
+        joystream::core::Node*,
         ServerContext*,
         ServerCompletionQueue*,
         const REQ*,
@@ -79,6 +80,7 @@ protected:
 
 
     typedef bool (H::*SERVER_STREAMING_HANDLER)(bool,
+        joystream::core::Node*,
         ServerContext*,
         ServerCompletionQueue*,
         const REQ*,
@@ -94,6 +96,7 @@ protected:
 
 
     typedef bool (H::*CLIENT_STREAMING_HANDLER)(bool,
+        joystream::core::Node*,
         ServerContext*,
         ServerCompletionQueue*,
         ServerAsyncReader<RESP, REQ>*,
@@ -108,6 +111,7 @@ protected:
 
 
     typedef bool (H::*BIDI_STREAMING_HANDLER)(bool,
+        joystream::core::Node*,
         ServerContext*,
         ServerCompletionQueue*,
         ServerAsyncReaderWriter<RESP, REQ>*,
@@ -220,7 +224,7 @@ protected:
         }
       }
 
-      void proceed(bool fok)
+      void proceed(bool fok, joystream::core::Node* node)
       {
         std::cout<< "Proceed" <<std::endl;
         switch ( callstate_ )
@@ -238,16 +242,16 @@ protected:
           switch ( m_->callType_ )
           {
           case NORMAL_RPC:
-            fok = (obj_.*(m_->call_normal_rpc_))(fok, &ctx_, m_->service_->cq_.get(), &req_, rw_, this);
+            fok = (obj_.*(m_->call_normal_rpc_))(fok, node, &ctx_, m_->service_->cq_.get(), &req_, rw_, this);
             break;
           case SERVER_STREAMING:
-            fok = (obj_.*(m_->call_server_streaming_))(fok, &ctx_, m_->service_->cq_.get(), &req_, w_, this);
+            fok = (obj_.*(m_->call_server_streaming_))(fok, node, &ctx_, m_->service_->cq_.get(), &req_, w_, this);
             break;
           case CLIENT_STREAMING:
-            fok = (obj_.*(m_->call_client_streaming_))(fok, &ctx_, m_->service_->cq_.get(), r_, this);
+            fok = (obj_.*(m_->call_client_streaming_))(fok, node, &ctx_, m_->service_->cq_.get(), r_, this);
             break;
           case BIDI_STREAMING:
-            fok = (obj_.*(m_->call_bidi_streaming_))(fok, &ctx_, m_->service_->cq_.get(), stream_, this);
+            fok = (obj_.*(m_->call_bidi_streaming_))(fok, node, &ctx_, m_->service_->cq_.get(), stream_, this);
             break;
           }
 
@@ -292,7 +296,7 @@ protected:
 
 
   template<class H, class S, class REQ, class RESP>
-  void AddMethod(bool (H::*fn)(bool, ServerContext*, ServerCompletionQueue*, const REQ*, ServerAsyncResponseWriter<RESP>*, void *),
+  void AddMethod(bool (H::*fn)(bool, joystream::core::Node*, ServerContext*, ServerCompletionQueue*, const REQ*, ServerAsyncResponseWriter<RESP>*, void *),
       void (S::*ffn)(ServerContext*, REQ*, ServerAsyncResponseWriter<RESP>*, CompletionQueue*, ServerCompletionQueue*,
           void *))
   {
@@ -301,7 +305,7 @@ protected:
 
 
   template<class H, class S, class REQ, class RESP>
-  void AddMethod(bool (H::*fn)(bool, ServerContext*, ServerCompletionQueue*, const REQ*, ServerAsyncWriter<RESP>*, void *),
+  void AddMethod(bool (H::*fn)(bool, joystream::core::Node*, ServerContext*, ServerCompletionQueue*, const REQ*, ServerAsyncWriter<RESP>*, void *),
       void (S::*ffn)(ServerContext*, REQ*, ServerAsyncWriter<RESP>*, CompletionQueue*, ServerCompletionQueue*, void *))
   {
     methods_.emplace_back(new Method<H, REQ, RESP>(this, fn, ffn));
@@ -309,7 +313,7 @@ protected:
 
 
   template<class H, class S, class REQ, class RESP>
-  void AddMethod(bool (H::*fn)(bool, ServerContext*, ServerCompletionQueue*, ServerAsyncReader<RESP, REQ>*, void * ),
+  void AddMethod(bool (H::*fn)(bool, joystream::core::Node*, ServerContext*, ServerCompletionQueue*, ServerAsyncReader<RESP, REQ>*, void * ),
       void (S::*ffn)(ServerContext*, ServerAsyncReader<RESP, REQ>*, CompletionQueue*, ServerCompletionQueue*, void*))
   {
     methods_.emplace_back(new Method<H, REQ, RESP>(this, fn, ffn));
@@ -317,7 +321,7 @@ protected:
 
 
   template<class H, class S, class REQ, class RESP>
-  void AddMethod(bool (H::*fn)(bool, ServerContext*, ServerCompletionQueue*, ServerAsyncReaderWriter<RESP, REQ>*, void*),
+  void AddMethod(bool (H::*fn)(bool, joystream::core::Node*, ServerContext*, ServerCompletionQueue*, ServerAsyncReaderWriter<RESP, REQ>*, void*),
       void (S::*ffn)(ServerContext*, ServerAsyncReaderWriter<RESP, REQ>*, CompletionQueue*, ServerCompletionQueue*,
           void*))
   {
@@ -326,7 +330,8 @@ protected:
 
 public:
 
-  AsyncCallHandler()
+  AsyncCallHandler(joystream::core::Node* node)
+    : node_(node)
   {
       std::cout << "AsyncCallHandler created" << std::endl;
   }
@@ -347,6 +352,8 @@ public:
     bool fok;
     CallCtx* obj;
 
+    qRegisterMetaType<joystream::core::Node*>("joystream::core::Node*");
+
     for ( auto m = methods_.begin(); m != methods_.end(); ++m ) {
       (*m)->requestNewCall();
     }
@@ -356,7 +363,7 @@ public:
       obj = static_cast<CallCtx *>(tag);
       obj->moveToThread(QApplication::instance()->thread());
       std::cout << "In the loop" << std::endl;
-      QMetaObject::invokeMethod(obj, "proceed", Qt::QueuedConnection, Q_ARG(bool, fok));
+      QMetaObject::invokeMethod(obj, "proceed", Qt::QueuedConnection, Q_ARG(bool, fok), Q_ARG(joystream::core::Node*, node_));
     }
   }
 };
