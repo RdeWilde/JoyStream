@@ -140,26 +140,26 @@ void AppKit::buyTorrent(const core::Torrent *torrent,
         throw std::runtime_error("torrent must be in downloading state to buy");
     }
 
-    core::TorrentPlugin* plugin = torrent->torrentPlugin();
+    auto contractFunds = estimateRequiredFundsToBuyTorrent(torrent, terms);
 
-    buyTorrent(plugin, policy, terms, handler);
-}
-
-void AppKit::buyTorrent(core::TorrentPlugin *plugin,
-                        const protocol_session::BuyingPolicy& policy,
-                        const protocol_wire::BuyerTerms& terms,
-                        const extension::request::SubroutineHandler& handler){
-
-    // What is the best way to set this value - calculate based on buyer policy/terms ?
-    const uint64_t paymentChannelFunds = 5000;
-
-    auto outputs = _wallet->lockOutputs(paymentChannelFunds, 0);
+    auto outputs = _wallet->lockOutputs(contractFunds, 0);
 
     if(outputs.size() == 0) {
         // Not enough funds
         std::cout << "Not Enough Funds" << std::endl;
         return;
     }
+
+    core::TorrentPlugin* plugin = torrent->torrentPlugin();
+
+    buyTorrent(plugin, policy, terms, handler, outputs);
+}
+
+void AppKit::buyTorrent(core::TorrentPlugin *plugin,
+                        const protocol_session::BuyingPolicy& policy,
+                        const protocol_wire::BuyerTerms& terms,
+                        const extension::request::SubroutineHandler& handler,
+                        Coin::UnspentOutputSet outputs){
 
     plugin->toBuyMode(
         // protocol_session::GenerateP2SHKeyPairCallbackHandler
@@ -244,6 +244,21 @@ void AppKit::sellTorrent(const core::Torrent *torrent,
     core::TorrentPlugin* plugin = torrent->torrentPlugin();
 
     sellTorrent(plugin, policy, terms, handler);
+}
+
+uint64_t AppKit::estimateRequiredFundsToBuyTorrent(const core::Torrent *torrent, joystream::protocol_wire::BuyerTerms terms) {
+
+    auto metadata = torrent->metaData().lock();
+    uint64_t paymentChannelFunds = metadata->num_pieces() * terms.maxPrice();
+
+    // there is a circular condition here, we are trying to estimate the amount of value to lock and for that we need to know
+    // how many utxo will be locked which cannot be determined before locking the amount.. so we will just assume a single utxo
+    // will be locked, this may likely result in the fee being too low if we end up locking significantly more utxos
+    // This one more problem which will be solved when we address the prefunding mechanism
+    // https://github.com/JoyStream/JoyStream/issues/315
+    uint64_t estimatedContractFee = paymentchannel::Contract::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb(), 1);
+
+    return paymentChannelFunds + estimatedContractFee;
 }
 
 libtorrent::sha1_hash AppKit::sha1_hash_from_hex_string(const char * hex) {
