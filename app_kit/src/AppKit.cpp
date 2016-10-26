@@ -36,43 +36,48 @@ AppKit* AppKit::create(const Settings &settings)
 
     bitcoin::SPVWallet* wallet = nullptr;
     core::Node* node = nullptr;
-
+    TransactionSendQueue *sendQueue = nullptr;
     try {
 
         wallet = getWallet(*dataDir, settings.network);
 
         wallet->loadBlockTree();
 
-        node = core::Node::create([wallet](const Coin::Transaction &tx){
-            wallet->broadcastTx(tx); // queue TX for rebroadcast if wallet is offline
+        sendQueue = new TransactionSendQueue(wallet);
+
+        node = core::Node::create([sendQueue](const Coin::Transaction &tx){
+            sendQueue->insert(tx);
         });
 
     } catch(std::exception &e) {
-        if(wallet) delete wallet;
         if(node) delete node;
+        if(sendQueue) delete sendQueue;
+        if(wallet) delete wallet;
         dataDir->unlock();
         throw e;
     }
 
-    return new AppKit(node, wallet, dataDir, settings.host , settings.port);
+    return new AppKit(node, wallet, sendQueue, dataDir, settings.host , settings.port);
 }
 
-AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, DataDirectory *dataDirectory, std::string host, int port)
+AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendQueue *txSendQueue, DataDirectory *dataDirectory, std::string host, int port)
     : _node(node),
       _wallet(wallet),
       _dataDirectory(dataDirectory),
       _bitcoinHost(host),
-      _bitcoinPort(port) {
+      _bitcoinPort(port),
+      _transactionSendQueue(txSendQueue) {
 
     _timer = new QTimer();
 
     QObject::connect(_timer, &QTimer::timeout, [this](){
         _node->updateStatus();
 
-        // try to reconnect to bitcoin network if wallet went offline
+        // Try to reconnect to bitcoin network if wallet went offline
         syncWallet();
 
-        //... rebroadcast transactions..
+        // Sendout queued transactions
+        _transactionSendQueue->flush();
     });
 
     _timer->start(1000); // 1s interval
