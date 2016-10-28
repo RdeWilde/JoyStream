@@ -10,7 +10,11 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-SOURCES += src/main.cpp protos/daemon.grpc.pb.cc protos/daemon.pb.cc
+SOURCES += src/main.cpp protos/daemon.grpc.pb.cc protos/daemon.pb.cc \
+    RPCPause.cpp \
+    RPCTest.cpp \
+    ServerImpl.cpp \
+    AsyncCallHandler.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../core/release/ -lcore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../core/debug/ -lcore
@@ -110,4 +114,8 @@ LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf
 include(../config.pri)
 
 HEADERS += \
-    async-call-handler.h
+    RPCPause.h \
+    RPCTest.h \
+    ServerImpl.h \
+    AsyncCallHandler.h \
+    RPCRequest.h
