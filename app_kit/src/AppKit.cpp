@@ -1,9 +1,16 @@
 #include <app_kit/AppKit.hpp>
 #include <app_kit/DataDirectory.hpp>
 #include <app_kit/Settings.hpp>
+#include <app_kit/NodeState.hpp>
+#include <app_kit/TorrentState.hpp>
 
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
+
+#include <libtorrent/create_torrent.hpp>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include <QDir>
 
@@ -66,11 +73,15 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendQueu
       _dataDirectory(dataDirectory),
       _bitcoinHost(host),
       _bitcoinPort(port),
-      _transactionSendQueue(txSendQueue) {
+      _transactionSendQueue(txSendQueue),
+      _shuttingDown(false) {
 
     _timer = new QTimer();
 
     QObject::connect(_timer, &QTimer::timeout, [this](){
+        if(_shuttingDown)
+            return;
+
         _node->updateStatus();
 
         // Try to reconnect to bitcoin network if wallet went offline
@@ -107,9 +118,17 @@ void AppKit::syncWallet() {
 }
 
 void AppKit::shutdown(const Callback & shutdownComplete) {
-    _timer->stop();
+    if(_shuttingDown)
+        return;
 
     std::cout << "Shutting down AppKit" << std::endl;
+
+    _shuttingDown = true;
+
+    _timer->stop();
+
+    std::cout << "Saving node state to disk" << std::endl;
+    persistNodeState();
 
     _node->pause([shutdownComplete, this](){
         std::cout << "Node paused" << std::endl;
@@ -124,15 +143,56 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
     });
 }
 
-void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const core::Node::AddedTorrent &addedTorrent) {
+NodeState AppKit::generateNodeState() const {
+    return NodeState(_node.get());
+}
 
-    // addTorrent adds a torrent synchronously to libtorrent
-    _node->addTorrent(0, // default upload bandwidth limit
-                      0, // default download bandwidth limit
-                      torrentReference.infoHash().to_string(),
-                      std::vector<char>(), _dataDirectory->defaultSavePath().toStdString(),
-                      false,
-                      torrentReference,
+void AppKit::persistNodeState() const {
+    NodeState state = generateNodeState();
+    QJsonObject doc;
+
+    doc["torrents"] = state.toJson();
+
+    QFile stateFile(QDir(_dataDirectory->nodeStatePath()).absoluteFilePath(QString::fromStdString("nodestate.json")));
+    stateFile.open(QFile::OpenModeFlag::WriteOnly);
+    stateFile.write(QJsonDocument(doc).toJson());
+    stateFile.close();
+}
+
+NodeState AppKit::loadNodeState() const {
+    try {
+
+        QFile stateFile(QDir(_dataDirectory->nodeStatePath()).absoluteFilePath(QString::fromStdString("nodestate.json")));
+        stateFile.open(QFile::OpenModeFlag::ReadOnly);
+        QJsonDocument state = QJsonDocument::fromBinaryData(stateFile.readAll());
+        stateFile.close();
+
+        return NodeState(state.object()["torrents"]);
+
+    } catch(std::exception &e) {
+        return NodeState();
+    }
+}
+
+void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const core::Node::AddedTorrent &addedTorrent){
+        _node->addTorrent(0,0,
+                         libtorrent::to_hex(torrentReference.infoHash().to_string()),
+                         std::vector<char>(),
+                          _dataDirectory->defaultSavePath().toStdString(),
+                         false,
+                         torrentReference,
+                         addedTorrent);
+}
+
+void AppKit::addTorrent(const TorrentState &torrent, const core::Node::AddedTorrent &addedTorrent) {
+
+    _node->addTorrent(torrent.uploadLimit(),
+                      torrent.downloadLimit(),
+                      torrent.name(),
+                      torrent.resumeData(),
+                      torrent.savePath(),
+                      torrent.paused(),
+                      torrent.metaData(),
                       addedTorrent);
 }
 

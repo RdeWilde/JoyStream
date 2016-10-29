@@ -41,6 +41,8 @@ namespace protocol_wire {
 namespace appkit {
 
 struct Settings;
+class NodeState;
+class TorrentState;
 
 class AppKit
 {
@@ -56,18 +58,24 @@ public:
 
     void shutdown(const Callback &);
 
+    NodeState generateNodeState() const;
+
+    // Persist current Node state to disk
+    void persistNodeState() const;
+
+    // Read saved Node state from disk - does not change the current Node State
+    NodeState loadNodeState() const;
+
     // Save Node state to and ostream
     //void saveNodeState(ostream&);
 
     // Load Node state from an istream
     //void loadNodeState(istream&);
 
-    // Save Node state to torrent data directory
-    void saveNodeState();
+    // Add torrent from TorrentState
+    void addTorrent(const joystream::appkit::TorrentState &torrent, const core::Node::AddedTorrent &);
 
-    // Load Node state from torrent data directory
-    void loadNodeState();
-
+    // Add torrent with default parameters
     void addTorrent(const core::TorrentIdentifier &, const core::Node::AddedTorrent &);
 
     void buyTorrent(const core::Torrent*,
@@ -100,6 +108,8 @@ private:
     QTimer *_timer;
 
     std::unique_ptr<TransactionSendQueue> _transactionSendQueue;
+
+    bool _shuttingDown;
 
     void buyTorrent(core::TorrentPlugin *,
                     const protocol_session::BuyingPolicy &,
