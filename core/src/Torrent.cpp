@@ -49,11 +49,11 @@ Torrent::~Torrent() {
     removeTorrentPlugin();
 }
 
-void Torrent::paused(bool graceful, const TorrentPaused & handler) {
+void Torrent::pause(bool graceful, const TorrentPaused & handler) {
     _plugin->submit(extension::request::PauseTorrent(infoHash(), graceful, handler));
 }
 
-void Torrent::resumed(const TorrentResumed & handler) {
+void Torrent::resume(const TorrentResumed & handler) {
     _plugin->submit(extension::request::ResumeTorrent(infoHash(), handler));
 }
 
