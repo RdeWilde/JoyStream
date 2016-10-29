@@ -26,7 +26,7 @@ namespace detail {
                                      const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
                                      const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                      const GenerateChangeAddressesCallbackHandler &generateChangeAddresses,
-                                     const BroadcastTransaction & broadcastTransaction,
+                                     const ContractConstructed & contractConstructed,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                      const Coin::UnspentOutputSet & funding,
                                      const BuyingPolicy & policy,
@@ -37,7 +37,7 @@ namespace detail {
         , _generateP2SHKeyPair(generateP2SHKeyPair)
         , _generateReceiveAddresses(generateReceiveAddresses)
         , _generateChangeAddresses(generateChangeAddresses)
-        , _broadcastTransaction(broadcastTransaction)
+        , _contractConstructed(contractConstructed)
         , _fullPieceArrived(fullPieceArrived)
         , _funding(funding)
         , _policy(policy)
@@ -619,7 +619,7 @@ namespace detail {
         assert((float)fee >= (contractFeePerKb * contractSizeKb));
 
         // Notify client that transaction should be broadcasted
-        _broadcastTransaction(_contractTx);
+        _contractConstructed(_contractTx, c);
 
         /////////////////////////
 

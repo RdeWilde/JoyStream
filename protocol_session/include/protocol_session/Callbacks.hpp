@@ -25,6 +25,7 @@ namespace Coin {
 namespace joystream {
 namespace paymentchannel {
     class Payee;
+    class Contract;
 }
 namespace protocol_session {
 
@@ -76,7 +77,7 @@ typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendM
 //// Buying
 
 // Broadcasting a transaction
-typedef std::function<bool(const Coin::Transaction &)> BroadcastTransaction;
+typedef std::function<bool(const Coin::Transaction &, const paymentchannel::Contract & c)> ContractConstructed;
 
 // Process arrival of a full piece, with given index over peer connection with given id
 template <class ConnectionIdType>

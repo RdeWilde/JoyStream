@@ -86,7 +86,7 @@ namespace detail {
                        const GenerateP2SHKeyPairCallbackHandler &,
                        const GenerateReceiveAddressesCallbackHandler &,
                        const GenerateChangeAddressesCallbackHandler &,
-                       const BroadcastTransaction &,
+                       const ContractConstructed &,
                        const FullPieceArrived<ConnectionIdType> &,
                        const Coin::UnspentOutputSet &,
                        const BuyingPolicy &,
