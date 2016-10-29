@@ -34,8 +34,7 @@ class Plugin : public libtorrent::plugin {
 
 public:
 
-    Plugin(const TransactionBroadcaster broadcaster,
-           uint minimumMessageId,
+    Plugin(uint minimumMessageId,
            libtorrent::alert_manager * alertManager = nullptr,
            libtorrent::aux::session_impl * session = nullptr);
 
@@ -71,9 +70,6 @@ private:
 
     // Libtorrent session.
     libtorrent::aux::session_impl * _session;
-
-    // Broadcaster for transactions
-    TransactionBroadcaster _broadcaster;
 
     // Lowest all message id where libtorrent client can guarantee we will not
     // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)

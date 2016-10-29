@@ -531,21 +531,24 @@ namespace alert {
         int pieceIndex;
     };
 
-    struct ContractTransactionReady : public libtorrent::torrent_alert {
+    struct ContractConstructed : public libtorrent::torrent_alert {
 
-        ContractTransactionReady(libtorrent::aux::stack_allocator & alloc,
-                                 const libtorrent::torrent_handle & h,
-                                 const Coin::Transaction  & tx)
+        ContractConstructed(libtorrent::aux::stack_allocator & alloc,
+                            const libtorrent::torrent_handle & h,
+                            const Coin::Transaction  & tx,
+                            const paymentchannel::Contract & contract)
             : libtorrent::torrent_alert(alloc, h)
-            , tx(tx) { }
+            , tx(tx)
+            , contract(contract) {}
 
         TORRENT_DEFINE_ALERT(ContractTransactionReady, libtorrent::user_alert_id + 26)
         static const int static_category = alert::status_notification;
         virtual std::string message() const override {
-            return torrent_alert::message() + " contract transaction ready";
+            return torrent_alert::message() + " contract constructed";
         }
 
         Coin::Transaction tx;
+        paymentchannel::Contract contract;
     };
 
     // Trigger: validPieceReceivedOnConnection

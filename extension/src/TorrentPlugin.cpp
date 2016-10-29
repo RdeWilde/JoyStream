@@ -19,20 +19,17 @@ namespace extension {
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const libtorrent::torrent_handle & torrent,
-                             const TransactionBroadcaster broadcaster,
                              uint minimumMessageId,
                              libtorrent::alert_manager * alertManager,
                              const Policy & policy,
                              LibtorrentInteraction libtorrentInteraction)
     : _plugin(plugin)
     , _torrent(torrent)
-    , _broadcaster(broadcaster)
     , _minimumMessageId(minimumMessageId)
     , _alertManager(alertManager)
     , _policy(policy)
     , _libtorrentInteraction(libtorrentInteraction)
-    , _infoHash(torrent.info_hash())
-{
+    , _infoHash(torrent.info_hash()) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
@@ -372,7 +369,7 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
                        generateKeyPairCallbackHandler,
                        generateReceiveAddressesCallbackHandler,
                        generateChangeAddressesCallbackHandler,
-                       broadcastTransaction(),
+                       contractConstructed(),
                        fullPieceArrived(),
                        funding,
                        policy,
@@ -610,19 +607,13 @@ protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> To
     };
 }
 
-protocol_session::BroadcastTransaction TorrentPlugin::broadcastTransaction() {
+protocol_session::ContractConstructed TorrentPlugin::contractConstructed() {
 
-    // Recover info hash
-    libtorrent::torrent * t = torrent();
-    libtorrent::torrent_handle h = t->get_handle();
-    libtorrent::sha1_hash infoHash = h.info_hash();
+    auto torrent = _torrent;
+    auto alertManager = _alertManager;
 
-    return [this, infoHash](const Coin::Transaction & tx) -> bool {
-
-        // Broadcast transaction
-        this->_broadcaster(infoHash, tx);
-
-        return true; // remove later, there is a github issue
+    return [torrent, alertManager](const Coin::Transaction & tx, const paymentchannel::Contract & c) {
+        alertManager->emplace_alert<alert::ContractConstructed>(torrent, tx, c);
     };
 }
 
@@ -693,15 +684,17 @@ protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::cla
 
     // Recover info hash
     libtorrent::torrent * t = torrent();
+    libtorrent::alert_manager & manager = t->alerts();
     libtorrent::torrent_handle h = t->get_handle();
     libtorrent::sha1_hash infoHash = h.info_hash();
 
-    return [this, infoHash](const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee & payee) {
+    return [&manager, infoHash, h](const libtorrent::tcp::endpoint & endpoint, const joystream::paymentchannel::Payee & payee) {
 
-        Coin::Transaction tx = payee.lastPaymentTransaction();
+        // For now, just use defaut peer id
+        libtorrent::peer_id peer_id;
 
-        // Broadcast transaction
-        this->_broadcaster(infoHash, tx);
+        // Send alert about this being last payment
+        manager.emplace_alert<alert::LastPaymentReceived>(h, endpoint, peer_id, payee);
     };
 }
 

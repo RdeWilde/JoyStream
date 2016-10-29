@@ -76,7 +76,6 @@ public:
 
     TorrentPlugin(Plugin * plugin,
                   const libtorrent::torrent_handle & torrent,
-                  const TransactionBroadcaster broadcaster,
                   uint minimumMessageId,
                   libtorrent::alert_manager * alertManager,
                   const Policy & policy,
@@ -172,7 +171,7 @@ private:
     /// Protocol session hooks
 
     protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
-    protocol_session::BroadcastTransaction broadcastTransaction();
+    protocol_session::ContractConstructed contractConstructed();
     protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived();
     protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
     protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
@@ -187,9 +186,6 @@ private:
 
     // Torrent for this torrent_plugin
     libtorrent::torrent_handle _torrent;
-
-    // Broadcaster for transactions
-    TransactionBroadcaster _broadcaster;
 
     // Lowest all message id where libtorrent client can guarantee we will not
     // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)

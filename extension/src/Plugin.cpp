@@ -17,13 +17,11 @@
 namespace joystream {
 namespace extension {
 
-Plugin::Plugin(const TransactionBroadcaster broadcaster,
-               uint minimumMessageId,
+Plugin::Plugin(uint minimumMessageId,
                libtorrent::alert_manager * alertManager,
                libtorrent::aux::session_impl * session)
     : _alertManager(alertManager)
-    ,_session(session)
-    , _broadcaster(broadcaster)
+    , _session(session)
     , _minimumMessageId(minimumMessageId)
     , _addedToSession(false) {
 }
@@ -43,7 +41,6 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     // Create a torrent plugin
     TorrentPlugin * rawTorrentPlugin = new TorrentPlugin(this,
                                                          h,
-                                                         _broadcaster,
                                                          _minimumMessageId,
                                                          _alertManager,
                                                          TorrentPlugin::Policy(),
