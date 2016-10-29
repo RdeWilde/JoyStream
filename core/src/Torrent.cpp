@@ -184,11 +184,11 @@ void Torrent::updateStatus(const libtorrent::torrent_status & status) {
     if(previousStatus.state != status.state)
         emit stateChanged(status.state, status.progress);
 
-    if(previousStatus.total_download != status.total_download)
-        emit downloadRateChanged(status.total_download);
+    if(previousStatus.download_rate != status.download_rate)
+        emit downloadRateChanged(status.download_rate);
 
-    if(previousStatus.total_upload != status.total_upload)
-        emit uploadRateChanged(status.total_upload);
+    if(previousStatus.upload_rate != status.upload_rate)
+        emit uploadRateChanged(status.upload_rate);
 
     updatePaused(status.paused);
 
