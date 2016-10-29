@@ -27,7 +27,7 @@ using namespace joystream::protocol_wire;
 void Test::buy() {
 
     // Buy(const BuyerTerms & terms): construct message
-    BuyerTerms terms(2,4,5,6,7);
+    BuyerTerms terms(2,4,5,6);
     Buy m(terms);
 
     QCOMPARE(m.terms(), terms);
@@ -132,28 +132,6 @@ void Test::ready() {
     TEST_READ_AND_WRITE_FROM_STREAM(m, Ready)
 }
 
-void Test::refundSigned() {
-
-    Coin::Signature sig("8185781409579048901234890234");
-    RefundSigned m(sig);
-
-    QCOMPARE(m.sig(), sig);
-    QCOMPARE(m.messageType(), MessageType::refund_signed);
-
-    // Can't use macro
-    //TEST_READ_AND_WRITE_FROM_STREAM(m, RefundSigned)
-
-    QByteArray raw(m.length(), 0);
-    QDataStream writeStream(&raw, QIODevice::WriteOnly);
-
-    m.write(writeStream);
-
-    QDataStream readStream(raw);
-    RefundSigned m2(readStream, m.length());
-
-    QCOMPARE(m, m2);
-}
-
 void Test::requestFullPiece() {
 
     int pieceIndex = 89;
@@ -162,25 +140,6 @@ void Test::requestFullPiece() {
     QCOMPARE(m.pieceIndex(), pieceIndex);
     QCOMPARE(m.messageType(), MessageType::request_full_piece);
     TEST_READ_AND_WRITE_FROM_STREAM(m, RequestFullPiece)
-}
-
-void Test::signRefund() {
-
-    Coin::TransactionId contractTxId(Coin::TransactionId::fromRPCByteOrder(std::string("eee2b334dd735dac60ae57893c2528087fd3d386b57cac42f4e6ace6403f16b3")));
-    quint32 index = 3;
-    quint64 value = 1231232;
-    Coin::PublicKey contractPk(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"));
-    Coin::PublicKey finalPk(uchar_vector("03ab327d4297619c8d40af4db1b768923f3b3cc5b554dc560cb2959764d33a71d7"));
-
-    SignRefund m(contractTxId, index, value, contractPk, finalPk);
-
-    QCOMPARE(m.contractTxId(), contractTxId);
-    QCOMPARE(m.index(), index);
-    QCOMPARE(m.value(), value);
-    QCOMPARE(m.contractPk(), contractPk);
-    QCOMPARE(m.finalPk(), finalPk);
-    QCOMPARE(m.messageType(), MessageType::sign_refund);
-    TEST_READ_AND_WRITE_FROM_STREAM(m, SignRefund)
 }
 
 QTEST_MAIN(Test)
