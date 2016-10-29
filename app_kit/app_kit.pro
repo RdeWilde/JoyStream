@@ -11,14 +11,20 @@ SOURCES += src/AppKit.cpp \
     src/DataDirectory.cpp \
     src/Settings.cpp \
     src/HelperFunctions.cpp \
-    src/TransactionSendQueue.cpp
+    src/TransactionSendQueue.cpp \
+    src/NodeState.cpp \
+    src/TorrentState.cpp \
+    src/TorrentPluginState.cpp
 
 HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/DataDirectory.hpp \
     include/app_kit/Settings.hpp \
     include/app_kit/HelperFunctions.hpp \
     include/app_kit/kit.hpp \
-    include/app_kit/TransactionSendQueue.hpp
+    include/app_kit/TransactionSendQueue.hpp \
+    include/app_kit/NodeState.hpp \
+    include/app_kit/TorrentState.hpp \
+    include/app_kit/TorrentPluginState.hpp
 
 INCLUDEPATH += $$PWD/include
 
