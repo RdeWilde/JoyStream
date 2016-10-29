@@ -34,10 +34,10 @@ public:
     TorrentIdentifier(const boost::shared_ptr<libtorrent::torrent_info> &);
     TorrentIdentifier(const TorrentIdentifier*);
 
-    static TorrentIdentifier* fromTorrentFilePath(const char*);
+    static TorrentIdentifier* fromTorrentFilePath(const std::string &);
     static TorrentIdentifier* fromTorrentFileContents(const std::vector<unsigned char>&);
-    static TorrentIdentifier* fromHashString(const char*);
-    static TorrentIdentifier* fromMagnetLinkString(const char*);
+    static TorrentIdentifier* fromHashString(const std::string &);
+    static TorrentIdentifier* fromMagnetLinkString(const std::string &);
 
     Type type() const noexcept;
 

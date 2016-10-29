@@ -36,13 +36,13 @@ TorrentIdentifier::TorrentIdentifier(const TorrentIdentifier* ti)
     , _infoHash(ti->infoHash()) {
 }
 
-TorrentIdentifier* TorrentIdentifier::fromTorrentFilePath(const char *path)
+TorrentIdentifier* TorrentIdentifier::fromTorrentFilePath(const std::string &path)
 {
     libtorrent::error_code ec;
     boost::shared_ptr<libtorrent::torrent_info> ti;
 
     if(boost::filesystem::exists(path) && boost::filesystem::is_regular_file(path)) {
-        ti = boost::make_shared<libtorrent::torrent_info>(std::string(path), boost::ref(ec), 0);
+        ti = boost::make_shared<libtorrent::torrent_info>(path, boost::ref(ec), 0);
 
         if (ec) {
             return nullptr;
@@ -68,13 +68,13 @@ TorrentIdentifier* TorrentIdentifier::fromTorrentFileContents(const std::vector<
 
 }
 
-TorrentIdentifier* TorrentIdentifier::fromHashString(const char *hexHashString)
+TorrentIdentifier* TorrentIdentifier::fromHashString(const std::string &hexHashString)
 {
 
-    if(strlen(hexHashString) == 40) {
+    if(hexHashString.size() == 40) {
         char buf[21];
 
-        if(!libtorrent::from_hex(hexHashString, 40, buf))
+        if(!libtorrent::from_hex(hexHashString.c_str(), hexHashString.size(), buf))
             return nullptr;
 
         return new joystream::core::TorrentIdentifier(libtorrent::sha1_hash(buf));
@@ -83,7 +83,7 @@ TorrentIdentifier* TorrentIdentifier::fromHashString(const char *hexHashString)
     return nullptr;
 }
 
-TorrentIdentifier* TorrentIdentifier::fromMagnetLinkString(const char *uri)
+TorrentIdentifier* TorrentIdentifier::fromMagnetLinkString(const std::string &uri)
 {
     try {
         auto magnetLink = joystream::core::MagnetLink::fromURI(uri);
