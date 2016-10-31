@@ -176,6 +176,7 @@ private:
     protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
     protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
     protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> anchorAnnounced();
+    protocol_session::ReceivedValidPayment<libtorrent::tcp::endpoint> receivedValidPayment();
 
     /// Members
 

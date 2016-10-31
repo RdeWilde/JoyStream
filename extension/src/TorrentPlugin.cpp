@@ -341,6 +341,7 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallba
                         loadPieceForBuyer(),
                         claimLastPayment(),
                         anchorAnnounced(),
+                        receivedValidPayment(),
                         policy,
                         terms,
                         maxPieceIndex);
@@ -708,6 +709,22 @@ protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anch
     return [&manager, h](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
 
         manager.emplace_alert<alert::AnchorAnnounced>(h, endPoint, value, anchor, contractPk, finalPkHash);
+    };
+}
+
+protocol_session::ReceivedValidPayment<libtorrent::tcp::endpoint> TorrentPlugin::receivedValidPayment() {
+
+    // Get alert manager and handle for torrent
+    libtorrent::torrent * t = torrent();
+    libtorrent::alert_manager & manager = t->alerts();
+    libtorrent::torrent_handle h = t->get_handle();
+
+    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, uint64_t paymentIncrement, uint64_t totalNumberOfPayments, uint64_t totalAmountPaid) {
+
+        // For now, just use defaut peer id
+        libtorrent::peer_id peer_id;
+
+        manager.emplace_alert<alert::ValidPaymentReceived>(h, endPoint, peer_id, paymentIncrement, totalNumberOfPayments, totalAmountPaid);
     };
 }
 
