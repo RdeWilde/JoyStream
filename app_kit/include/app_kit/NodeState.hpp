@@ -3,11 +3,12 @@
 
 #include <core/Node.hpp>
 #include <app_kit/TorrentState.hpp>
+#include <libtorrent/sha1_hash.hpp>
 
 namespace joystream {
 namespace appkit {
 
-class NodeState : public std::vector<TorrentState>
+class NodeState
 {
 public:
     NodeState();
@@ -20,6 +21,8 @@ public:
 
     QJsonValue toJson() const;
 
+private:
+    std::map<libtorrent::sha1_hash, TorrentState> _torrents;
 };
 
 }
