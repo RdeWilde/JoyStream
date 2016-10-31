@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     const uint64_t settlement_fee = 5000;
     const uint64_t contractFeeRate = 20000;   //satoshis/KByte - ref https://bitcoinfees.github.io/
 
-    joystream::protocol_wire::BuyerTerms buyerTerms(price, locktime, nsellers, contractFeeRate, 0);
+    joystream::protocol_wire::BuyerTerms buyerTerms(price, locktime, nsellers, contractFeeRate);
     joystream::protocol_wire::SellerTerms sellerTerms(price, locktime, nsellers, contractFeeRate, settlement_fee);
 
     assert(sellerTerms.satisfiedBy(buyerTerms));
