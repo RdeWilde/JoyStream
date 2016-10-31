@@ -89,6 +89,7 @@ namespace detail {
                        const GenerateChangeAddressesCallbackHandler &,
                        const ContractConstructed &,
                        const FullPieceArrived<ConnectionIdType> &,
+                       const SentPayment<ConnectionIdType> &,
                        const Coin::UnspentOutputSet &,
                        const BuyingPolicy &,
                        const protocol_wire::BuyerTerms &,

@@ -47,6 +47,7 @@ public:
            const GenerateChangeAddressesCallbackHandler &,
            const ContractConstructed &,
            const FullPieceArrived<ConnectionIdType> &,
+           const SentPayment<ConnectionIdType> &,
            const Coin::UnspentOutputSet &,
            const BuyingPolicy &,
            const protocol_wire::BuyerTerms &,
@@ -172,6 +173,7 @@ private:
     GenerateChangeAddressesCallbackHandler _generateChangeAddresses;
     ContractConstructed _contractConstructed;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
+    SentPayment<ConnectionIdType> _sentPayment;
 
     // Funding for buyer
     Coin::UnspentOutputSet _funding;
