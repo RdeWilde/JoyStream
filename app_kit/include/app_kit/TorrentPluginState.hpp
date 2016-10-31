@@ -22,9 +22,6 @@ public:
     protocol_session::SessionMode mode() const;
     protocol_session::SessionState state() const;
 
-    // Use the internal state information and attempt to transition a plugin to that state
-    void applyTo(core::TorrentPlugin* /*, callback */) const;
-
     protocol_wire::BuyerTerms buyerTerms() const;
     protocol_wire::SellerTerms sellerTerms() const;
     protocol_session::BuyingPolicy buyingPolicy() const;

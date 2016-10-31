@@ -1,7 +1,7 @@
 #include <app_kit/HelperFunctions.hpp>
 #include <core/TorrentIdentifier.hpp>
 
-#include <QFile>
+#include <QJsonObject>
 #include <libtorrent/torrent_info.hpp>
 
 namespace joystream {
@@ -37,6 +37,112 @@ core::TorrentIdentifier* makeTorrentIdentifier(const std::string torrentId)
     return core::TorrentIdentifier::fromMagnetLinkString(torrentId);
 }
 
+QJsonValue sessionStateToJson(const protocol_session::SessionState &state) {
+    switch(state) {
+        case protocol_session::SessionState::paused :
+            return QJsonValue("paused");
+        case protocol_session::SessionState::started :
+            return QJsonValue("started");
+        case protocol_session::SessionState::stopped :
+            return QJsonValue("stopped");
+    }
 }
+
+protocol_session::SessionState jsonToSessionState(const QJsonValue &value) {
+    const QString state = value.toString();
+
+    if(state == "started")
+        return protocol_session::SessionState::started;
+
+    if(state == "stopped")
+        return protocol_session::SessionState::stopped;
+
+    if(state == "paused")
+        return protocol_session::SessionState::paused;
+
+    throw std::runtime_error("invalid state value");
 }
+
+QJsonValue buyerTermsToJson(const protocol_wire::BuyerTerms &buyerTerms) {
+    QJsonObject value;
+
+    value["maxContractFeeRate"] = QJsonValue((int64_t)buyerTerms.maxContractFeePerKb());
+    value["maxLock"] = QJsonValue((int64_t)buyerTerms.maxLock());
+    value["maxPrice"] = QJsonValue((int64_t)buyerTerms.maxPrice());
+    value["minSellers"] = QJsonValue((int64_t)buyerTerms.minNumberOfSellers());
+
+    return value;
 }
+
+protocol_wire::BuyerTerms jsonToBuyerTerms(const QJsonValue & value) {
+    protocol_wire::BuyerTerms buyerTerms;
+
+    if(!value.isObject())
+        throw std::runtime_error("expected json object value");
+
+    QJsonObject terms = value.toObject();
+
+    buyerTerms.setMaxContractFeePerKb(terms["maxContractFeeRate"].toDouble());
+    buyerTerms.setMaxLock(terms["maxLock"].toDouble());
+    buyerTerms.setMaxPrice(terms["maxPrice"].toDouble());
+    buyerTerms.setMinNumberOfSellers(terms["minSellers"].toDouble());
+
+    return buyerTerms;
+}
+
+QJsonValue buyingPolicyToJson(const protocol_session::BuyingPolicy &buyingPolicy) {
+    QJsonObject policy;
+    policy["minTimeBeforeBuildingContract"] = QJsonValue((int64_t)buyingPolicy.minTimeBeforeBuildingContract().count());
+    policy["servicingPieceTimeOutLimit"] = QJsonValue((int64_t)buyingPolicy.servicingPieceTimeOutLimit().count());
+    //safer to conver to a string?
+    policy["sellerTermsOrderingPolicy"] = QJsonValue((int64_t)buyingPolicy.sellerTermsOrderingPolicy());
+    return policy;
+}
+
+protocol_session::BuyingPolicy jsonToBuyingPolicy(const QJsonValue &value) {
+    if(!value.isObject())
+        throw std::runtime_error("expected json object value");
+
+    QJsonObject policy = value.toObject();
+
+    return protocol_session::BuyingPolicy(policy["minTimeBeforeBuildingContract"].toDouble(),
+                                          policy["servicingPieceTimeOutLimit"].toDouble(),
+                                          (protocol_wire::SellerTerms::OrderingPolicy)policy["sellerTermsOrderingPolicy"].toInt());
+}
+
+QJsonValue sellerTermsToJson(const protocol_wire::SellerTerms &sellerTerms) {
+    QJsonObject terms;
+    terms["minContractFeeRate"] = QJsonValue((int64_t)sellerTerms.minContractFeePerKb());
+    terms["minLock"] = QJsonValue(sellerTerms.minLock());
+    terms["minPrice"] = QJsonValue((int64_t)sellerTerms.minPrice());
+    terms["maxSellers"] = QJsonValue((int64_t)sellerTerms.maxSellers());
+    terms["settlementFee"] = QJsonValue((int64_t)sellerTerms.settlementFee());
+    return terms;
+}
+
+protocol_wire::SellerTerms jsonToSellerTerms(const QJsonValue &value) {
+    if(!value.isObject())
+        throw std::runtime_error("expected json object value");
+
+    QJsonObject terms = value.toObject();
+
+    protocol_wire::SellerTerms sellerTerms;
+
+    sellerTerms.setMaxSellers(terms["maxSellers"].toInt());
+    sellerTerms.setMinContractFeePerKb(terms["minContractFeeRate"].toDouble());
+    sellerTerms.setMinLock(terms["minLock"].toInt());
+    sellerTerms.setMinPrice(terms["minPrice"].toDouble());
+    sellerTerms.setSettlementFee(terms["settlementFee"].toDouble());
+
+    return sellerTerms;
+}
+
+QJsonValue sellingPolicyToJson(const protocol_session::SellingPolicy &sellingPolicy) {
+    return QJsonValue(true);
+}
+
+protocol_session::SellingPolicy jsonToSellingPolicy(const QJsonValue &) {
+
+}
+
+}}}
