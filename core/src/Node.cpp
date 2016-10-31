@@ -35,7 +35,7 @@ Node::Node(libtorrent::session * session,
              std::bind(&Node::pimplTorrentRemoved, this, std::placeholders::_1)) {
 }
 
-Node * Node::create(const BroadcastTransaction & broadcastTransaction) {
+Node * Node::create() {
 
     // Create session instance
     libtorrent::session * session = new libtorrent::session(Node::session_settings(false),
@@ -69,10 +69,7 @@ Node * Node::create(const BroadcastTransaction & broadcastTransaction) {
     /// Setup plugin
 
     // Create and install plugin
-    boost::shared_ptr<extension::Plugin> plugin(new extension::Plugin([broadcastTransaction](const libtorrent::sha1_hash &, const Coin::Transaction & tx) -> void {
-                                                        // Call user provided broadcasting callback
-                                                        broadcastTransaction(tx);
-                                                     }, CORE_MINIMUM_EXTENDED_MESSAGE_ID));
+    boost::shared_ptr<extension::Plugin> plugin(new extension::Plugin(CORE_MINIMUM_EXTENDED_MESSAGE_ID));
 
     // Add plugin extension
     session->add_extension(boost::static_pointer_cast<libtorrent::plugin>(plugin));

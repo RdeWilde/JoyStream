@@ -32,7 +32,6 @@ class Node : public QObject {
 
 public:
 
-    typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void()> NodeUnPaused;
     typedef std::function<void()> NodePaused;
     typedef extension::request::AddTorrent::AddTorrentHandler AddedTorrent;
@@ -59,7 +58,7 @@ public:
      * @throws exception::FailedToStartNodeException if starting failed.
      * @return a starte node instance
      */
-    static Node * create(const BroadcastTransaction & broadcastTransaction);
+    static Node * create();
 
     /**
      * @brief Terminates all connections on all torrents, and stops all plugins, but
