@@ -1,7 +1,7 @@
 #include <app_kit/HelperFunctions.hpp>
+#include <core/TorrentIdentifier.hpp>
 
 #include <QFile>
-#include <boost/make_shared.hpp>
 #include <libtorrent/torrent_info.hpp>
 
 namespace joystream {
@@ -17,41 +17,24 @@ libtorrent::sha1_hash sha1_hash_from_hex_string(const char * hex) {
   return libtorrent::sha1_hash(buf);
 }
 
-core::TorrentIdentifier* makeTorrentIdentifier(const char *str)
+core::TorrentIdentifier* makeTorrentIdentifier(const std::string torrentId)
 {
-    libtorrent::error_code ec;
-    boost::shared_ptr<libtorrent::torrent_info> ti;
+    core::TorrentIdentifier* ti;
 
-    // Is it a path to a torrent file ?
-    if(QFile::exists(str)) {
-        ti = boost::make_shared<libtorrent::torrent_info>(std::string(str), boost::ref(ec), 0);
-        if (ec) {
-            std::cerr << ec.message().c_str() << std::endl;
-            return nullptr;
-        } else {
-            return new joystream::core::TorrentIdentifier(ti);
-        }
-    }
+    // Test if the identifier is path to a torrent file
+    ti = core::TorrentIdentifier::fromTorrentFilePath(torrentId);
 
-    // Is it an infohash string
-    if(strlen(str) == 40) {
-        try {
-            ti = boost::make_shared<libtorrent::torrent_info>(sha1_hash_from_hex_string(str), 0);
-            return new joystream::core::TorrentIdentifier(ti);
-        } catch(std::exception &e) {
-            std::cerr << "Failed to parse info hash: " << e.what() << std::endl;
-        }
-    }
+    if(ti)
+        return ti;
 
-    // Is it a magnet link ?
-    try {
-        auto magnetLink = joystream::core::MagnetLink::fromURI(str);
-        return new joystream::core::TorrentIdentifier(magnetLink);
-    } catch (std::exception &e) {
-        std::cerr << "Failed to parse magnet link" << std::endl;
-    }
+    // Test if the identifier is a plain info hash string
+    ti = core::TorrentIdentifier::fromHashString(torrentId);
 
-    return nullptr;
+    if(ti)
+        return ti;
+
+    // Test if the identifier is a magner link
+    return core::TorrentIdentifier::fromMagnetLinkString(torrentId);
 }
 
 }
