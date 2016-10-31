@@ -352,13 +352,11 @@ namespace alert {
                              const libtorrent::peer_id & peer_id,
                              uint64_t paymentIncrement,
                              uint64_t totalNumberOfPayments,
-                             uint64_t totalAmountPaid,
-                             int pieceIndex)
+                             uint64_t totalAmountPaid)
             : libtorrent::peer_alert(alloc, h, ep, peer_id)
             , paymentIncrement(paymentIncrement)
             , totalNumberOfPayments(totalNumberOfPayments)
-            , totalAmountPaid(totalAmountPaid)
-            , pieceIndex(pieceIndex) {}
+            , totalAmountPaid(totalAmountPaid) {}
 
         TORRENT_DEFINE_ALERT(ValidPaymentReceived, libtorrent::user_alert_id + 19)
         static const int static_category = alert::status_notification;
@@ -374,9 +372,6 @@ namespace alert {
 
         // The total value of all payments received from this peer, including this one
         uint64_t totalAmountPaid;
-
-        // Index of piece to which this payment corresponds
-        int pieceIndex;
     };
 
     // NB: only meaningful if we drop auto disconnec from session
