@@ -83,6 +83,14 @@ typedef std::function<void(const Coin::Transaction &, const paymentchannel::Cont
 template <class ConnectionIdType>
 using FullPieceArrived = std::function<void(const ConnectionIdType &, const protocol_wire::PieceData &, int)>;
 
+// Buyer with givne connection id send a valid payment
+template <class ConnectionIdType>
+using SentPayment = std::function<void(const ConnectionIdType &,
+                                       uint64_t paymentIncrement,
+                                       uint64_t totalNumberOfPayments,
+                                       uint64_t totalAmountPaid,
+                                       int pieceIndex)>;
+
 //// Selling
 
 // Notification that buyer with given connection ids has one outstanding payment
