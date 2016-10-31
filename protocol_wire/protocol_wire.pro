@@ -16,10 +16,8 @@ INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
     include/protocol_wire/ExtendedMessagePayload.hpp \
-    include/protocol_wire/SignRefund.hpp \
     include/protocol_wire/Sell.hpp \
     include/protocol_wire/RequestFullPiece.hpp \
-    include/protocol_wire/RefundSigned.hpp \
     include/protocol_wire/Ready.hpp \
     include/protocol_wire/Payment.hpp \
     include/protocol_wire/Observe.hpp \
@@ -37,10 +35,8 @@ HEADERS += \
 
 SOURCES += \
     src/ExtendedMessagePayload.cpp \
-    src/SignRefund.cpp \
     src/Sell.cpp \
     src/RequestFullPiece.cpp \
-    src/RefundSigned.cpp \
     src/Ready.cpp \
     src/Payment.cpp \
     src/NoPayloadMessage.cpp \

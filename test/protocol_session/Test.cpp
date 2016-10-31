@@ -161,7 +161,7 @@ void Test::selling_basic() {
 void Test::selling() {
 
     protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
-    protocol_wire::BuyerTerms buyerTerms(24, 200, 2, 400, 5);
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 2, 400);
     Coin::PrivateKey payorContractSk("E9873D79C6D87DC0FB6A5778633389F4");
     protocol_wire::Ready ready(1123,
                                Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
@@ -359,7 +359,7 @@ void Test::selling_buyer_disappears() {
     uint numberOfExchangesBeforeDisappearance = 5;
 
     protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
-    protocol_wire::BuyerTerms buyerTerms(24, 200, 2, 400, 5);
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 2, 400);
     Coin::PrivateKey payorContractSk("E9873D79C6D87DC0FB6A5778633389F4");
     protocol_wire::Ready ready(1123,
                                Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
@@ -439,7 +439,7 @@ void Test::buying_basic() {
 void Test::buying() {
 
     // min #sellers = 3
-    protocol_wire::BuyerTerms buyerTerms(24, 200, 3, 400, 5);
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 3, 400);
 
     SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32),
                second(1, protocol_wire::SellerTerms(4, 13, 11, 88, 32), 13),
@@ -560,7 +560,7 @@ void Test::buying() {
 void Test::buying_seller_has_interrupted_contract() {
 
     // min #sellers = 1
-    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400, 5);
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400);
 
     SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32);
 
@@ -619,7 +619,7 @@ void Test::buying_seller_has_interrupted_contract() {
 void Test::buying_seller_servicing_piece_has_timed_out() {
 
     // min #sellers = 1
-    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400, 5);
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400);
 
     SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32);
 
@@ -677,7 +677,7 @@ void Test::buying_seller_servicing_piece_has_timed_out() {
 void Test::buying_seller_sent_invalid_piece() {
 
     // min #sellers = 1
-    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400, 5);
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400);
 
     SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32);
 
@@ -816,7 +816,7 @@ void Test::basic() {
 
     session->processMessageOnConnection(0, protocol_wire::Observe());
     session->processMessageOnConnection(1, protocol_wire::Sell(protocol_wire::SellerTerms(1,2,3,4,5), 1337));
-    session->processMessageOnConnection(2, protocol_wire::Buy(protocol_wire::BuyerTerms(10,20,30,40,50)));
+    session->processMessageOnConnection(2, protocol_wire::Buy(protocol_wire::BuyerTerms(10,20,30,40)));
 
     // Reset in case it is a buying session, where above terms warrant invite
     spy->reset();
@@ -833,7 +833,7 @@ void Test::basic() {
 
     session->processMessageOnConnection(0, protocol_wire::Observe());
     session->processMessageOnConnection(1, protocol_wire::Sell(protocol_wire::SellerTerms(33,44,66,22,32), 1338));
-    session->processMessageOnConnection(2, protocol_wire::Buy(protocol_wire::BuyerTerms(100,200,300,400,500)));
+    session->processMessageOnConnection(2, protocol_wire::Buy(protocol_wire::BuyerTerms(100,200,300,400)));
 
     //// (7) stop
 

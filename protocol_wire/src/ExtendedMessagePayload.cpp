@@ -12,8 +12,6 @@
 #include <protocol_wire/Sell.hpp>
 #include <protocol_wire/JoinContract.hpp>
 #include <protocol_wire/JoiningContract.hpp>
-#include <protocol_wire/SignRefund.hpp>
-#include <protocol_wire/RefundSigned.hpp>
 #include <protocol_wire/Ready.hpp>
 #include <protocol_wire/RequestFullPiece.hpp>
 #include <protocol_wire/FullPiece.hpp>
@@ -35,8 +33,6 @@ namespace protocol_wire {
                 case MessageType::sell: return new Sell(stream);
                 case MessageType::join_contract: return new JoinContract(stream);
                 case MessageType::joining_contract: return new JoiningContract(stream);
-                case MessageType::sign_refund: return new SignRefund(stream);
-                case MessageType::refund_signed: return new RefundSigned(stream, lengthOfExtendedMessagePayload);
                 case MessageType::ready: return new Ready(stream);
                 case MessageType::request_full_piece: return new RequestFullPiece(stream);
                 case MessageType::full_piece: return new FullPiece(stream, lengthOfExtendedMessagePayload);

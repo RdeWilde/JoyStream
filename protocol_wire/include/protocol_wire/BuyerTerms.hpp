@@ -24,7 +24,7 @@ namespace protocol_wire {
 
         BuyerTerms();
 
-        BuyerTerms(quint64 maxPrice, uint16_t maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee);
+        BuyerTerms(quint64 maxPrice, uint16_t maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb);
 
         bool operator==(const BuyerTerms & rhs) const;
 
@@ -50,9 +50,6 @@ namespace protocol_wire {
         quint64 maxContractFeePerKb() const;
         void setMaxContractFeePerKb(quint64 maxContractFeePerKb);
 
-        quint64 refundFee() const;
-        void setRefundFee(quint64 refundFee);
-
     private:
 
         // Maximum price accepted (satoshies)
@@ -69,9 +66,6 @@ namespace protocol_wire {
         // Maximum fee per byte in contract transaction (satoshies)
         //int64_t _maxFeePerKb;
         quint64 _maxContractFeePerKb;
-
-        // Total fee (satoshies) for refund transaction
-        quint64 _refundFee;
     };
 
     // Write terms to stream

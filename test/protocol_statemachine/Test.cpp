@@ -64,7 +64,7 @@ void Test::observing() {
 
     // Have peer mode switch modes
     peerToSellMode(machine, event::Recv<protocol_wire::Sell>(protocol_wire::Sell(protocol_wire::SellerTerms(1,2,3,4,5), 0)));
-    peerToBuyMode(machine, event::Recv<protocol_wire::Buy>(protocol_wire::BuyerTerms(1,2,3,4,5)));
+    peerToBuyMode(machine, event::Recv<protocol_wire::Buy>(protocol_wire::BuyerTerms(1,2,3,4)));
     peerToObserveMode(machine);
 
     // Clean up machine
@@ -77,7 +77,7 @@ void Test::selling() {
     Coin::PrivateKey payorContractSk("E9873D79C6D87DC0FB6A5778633389F4");
 
     SellingNavigator::Fixture f;
-    f.peerToBuyMode = event::Recv<protocol_wire::Buy>(protocol_wire::Buy(protocol_wire::BuyerTerms(1,2,3,4,5)));
+    f.peerToBuyMode = event::Recv<protocol_wire::Buy>(protocol_wire::Buy(protocol_wire::BuyerTerms(1,2,3,4)));
     f.sellModeStarted = event::SellModeStarted(protocol_wire::SellerTerms(1,2,3,4,5));
     f.invalidJoinContract = event::Recv<protocol_wire::JoinContract>(protocol_wire::JoinContract(31));
     f.validJoinContract = event::Recv<protocol_wire::JoinContract>(protocol_wire::JoinContract(0));
@@ -301,7 +301,7 @@ void Test::selling() {
     std::cout << "--- In ReadyForPieceRequest state ---" << std::endl;
 
     // Client transition to Buy mode
-    protocol_wire::BuyerTerms newBuyerTerms(7, 7, 7, 7, 7);
+    protocol_wire::BuyerTerms newBuyerTerms(7, 7, 7, 7);
     machine->processEvent(event::BuyModeStarted(newBuyerTerms));
 
     // Check that mode message was sent
@@ -317,7 +317,7 @@ void Test::buying() {
 
     BuyingNavigator::Fixture f;
     f.peerToSellMode = event::Recv<protocol_wire::Sell>(protocol_wire::Sell(protocol_wire::SellerTerms(11,22,33,44,55), 5));
-    f.buyModeStarted = event::BuyModeStarted(protocol_wire::BuyerTerms(88,77,66,99,111));
+    f.buyModeStarted = event::BuyModeStarted(protocol_wire::BuyerTerms(88,77,66,99));
     f.inviteSeller = event::InviteSeller();
     f.joiningContract = event::Recv<protocol_wire::JoiningContract>(protocol_wire::JoiningContract(Coin::PublicKey(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8")),
                                                                                                    Coin::RedeemScriptHash::fromRawHash(uchar_vector("892131b6cbf303692785db2c607fb915ae622203"))));
@@ -355,7 +355,7 @@ void Test::buying() {
 
     // Client, incorrectly, tries to invite peer
     // which is in buy mode, which should result in exception
-    peerToBuyMode(machine, event::Recv<protocol_wire::Buy>(protocol_wire::BuyerTerms(0,0,0,0,0)));
+    peerToBuyMode(machine, event::Recv<protocol_wire::Buy>(protocol_wire::BuyerTerms(0,0,0,0)));
     QVERIFY_EXCEPTION_THROWN(machine->processEvent(f.inviteSeller), exception::CannotInviteNonSeller);
 
     // Recreate fresh machine in sell mode,
@@ -462,7 +462,7 @@ void Test::buying() {
     spy.reset();
 
     // Update terms
-    protocol_wire::BuyerTerms testTerms(4123,65436,1432,652,77777);
+    protocol_wire::BuyerTerms testTerms(4123,65436,1432,652);
     machine->processEvent(event::UpdateTerms<protocol_wire::BuyerTerms>(testTerms));
 
     QVERIFY(spy.messageSent());
