@@ -195,7 +195,7 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
 
     // We create a tempoary endpoint->peer_info map from v vector,
     // and use it for endpoint based lookups when checking for missing peers
-    std::map<libtorrent::tcp::endpoint, libtorrent::peer_info> peerToStatus;
+    //std::map<libtorrent::tcp::endpoint, libtorrent::peer_info> peerToStatus;
 
     // for each connection with a status
     for(libtorrent::peer_info p: v) {
@@ -205,13 +205,14 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
         // if peer is present, then update
         if(it != _peers.cend())
             it->second->update(p);
-        else // otherwise add
-            addPeer(p);
+        //else // otherwise add
+        //    addPeer(p);
 
         // add to mapping
-        peerToStatus.insert(std::make_pair(p.ip, p));
+        //peerToStatus.insert(std::make_pair(p.ip, p));
     }
 
+    /**
     // for each exisiting peer
     for (auto it = _peers.cbegin(); it != _peers.cend(); ) {
         // if there is no status for it, then remove
@@ -220,7 +221,7 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
         } else {
             it++;
         }
-    }
+    }*/
 }
 
 void Torrent::updateTorrentPluginStatus(const extension::status::TorrentPlugin & status) {

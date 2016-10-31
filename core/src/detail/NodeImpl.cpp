@@ -509,8 +509,8 @@ void NodeImpl::process(const extension::alert::PluginStatus * p) {
 
             if(t->torrentPluginSet())
                 t->updateTorrentPluginStatus(status.second);
-            else
-                t->addTorrentPlugin(status.second);
+            //else
+                //t->addTorrentPlugin(status.second);
 
             // NB: we could keep track of missing plugin statuses also, but
             // introducing explicit alerts for these events

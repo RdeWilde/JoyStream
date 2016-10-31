@@ -36,8 +36,8 @@ TorrentPlugin * TorrentPlugin::create(const extension::status::TorrentPlugin & s
     TorrentPlugin * plugin = new TorrentPlugin(status.infoHash,
                                                Session::create(status.session),
                                                p);
-    for(auto m : status.peers)
-        plugin->addPeerPlugin(m.second);
+    //for(auto m : status.peers)
+    //    plugin->addPeerPlugin(m.second);
 
     return plugin;
 }
@@ -169,11 +169,12 @@ void TorrentPlugin::update(const extension::status::TorrentPlugin & status) {
         // if peer is present, then update
         if(it != _peers.cend())
             it->second->update(p.second);
-        else // otherwise add
-            addPeerPlugin(p.second);
+        //else // otherwise add
+        //    addPeerPlugin(p.second);
 
     }
 
+    /**
     // for each exisiting peer
     for (auto it = _peers.cbegin(); it != _peers.cend(); ) {
 
@@ -184,6 +185,7 @@ void TorrentPlugin::update(const extension::status::TorrentPlugin & status) {
             it++;
         }
     }
+    */
 
     // Session
     _session->update(status.session);
