@@ -105,6 +105,13 @@ using ClaimLastPayment = std::function<void(const ConnectionIdType &, const joys
 template <class ConnectionIdType>
 using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
 
+// Buyer with givne connection id send a valid payment
+template <class ConnectionIdType>
+using ReceivedValidPayment = std::function<void(const ConnectionIdType &,
+                                                uint64_t paymentIncrement,
+                                                uint64_t totalNumberOfPayments,
+                                                uint64_t totalAmountPaid)>;
+
 }
 }
 

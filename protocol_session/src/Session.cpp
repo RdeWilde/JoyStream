@@ -110,6 +110,7 @@ namespace protocol_session {
                                                const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                                const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                                const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
+                                               const ReceivedValidPayment<ConnectionIdType> & receivedValidPayment,
                                                const SellingPolicy & policy,
                                                const protocol_wire::SellerTerms & terms,
                                                int MAX_PIECE_INDEX) {
@@ -157,6 +158,7 @@ namespace protocol_session {
                                                          loadPieceForBuyer,
                                                          claimLastPayment,
                                                          anchorAnnounced,
+                                                         receivedValidPayment,
                                                          policy,
                                                          terms,
                                                          MAX_PIECE_INDEX);

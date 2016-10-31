@@ -77,6 +77,7 @@ namespace detail {
                         const LoadPieceForBuyer<ConnectionIdType> &,
                         const ClaimLastPayment<ConnectionIdType> &,
                         const AnchorAnnounced<ConnectionIdType> &,
+                        const ReceivedValidPayment<ConnectionIdType> & receivedValidPayment,
                         const SellingPolicy &,
                         const protocol_wire::SellerTerms &,
                         int);
