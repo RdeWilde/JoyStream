@@ -372,6 +372,7 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
                        generateChangeAddressesCallbackHandler,
                        contractConstructed(),
                        fullPieceArrived(),
+                       sentPayment(),
                        funding,
                        policy,
                        terms,
@@ -726,6 +727,23 @@ protocol_session::ReceivedValidPayment<libtorrent::tcp::endpoint> TorrentPlugin:
 
         manager.emplace_alert<alert::ValidPaymentReceived>(h, endPoint, peer_id, paymentIncrement, totalNumberOfPayments, totalAmountPaid);
     };
+}
+
+protocol_session::SentPayment<libtorrent::tcp::endpoint> TorrentPlugin::sentPayment() {
+
+    // Get alert manager and handle for torrent
+    libtorrent::torrent * t = torrent();
+    libtorrent::alert_manager & manager = t->alerts();
+    libtorrent::torrent_handle h = t->get_handle();
+
+    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, uint64_t paymentIncrement, uint64_t totalNumberOfPayments, uint64_t totalAmountPaid, int pieceIndex) {
+
+        // For now, just use defaut peer id
+        libtorrent::peer_id peer_id;
+
+        manager.emplace_alert<alert::SentPayment>(h, endPoint, peer_id, paymentIncrement, totalNumberOfPayments, totalAmountPaid, pieceIndex);
+    };
+
 }
 
 }
