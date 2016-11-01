@@ -1,15 +1,15 @@
-#include <app_kit/TorrentState.hpp>
+#include <app_kit/SavedTorrentParameters.hpp>
 #include <libtorrent/create_torrent.hpp>
 
 namespace joystream {
 namespace appkit {
 
-TorrentState::TorrentState()
+SavedTorrentParameters::SavedTorrentParameters()
 {
 
 }
 
-TorrentState::TorrentState(const core::Torrent *t)
+SavedTorrentParameters::SavedTorrentParameters(const core::Torrent *t)
     : _savePath(QString::fromStdString(t->savePath())),
       _name(QString::fromStdString(t->name())),
       _torrentPaused(t->isPaused()),
@@ -25,10 +25,10 @@ TorrentState::TorrentState(const core::Torrent *t)
     }
 
     if(t->torrentPluginSet())
-        _torrentPluginState = TorrentPluginState(t->torrentPlugin());
+        _torrentSessionParameters = SavedSessionParameters(t->torrentPlugin());
 }
 
-TorrentState::TorrentState(const QJsonValue &value) {
+SavedTorrentParameters::SavedTorrentParameters(const QJsonValue &value) {
     if(!value.isObject())
         throw std::runtime_error("expecting object json value");
 
@@ -41,34 +41,34 @@ TorrentState::TorrentState(const QJsonValue &value) {
     _downloadLimit = state["downloadLimit"].toInt();
     _resumeData = base64StringToCharVector(state["resumeData"].toString());
     _metaData = base64StringToCharVector(state["metaData"].toString());
-    _torrentPluginState = TorrentPluginState(state["pluginState"]);
+    _torrentSessionParameters = SavedSessionParameters(state["pluginState"]);
 }
 
-std::string TorrentState::savePath() const {
+std::string SavedTorrentParameters::savePath() const {
     return _savePath.toStdString();
 }
 
-std::string TorrentState::name() const {
+std::string SavedTorrentParameters::name() const {
     return _name.toStdString();
 }
 
-bool TorrentState::paused() const {
+bool SavedTorrentParameters::paused() const {
     return _torrentPaused;
 }
 
-int TorrentState::uploadLimit() const {
+int SavedTorrentParameters::uploadLimit() const {
     return _uploadLimit;
 }
 
-int TorrentState::downloadLimit() const {
+int SavedTorrentParameters::downloadLimit() const {
     return _downloadLimit;
 }
 
-std::vector<char> TorrentState::resumeData() const {
+std::vector<char> SavedTorrentParameters::resumeData() const {
     return _resumeData;
 }
 
-boost::shared_ptr<libtorrent::torrent_info> TorrentState::metaData() const {
+boost::shared_ptr<libtorrent::torrent_info> SavedTorrentParameters::metaData() const {
     libtorrent::bdecode_node decodedMetaData;
     libtorrent::error_code ec;
 
@@ -81,11 +81,11 @@ boost::shared_ptr<libtorrent::torrent_info> TorrentState::metaData() const {
     return boost::shared_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(decodedMetaData));
 }
 
-TorrentPluginState TorrentState::pluginState() const {
-    return _torrentPluginState;
+SavedSessionParameters SavedTorrentParameters::sessionParameters() const {
+    return _torrentSessionParameters;
 }
 
-QJsonValue TorrentState::toJson() const {
+QJsonValue SavedTorrentParameters::toJson() const {
     QJsonObject state;
     state["savePath"] = QJsonValue(_savePath);
     state["name"] = QJsonValue(_name);
@@ -94,11 +94,11 @@ QJsonValue TorrentState::toJson() const {
     state["downloadLimit"] = QJsonValue(_downloadLimit);
     state["resumeData"] = QJsonValue(charVectorToBase64String(_resumeData));
     state["metaData"] = QJsonValue(charVectorToBase64String(_metaData));
-    state["pluginState"] = _torrentPluginState.toJson();
+    state["pluginState"] = _torrentSessionParameters.toJson();
     return state;
 }
 
-std::vector<char> TorrentState::bencodeMetaData(const libtorrent::torrent_info & ti) {
+std::vector<char> SavedTorrentParameters::bencodeMetaData(const libtorrent::torrent_info & ti) {
     libtorrent::create_torrent ct(ti);
 
     auto metadata = ct.generate();
@@ -112,12 +112,12 @@ std::vector<char> TorrentState::bencodeMetaData(const libtorrent::torrent_info &
     return encoded;
 }
 
-QString TorrentState::charVectorToBase64String(const std::vector<char> &vec) {
+QString SavedTorrentParameters::charVectorToBase64String(const std::vector<char> &vec) {
     QByteArray data(vec.data(), vec.size());
     return data.toBase64();
 }
 
-std::vector<char> TorrentState::base64StringToCharVector(const QString &base64EncodedTorrentInfo) {
+std::vector<char> SavedTorrentParameters::base64StringToCharVector(const QString &base64EncodedTorrentInfo) {
     QByteArray data = QByteArray::fromBase64(base64EncodedTorrentInfo.toLocal8Bit());
     return std::vector<char>(data.begin(), data.end());
 }

@@ -3,19 +3,19 @@
 
 #include <QJsonObject>
 #include <core/Torrent.hpp>
-#include <app_kit/TorrentPluginState.hpp>
+#include <app_kit/SavedSessionParameters.hpp>
 
 namespace joystream {
 namespace appkit {
 
-class TorrentState
+class SavedTorrentParameters
 {
 public:
-    TorrentState();
+    SavedTorrentParameters();
 
-    TorrentState(const core::Torrent*);
+    SavedTorrentParameters(const core::Torrent*);
 
-    TorrentState(const QJsonValue&);
+    SavedTorrentParameters(const QJsonValue&);
 
     QJsonValue toJson() const;
 
@@ -27,7 +27,7 @@ public:
     std::vector<char> resumeData() const;
     boost::shared_ptr<libtorrent::torrent_info> metaData() const;
 
-    TorrentPluginState pluginState() const;
+    SavedSessionParameters sessionParameters() const;
 
 private:
     QString _savePath;
@@ -42,7 +42,7 @@ private:
     // Resume data
     std::vector<char> _resumeData;
 
-    TorrentPluginState _torrentPluginState;
+    SavedSessionParameters _torrentSessionParameters;
 
     static std::vector<char> bencodeMetaData(const libtorrent::torrent_info & ti);
 

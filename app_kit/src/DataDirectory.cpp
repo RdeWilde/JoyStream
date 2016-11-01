@@ -53,17 +53,16 @@ QString DataDirectory::blockTreeFilePath() const {
     return QDir(walletPath()).absoluteFilePath("blocktree.dat");
 }
 
-QString DataDirectory::nodeStatePath() const {
-    return _dir.absoluteFilePath(".nodestate");
-}
-
 QString DataDirectory::defaultSavePath() const {
     return _dir.absoluteFilePath("downloads");
 }
 
+QString DataDirectory::savedTorrentsFilePath() const {
+    return _dir.absoluteFilePath("torrents.json");
+}
+
 void DataDirectory::makeDirs() const {
     _dir.mkdir(walletPath());
-    _dir.mkpath(nodeStatePath());
     _dir.mkpath(defaultSavePath());
 }
 

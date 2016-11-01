@@ -1,8 +1,8 @@
 #include <app_kit/AppKit.hpp>
 #include <app_kit/DataDirectory.hpp>
 #include <app_kit/Settings.hpp>
-#include <app_kit/NodeState.hpp>
-#include <app_kit/TorrentState.hpp>
+#include <app_kit/SavedTorrents.hpp>
+#include <app_kit/SavedTorrentParameters.hpp>
 
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
@@ -127,8 +127,9 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
 
     _timer->stop();
 
-    std::cout << "Saving node state to disk" << std::endl;
-    persistNodeState();
+    std::cout << "Saving torrents to disk" << std::endl;
+
+    saveTorrents();
 
     _node->pause([shutdownComplete, this](){
         std::cout << "Node paused" << std::endl;
@@ -143,34 +144,34 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
     });
 }
 
-NodeState AppKit::generateNodeState() const {
-    return NodeState(_node.get());
+SavedTorrents AppKit::generateSavedTorrents() const {
+    return SavedTorrents(_node.get());
 }
 
-void AppKit::persistNodeState() const {
-    NodeState state = generateNodeState();
+void AppKit::saveTorrents() const {
+    SavedTorrents torrents = generateSavedTorrents();
     QJsonObject doc;
 
-    doc["torrents"] = state.toJson();
+    doc["torrents"] = torrents.toJson();
 
-    QFile stateFile(QDir(_dataDirectory->nodeStatePath()).absoluteFilePath(QString::fromStdString("nodestate.json")));
-    stateFile.open(QFile::OpenModeFlag::WriteOnly);
-    stateFile.write(QJsonDocument(doc).toJson());
-    stateFile.close();
+    QFile file(_dataDirectory->savedTorrentsFilePath());
+    file.open(QFile::OpenModeFlag::WriteOnly);
+    file.write(QJsonDocument(doc).toJson());
+    file.close();
 }
 
-NodeState AppKit::loadNodeState() const {
+SavedTorrents AppKit::loadSavedTorrents() const {
     try {
 
-        QFile stateFile(QDir(_dataDirectory->nodeStatePath()).absoluteFilePath(QString::fromStdString("nodestate.json")));
-        stateFile.open(QFile::OpenModeFlag::ReadOnly);
-        QJsonDocument state = QJsonDocument::fromBinaryData(stateFile.readAll());
-        stateFile.close();
+        QFile file(_dataDirectory->savedTorrentsFilePath());
+        file.open(QFile::OpenModeFlag::ReadOnly);
+        QJsonDocument torrents = QJsonDocument::fromBinaryData(file.readAll());
+        file.close();
 
-        return NodeState(state.object()["torrents"]);
+        return SavedTorrents(torrents.object()["torrents"]);
 
     } catch(std::exception &e) {
-        return NodeState();
+        return SavedTorrents();
     }
 }
 
@@ -184,7 +185,7 @@ void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const c
                          addedTorrent);
 }
 
-void AppKit::addTorrent(const TorrentState &torrent, const core::Node::AddedTorrent &addedTorrent) {
+void AppKit::addTorrent(const SavedTorrentParameters &torrent, const core::Node::AddedTorrent &addedTorrent) {
 
     _node->addTorrent(torrent.uploadLimit(),
                       torrent.downloadLimit(),

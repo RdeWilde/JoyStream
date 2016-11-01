@@ -1,5 +1,5 @@
-#include <app_kit/NodeState.hpp>
-#include <app_kit/TorrentState.hpp>
+#include <app_kit/SavedTorrents.hpp>
+#include <app_kit/SavedTorrentParameters.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -7,24 +7,24 @@
 namespace joystream {
 namespace appkit {
 
-NodeState::NodeState()
+SavedTorrents::SavedTorrents()
 {
 
 }
 
-NodeState::NodeState(const core::Node* node) {
+SavedTorrents::SavedTorrents(const core::Node* node) {
 
     for(const auto &t : node->torrents()) {
-        _torrents[t.second->infoHash()] = TorrentState(t.second);
+        _torrents[t.second->infoHash()] = SavedTorrentParameters(t.second);
     }
 }
 
-NodeState::NodeState(const QJsonValue& value) {
+SavedTorrents::SavedTorrents(const QJsonValue& value) {
     if(!value.isArray())
         throw std::runtime_error("expected json array of torrent states");
 
     for(const QJsonValue &torrentState : value.toArray()) {
-        TorrentState ts(torrentState);
+        SavedTorrentParameters ts(torrentState);
         auto ti = ts.metaData();
         if(ti) {
             if(_torrents.find(ti->info_hash()) != _torrents.end())
@@ -35,7 +35,7 @@ NodeState::NodeState(const QJsonValue& value) {
     }
 }
 
-QJsonValue NodeState::toJson() const {
+QJsonValue SavedTorrents::toJson() const {
 
     QJsonArray torrents;
 

@@ -41,8 +41,8 @@ namespace protocol_wire {
 namespace appkit {
 
 struct Settings;
-class NodeState;
-class TorrentState;
+class SavedTorrents;
+class SavedTorrentParameters;
 
 class AppKit
 {
@@ -58,13 +58,13 @@ public:
 
     void shutdown(const Callback &);
 
-    NodeState generateNodeState() const;
+    SavedTorrents generateSavedTorrents() const;
 
-    // Persist current Node state to disk
-    void persistNodeState() const;
+    // Save torrents managed by the Node to disk
+    void saveTorrents() const;
 
-    // Read saved Node state from disk - does not change the current Node State
-    NodeState loadNodeState() const;
+    // Read saved torrents from disk - does not change the current Node State
+    SavedTorrents loadSavedTorrents() const;
 
     // Save Node state to and ostream
     //void saveNodeState(ostream&);
@@ -73,7 +73,7 @@ public:
     //void loadNodeState(istream&);
 
     // Add torrent from TorrentState
-    void addTorrent(const joystream::appkit::TorrentState &torrent, const core::Node::AddedTorrent &);
+    void addTorrent(const joystream::appkit::SavedTorrentParameters &torrent, const core::Node::AddedTorrent &);
 
     // Add torrent with default parameters
     void addTorrent(const core::TorrentIdentifier &, const core::Node::AddedTorrent &);

@@ -24,8 +24,8 @@ public:
     QString walletPath() const;
     QString walletFilePath() const;
     QString blockTreeFilePath() const;
-    QString nodeStatePath() const;
     QString defaultSavePath() const;
+    QString savedTorrentsFilePath() const;
 
     void makeDirs() const;
 

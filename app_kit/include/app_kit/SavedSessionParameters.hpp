@@ -8,14 +8,14 @@
 namespace joystream {
 namespace appkit {
 
-class TorrentPluginState
+class SavedSessionParameters
 {
 public:
-    TorrentPluginState();
+    SavedSessionParameters();
 
-    TorrentPluginState(const core::TorrentPlugin*);
+    SavedSessionParameters(const core::TorrentPlugin*);
 
-    TorrentPluginState(const QJsonValue&);
+    SavedSessionParameters(const QJsonValue&);
 
     QJsonValue toJson() const;
 
