@@ -91,7 +91,7 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendQueu
         _transactionSendQueue->flush();
     });
 
-    _timer->start(1000); // 1s interval
+    _timer->start(5000);
 }
 
 core::Node *AppKit::node() {
