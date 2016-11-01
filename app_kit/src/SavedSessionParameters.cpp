@@ -1,4 +1,4 @@
-#include <app_kit/TorrentPluginState.hpp>
+#include <app_kit/SavedSessionParameters.hpp>
 #include <app_kit/HelperFunctions.hpp>
 
 #include <core/Session.hpp>
@@ -8,12 +8,12 @@
 namespace joystream {
 namespace appkit {
 
-TorrentPluginState::TorrentPluginState()
+SavedSessionParameters::SavedSessionParameters()
 {
 
 }
 
-TorrentPluginState::TorrentPluginState(const core::TorrentPlugin* plugin)
+SavedSessionParameters::SavedSessionParameters(const core::TorrentPlugin* plugin)
     : _mode(plugin->session()->mode()),
       _state(plugin->session()->state())
 {
@@ -30,7 +30,7 @@ TorrentPluginState::TorrentPluginState(const core::TorrentPlugin* plugin)
     }
 }
 
-QJsonValue TorrentPluginState::toJson() const {
+QJsonValue SavedSessionParameters::toJson() const {
     QJsonObject state;
 
     state["state"] = util::sessionStateToJson(_state);
@@ -66,7 +66,7 @@ QJsonValue TorrentPluginState::toJson() const {
     return state;
 }
 
-TorrentPluginState::TorrentPluginState(const QJsonValue &value) {
+SavedSessionParameters::SavedSessionParameters(const QJsonValue &value) {
     if(!value.isObject())
         throw std::runtime_error("expecting json object value");
 
@@ -101,36 +101,36 @@ TorrentPluginState::TorrentPluginState(const QJsonValue &value) {
     }
 }
 
-protocol_session::SessionMode TorrentPluginState::mode() const {
+protocol_session::SessionMode SavedSessionParameters::mode() const {
     return _mode;
 }
 
-protocol_session::SessionState TorrentPluginState::state() const {
+protocol_session::SessionState SavedSessionParameters::state() const {
     return _state;
 }
 
-protocol_wire::BuyerTerms TorrentPluginState::buyerTerms() const {
+protocol_wire::BuyerTerms SavedSessionParameters::buyerTerms() const {
     if(_mode == protocol_session::SessionMode::buying)
         return _buyerTerms;
 
     throw protocol_session::exception::ModeIncompatibleOperation();
 }
 
-protocol_wire::SellerTerms TorrentPluginState::sellerTerms() const {
+protocol_wire::SellerTerms SavedSessionParameters::sellerTerms() const {
     if(_mode == protocol_session::SessionMode::selling)
         return _sellerTerms;
 
     throw protocol_session::exception::ModeIncompatibleOperation();
 }
 
-protocol_session::BuyingPolicy TorrentPluginState::buyingPolicy() const {
+protocol_session::BuyingPolicy SavedSessionParameters::buyingPolicy() const {
     if(_mode == protocol_session::SessionMode::buying)
         return _buyingPolicy;
 
     throw protocol_session::exception::ModeIncompatibleOperation();
 }
 
-protocol_session::SellingPolicy TorrentPluginState::sellingPolicy() const {
+protocol_session::SellingPolicy SavedSessionParameters::sellingPolicy() const {
     if(_mode == protocol_session::SessionMode::selling)
         return _sellingPolicy;
 
