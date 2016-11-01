@@ -11,7 +11,7 @@
 
 #include <core/core.hpp>
 
-//#include <iostream>
+#include <iostream>
 
 namespace libtorrent {
     class sha1_hash;
@@ -67,10 +67,10 @@ public:
     SavedTorrents loadSavedTorrents() const;
 
     // Save Node state to and ostream
-    //void saveNodeState(ostream&);
+    void writeSavedTorrents(std::ostream&);
 
     // Load Node state from an istream
-    //void loadNodeState(istream&);
+     SavedTorrents readSavedTorrents(std::istream&);
 
     // Add torrent from TorrentState
     void addTorrent(const joystream::appkit::SavedTorrentParameters &torrent, const core::Node::AddedTorrent &);
