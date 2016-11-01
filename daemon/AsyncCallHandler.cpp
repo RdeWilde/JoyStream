@@ -1,8 +1,6 @@
 #include "AsyncCallHandler.h"
 
-AsyncCallHandler::AsyncCallHandler()
-    : thread()
-{
+AsyncCallHandler::AsyncCallHandler() {
     std::cout << "AsyncCallHandler created" << std::endl;
 
     thread = std::thread(&AsyncCallHandler::run,this);
