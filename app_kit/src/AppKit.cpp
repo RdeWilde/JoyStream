@@ -175,6 +175,37 @@ SavedTorrents AppKit::loadSavedTorrents() const {
     }
 }
 
+void AppKit::writeSavedTorrents(std::ostream &os) {
+    SavedTorrents torrents = generateSavedTorrents();
+    QJsonObject doc;
+
+    doc["torrents"] = torrents.toJson();
+    QByteArray data = QJsonDocument(doc).toJson();
+    os.write(data.begin(), data.size());
+}
+
+SavedTorrents AppKit::readSavedTorrents(std::istream &is) {
+
+  if(!is)
+      throw std::runtime_error("cannot read from input stream");
+  // get length of file:
+  is.seekg (0, is.end);
+  int length = is.tellg();
+  is.seekg (0, is.beg);
+
+  char * buffer = new char [length];
+
+  // read data as a block:
+  is.read (buffer,length);
+
+  // ...buffer contains the entire file...
+  QJsonDocument torrents = QJsonDocument::fromRawData(buffer, length);
+  delete[] buffer;
+
+  return SavedTorrents(torrents.object()["torrents"]);
+
+}
+
 void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const core::Node::AddedTorrent &addedTorrent){
         _node->addTorrent(0,0,
                          libtorrent::to_hex(torrentReference.infoHash().to_string()),
