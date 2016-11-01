@@ -3,19 +3,36 @@
 namespace joystream {
 namespace appkit {
 
-
 TransactionSendQueue::TransactionSendQueue(bitcoin::SPVWallet *wallet, const Interval minFlushInterval)
     : _wallet(wallet),
       _minFlushInterval(minFlushInterval) {
 
-    QObject::connect(_wallet, &bitcoin::SPVWallet::txUpdated, [this](Coin::TransactionId txid, int confirmations){
-        // remove transaction from queue when it enters the wallet store
-        _transactions.erase(txid);
+    // Transaction was successfully broadcast and we have received it from the peer
+    QObject::connect(_wallet, &bitcoin::SPVWallet::txUpdated, [this](Coin::TransactionId txid, int confirmations) {
+        if(_transactionsWaitingNotification.find(txid) != _transactionsWaitingNotification.end()) {
+
+            if(_transactionsWaitingNotification[txid].success)
+                _transactionsWaitingNotification[txid].success();
+
+            _transactionsWaitingNotification.erase(txid);
+        }
+
     });
+
+    //We need feedback from the wallet when a transaction is not accepted by the peer
+//    QObject::connect(_wallet, &bitcoin::SPVWallet::broadcastFailed, [this](Coin::TransactionId txid) {
+//        if(_transactionsWaitingNotification.find(txid) != _transactionsWaitingNotification.end()) {
+
+//            if(_transactionsWaitingNotification[txid].error)
+//            _transactionsWaitingNotification[txid].error(std::runtime_error("transaction broadcast failed"));
+
+//            _transactionsWaitingNotification.erase(txid);
+//        }
+//    });
 }
 
 size_t TransactionSendQueue::size() const {
-    return _transactions.size();
+    return _queuedTransactions.size();
 }
 
 void TransactionSendQueue::flush() {
@@ -30,15 +47,23 @@ void TransactionSendQueue::flush() {
     if(_wallet->isConnected()) {
         _lastFlush = now;
 
-        for(auto &entry : _transactions) {
-            _wallet->broadcastTx(entry.second);
+        for(auto &entry : _queuedTransactions) {
+
+            std::cout << "Broadcasting Transaction: " << entry.first.toRPCByteOrder() << std::endl;
+            _transactionsWaitingNotification[entry.first] = entry.second;
+
+            _wallet->broadcastTx(entry.second.transaction);
         }
+
+        _queuedTransactions.clear();
     }
 
 }
 
-void TransactionSendQueue::insert(const Coin::Transaction &tx) {
-    _transactions[Coin::TransactionId::fromTx(tx)] = tx;
+void TransactionSendQueue::insert(const Coin::Transaction &tx,
+                                  const TransactionBroadcastSuccessCallback onSuccess,
+                                  const TransactionBroadcastErrorCallback onError) {
+    _queuedTransactions[Coin::TransactionId::fromTx(tx)] = TransactionAndCallback({tx, onSuccess, onError});
     flush();
 }
 
