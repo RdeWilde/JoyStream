@@ -1,9 +1,11 @@
 #include <QCoreApplication>
 #include <core/Node.hpp>
 
+#include <csignal>
 #include <boost/asio/impl/src.hpp>
 
 #include "ServerImpl.h"
+
 
 int main(int argc, char *argv[])
 {

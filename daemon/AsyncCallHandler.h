@@ -5,6 +5,7 @@
 #include <grpc/grpc.h>
 #include <grpc++/grpc++.h>
 #include <core/Node.hpp>
+#include <thread>
 
 #include "RPCRequest.h"
 #include "RPCTest.h"
@@ -12,17 +13,21 @@
 
 #include "protos/daemon.grpc.pb.h"
 
-
+/**
+ * @brief Basic class that handle all the rpcs calls
+ *
+ */
 class AsyncCallHandler {
     public:
 
-        AsyncCallHandler(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
+        AsyncCallHandler();
         ~AsyncCallHandler();
+        void setCompletionQueue(grpc::ServerCompletionQueue* cq);
         void run();
 
     private:
-        joystream::daemon::rpc::Daemon::AsyncService* service_;
         grpc::ServerCompletionQueue* cq_;
+        std::thread thread;
 
 };
 #endif // ASYNCCALLHANDLER_H

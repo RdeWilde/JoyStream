@@ -2,7 +2,6 @@
 #define SERVERIMPL_H
 
 #include <core/Node.hpp>
-#include <thread>
 #include <grpc++/alarm.h>
 
 #include "AsyncCallHandler.h"
@@ -16,14 +15,14 @@ class ServerImpl final
     public:
         ServerImpl(joystream::core::Node* node);
         ~ServerImpl();
-        void Init();
         void Run();
 
     private:
+        joystream::daemon::rpc::Daemon::AsyncService daemonService_;
         joystream::core::Node *node_;
         std::unique_ptr<grpc::Server> server_;
-        std::thread the_thread;
         std::unique_ptr<grpc::ServerCompletionQueue> cq_;
+        AsyncCallHandler handler_;
 };
 
 #endif // SERVERIMPL_H

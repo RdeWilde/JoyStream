@@ -9,7 +9,7 @@
 class RPCPause : public RPCRequest {
     public:
         RPCPause(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
-        void proceed(bool fok, void * tag);
+        void proceed(bool fok);
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService* service_;

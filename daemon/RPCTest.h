@@ -8,7 +8,7 @@
 class RPCTest : public RPCRequest {
     public:
         RPCTest(joystream::daemon::rpc::Daemon::AsyncService * service, grpc::ServerCompletionQueue* cq);
-        void proceed(bool fok, void * tag);
+        void proceed(bool fok);
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService* service_;

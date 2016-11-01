@@ -6,19 +6,24 @@ RPCTest::RPCTest(joystream::daemon::rpc::Daemon::AsyncService * service, grpc::S
     service_->Requesttest1(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-void RPCTest::proceed(bool fok, void *tag)
+void RPCTest::proceed(bool fok)
 {
-  if (status_ == READY) {
+    // If not a regular event we delete
+    if (!fok) {
+        delete this;
+    } else {
+        if (status_ == READY) {
 
-      new RPCTest(service_, cq_);
+            new RPCTest(service_, cq_);
 
-      std::cout << request_.clientmessage().c_str() << std::endl;
-      responce_.set_servermessage("This is a server message");
-      responder_.Finish(responce_, grpc::Status::OK, tag);
-      status_ = FINISH;
+            std::cout << request_.clientmessage().c_str() << std::endl;
+            responce_.set_servermessage("This is a server message");
+            responder_.Finish(responce_, grpc::Status::OK, this);
+            status_ = FINISH;
 
-  } else {
-      std::cout << "Destroy RPCTest" << std::endl;
-      delete this;
-  }
+        } else {
+            std::cout << "Destroy RPCTest" << std::endl;
+            delete this;
+        }
+    }
 }
