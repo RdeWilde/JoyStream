@@ -27,7 +27,7 @@ class AsyncCallHandler {
 
     private:
         grpc::ServerCompletionQueue* cq_;
-        std::thread thread;
+        std::thread thread_;
 
 };
 #endif // ASYNCCALLHANDLER_H

@@ -2,8 +2,6 @@
 
 AsyncCallHandler::AsyncCallHandler() {
     std::cout << "AsyncCallHandler created" << std::endl;
-
-    thread = std::thread(&AsyncCallHandler::run,this);
 }
 
 AsyncCallHandler::~AsyncCallHandler()
@@ -14,6 +12,8 @@ AsyncCallHandler::~AsyncCallHandler()
 void AsyncCallHandler::setCompletionQueue(grpc::ServerCompletionQueue* cq)
 {
   cq_ = cq;
+  // This need to be start after we have the completion queue set
+  thread_ = std::thread(&AsyncCallHandler::run,this);
 }
 
 void AsyncCallHandler::run()
