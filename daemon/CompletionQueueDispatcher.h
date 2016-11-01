@@ -17,11 +17,11 @@
  * @brief Basic class that handle all the rpcs calls
  *
  */
-class AsyncCallHandler {
+class CompletionQueueDispatcher {
     public:
 
-        AsyncCallHandler();
-        ~AsyncCallHandler();
+        CompletionQueueDispatcher();
+        ~CompletionQueueDispatcher();
         void setCompletionQueue(grpc::ServerCompletionQueue* cq);
         void run();
 

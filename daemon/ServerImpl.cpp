@@ -28,7 +28,7 @@ void ServerImpl::Run()
     cq_ = builder.AddCompletionQueue();
     server_ = builder.BuildAndStart();
 
-    handler_.setCompletionQueue(cq_.get());
+    dispatcher_.setCompletionQueue(cq_.get());
 
     std::cout << "Server listening on " << server_address << std::endl;
 

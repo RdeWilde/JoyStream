@@ -4,7 +4,7 @@
 #include <core/Node.hpp>
 #include <grpc++/alarm.h>
 
-#include "AsyncCallHandler.h"
+#include "CompletionQueueDispatcher.h"
 #include "RPCRequest.h"
 
 #include "protos/daemon.grpc.pb.h"
@@ -22,7 +22,7 @@ class ServerImpl final
         joystream::core::Node *node_;
         std::unique_ptr<grpc::Server> server_;
         std::unique_ptr<grpc::ServerCompletionQueue> cq_;
-        AsyncCallHandler handler_;
+        CompletionQueueDispatcher dispatcher_;
 };
 
 #endif // SERVERIMPL_H

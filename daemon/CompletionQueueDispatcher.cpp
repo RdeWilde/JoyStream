@@ -1,22 +1,22 @@
-#include "AsyncCallHandler.h"
+#include "CompletionQueueDispatcher.h"
 
-AsyncCallHandler::AsyncCallHandler() {
+CompletionQueueDispatcher::CompletionQueueDispatcher() {
     std::cout << "AsyncCallHandler created" << std::endl;
 }
 
-AsyncCallHandler::~AsyncCallHandler()
+CompletionQueueDispatcher::~CompletionQueueDispatcher()
 {
     std::cout << "AsyncCallHandler destroyed" << std::endl;
 }
 
-void AsyncCallHandler::setCompletionQueue(grpc::ServerCompletionQueue* cq)
+void CompletionQueueDispatcher::setCompletionQueue(grpc::ServerCompletionQueue* cq)
 {
   cq_ = cq;
   // This need to be start after we have the completion queue set
-  thread_ = std::thread(&AsyncCallHandler::run,this);
+  thread_ = std::thread(&CompletionQueueDispatcher::run,this);
 }
 
-void AsyncCallHandler::run()
+void CompletionQueueDispatcher::run()
 {
   void * tag;
   bool fok;
