@@ -7,16 +7,17 @@
 #include <QCoreApplication>
 
 
-/////////////////////////////////
-/// \brief The RPCRequest class
-/// Abstract Class
-///
+/**
+ * @brief Abstract Class for rpc method
+ *
+ **/
 class RPCRequest : public QObject {
     Q_OBJECT
 
     public:
         virtual ~RPCRequest() {}
-        Q_INVOKABLE virtual void proceed(bool fok, void* tag) = 0;
+        Q_INVOKABLE virtual void proceed(bool fok) = 0;
+        //virtual void onCall() = 0;
 
         enum CallStatus { READY, FINISH };
 };
