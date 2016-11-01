@@ -23,6 +23,7 @@ class ServerImpl final
         std::unique_ptr<grpc::Server> server_;
         std::unique_ptr<grpc::ServerCompletionQueue> cq_;
         CompletionQueueDispatcher dispatcher_;
+        std::thread thread_;
 };
 
 #endif // SERVERIMPL_H

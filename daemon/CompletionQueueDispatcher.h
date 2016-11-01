@@ -22,12 +22,7 @@ class CompletionQueueDispatcher {
 
         CompletionQueueDispatcher();
         ~CompletionQueueDispatcher();
-        void setCompletionQueue(grpc::ServerCompletionQueue* cq);
-        void run();
-
-    private:
-        grpc::ServerCompletionQueue* cq_;
-        std::thread thread_;
+        void run(grpc::ServerCompletionQueue* cq);
 
 };
 #endif // ASYNCCALLHANDLER_H
