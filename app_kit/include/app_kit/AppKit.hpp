@@ -8,6 +8,7 @@
 
 #include <app_kit/DataDirectory.hpp>
 #include <app_kit/TransactionSendQueue.hpp>
+#include <app_kit/Settings.hpp>
 
 #include <core/core.hpp>
 
@@ -58,6 +59,8 @@ public:
 
     void shutdown(const Callback &);
 
+    void applySettings(const Settings&);
+
     SavedTorrents generateSavedTorrents() const;
 
     // Save torrents managed by the Node to disk
@@ -92,7 +95,7 @@ private:
 
     static bitcoin::SPVWallet* getWallet(const DataDirectory &dataDirectory, Coin::Network network);
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendQueue *txSendQueue, DataDirectory *dataDirectory, std::string host, int port);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendQueue *txSendQueue, DataDirectory *dataDirectory, const Settings &settings);
 
     void syncWallet();
 
@@ -102,8 +105,7 @@ private:
 
     std::unique_ptr<DataDirectory> _dataDirectory;
 
-    std::string _bitcoinHost;
-    int _bitcoinPort;
+    Settings _settings;
 
     QTimer *_timer;
 
