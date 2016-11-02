@@ -35,9 +35,9 @@ bitcoin::SPVWallet * AppKit::getWallet(const DataDirectory &dataDirectory, Coin:
     return wallet;
 }
 
-AppKit* AppKit::create(const Settings &settings)
+AppKit* AppKit::create(std::string dataDirectoryPath, Coin::Network network, const Settings &settings)
 {
-    DataDirectory *dataDir = new DataDirectory(QString::fromStdString(settings.dataDirectory));
+    DataDirectory *dataDir = new DataDirectory(QString::fromStdString(dataDirectoryPath));
 
     dataDir->lock();
 
@@ -46,7 +46,7 @@ AppKit* AppKit::create(const Settings &settings)
     TransactionSendQueue *sendQueue = nullptr;
     try {
 
-        wallet = getWallet(*dataDir, settings.network);
+        wallet = getWallet(*dataDir, network);
 
         wallet->loadBlockTree();
 

@@ -57,6 +57,21 @@ std::string stateToString(libtorrent::torrent_status::state_t state) {
     throw std::runtime_error("invalid state");
 }
 
+void dumpWalletInfo(joystream::bitcoin::SPVWallet *wallet) {
+    std::vector<Coin::P2PKHAddress> addresses = wallet->listReceiveAddresses();
+
+    std::string depositAddress;
+
+    if(addresses.size() > 0){
+        depositAddress = addresses.front().toBase58CheckEncoding().toStdString();
+    } else {
+        depositAddress = wallet->generateReceiveAddress().toBase58CheckEncoding().toStdString();
+    }
+
+    std::cout << "Wallet Deposit Address: " <<  depositAddress << std::endl;
+    std::cout << "Wallet Balance: " << wallet->unconfirmedBalance() << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     const int nsellers = 1;
@@ -80,7 +95,7 @@ int main(int argc, char *argv[])
 
     if (argc != 1 && argc < 3)
     {
-        std::cerr << "usage: ./app_kit_cli [buy, sell] [torrent-file]" << std::endl;
+        std::cerr << "usage: ./app_kit_cli [buy|sell] [torrent-file]" << std::endl;
         return 1;
     }
 
@@ -90,40 +105,29 @@ int main(int argc, char *argv[])
     if(argc == 3) {
         torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(argv[2]);
         if(!torrentIdentifier) {
-            return 1;
+            return 2;
         }
         std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
+    }
+
+    if(getenv("DEBUG") != NULL) {
+        INIT_LOGGER("netsync.log");
     }
 
     QCoreApplication app(argc, argv);
 
     std::cout << "Creating AppKit Instance\n";
 
-    QString dataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? QString::fromStdString(getenv("JOYSTREAM_DATADIR")) : QDir::homePath();
+    std::string dataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? getenv("JOYSTREAM_DATADIR") : QDir::homePath().toStdString();
     joystream::appkit::Settings settings;
-    settings.dataDirectory = dataDirectory.toStdString();
-    settings.network = Coin::Network::testnet3;
-    joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(settings);
+    joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(dataDirectory, Coin::Network::testnet3, settings);
 
     if(!kit) {
         std::cout << "Failed to create appkit instance" << std::endl;
-        return 2;
+        return 3;
     }
 
-    auto w = kit->wallet();
-
-    std::vector<Coin::P2PKHAddress> addresses = w->listReceiveAddresses();
-
-    std::string depositAddress;
-
-    if(addresses.size() > 0){
-        depositAddress = addresses.front().toBase58CheckEncoding().toStdString();
-    } else {
-        depositAddress = kit->wallet()->generateReceiveAddress().toBase58CheckEncoding().toStdString();
-    }
-
-    std::cout << "Wallet Deposit Address: " <<  depositAddress << std::endl;
-    std::cout << "Wallet Balance: " << kit->wallet()->unconfirmedBalance() << std::endl;
+    dumpWalletInfo(kit->wallet());
 
     QTimer *timer = new QTimer();
     QObject::connect(timer, &QTimer::timeout, [&timer, &app, &kit](){
@@ -179,7 +183,7 @@ int main(int argc, char *argv[])
         std::cout << "Torrent Added Successfully" << std::endl;
 
         // wait for torrent plugin to be added before we can go to buy/sell mode...
-        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&buyIt, &sellIt, &argv, torrent](const joystream::core::TorrentPlugin *plugin){
+        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&buyIt, &sellIt, &argv, torrent](joystream::core::TorrentPlugin *plugin){
             std::cout << "Torrent Plugin Added Successfully" << std::endl;
             std::cout << "Torrent State: " << stateToString(torrent->state()) << std::endl;
 

@@ -51,7 +51,7 @@ public:
     typedef std::function<void()> Callback;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    static AppKit* create(const Settings&);
+    static AppKit* create(std::string dataDirectoryPath, Coin::Network, const Settings&);
 
     bitcoin::SPVWallet* wallet();
     core::Node* node();

@@ -9,8 +9,6 @@ namespace appkit {
 
 struct Settings
 {
-    std::string dataDirectory;
-    Coin::Network network;
     std::string host;
     int port;
 };
