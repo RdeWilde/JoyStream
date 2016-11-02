@@ -1,7 +1,7 @@
 #include <QCoreApplication>
 #include <core/Node.hpp>
+#include <unistd.h>
 
-#include <csignal>
 #include <boost/asio/impl/src.hpp>
 
 #include "ServerImpl.h"
@@ -18,5 +18,5 @@ int main(int argc, char *argv[])
 
   ServerImpl server(node);
 
-  return a.exec();
+  return  a.exec();
 }

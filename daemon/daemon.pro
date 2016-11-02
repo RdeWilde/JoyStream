@@ -14,7 +14,8 @@ SOURCES += src/main.cpp protos/daemon.grpc.pb.cc protos/daemon.pb.cc \
     RPCPause.cpp \
     RPCTest.cpp \
     ServerImpl.cpp \
-    CompletionQueueDispatcher.cpp
+    CompletionQueueDispatcher.cpp \
+    RPCAddTorrent.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../core/release/ -lcore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../core/debug/ -lcore
@@ -118,4 +119,5 @@ HEADERS += \
     RPCTest.h \
     ServerImpl.h \
     RPCRequest.h \
-    CompletionQueueDispatcher.h
+    CompletionQueueDispatcher.h \
+    RPCAddTorrent.h

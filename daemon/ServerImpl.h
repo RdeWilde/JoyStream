@@ -6,6 +6,9 @@
 
 #include "CompletionQueueDispatcher.h"
 #include "RPCRequest.h"
+#include "RPCTest.h"
+#include "RPCPause.h"
+#include "RPCAddTorrent.h"
 
 #include "protos/daemon.grpc.pb.h"
 

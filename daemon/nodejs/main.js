@@ -15,10 +15,14 @@ app.listen(3000, function () {
 			console.log(err)
 		} else {
 			console.log(responce);
-			// Pause the Node
-			rpc.pause(function() {
-				console.log('Node is paused')
-			});
+		}
+	});
+
+	rpc.addTorrent(torrent, function(err, torrentAdded) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log(torrentAdded);
 		}
 	})
 });

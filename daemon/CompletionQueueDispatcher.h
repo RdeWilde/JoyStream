@@ -8,8 +8,6 @@
 #include <thread>
 
 #include "RPCRequest.h"
-#include "RPCTest.h"
-#include "RPCPause.h"
 
 #include "protos/daemon.grpc.pb.h"
 

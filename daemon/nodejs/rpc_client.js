@@ -29,15 +29,6 @@ rpc.listTorrents = function(data, done ) {
 }
 
 rpc.addTorrent = function(torrent, callback ) {
-  // we prepare the async callback request
-  rpc.torrentAdded(function(err, torrent) {
-    if (err) {
-      console.log('Something went wrong')
-    } else {
-      console.log('A torrent has been added')
-      console.log(torrent)
-    }
-  });
   clientDaemon.addTorrent(torrent, callback);
 }
 
