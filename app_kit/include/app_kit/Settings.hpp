@@ -9,8 +9,8 @@ namespace appkit {
 
 struct Settings
 {
-    std::string host;
-    int port;
+    std::string bitcoinNodeHost;
+    int bitcoinNodePort;
 };
 
 } // appkit

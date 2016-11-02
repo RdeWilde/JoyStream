@@ -64,15 +64,14 @@ AppKit* AppKit::create(std::string dataDirectoryPath, Coin::Network network, con
         throw e;
     }
 
-    return new AppKit(node, wallet, sendQueue, dataDir, settings.host , settings.port);
+    return new AppKit(node, wallet, sendQueue, dataDir, settings);
 }
 
-AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendQueue *txSendQueue, DataDirectory *dataDirectory, std::string host, int port)
+AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendQueue *txSendQueue, DataDirectory *dataDirectory, const Settings &settings)
     : _node(node),
       _wallet(wallet),
       _dataDirectory(dataDirectory),
-      _bitcoinHost(host),
-      _bitcoinPort(port),
+      _settings(settings),
       _transactionSendQueue(txSendQueue),
       _shuttingDown(false) {
 
@@ -103,7 +102,7 @@ bitcoin::SPVWallet* AppKit::wallet() {
 }
 
 void AppKit::syncWallet() {
-    if(_bitcoinHost.empty()) {
+    if(_settings.bitcoinNodeHost.empty()) {
         if(_wallet->network() == Coin::Network::testnet3) {
             _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
         } else if(_wallet->network() == Coin::Network::mainnet) {
@@ -113,7 +112,7 @@ void AppKit::syncWallet() {
             return;
         }
     } else {
-        _wallet->sync(_bitcoinHost, _bitcoinPort);
+        _wallet->sync(_settings.bitcoinNodeHost, _settings.bitcoinNodePort);
     }
 }
 
@@ -142,6 +141,15 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
         std::cout << "AppKit shutdown complete" << std::endl;
         shutdownComplete();
     });
+}
+
+void AppKit::applySettings(const Settings & settings) {
+    if(_settings.bitcoinNodeHost != settings.bitcoinNodeHost || _settings.bitcoinNodePort != settings.bitcoinNodePort)
+        _wallet->stopSync();
+
+    _settings = settings;
+
+    syncWallet();
 }
 
 SavedTorrents AppKit::generateSavedTorrents() const {
