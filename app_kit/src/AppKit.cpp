@@ -128,7 +128,7 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
 
     std::cout << "Saving torrents to disk" << std::endl;
 
-    saveTorrents();
+    saveNodeData();
 
     _node->pause([shutdownComplete, this](){
         std::cout << "Node paused" << std::endl;
@@ -156,62 +156,40 @@ SavedTorrents AppKit::generateSavedTorrents() const {
     return SavedTorrents(_node.get());
 }
 
-void AppKit::saveTorrents() const {
-    SavedTorrents torrents = generateSavedTorrents();
+SavedTorrents AppKit::loadSavedTorrents() const {
+    QJsonObject nodeData = loadNodeData();
+    return SavedTorrents(nodeData["torrents"]);
+}
+
+QJsonObject AppKit::generateNodeData() const {
     QJsonObject doc;
 
-    doc["torrents"] = torrents.toJson();
+    doc["torrents"] = generateSavedTorrents().toJson();
+    doc["settings"] = _settings.toJson();
 
+    return doc;
+}
+
+void AppKit::saveNodeData() const {
     QFile file(_dataDirectory->savedTorrentsFilePath());
     file.open(QFile::OpenModeFlag::WriteOnly);
-    file.write(QJsonDocument(doc).toJson());
+    file.write(QJsonDocument(generateNodeData()).toJson());
     file.close();
 }
 
-SavedTorrents AppKit::loadSavedTorrents() const {
+QJsonObject AppKit::loadNodeData() const {
     try {
 
         QFile file(_dataDirectory->savedTorrentsFilePath());
         file.open(QFile::OpenModeFlag::ReadOnly);
-        QJsonDocument torrents = QJsonDocument::fromBinaryData(file.readAll());
+        QJsonDocument data = QJsonDocument::fromBinaryData(file.readAll());
         file.close();
 
-        return SavedTorrents(torrents.object()["torrents"]);
+        return data.object();
 
     } catch(std::exception &e) {
-        return SavedTorrents();
+        return QJsonObject();
     }
-}
-
-void AppKit::writeSavedTorrents(std::ostream &os) {
-    SavedTorrents torrents = generateSavedTorrents();
-    QJsonObject doc;
-
-    doc["torrents"] = torrents.toJson();
-    QByteArray data = QJsonDocument(doc).toJson();
-    os.write(data.begin(), data.size());
-}
-
-SavedTorrents AppKit::readSavedTorrents(std::istream &is) {
-
-  if(!is)
-      throw std::runtime_error("cannot read from input stream");
-  // get length of file:
-  is.seekg (0, is.end);
-  int length = is.tellg();
-  is.seekg (0, is.beg);
-
-  char * buffer = new char [length];
-
-  // read data as a block:
-  is.read (buffer,length);
-
-  // ...buffer contains the entire file...
-  QJsonDocument torrents = QJsonDocument::fromRawData(buffer, length);
-  delete[] buffer;
-
-  return SavedTorrents(torrents.object()["torrents"]);
-
 }
 
 void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const core::Node::AddedTorrent &addedTorrent){

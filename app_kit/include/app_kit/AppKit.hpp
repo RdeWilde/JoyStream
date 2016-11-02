@@ -63,17 +63,16 @@ public:
 
     SavedTorrents generateSavedTorrents() const;
 
-    // Save torrents managed by the Node to disk
-    void saveTorrents() const;
-
-    // Read saved torrents from disk - does not change the current Node State
     SavedTorrents loadSavedTorrents() const;
 
-    // Save Node state to and ostream
-    void writeSavedTorrents(std::ostream&);
+    // Generate node data
+    QJsonObject generateNodeData() const;
 
-    // Load Node state from an istream
-     SavedTorrents readSavedTorrents(std::istream&);
+    // Save torrents managed by the Node to disk
+    void saveNodeData() const;
+
+    // Read saved torrents from disk - does not change the current Node State
+    QJsonObject loadNodeData() const;
 
     // Add torrent from TorrentState
     void addTorrent(const joystream::appkit::SavedTorrentParameters &torrent, const core::Node::AddedTorrent &);
