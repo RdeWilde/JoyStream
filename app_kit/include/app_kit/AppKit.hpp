@@ -94,7 +94,7 @@ private:
 
     static bitcoin::SPVWallet* getWallet(const DataDirectory &dataDirectory, Coin::Network network);
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendQueue *txSendQueue, DataDirectory *dataDirectory, const Settings &settings);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendBuffer *txSendQueue, DataDirectory *dataDirectory, const Settings &settings);
 
     void syncWallet();
 
@@ -108,7 +108,7 @@ private:
 
     QTimer *_timer;
 
-    std::unique_ptr<TransactionSendQueue> _transactionSendQueue;
+    std::unique_ptr<TransactionSendBuffer> _transactionSendBuffer;
 
     bool _shuttingDown;
 

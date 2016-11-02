@@ -43,14 +43,14 @@ AppKit* AppKit::create(std::string dataDirectoryPath, Coin::Network network, con
 
     bitcoin::SPVWallet* wallet = nullptr;
     core::Node* node = nullptr;
-    TransactionSendQueue *sendQueue = nullptr;
+    TransactionSendBuffer *sendQueue = nullptr;
     try {
 
         wallet = getWallet(*dataDir, network);
 
         wallet->loadBlockTree();
 
-        sendQueue = new TransactionSendQueue(wallet);
+        sendQueue = new TransactionSendBuffer(wallet);
 
         node = core::Node::create([sendQueue](const Coin::Transaction &tx){
             sendQueue->insert(tx);
@@ -67,12 +67,12 @@ AppKit* AppKit::create(std::string dataDirectoryPath, Coin::Network network, con
     return new AppKit(node, wallet, sendQueue, dataDir, settings);
 }
 
-AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendQueue *txSendQueue, DataDirectory *dataDirectory, const Settings &settings)
+AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendBuffer *txSendBuffer, DataDirectory *dataDirectory, const Settings &settings)
     : _node(node),
       _wallet(wallet),
       _dataDirectory(dataDirectory),
       _settings(settings),
-      _transactionSendQueue(txSendQueue),
+      _transactionSendBuffer(txSendBuffer),
       _shuttingDown(false) {
 
     _timer = new QTimer();
@@ -87,7 +87,7 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendQueu
         syncWallet();
 
         // Sendout queued transactions
-        _transactionSendQueue->flush();
+        _transactionSendBuffer->flush();
     });
 
     _timer->start(5000);
