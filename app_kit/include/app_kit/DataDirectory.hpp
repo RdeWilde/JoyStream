@@ -13,7 +13,7 @@ class DataDirectory
 public:
     static const QString LockFileName;
 
-    DataDirectory(const QString &dir);
+    DataDirectory(const std::string &dir);
 
     void lock();
 

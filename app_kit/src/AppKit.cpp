@@ -17,14 +17,13 @@
 namespace joystream {
 namespace appkit {
 
-bitcoin::SPVWallet * AppKit::getWallet(const DataDirectory &dataDirectory, Coin::Network network) {
-    auto storeFile = dataDirectory.walletFilePath();
-    auto wallet = new bitcoin::SPVWallet(storeFile.toStdString(),
-                                         dataDirectory.blockTreeFilePath().toStdString(),
-                                         network);
+bitcoin::SPVWallet * AppKit::getWallet(const std::string &storeFile, const std::string blockTreeFile, Coin::Network network) {
 
-    std::cout << "Looking for wallet file " << storeFile.toStdString() << std::endl;
-    if(!QFile::exists(storeFile)){
+    auto wallet = new bitcoin::SPVWallet(storeFile, blockTreeFile, network);
+
+    std::cout << "Looking for wallet file " << storeFile << std::endl;
+
+    if(!QFile::exists(QString::fromStdString(storeFile))){
         std::cout << "Wallet not found.\nCreating a new wallet..." << std::endl;
         wallet->create();
     } else {
@@ -35,49 +34,47 @@ bitcoin::SPVWallet * AppKit::getWallet(const DataDirectory &dataDirectory, Coin:
     return wallet;
 }
 
-AppKit* AppKit::create(std::string dataDirectoryPath, Coin::Network network, const Settings &settings)
+AppKit* AppKit::create(const std::string &walletFilePath,
+                       const std::string &walletBlockTreeFilePath,
+                       Coin::Network network, const Settings &settings)
 {
-    DataDirectory *dataDir = new DataDirectory(QString::fromStdString(dataDirectoryPath));
-
-    dataDir->lock();
 
     bitcoin::SPVWallet* wallet = nullptr;
     core::Node* node = nullptr;
-    TransactionSendBuffer *sendQueue = nullptr;
+    TransactionSendBuffer *txSendBuffer = nullptr;
     try {
 
-        wallet = getWallet(*dataDir, network);
+        wallet = getWallet(walletFilePath, walletBlockTreeFilePath, network);
 
         wallet->loadBlockTree();
 
-        sendQueue = new TransactionSendBuffer(wallet);
+        txSendBuffer = new TransactionSendBuffer(wallet);
 
-        node = core::Node::create([sendQueue](const Coin::Transaction &tx){
-            sendQueue->insert(tx);
+        node = core::Node::create([txSendBuffer](const Coin::Transaction &tx){
+            txSendBuffer->insert(tx);
         });
 
     } catch(std::exception &e) {
         if(node) delete node;
-        if(sendQueue) delete sendQueue;
+        if(txSendBuffer) delete txSendBuffer;
         if(wallet) delete wallet;
-        dataDir->unlock();
         throw e;
     }
 
-    return new AppKit(node, wallet, sendQueue, dataDir, settings);
+    return new AppKit(node, wallet, txSendBuffer, settings);
 }
 
-AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendBuffer *txSendBuffer, DataDirectory *dataDirectory, const Settings &settings)
+AppKit::AppKit(core::Node* node,
+               bitcoin::SPVWallet* wallet,
+               TransactionSendBuffer *txSendBuffer,
+               const Settings &settings)
     : _node(node),
       _wallet(wallet),
-      _dataDirectory(dataDirectory),
-      _settings(settings),
       _transactionSendBuffer(txSendBuffer),
+      _settings(settings),
       _shuttingDown(false) {
 
-    _timer = new QTimer();
-
-    QObject::connect(_timer, &QTimer::timeout, [this](){
+    QObject::connect(&_timer, &QTimer::timeout, [this](){
         if(_shuttingDown)
             return;
 
@@ -90,7 +87,7 @@ AppKit::AppKit(core::Node* node, bitcoin::SPVWallet* wallet, TransactionSendBuff
         _transactionSendBuffer->flush();
     });
 
-    _timer->start(5000);
+    _timer.start(5000);
 }
 
 core::Node *AppKit::node() {
@@ -124,15 +121,13 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
 
     _shuttingDown = true;
 
-    _timer->stop();
+    _timer.stop();
 
     _node->pause([shutdownComplete, this](){
         std::cout << "Node paused" << std::endl;
 
         std::cout << "Stopping wallet" << std::endl;
         _wallet->stopSync();
-
-        _dataDirectory->unlock();
 
         std::cout << "AppKit shutdown complete" << std::endl;
         shutdownComplete();
@@ -150,16 +145,6 @@ void AppKit::applySettings(const Settings & settings) {
 
 SavedTorrents AppKit::generateSavedTorrents() const {
     return SavedTorrents(_node.get());
-}
-
-void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const core::Node::AddedTorrent &addedTorrent){
-        _node->addTorrent(0,0,
-                         libtorrent::to_hex(torrentReference.infoHash().to_string()),
-                         std::vector<char>(),
-                          _dataDirectory->defaultSavePath().toStdString(),
-                         false,
-                         torrentReference,
-                         addedTorrent);
 }
 
 void AppKit::addTorrent(const SavedTorrentParameters &torrent, const core::Node::AddedTorrent &addedTorrent) {

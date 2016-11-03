@@ -7,8 +7,8 @@ namespace appkit {
 
 const QString DataDirectory::LockFileName = ".lock";
 
-DataDirectory::DataDirectory(const QString &dir)
-    : _dir(QDir(dir)),
+DataDirectory::DataDirectory(const std::string &dir)
+    : _dir(QDir(QString::fromStdString(dir))),
       _lockFile(_dir.absoluteFilePath(LockFileName)) {
 
     if(!_dir.exists()) {
