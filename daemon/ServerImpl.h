@@ -9,6 +9,7 @@
 #include "RPCTest.h"
 #include "RPCPause.h"
 #include "RPCAddTorrent.h"
+#include "RPCRemoveTorrent.h"
 
 #include "protos/daemon.grpc.pb.h"
 

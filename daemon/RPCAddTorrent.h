@@ -11,7 +11,7 @@
 class RPCAddTorrent : public RPCRequest {
     public:
         RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
-        void proceed(bool fok);
+        void onCall();
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService* service_;
@@ -22,7 +22,6 @@ class RPCAddTorrent : public RPCRequest {
         grpc::ServerAsyncResponseWriter<joystream::daemon::rpc::Torrent> responder_;
         joystream::daemon::rpc::Torrent request_;
         grpc::ServerContext ctx_;
-        CallStatus status_;
 
 };
 

@@ -6,6 +6,8 @@
 #include <QApplication>
 #include <QCoreApplication>
 
+#include "protos/daemon.grpc.pb.h"
+#include "protos/daemon.pb.h"
 
 /**
  * @brief Abstract Class for rpc method
@@ -15,11 +17,15 @@ class RPCRequest : public QObject {
     Q_OBJECT
 
     public:
-        virtual ~RPCRequest() {}
-        Q_INVOKABLE virtual void proceed(bool fok) = 0;
-        //virtual void onCall() = 0;
+        RPCRequest();
+        Q_INVOKABLE void proceed(bool fok);
+        virtual void onCall() = 0;
 
         enum CallStatus { READY, FINISH };
+
+    protected:
+        CallStatus status_;
+        grpc::ServerContext ctx_;
 };
 
 #endif // RPCREQUEST_H

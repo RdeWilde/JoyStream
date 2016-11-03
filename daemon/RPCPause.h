@@ -1,15 +1,13 @@
 #ifndef RPCPAUSE_H
 #define RPCPAUSE_H
 
-#include "protos/daemon.grpc.pb.h"
-#include "protos/daemon.pb.h"
 #include "RPCRequest.h"
 #include <core/Node.hpp>
 
 class RPCPause : public RPCRequest {
     public:
         RPCPause(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
-        void proceed(bool fok);
+        void onCall();
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService* service_;
@@ -20,7 +18,6 @@ class RPCPause : public RPCRequest {
         grpc::ServerAsyncResponseWriter<joystream::daemon::rpc::Void> responder_;
         joystream::daemon::rpc::Void request_;
         grpc::ServerContext ctx_;
-        CallStatus status_;
 
 };
 

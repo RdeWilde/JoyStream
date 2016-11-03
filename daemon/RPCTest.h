@@ -8,7 +8,7 @@
 class RPCTest : public RPCRequest {
     public:
         RPCTest(joystream::daemon::rpc::Daemon::AsyncService * service, grpc::ServerCompletionQueue* cq);
-        void proceed(bool fok);
+        void onCall();
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService* service_;
@@ -18,6 +18,5 @@ class RPCTest : public RPCRequest {
         grpc::ServerAsyncResponseWriter<joystream::daemon::rpc::TestResponce> responder_;
         joystream::daemon::rpc::TestRequest request_;
         grpc::ServerContext ctx_;
-        CallStatus status_;
 };
 #endif // RPCTEST_H
