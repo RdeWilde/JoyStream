@@ -11,6 +11,9 @@
 #include <common/TransactionSignature.hpp>
 #include <common/PrivateKey.hpp>
 #include <ctime>
+#include <common/UnspentOutputSet.hpp>
+#include <common/P2PKHAddress.hpp>
+#include <common/P2PKHScriptPubKey.hpp>
 
 namespace joystream {
 namespace paymentchannel {
@@ -39,6 +42,22 @@ namespace paymentchannel {
         uint32_t unlockedAt = lockedUntil(contractMinedAt);
 
         return currentTime < unlockedAt;
+    }
+
+    Coin::Transaction Refund::getSignedSpendingTransaction(const Coin::P2PKHAddress &destination, int64_t fee) const {
+        // Create the UnspentOutputSet to finance the transaction
+        Coin::UnspentOutputSet inputSet;
+        inputSet.insert(inputSet.end(), std::shared_ptr<Coin::UnspentOutput>(getUnspentOutput()));
+
+        Coin::Transaction tx;
+        tx.version = 2;
+
+        int64_t destinationValue = inputSet.value() - fee;
+        tx.addOutput(Coin::TxOut(destinationValue, Coin::P2PKHScriptPubKey(destination.pubKeyHash()).serialize()));
+
+        inputSet.finance(tx, Coin::SigHashType::standard());
+
+        return tx;
     }
 
 }

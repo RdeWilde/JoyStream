@@ -40,6 +40,8 @@ namespace paymentchannel {
         // Whene the refund is unlocked
         uint32_t lockedUntil(uint32_t contractMinedAt) const;
 
+        Coin::Transaction getSignedSpendingTransaction(const Coin::P2PKHAddress &destination, int64_t fee) const;
+
     private:
 
         // Contract to which commitment corresponds
