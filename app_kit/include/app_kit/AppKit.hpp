@@ -80,12 +80,10 @@ public:
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
 
-
-    std::vector<paymentchannel::Refund> getRefunds() const;
-
-    std::vector<paymentchannel::Commitment> getOutboundPaymentChannelCommitments() const;
-
-    std::vector<paymentchannel::Commitment> getInboundPaymentChannelCommitments() const;
+    int64_t getStandardWalletBalance(int confirmations = 0) const;
+    std::vector<paymentchannel::Commitment> getOutboundPaymentChannelCommitments(int confirmations = 0) const;
+    std::vector<paymentchannel::Commitment> getInboundPaymentChannelCommitments(int confirmations = 0) const;
+    std::vector<paymentchannel::Refund> getRefunds(int confirmations = 0) const;
 
 private:
 
@@ -118,6 +116,7 @@ private:
                      const SubroutineHandler &);
 
     uint64_t estimateRequiredFundsToBuyTorrent(const core::Torrent *, joystream::protocol_wire::BuyerTerms);
+
 };
 
 }

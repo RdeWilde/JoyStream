@@ -459,8 +459,32 @@ uint SPVWallet::unlockOutputs(const Coin::UnspentOutputSet &outputs) {
     return unlockedCount;
 }
 
-std::vector<Store::StoreControlledOutput> SPVWallet::getStoreControlledOutputs(uint32_t minimalConfirmations) {
+std::vector<Store::StoreControlledOutput> SPVWallet::getStoreControlledOutputs(uint32_t minimalConfirmations) const {
     return _store.getControlledOutputs(minimalConfirmations);
+}
+
+std::vector<bitcoin::Store::StoreControlledOutput> SPVWallet::getStandardStoreControlledOutputs(uint32_t confirmations) const {
+    std::vector<Store::StoreControlledOutput> outputs;
+
+    for (const Store::StoreControlledOutput &output : getStoreControlledOutputs(confirmations)) {
+        if(output.chainType != Store::KeychainType::Other) {
+            outputs.push_back(output);
+        }
+    }
+
+    return outputs;
+}
+
+std::vector<bitcoin::Store::StoreControlledOutput> SPVWallet::getNonStandardStoreControlledOutputs(uint32_t confirmations) const {
+    std::vector<Store::StoreControlledOutput> outputs;
+
+    for (const Store::StoreControlledOutput &output : getStoreControlledOutputs(confirmations)) {
+        if(output.chainType == Store::KeychainType::Other) {
+            outputs.push_back(output);
+        }
+    }
+
+    return outputs;
 }
 
 uint64_t SPVWallet::balance() const {

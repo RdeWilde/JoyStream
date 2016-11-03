@@ -295,69 +295,69 @@ uint64_t AppKit::estimateRequiredFundsToBuyTorrent(const core::Torrent *torrent,
     return paymentChannelFunds + estimatedContractFee;
 }
 
-std::vector<paymentchannel::Commitment> AppKit::getOutboundPaymentChannelCommitments() const {
+int64_t AppKit::getStandardWalletBalance(int confirmations) const {
+    auto standardOutputs = _wallet->getStandardStoreControlledOutputs(confirmations);
+
+    return std::accumulate(standardOutputs.begin(), standardOutputs.end(), (int64_t)0,
+                           [](int64_t &sum, bitcoin::Store::StoreControlledOutput output) -> int64_t {
+        return sum + output.value;
+    });
+
+}
+
+std::vector<paymentchannel::Commitment> AppKit::getOutboundPaymentChannelCommitments(int confirmations) const {
     using namespace joystream::bitcoin;
 
-    std::vector<Store::StoreControlledOutput> outputs(_wallet->getStoreControlledOutputs(0));
     std::vector<paymentchannel::Commitment> channels;
 
-    for (const Store::StoreControlledOutput &output : outputs) {
-        if(output.chainType == Store::KeychainType::Other) {
-            try{
-                paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
-                if(paychanScript.isPayorPublicKey(output.keyPair.pk())) {
-                    channels.push_back(paymentchannel::Commitment(output.value, output.redeemScript));
-                }
-            }catch(std::exception &e) {
-                //not a payment channel
+    for (const Store::StoreControlledOutput &output : _wallet->getNonStandardStoreControlledOutputs(confirmations)) {
+        try{
+            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
+            if(paychanScript.isPayorPublicKey(output.keyPair.pk())) {
+                channels.push_back(paymentchannel::Commitment(output.value, output.redeemScript));
             }
+        }catch(std::exception &e) {
+            //not a payment channel
         }
     }
 
     return channels;
 }
 
-std::vector<paymentchannel::Commitment> AppKit::getInboundPaymentChannelCommitments() const {
+std::vector<paymentchannel::Commitment> AppKit::getInboundPaymentChannelCommitments(int confirmations) const {
     using namespace joystream::bitcoin;
 
-    std::vector<Store::StoreControlledOutput> outputs(_wallet->getStoreControlledOutputs(0));
     std::vector<paymentchannel::Commitment> channels;
 
-    for (const Store::StoreControlledOutput &output : outputs) {
-        if(output.chainType == Store::KeychainType::Other) {
-            try{
-                paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
-                if(paychanScript.isPayeePublicKey(output.keyPair.pk())){
-                    channels.push_back(paymentchannel::Commitment(output.value, output.redeemScript));
-                }
-            }catch(std::exception &e) {
-                //not a payment channel
+    for (const Store::StoreControlledOutput &output : _wallet->getNonStandardStoreControlledOutputs(confirmations)) {
+        try{
+            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
+            if(paychanScript.isPayeePublicKey(output.keyPair.pk())){
+                channels.push_back(paymentchannel::Commitment(output.value, output.redeemScript));
             }
+        }catch(std::exception &e) {
+            //not a payment channel
         }
     }
 
     return channels;
 }
 
-std::vector<paymentchannel::Refund> AppKit::getRefunds() const {
+std::vector<paymentchannel::Refund> AppKit::getRefunds(int confirmations) const {
     using namespace joystream::bitcoin;
-
-    std::vector<Store::StoreControlledOutput> outputs(_wallet->getStoreControlledOutputs(0));
 
     std::vector<paymentchannel::Refund> refunds;
 
-    for (const Store::StoreControlledOutput &output : outputs) {
-        if(output.chainType == Store::KeychainType::Other) {
-            try{
-                paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
+    for (const Store::StoreControlledOutput &output : _wallet->getNonStandardStoreControlledOutputs(confirmations)) {
+        try{
+            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
 
-                auto pk = output.keyPair.pk();
-                if(paychanScript.isPayorPublicKey(pk)) {
-                    refunds.push_back(paymentchannel::Refund(output.outPoint, paymentchannel::Commitment(output.value, output.redeemScript), output.keyPair));
-                }
-            }catch(std::exception &e) {
-                //not a payment channel
+            auto pk = output.keyPair.pk();
+            if(paychanScript.isPayorPublicKey(pk)) {
+                refunds.push_back(paymentchannel::Refund(output.outPoint, paymentchannel::Commitment(output.value, output.redeemScript), output.keyPair));
             }
+        }catch(std::exception &e) {
+            //not a payment channel
         }
     }
 
