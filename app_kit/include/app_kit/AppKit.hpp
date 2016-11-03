@@ -78,6 +78,13 @@ public:
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
 
+
+    std::vector<paymentchannel::Refund> getRefunds() const;
+
+    std::vector<paymentchannel::Commitment> getOutboundPaymentChannelCommitments() const;
+
+    std::vector<paymentchannel::Commitment> getInboundPaymentChannelCommitments() const;
+
 private:
 
     static bitcoin::SPVWallet* getWallet(const std::string &storeFile, const std::string blockTreeFile, Coin::Network network);
