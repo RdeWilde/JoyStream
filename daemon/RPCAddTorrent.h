@@ -4,7 +4,9 @@
 #include "protos/daemon.grpc.pb.h"
 #include "protos/daemon.pb.h"
 #include "RPCRequest.h"
+
 #include <core/Torrent.hpp>
+#include <core/Exception.hpp>
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>
 

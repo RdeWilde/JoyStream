@@ -24,13 +24,13 @@ app.listen(3000, function () {
 		} else {
 			console.log(torrentAdded);
 
-			rpc.removeTorrent(torrent, function(err, torrentState){
+			/*rpc.removeTorrent(torrent, function(err, torrentState){
 				if (err) {
 					console.log(err);
 				} else {
 					console.log(torrentState);
 				}
-			});
+			});*/
 		}
 	})
 });

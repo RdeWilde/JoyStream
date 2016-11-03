@@ -22,15 +22,22 @@ void RPCAddTorrent::onCall()
     // Pop up a new instance for concurency
     new RPCAddTorrent(service_, cq_, node_);
 
-    node_->addTorrent(upload_limit,download_limit,name,resume_data,save_path,paused,torrent_identifier,[this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
-        if (ecode) {
-            std::cout << "We have an error" << std::endl;
-            this->responder_.Finish(this->request_, grpc::Status::CANCELLED, this);
-            this->status_ = FINISH;
-        } else {
-            std::cout << "New torrent added" << std::endl;
-            this->responder_.Finish(this->request_, grpc::Status::OK, this);
-            this->status_ = FINISH;
-        }
-    });
+    try {
+        node_->addTorrent(upload_limit,download_limit,name,resume_data,save_path,paused,torrent_identifier,[this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
+            if (ecode) {
+                std::cout << "We have an error" << std::endl;
+                this->responder_.Finish(this->request_, grpc::Status::CANCELLED, this);
+                this->status_ = FINISH;
+            } else {
+                std::cout << "New torrent added" << std::endl;
+                this->responder_.Finish(this->request_, grpc::Status::OK, this);
+                this->status_ = FINISH;
+            }
+        });
+    } catch (joystream::core::exception::TorrentAlreadyExists error) {
+        std::cout << "Some kind of errors" << std::endl;
+        this->responder_.Finish(this->request_, grpc::Status::CANCELLED, this);
+        this->status_ = FINISH;
+    }
+
 }
