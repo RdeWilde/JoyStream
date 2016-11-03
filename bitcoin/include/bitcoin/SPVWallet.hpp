@@ -105,7 +105,9 @@ public:
 
     uint unlockOutputs(const Coin::UnspentOutputSet & outputs);
 
-    std::vector<Store::StoreControlledOutput> getStoreControlledOutputs(uint32_t minimalConfirmations);
+    std::vector<Store::StoreControlledOutput> getStoreControlledOutputs(uint32_t minimalConfirmations) const;
+    std::vector<Store::StoreControlledOutput> getStandardStoreControlledOutputs(uint32_t minimalConfirmations) const;
+    std::vector<Store::StoreControlledOutput> getNonStandardStoreControlledOutputs(uint32_t minimalConfirmations) const;
 
     uint64_t balance() const;
     uint64_t unconfirmedBalance() const;

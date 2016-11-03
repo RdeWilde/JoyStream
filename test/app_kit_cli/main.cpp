@@ -80,17 +80,19 @@ void dumpWalletInfo(joystream::appkit::AppKit *kit) {
     auto outputChannels = kit->getOutboundPaymentChannelCommitments();
     auto inputChannels = kit->getInboundPaymentChannelCommitments();
 
-    int64_t totalLockedInChannels = std::accumulate(outputChannels.begin(), outputChannels.end(), (int64_t)0,
+    int64_t outgoingLockedFunds = std::accumulate(outputChannels.begin(), outputChannels.end(), (int64_t)0,
                                                   [](int64_t &sum, joystream::paymentchannel::Commitment &commitment) -> int64_t {
         return sum + commitment.value();
     });
 
-    totalLockedInChannels += std::accumulate(inputChannels.begin(), inputChannels.end(), (int64_t)0,
-                                             [](int64_t &sum, joystream::paymentchannel::Commitment &commitment) -> int64_t {
+    int64_t incomingLockedFunds = std::accumulate(inputChannels.begin(), inputChannels.end(), (int64_t)0,
+                                                  [](int64_t &sum, joystream::paymentchannel::Commitment &commitment) -> int64_t {
         return sum + commitment.value();
     });
 
-    std::cout << "Wallet funds locked in payment channels: " << totalLockedInChannels << std::endl;
+    std::cout << "Wallet funds locked in outbound payment channels: " << outgoingLockedFunds << std::endl;
+    std::cout << "Wallet potential unsettled funds in inbound payment channels: " << incomingLockedFunds << std::endl;
+    std::cout << "Wallet spendable P2PKH balance: " << kit->getStandardWalletBalance() << std::endl;
 
 }
 
