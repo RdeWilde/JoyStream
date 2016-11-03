@@ -91,6 +91,7 @@ void dumpWalletInfo(joystream::appkit::AppKit *kit) {
     });
 
     std::cout << "Wallet funds locked in payment channels: " << totalLockedInChannels << std::endl;
+
 }
 
 int main(int argc, char *argv[])
@@ -114,21 +115,22 @@ int main(int argc, char *argv[])
                                                            secondsBeforePieceTimeout,
                                                            joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
-    if (argc != 1 && argc < 3)
-    {
-        std::cerr << "usage: ./app_kit_cli [buy|sell] [torrent-file]" << std::endl;
-        return 1;
-    }
-
-
     joystream::core::TorrentIdentifier* torrentIdentifier = nullptr;
+    joystream::appkit::Settings settings;
 
-    if(argc == 3) {
+
+    std::string command;
+
+    if(argc > 1) command = argv[1];
+
+    if(argc > 2 && (command == "buy" || command == "sell")) {
         torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(argv[2]);
         if(!torrentIdentifier) {
             return 2;
         }
         std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
+    } else if(argc > 1 && command == "info"){
+        settings.autoStartWalletSync = false;
     }
 
     if(getenv("DEBUG") != NULL) {
@@ -146,7 +148,8 @@ int main(int argc, char *argv[])
 
     joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(dir.walletFilePath().toStdString(),
                                                                        dir.blockTreeFilePath().toStdString(),
-                                                                       Coin::Network::testnet3);
+                                                                       Coin::Network::testnet3,
+                                                                       settings);
 
     if(!kit) {
         std::cout << "Failed to create appkit instance" << std::endl;
@@ -154,6 +157,11 @@ int main(int argc, char *argv[])
     }
 
     dumpWalletInfo(kit);
+
+    if(command == "info") {
+        dir.unlock();
+        return 0;
+    }
 
     QTimer timer;
 
@@ -206,40 +214,40 @@ int main(int argc, char *argv[])
     };
 
     // wait for torrent to be added
-    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&buyIt, &sellIt, &argv](joystream::core::Torrent * torrent){
+    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&buyIt, &sellIt, &command](joystream::core::Torrent * torrent){
         std::cout << "Torrent Added Successfully" << std::endl;
 
         // wait for torrent plugin to be added before we can go to buy/sell mode...
-        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&buyIt, &sellIt, &argv, torrent](joystream::core::TorrentPlugin *plugin){
+        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&buyIt, &sellIt, &command, torrent](joystream::core::TorrentPlugin *plugin){
             std::cout << "Torrent Plugin Added Successfully" << std::endl;
             std::cout << "Torrent State: " << stateToString(torrent->state()) << std::endl;
 
             // ready to download?
             if(libtorrent::torrent_status::state_t::downloading == torrent->state()
-                    && std::string(argv[1]) == "buy") {
+                    && command == "buy") {
                 buyIt(torrent);
                 return;
             }
 
             // ready to upload?
             if(libtorrent::torrent_status::state_t::seeding == torrent->state()
-                    && std::string(argv[1]) == "sell") {
+                    && command == "sell") {
                 sellIt(torrent);
                 return;
             }
 
             // otherwise.. wait for valid state
-            QObject::connect(torrent, &joystream::core::Torrent::stateChanged, [&buyIt, &sellIt, &argv, torrent](libtorrent::torrent_status::state_t state, float progress){
+            QObject::connect(torrent, &joystream::core::Torrent::stateChanged, [&buyIt, &sellIt, &command, torrent](libtorrent::torrent_status::state_t state, float progress){
                 std::cout << ">>>>>>>>>> Torrent State changed to: " << stateToString(state) << std::endl;
 
                 if(libtorrent::torrent_status::state_t::downloading == state
-                        && std::string(argv[1]) == "buy") {
+                        && command == "buy") {
                     buyIt(torrent);
                     return;
                 }
 
                 if(libtorrent::torrent_status::state_t::seeding == state
-                        && std::string(argv[1]) == "sell") {
+                        && command == "sell") {
                     sellIt(torrent);
                     return;
                 }

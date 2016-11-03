@@ -59,6 +59,8 @@ public:
     bitcoin::SPVWallet* wallet();
     core::Node* node();
 
+    void syncWallet();
+
     void shutdown(const Callback &);
 
     void applySettings(const Settings&);
@@ -91,8 +93,6 @@ private:
 
     AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendBuffer*, const Settings &settings);
 
-    void syncWallet();
-
     std::unique_ptr<core::Node> _node;
 
     std::unique_ptr<bitcoin::SPVWallet> _wallet;
@@ -104,6 +104,8 @@ private:
     Settings _settings;
 
     bool _shuttingDown;
+
+    bool _trySyncWallet;
 
     void buyTorrent(core::TorrentPlugin *,
                     const protocol_session::BuyingPolicy &,

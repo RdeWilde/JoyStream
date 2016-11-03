@@ -14,8 +14,10 @@ struct Settings
     static Settings fromJson(const QJsonValue &);
     QJsonValue toJson() const;
 
-    std::string bitcoinNodeHost;
-    int bitcoinNodePort;
+    std::string bitcoinNodeHost = "";
+    int bitcoinNodePort = 0;
+
+    bool autoStartWalletSync = true;
 };
 
 } // appkit

@@ -47,7 +47,8 @@ AppKit* AppKit::create(const std::string &walletFilePath,
 
         wallet = getWallet(walletFilePath, walletBlockTreeFilePath, network);
 
-        wallet->loadBlockTree();
+        if(settings.autoStartWalletSync)
+            wallet->loadBlockTree();
 
         txSendBuffer = new TransactionSendBuffer(wallet);
 
@@ -73,7 +74,8 @@ AppKit::AppKit(core::Node* node,
       _wallet(wallet),
       _transactionSendBuffer(txSendBuffer),
       _settings(settings),
-      _shuttingDown(false) {
+      _shuttingDown(false),
+      _trySyncWallet(settings.autoStartWalletSync) {
 
     QObject::connect(&_timer, &QTimer::timeout, [this](){
         if(_shuttingDown)
@@ -82,7 +84,8 @@ AppKit::AppKit(core::Node* node,
         _node->updateStatus();
 
         // Try to reconnect to bitcoin network if wallet went offline
-        syncWallet();
+        if(_trySyncWallet)
+            syncWallet();
 
         // Sendout queued transactions
         _transactionSendBuffer->flush();
@@ -100,6 +103,8 @@ bitcoin::SPVWallet* AppKit::wallet() {
 }
 
 void AppKit::syncWallet() {
+    _trySyncWallet = true;
+
     if(_settings.bitcoinNodeHost.empty()) {
         if(_wallet->network() == Coin::Network::testnet3) {
             _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
