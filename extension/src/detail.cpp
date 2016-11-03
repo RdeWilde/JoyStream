@@ -162,9 +162,14 @@ void RequestVariantVisitor::operator()(const request::PauseTorrent & r) {
     alert::LoadedCallback callback;
 
     // Pause if torrent was available, otherwise attach exception
-    if(auto torrent = w.lock())
+    if(auto torrent = w.lock()) {
+
+        // Pause torrent
         torrent->pause(r.graceful);
-    else
+
+        callback = std::bind(r.handler, std::exception_ptr());
+
+    } else
         callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
 
     // Send back to user
