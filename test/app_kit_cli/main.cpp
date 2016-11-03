@@ -118,9 +118,14 @@ int main(int argc, char *argv[])
 
     std::cout << "Creating AppKit Instance\n";
 
-    std::string dataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? getenv("JOYSTREAM_DATADIR") : QDir::homePath().toStdString();
-    joystream::appkit::Settings settings;
-    joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(dataDirectory, Coin::Network::testnet3, settings);
+    std::string kitDataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? getenv("JOYSTREAM_DATADIR") : QDir::homePath().toStdString();
+    joystream::appkit::DataDirectory dir(kitDataDirectory);
+
+    dir.lock();
+
+    joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(dir.walletFilePath().toStdString(),
+                                                                       dir.blockTreeFilePath().toStdString(),
+                                                                       Coin::Network::testnet3);
 
     if(!kit) {
         std::cout << "Failed to create appkit instance" << std::endl;
@@ -129,13 +134,14 @@ int main(int argc, char *argv[])
 
     dumpWalletInfo(kit->wallet());
 
-    QTimer *timer = new QTimer();
-    QObject::connect(timer, &QTimer::timeout, [&timer, &app, &kit](){
+    QTimer timer;
+
+    QObject::connect(&timer, &QTimer::timeout, [&timer, &app, &kit](){
         if(!shuttingDown) {
             return;
         }
 
-        timer->stop();
+        timer.stop();
 
         std::cout << "Stopping..." << std::endl;
         kit->shutdown([&app](){
@@ -143,7 +149,7 @@ int main(int argc, char *argv[])
         });
     });
 
-    timer->start(500);
+    timer.start(500);
 
     signal(SIGINT, &handleSignal);
     signal(SIGTERM, &handleSignal);
@@ -224,7 +230,11 @@ int main(int argc, char *argv[])
     if(torrentIdentifier) {
         std::cout << "Adding Torrent" << std::endl;
 
-        kit->addTorrent(*torrentIdentifier, [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+        kit->node()->addTorrent(0, 0,
+                                libtorrent::to_hex(torrentIdentifier->infoHash().to_string()),
+                                std::vector<char>(),
+                                dir.defaultSavePath().toStdString(), false, *torrentIdentifier,
+                                [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
 
             if(ecode) {
                 std::cerr << "addTorrent failed: " << ecode.message().c_str() << std::endl;
@@ -236,6 +246,8 @@ int main(int argc, char *argv[])
 
     std::cout << "Starting Qt Application Event loop\n";
     int ret = app.exec();
+
+    dir.unlock();
 
     std::cout << "Exited Qt Application event loop with code: " << ret << std::endl;
     return ret;

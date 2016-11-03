@@ -52,7 +52,9 @@ public:
     typedef std::function<void()> Callback;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    static AppKit* create(std::string dataDirectoryPath, Coin::Network, const Settings&);
+    static AppKit* create(const std::string &walletFilePath,
+                          const std::string &walletBlockTreeFilePath,
+                          Coin::Network, const Settings &settings = Settings());
 
     bitcoin::SPVWallet* wallet();
     core::Node* node();
@@ -66,9 +68,6 @@ public:
     // Add torrent from TorrentState
     void addTorrent(const joystream::appkit::SavedTorrentParameters &torrent, const core::Node::AddedTorrent &);
 
-    // Add torrent with default parameters
-    void addTorrent(const core::TorrentIdentifier &, const core::Node::AddedTorrent &);
-
     void buyTorrent(const core::Torrent*,
                     const protocol_session::BuyingPolicy &,
                     const protocol_wire::BuyerTerms &,
@@ -81,9 +80,9 @@ public:
 
 private:
 
-    static bitcoin::SPVWallet* getWallet(const DataDirectory &dataDirectory, Coin::Network network);
+    static bitcoin::SPVWallet* getWallet(const std::string &storeFile, const std::string blockTreeFile, Coin::Network network);
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendBuffer *txSendQueue, DataDirectory *dataDirectory, const Settings &settings);
+    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendBuffer*, const Settings &settings);
 
     void syncWallet();
 
@@ -91,13 +90,11 @@ private:
 
     std::unique_ptr<bitcoin::SPVWallet> _wallet;
 
-    std::unique_ptr<DataDirectory> _dataDirectory;
-
-    Settings _settings;
-
-    QTimer *_timer;
+    QTimer _timer;
 
     std::unique_ptr<TransactionSendBuffer> _transactionSendBuffer;
+
+    Settings _settings;
 
     bool _shuttingDown;
 
