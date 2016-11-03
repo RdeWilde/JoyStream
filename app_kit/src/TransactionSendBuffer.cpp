@@ -1,4 +1,4 @@
-#include <app_kit/TransactionSendQueue.hpp>
+#include <app_kit/TransactionSendBuffer.hpp>
 
 namespace joystream {
 namespace appkit {

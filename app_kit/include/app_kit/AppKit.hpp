@@ -7,7 +7,7 @@
 #include <QLockFile>
 
 #include <app_kit/DataDirectory.hpp>
-#include <app_kit/TransactionSendQueue.hpp>
+#include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
 
 #include <core/core.hpp>
