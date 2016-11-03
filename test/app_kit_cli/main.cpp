@@ -25,6 +25,8 @@
 #include <QDateTime>
 #include <ctime>
 #include <QTimer>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <iostream>
 #include <signal.h>
@@ -57,7 +59,10 @@ std::string stateToString(libtorrent::torrent_status::state_t state) {
     throw std::runtime_error("invalid state");
 }
 
-void dumpWalletInfo(joystream::bitcoin::SPVWallet *wallet) {
+void dumpWalletInfo(joystream::appkit::AppKit *kit) {
+
+    joystream::bitcoin::SPVWallet *wallet = kit->wallet();
+
     std::vector<Coin::P2PKHAddress> addresses = wallet->listReceiveAddresses();
 
     std::string depositAddress;
@@ -69,7 +74,23 @@ void dumpWalletInfo(joystream::bitcoin::SPVWallet *wallet) {
     }
 
     std::cout << "Wallet Deposit Address: " <<  depositAddress << std::endl;
+
     std::cout << "Wallet Balance: " << wallet->unconfirmedBalance() << std::endl;
+
+    auto outputChannels = kit->getOutboundPaymentChannelCommitments();
+    auto inputChannels = kit->getInboundPaymentChannelCommitments();
+
+    int64_t totalLockedInChannels = std::accumulate(outputChannels.begin(), outputChannels.end(), (int64_t)0,
+                                                  [](int64_t &sum, joystream::paymentchannel::Commitment &commitment) -> int64_t {
+        return sum + commitment.value();
+    });
+
+    totalLockedInChannels += std::accumulate(inputChannels.begin(), inputChannels.end(), (int64_t)0,
+                                             [](int64_t &sum, joystream::paymentchannel::Commitment &commitment) -> int64_t {
+        return sum + commitment.value();
+    });
+
+    std::cout << "Wallet funds locked in payment channels: " << totalLockedInChannels << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -132,7 +153,7 @@ int main(int argc, char *argv[])
         return 3;
     }
 
-    dumpWalletInfo(kit->wallet());
+    dumpWalletInfo(kit);
 
     QTimer timer;
 
