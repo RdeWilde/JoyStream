@@ -126,10 +126,6 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
 
     _timer->stop();
 
-    std::cout << "Saving torrents to disk" << std::endl;
-
-    saveNodeData();
-
     _node->pause([shutdownComplete, this](){
         std::cout << "Node paused" << std::endl;
 
@@ -154,42 +150,6 @@ void AppKit::applySettings(const Settings & settings) {
 
 SavedTorrents AppKit::generateSavedTorrents() const {
     return SavedTorrents(_node.get());
-}
-
-SavedTorrents AppKit::loadSavedTorrents() const {
-    QJsonObject nodeData = loadNodeData();
-    return SavedTorrents(nodeData["torrents"]);
-}
-
-QJsonObject AppKit::generateNodeData() const {
-    QJsonObject doc;
-
-    doc["torrents"] = generateSavedTorrents().toJson();
-    doc["settings"] = _settings.toJson();
-
-    return doc;
-}
-
-void AppKit::saveNodeData() const {
-    QFile file(_dataDirectory->savedTorrentsFilePath());
-    file.open(QFile::OpenModeFlag::WriteOnly);
-    file.write(QJsonDocument(generateNodeData()).toJson());
-    file.close();
-}
-
-QJsonObject AppKit::loadNodeData() const {
-    try {
-
-        QFile file(_dataDirectory->savedTorrentsFilePath());
-        file.open(QFile::OpenModeFlag::ReadOnly);
-        QJsonDocument data = QJsonDocument::fromBinaryData(file.readAll());
-        file.close();
-
-        return data.object();
-
-    } catch(std::exception &e) {
-        return QJsonObject();
-    }
 }
 
 void AppKit::addTorrent(const core::TorrentIdentifier &torrentReference, const core::Node::AddedTorrent &addedTorrent){
