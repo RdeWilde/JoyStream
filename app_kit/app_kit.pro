@@ -11,7 +11,7 @@ SOURCES += src/AppKit.cpp \
     src/DataDirectory.cpp \
     src/Settings.cpp \
     src/HelperFunctions.cpp \
-    src/TransactionSendQueue.cpp \
+    src/TransactionSendBuffer.cpp \
     src/SavedTorrents.cpp \
     src/SavedTorrentParameters.cpp \
     src/SavedSessionParameters.cpp
@@ -21,7 +21,7 @@ HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/Settings.hpp \
     include/app_kit/HelperFunctions.hpp \
     include/app_kit/kit.hpp \
-    include/app_kit/TransactionSendQueue.hpp \
+    include/app_kit/TransactionSendBuffer.hpp \
     include/app_kit/SavedTorrents.hpp \
     include/app_kit/SavedTorrentParameters.hpp \
     include/app_kit/SavedSessionParameters.hpp
