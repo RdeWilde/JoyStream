@@ -140,10 +140,15 @@ void RequestVariantVisitor::operator()(const request::RemoveTorrent & r) {
 
     alert::LoadedCallback callback;
 
-    if(!h.is_valid())
-        callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
-    else
+    if(h.is_valid()) {
+
+        // Remove torrent
         _plugin->_session->remove_torrent(h, 0);
+
+        callback = std::bind(r.handler, std::exception_ptr());
+
+    } else
+        callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
 
     // Send back to user
     sendRequestResult(callback);
