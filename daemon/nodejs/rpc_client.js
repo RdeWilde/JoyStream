@@ -32,6 +32,10 @@ rpc.addTorrent = function(torrent, callback ) {
   clientDaemon.addTorrent(torrent, callback);
 }
 
+rpc.removeTorrent = function(torrent, callback ) {
+  clientDaemon.removeTorrent(torrent, callback);
+}
+
 rpc.test1 = function(request, callback) {
   clientDaemon.test1(request, callback);
 };
