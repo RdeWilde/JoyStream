@@ -225,14 +225,29 @@ int main(int argc, char *argv[])
         });
     };
 
+    auto removeTorrent = [&kit](joystream::core::Torrent *torrent) {
+        kit->node()->removeTorrent(torrent->infoHash(),
+                                   [](const std::exception_ptr &e){
+            std::cout << "remove torrent callback\n";
+        });
+    };
+
     // wait for torrent to be added
-    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&buyIt, &sellIt, &command](joystream::core::Torrent * torrent){
+    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&buyIt, &sellIt, &command, &removeTorrent](joystream::core::Torrent * torrent){
         std::cout << "Torrent Added Successfully" << std::endl;
 
         // wait for torrent plugin to be added before we can go to buy/sell mode...
-        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&buyIt, &sellIt, &command, torrent](joystream::core::TorrentPlugin *plugin){
+        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&buyIt, &sellIt, &command, torrent, &removeTorrent](joystream::core::TorrentPlugin *plugin){
             std::cout << "Torrent Plugin Added Successfully" << std::endl;
             std::cout << "Torrent State: " << stateToString(torrent->state()) << std::endl;
+
+            if(torrent->isPaused()){
+                QTimer::singleShot(5000, [torrent](){
+                    torrent->resume([](const std::exception_ptr &e) {
+                        std::cout << "Torrent Resumed" << std::endl;
+                    });
+                });
+            }
 
             // ready to download?
             if(libtorrent::torrent_status::state_t::downloading == torrent->state()
@@ -268,13 +283,14 @@ int main(int argc, char *argv[])
         });
     });
 
+
     if(torrentIdentifier) {
         std::cout << "Adding Torrent" << std::endl;
 
         kit->node()->addTorrent(0, 0,
                                 libtorrent::to_hex(torrentIdentifier->infoHash().to_string()),
                                 std::vector<char>(),
-                                dir.defaultSavePath().toStdString(), false, *torrentIdentifier,
+                                dir.defaultSavePath().toStdString(), true, *torrentIdentifier,
                                 [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
 
             if(ecode) {
@@ -283,6 +299,7 @@ int main(int argc, char *argv[])
 
             std::cout << "Torrent Starting Status:" << stateToString(th.status().state) << std::endl;
         });
+
     }
 
     std::cout << "Starting Qt Application Event loop\n";
