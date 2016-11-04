@@ -165,6 +165,16 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    // Attempt to claim refunds
+    for(auto refund : kit->getRefunds()) {
+        // suggested improvements - we should check that the locktime has expired
+        //                        - combine multiple refunds into one transaction
+        auto destination = kit->wallet()->generateReceiveAddress();
+        auto tx = refund.getSignedSpendingTransaction(destination, 5000);
+        kit->broadcastTransaction(tx);
+        std::cout << "Broadcasting Refund Tx: " << Coin::TransactionId::fromTx(tx).toRPCByteOrder() << std::endl;
+    }
+
     QTimer timer;
 
     QObject::connect(&timer, &QTimer::timeout, [&timer, &app, &kit](){
