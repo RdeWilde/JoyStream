@@ -77,6 +77,11 @@ void Plugin::on_alert(libtorrent::alert const * a) {
 
         plugin->pieceRead(p);
     }
+
+    if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a)) {
+        const libtorrent::sha1_hash infoHash = p->handle.info_hash();
+        _plugins.erase(infoHash);
+    }
 }
 
 void Plugin::on_tick() {
