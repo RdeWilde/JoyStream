@@ -77,10 +77,11 @@ public:
 
     bool isInitialized() const { return _walletStatus != wallet_status_t::UNINITIALIZED; }
     bool isOffline() const { return _walletStatus == wallet_status_t::OFFLINE; }
-    bool isConnected() const { return (isInitialized() && !isOffline()); }
+    bool isConnecting() const { return _walletStatus == wallet_status_t::CONNECTING; }
     bool isSynchingHeaders() const { return _walletStatus == wallet_status_t::SYNCHING_HEADERS;}
     bool isSynchingBlocks() const { return _walletStatus == wallet_status_t::SYNCHING_BLOCKS;}
     bool isSynched() const { return _walletStatus == wallet_status_t::SYNCHED;}
+    bool isConnected() const { return (isSynched() || isSynchingHeaders() || isSynchingBlocks()); }
 
     // Generate Keys with custom redeem scripts
     Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
