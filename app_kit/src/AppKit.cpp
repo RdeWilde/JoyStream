@@ -364,5 +364,9 @@ std::vector<paymentchannel::Refund> AppKit::getRefunds(int confirmations) const 
     return refunds;
 }
 
+void AppKit::broadcastTransaction(Coin::Transaction &tx) const {
+    _transactionSendBuffer->insert(tx);
+}
+
 } // appkit namespace
 } // joystream namespace
