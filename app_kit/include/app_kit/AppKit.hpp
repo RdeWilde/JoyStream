@@ -85,6 +85,8 @@ public:
     std::vector<paymentchannel::Commitment> getInboundPaymentChannelCommitments(int confirmations = 0) const;
     std::vector<paymentchannel::Refund> getRefunds(int confirmations = 0) const;
 
+    void broadcastTransaction(Coin::Transaction &) const;
+
 private:
 
     static bitcoin::SPVWallet* getWallet(const std::string &storeFile, const std::string blockTreeFile, Coin::Network network);
