@@ -170,7 +170,7 @@ void Torrent::removeTorrentPlugin() {
 
     _torrentPlugin.release();
 
-    emit removeTorrentPlugin();
+    emit torrentPluginRemoved();
 }
 
 void Torrent::updateStatus(const libtorrent::torrent_status & status) {
