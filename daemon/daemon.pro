@@ -17,7 +17,8 @@ SOURCES += src/main.cpp protos/daemon.grpc.pb.cc protos/daemon.pb.cc \
     RPCAddTorrent.cpp \
     RPCRemoveTorrent.cpp \
     RPCRequest.cpp \
-    RPCListTorrents.cpp
+    RPCListTorrents.cpp \
+    RPCPauseTorrent.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../core/release/ -lcore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../core/debug/ -lcore
@@ -123,4 +124,5 @@ HEADERS += \
     CompletionQueueDispatcher.h \
     RPCAddTorrent.h \
     RPCRemoveTorrent.h \
-    RPCListTorrents.h
+    RPCListTorrents.h \
+    RPCPauseTorrent.h
