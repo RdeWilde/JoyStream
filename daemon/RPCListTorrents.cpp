@@ -15,9 +15,9 @@ void RPCListTorrents::onCall()
 
     for (const auto t : node_->torrents()) {
 
-        std::cout << t.second->infoHash() << std::endl;
+        std::cout << libtorrent::to_hex(t.first.to_string()) << std::endl;
         std::cout << "Find one !" << std::endl;
-        response.set_infohash(t.second->infoHash().to_string());
+        response.set_infohash(libtorrent::to_hex(t.first.to_string()));
         response.set_name(t.second->name());
         responder_.Write(response, this);
     }

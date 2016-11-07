@@ -4,8 +4,10 @@ package joystream.daemon.rpc;
 
 service Daemon {
   rpc Pause(Void) returns (Void) {}
-  rpc Resume(Void) returns (Void) {}
-  rpc Stop(Void) returns (Void) {}
+
+  rpc StartTorrent(Torrent) returns (Void) {}
+  rpc PauseTorrent(Torrent) returns (Void) {}
+  rpc StopTorrent(Torrent) returns (Void) {}
 
   rpc SuscribeEvents(Void) returns (stream Event) {}
 

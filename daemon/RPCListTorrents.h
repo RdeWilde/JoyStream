@@ -10,6 +10,7 @@
 #include <core/Exception.hpp>
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>
+#include <libtorrent/aux_/escape_string.hpp>
 
 class RPCListTorrents : public RPCRequest {
     public:

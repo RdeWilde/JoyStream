@@ -8,17 +8,15 @@ RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
 
 void RPCAddTorrent::onCall()
 {
-    libtorrent::sha1_hash info_hash = libtorrent::sha1_hash(request_.infohash());
     std::string save_path = std::string("/home/lola/joystream");
     std::vector<char> resume_data = std::vector<char>();
     std::string name = std::string(request_.name());
     boost::optional<uint> upload_limit = -1;
     boost::optional<uint> download_limit = -1;
     bool paused = 1;
-    joystream::core::TorrentIdentifier torrent_identifier = joystream::core::TorrentIdentifier(info_hash);
+    joystream::core::TorrentIdentifier torrent_identifier = joystream::core::TorrentIdentifier::fromHashString(std::string(request_.infohash()));
 
     std::cout << "We are adding the torrent" << std::endl;
-    std::cout << request_.infohash() << std::endl;
 
     // Pop up a new instance for concurency
     new RPCAddTorrent(service_, cq_, node_);
