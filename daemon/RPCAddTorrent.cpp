@@ -16,6 +16,7 @@ void RPCAddTorrent::onCall()
     boost::optional<uint> download_limit = -1;
     bool paused = 1;
     joystream::core::TorrentIdentifier torrent_identifier = joystream::core::TorrentIdentifier(info_hash);
+
     std::cout << "We are adding the torrent" << std::endl;
     std::cout << request_.infohash() << std::endl;
 

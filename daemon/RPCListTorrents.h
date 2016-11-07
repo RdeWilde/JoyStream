@@ -21,7 +21,6 @@ class RPCListTorrents : public RPCRequest {
         grpc::ServerCompletionQueue* cq_;
         joystream::core::Node* node_;
 
-        joystream::daemon::rpc::Torrent response_;
         grpc::ServerAsyncWriter<joystream::daemon::rpc::Torrent> responder_;
         joystream::daemon::rpc::Void request_;
         grpc::ServerContext ctx_;

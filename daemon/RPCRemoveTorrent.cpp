@@ -15,13 +15,16 @@ void RPCRemoveTorrent::onCall()
     std::cout << "Remove Torrent" << std::endl;
 
     node_->removeTorrent(info_hash, [this](const std::exception_ptr &eptr) {
+
+        joystream::daemon::rpc::TorrentState response;
+
         if (eptr){
             std::cout << "Caught an error" << std::endl;
-            this->responder_.Finish(this->response_, grpc::Status::CANCELLED, this);
+            this->responder_.Finish(response, grpc::Status::CANCELLED, this);
         } else {
             std::cout << "Removing Torrent" << std::endl;
-            this->response_.set_paused(1);
-            this->responder_.Finish(this->response_, grpc::Status::OK, this);
+            response.set_paused(1);
+            this->responder_.Finish(response, grpc::Status::OK, this);
         }
         this->status_ = FINISH;
     });

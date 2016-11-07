@@ -31,7 +31,6 @@ void ServerImpl::Run()
     std::cout << "Server listening on " << server_address << std::endl;
 
     // Initiate all the RPC methods declared in .proto file
-    new RPCTest(&daemonService_, cq_.get());
     new RPCPause(&daemonService_, cq_.get(), node_);
     new RPCAddTorrent(&daemonService_, cq_.get(), node_);
     new RPCRemoveTorrent(&daemonService_, cq_.get(), node_);

@@ -12,7 +12,6 @@ TEMPLATE = app
 
 SOURCES += src/main.cpp protos/daemon.grpc.pb.cc protos/daemon.pb.cc \
     RPCPause.cpp \
-    RPCTest.cpp \
     ServerImpl.cpp \
     CompletionQueueDispatcher.cpp \
     RPCAddTorrent.cpp \
@@ -119,7 +118,6 @@ include(../config.pri)
 
 HEADERS += \
     RPCPause.h \
-    RPCTest.h \
     ServerImpl.h \
     RPCRequest.h \
     CompletionQueueDispatcher.h \

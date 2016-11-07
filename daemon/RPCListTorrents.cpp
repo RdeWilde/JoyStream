@@ -8,15 +8,18 @@ RPCListTorrents::RPCListTorrents(joystream::daemon::rpc::Daemon::AsyncService* s
 
 void RPCListTorrents::onCall()
 {
+    joystream::daemon::rpc::Torrent response;
+
     // Pop up a new instance for concurency
     new RPCListTorrents(service_, cq_, node_);
 
     for (const auto t : node_->torrents()) {
-      std::cout << t.second->infoHash() << std::endl;
-      std::cout << "Find one !" << std::endl;
-      //response_.set_infohash(t.second->infoHash().to_string());
-      response_.set_name(t.second->name());
-      responder_.Write(response_, this);
+
+        std::cout << t.second->infoHash() << std::endl;
+        std::cout << "Find one !" << std::endl;
+        response.set_infohash(t.second->infoHash().to_string());
+        response.set_name(t.second->name());
+        responder_.Write(response, this);
     }
 
     responder_.Finish(grpc::Status::OK, this);

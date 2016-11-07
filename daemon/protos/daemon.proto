@@ -14,15 +14,6 @@ service Daemon {
   rpc ListTorrents(Void) returns (stream Torrent) {}
   rpc GetTorrentState (Torrent) returns (TorrentState) {}
 
-  rpc test1(TestRequest) returns (TestResponce) {}
-}
-
-message TestRequest {
-	string clientMessage = 1;
-}
-
-message TestResponce {
-	string serverMessage = 1;
 }
 
 message Void {

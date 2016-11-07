@@ -9,15 +9,7 @@ var torrent = {
 
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
-
-	rpc.test1({clientMessage: 'Hello'}, function(err, responce) {
-		if (err) {
-			console.log(err)
-		} else {
-			console.log(responce);
-		}
-	});
-
+	
 	rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
 			console.log(err);

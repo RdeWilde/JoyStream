@@ -14,7 +14,6 @@ class RPCPause : public RPCRequest {
         grpc::ServerCompletionQueue* cq_;
         joystream::core::Node* node_;
 
-        joystream::daemon::rpc::Void response_;
         grpc::ServerAsyncResponseWriter<joystream::daemon::rpc::Void> responder_;
         joystream::daemon::rpc::Void request_;
         grpc::ServerContext ctx_;

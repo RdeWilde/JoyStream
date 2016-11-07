@@ -18,7 +18,6 @@ class RPCRemoveTorrent : public RPCRequest {
         grpc::ServerCompletionQueue* cq_;
         joystream::core::Node* node_;
 
-        joystream::daemon::rpc::TorrentState response_;
         grpc::ServerAsyncResponseWriter<joystream::daemon::rpc::TorrentState> responder_;
         joystream::daemon::rpc::Torrent request_;
 

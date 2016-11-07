@@ -12,8 +12,11 @@ void RPCPause::onCall()
 
     std::cout << "We want to pause the node" << std::endl;
     node_->pause([this](){
+
+        joystream::daemon::rpc::Void response;
+
         std::cout << "Node was paused" << std::endl;
-        this->responder_.Finish(this->response_, grpc::Status::OK, this);
+        this->responder_.Finish(response, grpc::Status::OK, this);
         this->status_ = FINISH;
     });
 }
