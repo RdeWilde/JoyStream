@@ -74,13 +74,9 @@ AppKit::AppKit(core::Node* node,
       _wallet(wallet),
       _transactionSendBuffer(txSendBuffer),
       _settings(settings),
-      _shuttingDown(false),
       _trySyncWallet(settings.autoStartWalletSync) {
 
     QObject::connect(&_timer, &QTimer::timeout, [this](){
-        if(_shuttingDown)
-            return;
-
         _node->updateStatus();
 
         // Try to reconnect to bitcoin network if wallet went offline
@@ -110,9 +106,6 @@ void AppKit::syncWallet() {
             _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
         } else if(_wallet->network() == Coin::Network::mainnet) {
             _wallet->sync("seed.bitcoin.sipa.be", 8333);
-        }else{
-            //this shouldn't throw.. its called from the timer!
-            return;
         }
     } else {
         _wallet->sync(_settings.bitcoinNodeHost, _settings.bitcoinNodePort);
@@ -124,8 +117,6 @@ void AppKit::shutdown(const Callback & shutdownComplete) {
         return;
 
     std::cout << "Shutting down AppKit" << std::endl;
-
-    _shuttingDown = true;
 
     _timer.stop();
 

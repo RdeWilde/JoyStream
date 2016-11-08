@@ -103,8 +103,6 @@ private:
 
     Settings _settings;
 
-    bool _shuttingDown;
-
     bool _trySyncWallet;
 
     void buyTorrent(core::TorrentPlugin *,
