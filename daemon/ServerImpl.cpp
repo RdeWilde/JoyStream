@@ -35,6 +35,7 @@ void ServerImpl::Run()
     new RPCAddTorrent(&daemonService_, cq_.get(), node_);
     new RPCRemoveTorrent(&daemonService_, cq_.get(), node_);
     new RPCListTorrents(&daemonService_, cq_.get(), node_);
+    new RPCPauseTorrent(&daemonService_, cq_.get(), node_);
 
     thread_ = std::thread(&CompletionQueueDispatcher::run,dispatcher_,cq_.get());
 

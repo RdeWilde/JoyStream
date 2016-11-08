@@ -9,7 +9,7 @@ var torrent = {
 
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
-	
+
 	rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
 			console.log(err);
@@ -23,13 +23,20 @@ app.listen(3000, function () {
 					console.log(torrentRecieved);
 				}
 			}, function() {
-				rpc.removeTorrent(torrent, function(err, torrentState){
+				/*rpc.removeTorrent(torrent, function(err, torrentState){
 					if (err) {
 						console.log(err);
 					} else {
 						console.log(torrentState);
 					}
-				});
+				});*/
+				rpc.pauseTorrent(torrentAdded, function(err, answer) {
+					if (err) {
+						console.log('Something wrong happened')
+					} else {
+						console.log('Empty answer : ', answer)
+					}
+				})
 			});
 		}
 	})

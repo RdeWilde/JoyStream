@@ -3,6 +3,7 @@
 
 #include "RPCRequest.h"
 #include <core/Node.hpp>
+#include <core/Torrent.hpp>
 
 class RPCPauseTorrent : public RPCRequest {
 public:
@@ -15,7 +16,7 @@ private:
     joystream::core::Node* node_;
 
     grpc::ServerAsyncResponseWriter<joystream::daemon::rpc::Void> responder_;
-    joystream::daemon::rpc::Void request_;
+    joystream::daemon::rpc::Torrent request_;
     grpc::ServerContext ctx_;
 
 };

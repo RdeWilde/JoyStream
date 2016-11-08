@@ -7,6 +7,7 @@
 #include "CompletionQueueDispatcher.h"
 #include "RPCRequest.h"
 #include "RPCPause.h"
+#include "RPCPauseTorrent.h"
 #include "RPCAddTorrent.h"
 #include "RPCRemoveTorrent.h"
 #include "RPCListTorrents.h"
