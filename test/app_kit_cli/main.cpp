@@ -32,6 +32,9 @@
 #include <signal.h>
 #include <string>
 
+#include "buyqueue.hpp"
+#include "sellqueue.hpp"
+
 bool shuttingDown = false;
 int shutdownAttempts = 0;
 
@@ -180,15 +183,6 @@ int main(int argc, char *argv[])
         std::cout << "Broadcasting Refund Tx: " << Coin::TransactionId::fromTx(tx).toRPCByteOrder() << std::endl;
     }
 
-    QObject::connect(kit->wallet(), &joystream::bitcoin::SPVWallet::txRejected, [](Coin::TransactionId txid, std::string reason){
-        std::cout << "Tx was rejected: " << reason << std::endl;
-        std::cout << "TxId: " << txid.toRPCByteOrder() << std::endl;
-    });
-
-    QObject::connect(kit->wallet(), &joystream::bitcoin::SPVWallet::txUpdated, [](Coin::TransactionId txid, int confirmations){
-        std::cout << "Tx was updated: " << txid.toRPCByteOrder() << std::endl;
-    });
-
     QTimer timer;
 
     QObject::connect(&timer, &QTimer::timeout, [&timer, &app, &kit](){
@@ -209,99 +203,17 @@ int main(int argc, char *argv[])
     signal(SIGINT, &handleSignal);
     signal(SIGTERM, &handleSignal);
 
-    auto startIt = [](joystream::core::Torrent* torrent) {
-        torrent->torrentPlugin()->start([](const std::exception_ptr &eptr){
-            if(eptr){
-               std::rethrow_exception(eptr);
-            }else {
-                std::cout << "Torrent Started" << std::endl;
-            }
-        });
-    };
-
-    auto buyIt = [&kit, &buyerTerms, &buyingPolicy, &startIt](joystream::core::Torrent* torrent) {
-        auto ti = torrent->metaData().lock();
-        auto contractValue = joystream::appkit::util::estimateRequiredFundsToBuyTorrent(ti, buyerTerms);
-        kit->buyTorrent(contractValue, torrent, buyingPolicy, buyerTerms, [torrent, &startIt](const std::exception_ptr &eptr){
-            if(eptr){
-                // unable to go to buy mode, try again in 5 seconds..?
-            } else {
-                startIt(torrent);
-            }
-        });
-    };
-
-    auto sellIt = [&kit, &sellerTerms, &startIt](joystream::core::Torrent* torrent) {
-        kit->sellTorrent(torrent, joystream::protocol_session::SellingPolicy(), sellerTerms, [torrent, &startIt](const std::exception_ptr &eptr){
-            if(eptr){
-                // unable to go to sell mode, try again in 5 seconds..?
-            } else {
-                startIt(torrent);
-            }
-        });
-    };
-
-    auto removeTorrent = [&kit](joystream::core::Torrent *torrent) {
-        kit->node()->removeTorrent(torrent->infoHash(),
-                                   [](const std::exception_ptr &e){
-            std::cout << "remove torrent callback\n";
-        });
-    };
-
-    // wait for torrent to be added
-    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, [&buyIt, &sellIt, &command, &removeTorrent](joystream::core::Torrent * torrent){
-        std::cout << "Torrent Added Successfully" << std::endl;
-
-        // wait for torrent plugin to be added before we can go to buy/sell mode...
-        QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, [&buyIt, &sellIt, &command, torrent, &removeTorrent](joystream::core::TorrentPlugin *plugin){
-            std::cout << "Torrent Plugin Added Successfully" << std::endl;
-            std::cout << "Torrent State: " << stateToString(torrent->state()) << std::endl;
-
-            if(torrent->isPaused()){
-                QTimer::singleShot(5000, [torrent](){
-                    torrent->resume([](const std::exception_ptr &e) {
-                        std::cout << "Torrent Resumed" << std::endl;
-                    });
-                });
-            }
-
-            // ready to download?
-            if(libtorrent::torrent_status::state_t::downloading == torrent->state()
-                    && command == "buy") {
-                buyIt(torrent);
-                return;
-            }
-
-            // ready to upload?
-            if(libtorrent::torrent_status::state_t::seeding == torrent->state()
-                    && command == "sell") {
-                sellIt(torrent);
-                return;
-            }
-
-            // otherwise.. wait for valid state
-            QObject::connect(torrent, &joystream::core::Torrent::stateChanged, [&buyIt, &sellIt, &command, torrent](libtorrent::torrent_status::state_t state, float progress){
-                std::cout << ">>>>>>>>>> Torrent State changed to: " << stateToString(state) << std::endl;
-
-                if(libtorrent::torrent_status::state_t::downloading == state
-                        && command == "buy") {
-                    buyIt(torrent);
-                    return;
-                }
-
-                if(libtorrent::torrent_status::state_t::seeding == state
-                        && command == "sell") {
-                    sellIt(torrent);
-                    return;
-                }
-            });
-
-        });
-    });
-
+    BuyQueue buyQueue(kit);
+    SellQueue sellQueue(kit);
 
     if(torrentIdentifier) {
         std::cout << "Adding Torrent" << std::endl;
+
+        if(command == "buy")
+            buyQueue.add(torrentIdentifier->infoHash(), buyerTerms, buyingPolicy);
+
+        if(command == "sell")
+            sellQueue.add(torrentIdentifier->infoHash(), sellerTerms, joystream::protocol_session::SellingPolicy());
 
         kit->node()->addTorrent(0, 0,
                                 libtorrent::to_hex(torrentIdentifier->infoHash().to_string()),
