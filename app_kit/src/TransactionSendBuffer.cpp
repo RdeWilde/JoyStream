@@ -21,6 +21,10 @@ void TransactionSendBuffer::flush() {
         {
             std::cout << "Broadcasting Transaction: " << entry.first.toRPCByteOrder() << std::endl;
             _wallet->broadcastTx(entry.second);
+            // add to pending queue waiting for notification that it was propagated (txUpdated signal) or rejected (txRejected) signal
+                // remove when one of those signals is received
+            // if spvwallet looses connection return txs remaining in this queue to the send queue
+            // to retry transmission (because netsync will clear its send queue)
         }
 
         _transactions.clear();

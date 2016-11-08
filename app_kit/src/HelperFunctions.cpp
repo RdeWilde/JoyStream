@@ -1,8 +1,10 @@
 #include <app_kit/HelperFunctions.hpp>
 #include <core/TorrentIdentifier.hpp>
+#include <paymentchannel/paymentchannel.hpp>
 
 #include <QJsonObject>
 #include <libtorrent/torrent_info.hpp>
+#include <numeric>
 
 namespace joystream {
 namespace appkit {
@@ -141,8 +143,76 @@ QJsonValue sellingPolicyToJson(const protocol_session::SellingPolicy &sellingPol
     return QJsonValue(true);
 }
 
-protocol_session::SellingPolicy jsonToSellingPolicy(const QJsonValue &) {
+protocol_session::SellingPolicy jsonToSellingPolicy(const QJsonValue &value) {
+    return protocol_session::SellingPolicy();
+}
 
+uint64_t estimateRequiredFundsToBuyTorrent(boost::shared_ptr<const libtorrent::torrent_info> metadata, joystream::protocol_wire::BuyerTerms terms) {
+
+    uint64_t paymentChannelFunds = metadata->num_pieces() * terms.maxPrice();
+
+    uint64_t estimatedContractFee = paymentchannel::Contract::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb(), 1);
+
+    return paymentChannelFunds + estimatedContractFee;
+}
+
+std::vector<joystream::paymentchannel::Commitment> outputsToOutboundPaymentChannelCommitments(const std::vector<bitcoin::Store::StoreControlledOutput> &nonStandardOutputs) {
+    using namespace joystream::bitcoin;
+
+    std::vector<joystream::paymentchannel::Commitment> channels;
+
+    for (const Store::StoreControlledOutput &output : nonStandardOutputs) {
+        try{
+            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
+            if(paychanScript.isPayorPublicKey(output.keyPair.pk())) {
+                channels.push_back(paymentchannel::Commitment(output.value, output.redeemScript));
+            }
+        }catch(std::exception &e) {
+            //not a payment channel
+        }
+    }
+
+    return channels;
+}
+
+std::vector<paymentchannel::Commitment> outputsToInboundPaymentChannelCommitments(const std::vector<bitcoin::Store::StoreControlledOutput> &nonStandardOutputs) {
+    using namespace joystream::bitcoin;
+
+    std::vector<paymentchannel::Commitment> channels;
+
+    for (const Store::StoreControlledOutput &output : nonStandardOutputs) {
+        try{
+            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
+            if(paychanScript.isPayeePublicKey(output.keyPair.pk())){
+                channels.push_back(paymentchannel::Commitment(output.value, output.redeemScript));
+            }
+        }catch(std::exception &e) {
+            //not a payment channel
+        }
+    }
+
+    return channels;
+}
+
+std::vector<paymentchannel::Refund> outputsToRefunds(const std::vector<bitcoin::Store::StoreControlledOutput> &nonStandardOutputs) {
+    using namespace joystream::bitcoin;
+
+    std::vector<paymentchannel::Refund> refunds;
+
+    for (const Store::StoreControlledOutput &output : nonStandardOutputs) {
+        try{
+            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
+
+            auto pk = output.keyPair.pk();
+            if(paychanScript.isPayorPublicKey(pk)) {
+                refunds.push_back(paymentchannel::Refund(output.outPoint, paymentchannel::Commitment(output.value, output.redeemScript), output.keyPair));
+            }
+        }catch(std::exception &e) {
+            //not a payment channel
+        }
+    }
+
+    return refunds;
 }
 
 }}}

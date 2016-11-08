@@ -120,6 +120,11 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
         onBlockTreeChanged();
     });
 
+//    _networkSync.subscribeReject([this](const Coin::RejectMessage& rejectMsg){
+//        if(rejectMsg.message == "tx")
+//            emit txRejected(Coin::TransactionId::fromInternalByteOrder(rejectMsg.extraData), rejectMsg.reason);
+//    });
+
     _store.setTxUpdatedCallback([this](Coin::TransactionId txid, int confirmations) {
        emit txUpdated(txid, confirmations);
     });
@@ -459,32 +464,19 @@ uint SPVWallet::unlockOutputs(const Coin::UnspentOutputSet &outputs) {
     return unlockedCount;
 }
 
-std::vector<Store::StoreControlledOutput> SPVWallet::getStoreControlledOutputs(uint32_t minimalConfirmations) const {
-    return _store.getControlledOutputs(minimalConfirmations);
-}
-
 std::vector<bitcoin::Store::StoreControlledOutput> SPVWallet::getStandardStoreControlledOutputs(uint32_t confirmations) const {
     std::vector<Store::StoreControlledOutput> outputs;
+    auto external = _store.getControlledOutputs(Store::KeychainType::External, confirmations);
+    outputs.insert(outputs.end(), external.begin(), external.end());
 
-    for (const Store::StoreControlledOutput &output : getStoreControlledOutputs(confirmations)) {
-        if(output.chainType != Store::KeychainType::Other) {
-            outputs.push_back(output);
-        }
-    }
+    auto internal = _store.getControlledOutputs(Store::KeychainType::Internal, confirmations);
+    outputs.insert(outputs.end(), internal.begin(), internal.end());
 
     return outputs;
 }
 
 std::vector<bitcoin::Store::StoreControlledOutput> SPVWallet::getNonStandardStoreControlledOutputs(uint32_t confirmations) const {
-    std::vector<Store::StoreControlledOutput> outputs;
-
-    for (const Store::StoreControlledOutput &output : getStoreControlledOutputs(confirmations)) {
-        if(output.chainType == Store::KeychainType::Other) {
-            outputs.push_back(output);
-        }
-    }
-
-    return outputs;
+    return _store.getControlledOutputs(Store::KeychainType::Other, confirmations);
 }
 
 uint64_t SPVWallet::balance() const {

@@ -112,10 +112,7 @@ void AppKit::syncWallet() {
     }
 }
 
-void AppKit::shutdown(const Callback & shutdownComplete) {
-    if(_shuttingDown)
-        return;
-
+void AppKit::shutdown(const Callback & shutdownComplete) {   
     std::cout << "Shutting down AppKit" << std::endl;
 
     _timer.stop();
@@ -156,7 +153,8 @@ void AppKit::addTorrent(const SavedTorrentParameters &torrent, const core::Node:
                       addedTorrent);
 }
 
-void AppKit::buyTorrent(const core::Torrent *torrent,
+void AppKit::buyTorrent(int64_t contractFundingAmount,
+                        const core::Torrent *torrent,
                         const protocol_session::BuyingPolicy& policy,
                         const protocol_wire::BuyerTerms& terms,
                         const extension::request::SubroutineHandler& handler){
@@ -165,9 +163,7 @@ void AppKit::buyTorrent(const core::Torrent *torrent,
         throw std::runtime_error("torrent must be in downloading state to buy");
     }
 
-    auto contractFunds = estimateRequiredFundsToBuyTorrent(torrent, terms);
-
-    auto outputs = _wallet->lockOutputs(contractFunds, 0);
+    auto outputs = _wallet->lockOutputs(contractFundingAmount, 0);
 
     if(outputs.size() == 0) {
         // Not enough funds
@@ -269,90 +265,6 @@ void AppKit::sellTorrent(const core::Torrent *torrent,
     core::TorrentPlugin* plugin = torrent->torrentPlugin();
 
     sellTorrent(plugin, policy, terms, handler);
-}
-
-uint64_t AppKit::estimateRequiredFundsToBuyTorrent(const core::Torrent *torrent, joystream::protocol_wire::BuyerTerms terms) {
-
-    auto metadata = torrent->metaData().lock();
-    uint64_t paymentChannelFunds = metadata->num_pieces() * terms.maxPrice();
-
-    // there is a circular condition here, we are trying to estimate the amount of value to lock and for that we need to know
-    // how many utxo will be locked which cannot be determined before locking the amount.. so we will just assume a single utxo
-    // will be locked, this may likely result in the fee being too low if we end up locking significantly more utxos
-    // This one more problem which will be solved when we address the prefunding mechanism
-    // https://github.com/JoyStream/JoyStream/issues/315
-    uint64_t estimatedContractFee = paymentchannel::Contract::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb(), 1);
-
-    return paymentChannelFunds + estimatedContractFee;
-}
-
-int64_t AppKit::getStandardWalletBalance(int confirmations) const {
-    auto standardOutputs = _wallet->getStandardStoreControlledOutputs(confirmations);
-
-    return std::accumulate(standardOutputs.begin(), standardOutputs.end(), (int64_t)0,
-                           [](int64_t &sum, bitcoin::Store::StoreControlledOutput output) -> int64_t {
-        return sum + output.value;
-    });
-
-}
-
-std::vector<paymentchannel::Commitment> AppKit::getOutboundPaymentChannelCommitments(int confirmations) const {
-    using namespace joystream::bitcoin;
-
-    std::vector<paymentchannel::Commitment> channels;
-
-    for (const Store::StoreControlledOutput &output : _wallet->getNonStandardStoreControlledOutputs(confirmations)) {
-        try{
-            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
-            if(paychanScript.isPayorPublicKey(output.keyPair.pk())) {
-                channels.push_back(paymentchannel::Commitment(output.value, output.redeemScript));
-            }
-        }catch(std::exception &e) {
-            //not a payment channel
-        }
-    }
-
-    return channels;
-}
-
-std::vector<paymentchannel::Commitment> AppKit::getInboundPaymentChannelCommitments(int confirmations) const {
-    using namespace joystream::bitcoin;
-
-    std::vector<paymentchannel::Commitment> channels;
-
-    for (const Store::StoreControlledOutput &output : _wallet->getNonStandardStoreControlledOutputs(confirmations)) {
-        try{
-            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
-            if(paychanScript.isPayeePublicKey(output.keyPair.pk())){
-                channels.push_back(paymentchannel::Commitment(output.value, output.redeemScript));
-            }
-        }catch(std::exception &e) {
-            //not a payment channel
-        }
-    }
-
-    return channels;
-}
-
-std::vector<paymentchannel::Refund> AppKit::getRefunds(int confirmations) const {
-    using namespace joystream::bitcoin;
-
-    std::vector<paymentchannel::Refund> refunds;
-
-    for (const Store::StoreControlledOutput &output : _wallet->getNonStandardStoreControlledOutputs(confirmations)) {
-        try{
-            paymentchannel::RedeemScript paychanScript = paymentchannel::RedeemScript::deserialize(output.redeemScript);
-
-            auto pk = output.keyPair.pk();
-            if(paychanScript.isPayorPublicKey(pk)) {
-                refunds.push_back(paymentchannel::Refund(output.outPoint, paymentchannel::Commitment(output.value, output.redeemScript), output.keyPair));
-            }
-        }catch(std::exception &e) {
-            //not a payment channel
-        }
-    }
-
-    return refunds;
 }
 
 void AppKit::broadcastTransaction(Coin::Transaction &tx) const {

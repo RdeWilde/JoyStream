@@ -912,6 +912,17 @@ std::vector<Store::StoreControlledOutput> Store::getControlledOutputs(int32_t co
     return outputs;
 }
 
+std::vector<Store::StoreControlledOutput> Store::getControlledOutputs(KeychainType type, int32_t confirmations) const {
+    std::vector<Store::StoreControlledOutput> outputs;
+
+    for(auto const &output : getControlledOutputs(confirmations)) {
+        if(output.chainType == type)
+            outputs.push_back(output);
+    }
+
+    return outputs;
+}
+
 uint64_t Store::getWalletBalance(int32_t confirmations) const {
     if(!connected()) {
         throw NotConnected();

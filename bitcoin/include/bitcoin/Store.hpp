@@ -160,6 +160,7 @@ public:
                                                                                    const UnspentOutputGenerator & outputGenerator = standardOutputSelectors) const;
 
     std::vector<StoreControlledOutput> getControlledOutputs(int32_t confirmations = 0) const;
+    std::vector<StoreControlledOutput> getControlledOutputs(KeychainType type, int32_t confirmations = 0) const;
 
     uint64_t getWalletBalance(int32_t confirmations = 0) const;
 
