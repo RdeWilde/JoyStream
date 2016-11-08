@@ -59,9 +59,14 @@ std::string stateToString(libtorrent::torrent_status::state_t state) {
     throw std::runtime_error("invalid state");
 }
 
-void dumpWalletInfo(joystream::appkit::AppKit *kit) {
+int64_t sumOfOutputs(const std::vector<joystream::bitcoin::Store::StoreControlledOutput> &standardOutputs) {
+    return std::accumulate(standardOutputs.begin(), standardOutputs.end(), (int64_t)0,
+                           [](int64_t &sum, joystream::bitcoin::Store::StoreControlledOutput output) -> int64_t {
+        return sum + output.value;
+    });
+}
 
-    joystream::bitcoin::SPVWallet *wallet = kit->wallet();
+void dumpWalletInfo(joystream::bitcoin::SPVWallet *wallet) {
 
     std::vector<Coin::P2PKHAddress> addresses = wallet->listReceiveAddresses();
 
@@ -77,8 +82,8 @@ void dumpWalletInfo(joystream::appkit::AppKit *kit) {
 
     std::cout << "Wallet Balance: " << wallet->unconfirmedBalance() << std::endl;
 
-    auto outputChannels = kit->getOutboundPaymentChannelCommitments();
-    auto inputChannels = kit->getInboundPaymentChannelCommitments();
+    auto outputChannels = joystream::appkit::util::outputsToOutboundPaymentChannelCommitments(wallet->getNonStandardStoreControlledOutputs());
+    auto inputChannels = joystream::appkit::util::outputsToInboundPaymentChannelCommitments(wallet->getNonStandardStoreControlledOutputs());
 
     int64_t outgoingLockedFunds = std::accumulate(outputChannels.begin(), outputChannels.end(), (int64_t)0,
                                                   [](int64_t &sum, joystream::paymentchannel::Commitment &commitment) -> int64_t {
@@ -92,7 +97,7 @@ void dumpWalletInfo(joystream::appkit::AppKit *kit) {
 
     std::cout << "Wallet funds locked in outbound payment channels: " << outgoingLockedFunds << std::endl;
     std::cout << "Wallet potential unsettled funds in inbound payment channels: " << incomingLockedFunds << std::endl;
-    std::cout << "Wallet spendable P2PKH balance: " << kit->getStandardWalletBalance() << std::endl;
+    std::cout << "Wallet spendable P2PKH balance: " << sumOfOutputs(wallet->getStandardStoreControlledOutputs()) << std::endl;
 
 }
 
@@ -158,7 +163,7 @@ int main(int argc, char *argv[])
         return 3;
     }
 
-    dumpWalletInfo(kit);
+    dumpWalletInfo(kit->wallet());
 
     if(command == "info") {
         dir.unlock();
@@ -166,7 +171,7 @@ int main(int argc, char *argv[])
     }
 
     // Attempt to claim refunds
-    for(auto refund : kit->getRefunds()) {
+    for(auto refund : joystream::appkit::util::outputsToRefunds(kit->wallet()->getNonStandardStoreControlledOutputs())) {
         // suggested improvements - we should check that the locktime has expired
         //                        - combine multiple refunds into one transaction
         auto destination = kit->wallet()->generateReceiveAddress();
@@ -174,6 +179,15 @@ int main(int argc, char *argv[])
         kit->broadcastTransaction(tx);
         std::cout << "Broadcasting Refund Tx: " << Coin::TransactionId::fromTx(tx).toRPCByteOrder() << std::endl;
     }
+
+    QObject::connect(kit->wallet(), &joystream::bitcoin::SPVWallet::txRejected, [](Coin::TransactionId txid, std::string reason){
+        std::cout << "Tx was rejected: " << reason << std::endl;
+        std::cout << "TxId: " << txid.toRPCByteOrder() << std::endl;
+    });
+
+    QObject::connect(kit->wallet(), &joystream::bitcoin::SPVWallet::txUpdated, [](Coin::TransactionId txid, int confirmations){
+        std::cout << "Tx was updated: " << txid.toRPCByteOrder() << std::endl;
+    });
 
     QTimer timer;
 
@@ -206,7 +220,9 @@ int main(int argc, char *argv[])
     };
 
     auto buyIt = [&kit, &buyerTerms, &buyingPolicy, &startIt](joystream::core::Torrent* torrent) {
-        kit->buyTorrent(torrent, buyingPolicy, buyerTerms, [torrent, &startIt](const std::exception_ptr &eptr){
+        auto ti = torrent->metaData().lock();
+        auto contractValue = joystream::appkit::util::estimateRequiredFundsToBuyTorrent(ti, buyerTerms);
+        kit->buyTorrent(contractValue, torrent, buyingPolicy, buyerTerms, [torrent, &startIt](const std::exception_ptr &eptr){
             if(eptr){
                 // unable to go to buy mode, try again in 5 seconds..?
             } else {

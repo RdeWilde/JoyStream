@@ -106,9 +106,8 @@ public:
 
     uint unlockOutputs(const Coin::UnspentOutputSet & outputs);
 
-    std::vector<Store::StoreControlledOutput> getStoreControlledOutputs(uint32_t minimalConfirmations) const;
-    std::vector<Store::StoreControlledOutput> getStandardStoreControlledOutputs(uint32_t minimalConfirmations) const;
-    std::vector<Store::StoreControlledOutput> getNonStandardStoreControlledOutputs(uint32_t minimalConfirmations) const;
+    std::vector<Store::StoreControlledOutput> getStandardStoreControlledOutputs(uint32_t minimalConfirmations = 0) const;
+    std::vector<Store::StoreControlledOutput> getNonStandardStoreControlledOutputs(uint32_t minimalConfirmations = 0) const;
 
     uint64_t balance() const;
     uint64_t unconfirmedBalance() const;
@@ -136,6 +135,7 @@ signals:
     void blockTreeUpdateFailed(std::string);
     void blockTreeWriteFailed(std::string);
 
+    void txRejected(Coin::TransactionId, std::string);
     void protocolError(std::string);
     void connectionError(std::string);
     void connectionTimedOut();

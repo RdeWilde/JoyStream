@@ -70,7 +70,8 @@ public:
     // Add torrent from TorrentState
     void addTorrent(const joystream::appkit::SavedTorrentParameters &torrent, const core::Node::AddedTorrent &);
 
-    void buyTorrent(const core::Torrent*,
+    void buyTorrent(int64_t contractFundingAmount,
+                    const core::Torrent*,
                     const protocol_session::BuyingPolicy &,
                     const protocol_wire::BuyerTerms &,
                     const SubroutineHandler &);
@@ -79,11 +80,6 @@ public:
                      const protocol_session::SellingPolicy &,
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
-
-    int64_t getStandardWalletBalance(int confirmations = 0) const;
-    std::vector<paymentchannel::Commitment> getOutboundPaymentChannelCommitments(int confirmations = 0) const;
-    std::vector<paymentchannel::Commitment> getInboundPaymentChannelCommitments(int confirmations = 0) const;
-    std::vector<paymentchannel::Refund> getRefunds(int confirmations = 0) const;
 
     void broadcastTransaction(Coin::Transaction &) const;
 
@@ -114,8 +110,6 @@ private:
                      const protocol_session::SellingPolicy &,
                      const protocol_wire::SellerTerms &,
                      const SubroutineHandler &);
-
-    uint64_t estimateRequiredFundsToBuyTorrent(const core::Torrent *, joystream::protocol_wire::BuyerTerms);
 
 };
 
