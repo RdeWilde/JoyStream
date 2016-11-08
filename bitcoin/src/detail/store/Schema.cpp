@@ -213,6 +213,7 @@ namespace store {
     BlockHeader::BlockHeader(const ChainMerkleBlock &header) {
         id_ =  header.hash().getHex();
         height_ = header.height;
+        timestamp_ = header.timestamp();
     }
 
 #ifdef USE_STORE_ALPHA_CODE

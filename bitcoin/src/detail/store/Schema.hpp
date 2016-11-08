@@ -32,7 +32,7 @@ struct RedeemScriptInfo;
 namespace detail {
 namespace store {
 
-#pragma db model version(1, 1)
+#pragma db model version(1, 2)
 
 /*
  * Metadata
@@ -182,6 +182,7 @@ public:
 
     std::string id() const { return id_; }
     uint32_t height() const { return height_; }
+    uint32_t timestamp() const { return timestamp_; }
 
 private:
     friend class odb::access;
@@ -191,6 +192,8 @@ private:
 
     #pragma db index unique readonly
     uint32_t height_;
+
+    uint32_t timestamp_;
 };
 
 /*
