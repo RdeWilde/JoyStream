@@ -43,25 +43,17 @@ AppKit* AppKit::create(const std::string &walletFilePath,
     bitcoin::SPVWallet* wallet = nullptr;
     core::Node* node = nullptr;
     TransactionSendBuffer *txSendBuffer = nullptr;
-    try {
 
-        wallet = getWallet(walletFilePath, walletBlockTreeFilePath, network);
+    wallet = getWallet(walletFilePath, walletBlockTreeFilePath, network);
 
-        if(settings.autoStartWalletSync)
-            wallet->loadBlockTree();
+    if(settings.autoStartWalletSync)
+        wallet->loadBlockTree();
 
-        txSendBuffer = new TransactionSendBuffer(wallet);
+    txSendBuffer = new TransactionSendBuffer(wallet);
 
-        node = core::Node::create([txSendBuffer](const Coin::Transaction &tx){
-            txSendBuffer->insert(tx);
-        });
-
-    } catch(std::exception &e) {
-        if(node) delete node;
-        if(txSendBuffer) delete txSendBuffer;
-        if(wallet) delete wallet;
-        throw e;
-    }
+    node = core::Node::create([txSendBuffer](const Coin::Transaction &tx){
+        txSendBuffer->insert(tx);
+    });
 
     return new AppKit(node, wallet, txSendBuffer, settings);
 }
