@@ -245,9 +245,9 @@ int main(int argc, char *argv[])
         joystream::appkit::SavedSessionParameters sessionParams = torrentParams.sessionParameters();
 
         if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
-            buyQueue.add(infoHash, sessionParams.buyerTerms(), sessionParams.buyingPolicy());
+            buyQueue.add(infoHash, sessionParams.buyerTerms(), sessionParams.buyingPolicy(), sessionParams.state());
         } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::selling) {
-            sellQueue.add(infoHash, sessionParams.sellerTerms(), sessionParams.sellingPolicy());
+            sellQueue.add(infoHash, sessionParams.sellerTerms(), sessionParams.sellingPolicy(), sessionParams.state());
         }
 
         try {

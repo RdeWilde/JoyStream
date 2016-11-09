@@ -51,10 +51,15 @@ BuyQueue::BuyQueue(joystream::appkit::AppKit *kit)
 
                 if(libtorrent::torrent_status::state_t::seeding == state) {
                     if(_queue.find(infoHash) != _queue.end()) {
-                        // we finished downloading yay
+                        // we finished downloading, pause the torrent and go to observe mode
                         torrent->pause(true, [](const std::exception_ptr &e) {
 
                         });
+
+                        torrent->torrentPlugin()->toObserveMode([](const std::exception_ptr &e){
+
+                        });
+
                     } else {
                         std::cout << "Torrent Already Downloaded - Removing from Buy Queue" << std::endl;
                     }
@@ -68,10 +73,14 @@ BuyQueue::BuyQueue(joystream::appkit::AppKit *kit)
 
 }
 
-void BuyQueue::add(libtorrent::sha1_hash infohash, joystream::protocol_wire::BuyerTerms terms, joystream::protocol_session::BuyingPolicy policy) {
+void BuyQueue::add(libtorrent::sha1_hash infohash,
+                   joystream::protocol_wire::BuyerTerms terms,
+                   joystream::protocol_session::BuyingPolicy policy,
+                   joystream::protocol_session::SessionState state) {
     Item item;
     item.policy = policy;
     item.terms = terms;
+    item.state = state;
     _queue[infohash] = item;
 }
 
@@ -87,7 +96,10 @@ void BuyQueue::buyTorrent(libtorrent::sha1_hash infoHash) {
         return;
 
     joystream::core::Torrent* torrent = torrents[infoHash];
-    auto item = _queue[infoHash];
+    Item item = _queue[infoHash];
+
+    if(item.state != joystream::protocol_session::SessionState::started)
+        return;
 
     item.tries++;
 

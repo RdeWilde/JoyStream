@@ -61,10 +61,14 @@ SellQueue::SellQueue(joystream::appkit::AppKit *kit)
 
 }
 
-void SellQueue::add(libtorrent::sha1_hash infohash, joystream::protocol_wire::SellerTerms terms, joystream::protocol_session::SellingPolicy policy) {
+void SellQueue::add(libtorrent::sha1_hash infohash,
+                    joystream::protocol_wire::SellerTerms terms,
+                    joystream::protocol_session::SellingPolicy policy,
+                    joystream::protocol_session::SessionState state) {
     Item item;
     item.policy = policy;
     item.terms = terms;
+    item.state = state;
     _queue[infohash] = item;
 }
 
@@ -80,7 +84,10 @@ void SellQueue::sellTorrent(libtorrent::sha1_hash infoHash) {
         return;
 
     joystream::core::Torrent* torrent = torrents[infoHash];
-    auto item = _queue[infoHash];
+    Item item = _queue[infoHash];
+
+    if(item.state != joystream::protocol_session::SessionState::started)
+        return;
 
     item.tries++;
 

@@ -11,13 +11,14 @@ class SellQueue
     struct Item {
         joystream::protocol_wire::SellerTerms terms;
         joystream::protocol_session::SellingPolicy policy;
+        joystream::protocol_session::SessionState state;
         uint tries = 0;
     };
 
 public:
     SellQueue(joystream::appkit::AppKit* kit);
 
-    void add(libtorrent::sha1_hash, joystream::protocol_wire::SellerTerms terms, joystream::protocol_session::SellingPolicy policy);
+    void add(libtorrent::sha1_hash, joystream::protocol_wire::SellerTerms terms, joystream::protocol_session::SellingPolicy policy, joystream::protocol_session::SessionState);
 
 private:
     std::map<libtorrent::sha1_hash, Item> _queue;
