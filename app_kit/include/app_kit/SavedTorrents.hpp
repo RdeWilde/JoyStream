@@ -22,6 +22,8 @@ public:
 
     QJsonValue toJson() const;
 
+    std::map<libtorrent::sha1_hash, SavedTorrentParameters> torrents() const;
+
 private:
     std::map<libtorrent::sha1_hash, SavedTorrentParameters> _torrents;
 };
