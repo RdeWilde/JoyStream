@@ -183,14 +183,44 @@ int main(int argc, char *argv[])
         std::cout << "Broadcasting Refund Tx: " << Coin::TransactionId::fromTx(tx).toRPCByteOrder() << std::endl;
     }
 
+    auto saveTorrents = [&dir, kit]() {
+        joystream::appkit::SavedTorrents savedTorrents = kit->generateSavedTorrents();
+        QJsonObject rootObj;
+        rootObj["torrents"] = savedTorrents.toJson();
+        QJsonDocument doc(rootObj);
+        auto savePath = dir.savedTorrentsFilePath();
+        QFile saveFile(savePath);
+        saveFile.open(QIODevice::WriteOnly);
+        auto data = doc.toJson();
+        saveFile.write(data);
+        saveFile.close();
+    };
+
+    auto loadTorrents = [&dir, kit]() -> joystream::appkit::SavedTorrents {
+        auto savePath = dir.savedTorrentsFilePath();
+        QFile saveFile(savePath);
+        saveFile.open(QIODevice::ReadOnly);
+        auto data = saveFile.readAll();
+        saveFile.close();
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+        auto savedTorrents = doc.object()["torrents"];
+
+        if(!savedTorrents.isNull())
+            return joystream::appkit::SavedTorrents(savedTorrents);
+
+        return joystream::appkit::SavedTorrents();
+    };
+
     QTimer timer;
 
-    QObject::connect(&timer, &QTimer::timeout, [&timer, &app, &kit](){
+    QObject::connect(&timer, &QTimer::timeout, [&timer, &app, &kit, &saveTorrents](){
         if(!shuttingDown) {
             return;
         }
 
         timer.stop();
+
+        saveTorrents();
 
         std::cout << "Stopping..." << std::endl;
         kit->shutdown([&app](){
@@ -206,10 +236,36 @@ int main(int argc, char *argv[])
     BuyQueue buyQueue(kit);
     SellQueue sellQueue(kit);
 
-    // has the torrent already been added (possibly by loading previous session state) ?
-    bool torrentExists = kit->node()->torrents().find(torrentIdentifier->infoHash()) != kit->node()->torrents().end();
+    // Load Saved Torrents
+    joystream::appkit::SavedTorrents savedTorrents = loadTorrents();
 
-    if(torrentIdentifier && !torrentExists) {
+    for(const auto &torrent : savedTorrents.torrents()) {
+        libtorrent::sha1_hash infoHash = torrent.first;
+        joystream::appkit::SavedTorrentParameters torrentParams = torrent.second;
+        joystream::appkit::SavedSessionParameters sessionParams = torrentParams.sessionParameters();
+
+        if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
+            buyQueue.add(infoHash, sessionParams.buyerTerms(), sessionParams.buyingPolicy());
+        } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
+            sellQueue.add(infoHash, sessionParams.sellerTerms(), sessionParams.sellingPolicy());
+        }
+
+        try {
+            kit->addTorrent(torrentParams, [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+
+                if(ecode) {
+                    std::cerr << "addTorrent failed: " << ecode.message().c_str() << std::endl;
+                }
+
+                std::cout << "Torrent Starting Status:" << stateToString(th.status().state) << std::endl;
+            });
+
+        } catch(std::exception &e) {
+            std::cout << e.what() << std::endl;
+        }
+    }
+
+    if(torrentIdentifier) {
         std::cout << "Adding Torrent" << std::endl;
 
         if(command == "buy")
