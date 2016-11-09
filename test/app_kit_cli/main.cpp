@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
 
         if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
             buyQueue.add(infoHash, sessionParams.buyerTerms(), sessionParams.buyingPolicy());
-        } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
+        } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::selling) {
             sellQueue.add(infoHash, sessionParams.sellerTerms(), sessionParams.sellingPolicy());
         }
 
