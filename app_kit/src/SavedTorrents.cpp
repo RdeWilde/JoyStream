@@ -45,5 +45,10 @@ QJsonValue SavedTorrents::toJson() const {
 
     return torrents;
 }
+
+std::map<libtorrent::sha1_hash, SavedTorrentParameters> SavedTorrents::torrents() const {
+    return _torrents;
+}
+
 }
 }
