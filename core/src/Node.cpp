@@ -288,6 +288,12 @@ libtorrent::add_torrent_params Node::toAddTorrentParams(const boost::optional<ui
     // Remove auto-managing
     params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_auto_managed;
 
+    // When this flag is set, attempting add a duplicate torrent to the session
+    // with add_torrent method will result in the error code `duplicate_torrent` being set in the
+    // add_torrent_alert - we do this to avoid creating multiple instances of
+    // core::Torrent for the the same torrent
+    params.flags |= libtorrent::add_torrent_params::flag_duplicate_is_error;
+
     // Torrent refernce (usual, and safer, visitor pattern is a bit too heavy)
     switch(torrentIdentifier.type()) {
 
