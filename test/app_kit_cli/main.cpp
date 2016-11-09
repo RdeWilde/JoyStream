@@ -206,7 +206,10 @@ int main(int argc, char *argv[])
     BuyQueue buyQueue(kit);
     SellQueue sellQueue(kit);
 
-    if(torrentIdentifier) {
+    // has the torrent already been added (possibly by loading previous session state) ?
+    bool torrentExists = kit->node()->torrents().find(torrentIdentifier->infoHash()) != kit->node()->torrents().end();
+
+    if(torrentIdentifier && !torrentExists) {
         std::cout << "Adding Torrent" << std::endl;
 
         if(command == "buy")
@@ -215,18 +218,25 @@ int main(int argc, char *argv[])
         if(command == "sell")
             sellQueue.add(torrentIdentifier->infoHash(), sellerTerms, joystream::protocol_session::SellingPolicy());
 
-        kit->node()->addTorrent(0, 0,
-                                libtorrent::to_hex(torrentIdentifier->infoHash().to_string()),
-                                std::vector<char>(),
-                                dir.defaultSavePath().toStdString(), true, *torrentIdentifier,
-                                [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+        try {
+            kit->node()->addTorrent(0, 0,
+                                    libtorrent::to_hex(torrentIdentifier->infoHash().to_string()),
+                                    std::vector<char>(),
+                                    dir.defaultSavePath().toStdString(), true, *torrentIdentifier,
+                                    [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
 
-            if(ecode) {
-                std::cerr << "addTorrent failed: " << ecode.message().c_str() << std::endl;
-            }
+                if(ecode) {
+                    std::cerr << "addTorrent failed: " << ecode.message().c_str() << std::endl;
+                }
 
-            std::cout << "Torrent Starting Status:" << stateToString(th.status().state) << std::endl;
-        });
+                std::cout << "Torrent Starting Status:" << stateToString(th.status().state) << std::endl;
+            });
+
+
+
+        } catch(std::exception &e) {
+            std::cout << e.what() << std::endl;
+        }
 
     }
 
