@@ -148,12 +148,24 @@ protocol_session::SellingPolicy jsonToSellingPolicy(const QJsonValue &value) {
 }
 
 uint64_t estimateRequiredFundsToBuyTorrent(boost::shared_ptr<const libtorrent::torrent_info> metadata, joystream::protocol_wire::BuyerTerms terms) {
+    // This routine tries to make a reasonable over estimation of the funds that would be required to
+    // to pay for to download the full torrent, taking into account the maximum fee rate set by the buyer
 
-    uint64_t paymentChannelFunds = metadata->num_pieces() * terms.maxPrice();
+    // Estimate maximum price for the torrent
+    // It may be more reasonable to determine how pieces are remaining to be downloaded instead
+    uint64_t maximumTorrentvalue = metadata->num_pieces() * terms.maxPrice();
 
-    uint64_t estimatedContractFee = paymentchannel::Contract::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb(), 1);
+    // The number of utxos used to actually fund a contract can only be determined at the point
+    // when we actually lock the funds in a wallet.. this is just a high estimate (assuming the utxo
+    // selection algorithm used by a wallet will try to minimize the number of inputs used)
+    const int numberOfInputs = 5;
 
-    return paymentChannelFunds + estimatedContractFee;
+    // Similarly we might get a greater number of sellers than the buyer's minimum requirement (seller's maximum value)
+    const int numberOfSellers = terms.minNumberOfSellers() * 2;
+
+    uint64_t estimatedContractFee = paymentchannel::Contract::fee(numberOfSellers, true, terms.maxContractFeePerKb(), numberOfInputs);
+
+    return maximumTorrentvalue + estimatedContractFee;
 }
 
 std::vector<joystream::paymentchannel::Commitment> outputsToOutboundPaymentChannelCommitments(const std::vector<bitcoin::Store::StoreControlledOutput> &nonStandardOutputs) {
