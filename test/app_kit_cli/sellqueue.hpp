@@ -13,6 +13,8 @@ class SellQueue
         joystream::protocol_session::SellingPolicy policy;
         joystream::protocol_session::SessionState state;
         uint tries = 0;
+        QMetaObject::Connection pluginAddedConnection;
+        QMetaObject::Connection stateChangedConnection;
     };
 
 public:
@@ -26,6 +28,16 @@ private:
 
     void sellTorrent(libtorrent::sha1_hash);
     void startTorrent(joystream::core::Torrent*);
+
+    std::function<void(joystream::core::Torrent *plugin)>
+        onTorrentAdded();
+
+    std::function<void(joystream::core::TorrentPlugin *plugin)>
+        onTorrentPluginAdded(joystream::core::Torrent* torrent);
+
+    std::function<void(libtorrent::torrent_status::state_t, float)>
+        onTorrentStateChanged(joystream::core::Torrent* torrent);
+
 };
 
 #endif // SELLQUEUE_HPP
