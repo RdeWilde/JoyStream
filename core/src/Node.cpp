@@ -214,6 +214,29 @@ std::map<libtorrent::sha1_hash, Torrent *> Node::torrents() const noexcept {
     return detail::getRawMap<libtorrent::sha1_hash, Torrent>(_pimpl._torrents);
 }
 
+Torrent* getTorrent(const libtorrent::sha1_hash & info_hash) {
+    for (const auto t : node_->torrents()) {
+        if (libtorrent::to_hex(t.first.to_string()) == info_hash.to_string()) {
+            return t.second;
+        }
+    }
+
+    // If not found return nullptr
+    return nullptr;
+}
+
+Torrent* getTorrent(const std::string info_hash) {
+    for (const auto t : node_->torrents()) {
+        if (libtorrent::to_hex(t.first.to_string()) == info_hash) {
+            return t.second;
+        }
+    }
+
+    // If not found return nullptr
+    return nullptr;
+}
+
+
 libtorrent::settings_pack Node::session_settings(bool enableDHT) noexcept {
 
     // Initialize with default values
