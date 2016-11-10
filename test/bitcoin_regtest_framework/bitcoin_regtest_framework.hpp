@@ -4,6 +4,7 @@
 #include "bitcoin_regtest_framework_global.hpp"
 #include <stdlib.h>
 #include <string>
+#include <string.h> //strerr
 #include <sstream>
 
 namespace joystream {

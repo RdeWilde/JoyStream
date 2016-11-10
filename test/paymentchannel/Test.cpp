@@ -69,8 +69,8 @@ void Test::refund() {
     QVERIFY(R.getUnspentOutput()->outPoint() == contractOutPoint);
 
     // The output is locked until 3 * 512 seconds pass from the time that the contracted was mined (T = 0)
-    QCOMPARE(lockTime.getDuration().count(), (unsigned int)1536);
-    QCOMPARE(R.lockedUntil(0), (unsigned int)1536);
+    QCOMPARE((unsigned int)lockTime.getDuration().count(), (unsigned int)1536);
+    QCOMPARE((unsigned int)R.lockedUntil(0), (unsigned int)1536);
     QCOMPARE(R.isLocked( 512, 0), true); // locked
     QCOMPARE(R.isLocked(1024, 0), true); // locked
     QCOMPARE(R.isLocked(1536, 0), false); // unlocked
