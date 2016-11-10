@@ -191,22 +191,26 @@ int main(int argc, char *argv[])
         auto savePath = dir.savedTorrentsFilePath();
         QFile saveFile(savePath);
         saveFile.open(QIODevice::WriteOnly);
-        auto data = doc.toJson();
-        saveFile.write(data);
-        saveFile.close();
+        if(saveFile.isWritable()) {
+            auto data = doc.toJson();
+            saveFile.write(data);
+            saveFile.close();
+        }
     };
 
     auto loadTorrents = [&dir, kit]() -> joystream::appkit::SavedTorrents {
         auto savePath = dir.savedTorrentsFilePath();
         QFile saveFile(savePath);
         saveFile.open(QIODevice::ReadOnly);
-        auto data = saveFile.readAll();
-        saveFile.close();
-        QJsonDocument doc = QJsonDocument::fromJson(data);
-        auto savedTorrents = doc.object()["torrents"];
+        if(saveFile.isReadable()) {
+            auto data = saveFile.readAll();
+            saveFile.close();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            auto savedTorrents = doc.object()["torrents"];
 
-        if(!savedTorrents.isNull())
-            return joystream::appkit::SavedTorrents(savedTorrents);
+            if(!savedTorrents.isNull())
+                return joystream::appkit::SavedTorrents(savedTorrents);
+        }
 
         return joystream::appkit::SavedTorrents();
     };
