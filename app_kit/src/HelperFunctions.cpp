@@ -68,10 +68,10 @@ protocol_session::SessionState jsonToSessionState(const QJsonValue &value) {
 QJsonValue buyerTermsToJson(const protocol_wire::BuyerTerms &buyerTerms) {
     QJsonObject value;
 
-    value["maxContractFeeRate"] = QJsonValue((int64_t)buyerTerms.maxContractFeePerKb());
-    value["maxLock"] = QJsonValue((int64_t)buyerTerms.maxLock());
-    value["maxPrice"] = QJsonValue((int64_t)buyerTerms.maxPrice());
-    value["minSellers"] = QJsonValue((int64_t)buyerTerms.minNumberOfSellers());
+    value["maxContractFeeRate"] = QJsonValue((double)buyerTerms.maxContractFeePerKb());
+    value["maxLock"] = QJsonValue((double)buyerTerms.maxLock());
+    value["maxPrice"] = QJsonValue((double)buyerTerms.maxPrice());
+    value["minSellers"] = QJsonValue((double)buyerTerms.minNumberOfSellers());
 
     return value;
 }
@@ -94,10 +94,10 @@ protocol_wire::BuyerTerms jsonToBuyerTerms(const QJsonValue & value) {
 
 QJsonValue buyingPolicyToJson(const protocol_session::BuyingPolicy &buyingPolicy) {
     QJsonObject policy;
-    policy["minTimeBeforeBuildingContract"] = QJsonValue((int64_t)buyingPolicy.minTimeBeforeBuildingContract().count());
-    policy["servicingPieceTimeOutLimit"] = QJsonValue((int64_t)buyingPolicy.servicingPieceTimeOutLimit().count());
+    policy["minTimeBeforeBuildingContract"] = QJsonValue((double)buyingPolicy.minTimeBeforeBuildingContract().count());
+    policy["servicingPieceTimeOutLimit"] = QJsonValue((double)buyingPolicy.servicingPieceTimeOutLimit().count());
     //safer to conver to a string?
-    policy["sellerTermsOrderingPolicy"] = QJsonValue((int64_t)buyingPolicy.sellerTermsOrderingPolicy());
+    policy["sellerTermsOrderingPolicy"] = QJsonValue((int)buyingPolicy.sellerTermsOrderingPolicy());
     return policy;
 }
 
@@ -114,11 +114,11 @@ protocol_session::BuyingPolicy jsonToBuyingPolicy(const QJsonValue &value) {
 
 QJsonValue sellerTermsToJson(const protocol_wire::SellerTerms &sellerTerms) {
     QJsonObject terms;
-    terms["minContractFeeRate"] = QJsonValue((int64_t)sellerTerms.minContractFeePerKb());
+    terms["minContractFeeRate"] = QJsonValue((double)sellerTerms.minContractFeePerKb());
     terms["minLock"] = QJsonValue(sellerTerms.minLock());
-    terms["minPrice"] = QJsonValue((int64_t)sellerTerms.minPrice());
-    terms["maxSellers"] = QJsonValue((int64_t)sellerTerms.maxSellers());
-    terms["settlementFee"] = QJsonValue((int64_t)sellerTerms.settlementFee());
+    terms["minPrice"] = QJsonValue((double)sellerTerms.minPrice());
+    terms["maxSellers"] = QJsonValue((double)sellerTerms.maxSellers());
+    terms["settlementFee"] = QJsonValue((double)sellerTerms.settlementFee());
     return terms;
 }
 
