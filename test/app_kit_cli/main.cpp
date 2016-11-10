@@ -268,32 +268,30 @@ int main(int argc, char *argv[])
     if(torrentIdentifier) {
         std::cout << "Adding Torrent" << std::endl;
 
-        if(command == "buy")
-            buyQueue.add(torrentIdentifier->infoHash(), buyerTerms, buyingPolicy);
-
-        if(command == "sell")
-            sellQueue.add(torrentIdentifier->infoHash(), sellerTerms, joystream::protocol_session::SellingPolicy());
-
         try {
             kit->node()->addTorrent(0, 0,
                                     libtorrent::to_hex(torrentIdentifier->infoHash().to_string()),
                                     std::vector<char>(),
                                     dir.defaultSavePath().toStdString(), true, *torrentIdentifier,
-                                    [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+                                    [command, &buyQueue, &sellQueue, buyerTerms, sellerTerms, buyingPolicy](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
 
                 if(ecode) {
                     std::cerr << "addTorrent failed: " << ecode.message().c_str() << std::endl;
+                    return;
                 }
 
                 std::cout << "Torrent Starting Status:" << stateToString(th.status().state) << std::endl;
+                if(command == "buy")
+                    buyQueue.add(th.info_hash(), buyerTerms, buyingPolicy, joystream::protocol_session::SessionState::started);
+
+                if(command == "sell")
+                    sellQueue.add(th.info_hash(), sellerTerms, joystream::protocol_session::SellingPolicy(), joystream::protocol_session::SessionState::started);
+
             });
-
-
 
         } catch(std::exception &e) {
             std::cout << e.what() << std::endl;
         }
-
     }
 
     std::cout << "Starting Qt Application Event loop\n";
