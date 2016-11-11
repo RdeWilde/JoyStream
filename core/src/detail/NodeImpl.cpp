@@ -178,7 +178,13 @@ void NodeImpl::process(const libtorrent::dht_get_peers_reply_alert *p) {
 
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
-    for(const libtorrent::tcp::endpoint &ep : p->peers()) {
+    std::vector<libtorrent::tcp::endpoint> peers;
+    // When moving to libtorrent v1.1.1 this version of peers:
+    //          void peers(std::vector<tcp::endpoint>& peers) const;
+    // will be deprecated, instead we can get the vector of peers using:
+    //          std::vector<tcp::endpoint> peers() const;
+    p->peers(peers); // Fill vector with new peers
+    for(const libtorrent::tcp::endpoint &ep : peers) {
         t.addJSPeerAtTimestamp(ep, now); // Add to list of JS peers
         t.handle().connect_peer(ep); // Ask libtorrent to connect to peer
     }
