@@ -214,25 +214,27 @@ std::map<libtorrent::sha1_hash, Torrent *> Node::torrents() const noexcept {
     return detail::getRawMap<libtorrent::sha1_hash, Torrent>(_pimpl._torrents);
 }
 
-Torrent* getTorrent(const libtorrent::sha1_hash & info_hash) {
-    for (const auto t : node_->torrents()) {
-        if (libtorrent::to_hex(t.first.to_string()) == info_hash.to_string()) {
-            return t.second;
-        }
-    }
+Torrent* Node::torrent(const libtorrent::sha1_hash & info_hash) {
 
-    // If not found return nullptr
-    return nullptr;
+    std::map<libtorrent::sha1_hash, Torrent *> torrents = Node::torrents();
+    std::map<libtorrent::sha1_hash, Torrent *>::iterator it;
+
+    it = torrents.find(info_hash);
+    if (it != torrents.end())
+        return it->second;
+    else
+        return nullptr;
 }
 
-Torrent* getTorrent(const std::string info_hash) {
-    for (const auto t : node_->torrents()) {
-        if (libtorrent::to_hex(t.first.to_string()) == info_hash) {
-            return t.second;
-        }
-    }
+Torrent* Node::torrent(const std::string & info_hash) {
+    if(info_hash.size() == 40) {
+        char buf[21];
 
-    // If not found return nullptr
+        if(!libtorrent::from_hex(info_hash.c_str(), info_hash.size(), buf))
+            return nullptr;
+
+        return torrent(libtorrent::sha1_hash(buf));
+    }
     return nullptr;
 }
 
