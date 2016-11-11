@@ -38,7 +38,7 @@ void addNode() {
     node.addTorrent(boost::optional<uint>(),
                     boost::optional<uint>(),
                     "", std::vector<char>(),
-                    "",
+                    "/tmp", // savepath must not be blank..(causes assert failure in Debug mode)
                     false,
                     identifier,
                     [&](libtorrent::error_code &error, libtorrent::torrent_handle &handle) {} );
