@@ -10,14 +10,6 @@ using namespace joystream;
 using namespace joystream::core;
 using namespace std;
 
-// Problem 2:
-// Explicit template instantiation of IdToString()
-// used in joystream::protocol_session::exception::ConnectionAlreadyAddedException
-template <>
-std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(boost::asio::ip::basic_endpoint<boost::asio::ip::tcp> const&id){
-    return id.address().to_string();
-}
-
 vector<Node*> nodes;
 QTimer addNodeTimer;
 QTimer printJSNodesTimer;
