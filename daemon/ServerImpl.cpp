@@ -1,7 +1,7 @@
 #include "ServerImpl.h"
 
-ServerImpl::ServerImpl(joystream::core::Node* node)
-    : node_(node)
+ServerImpl::ServerImpl(joystream::core::Node* node, QCoreApplication *app)
+    : node_(node), app_(app)
 {
     Run();
 }
@@ -12,6 +12,11 @@ ServerImpl::~ServerImpl()
     std::cout << "Server destroyed" << std::endl;
     // Always shutdown the completion queue after the server.
     cq_->Shutdown();
+
+    node_->pause([this](){
+        std::cout << "Node paused ready to quit application" << std::endl;
+        app_->quit();
+    });
 }
 
 

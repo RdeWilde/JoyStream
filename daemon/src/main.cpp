@@ -6,6 +6,13 @@
 
 #include "ServerImpl.h"
 
+ServerImpl* server_;
+
+void signal_handler(int num)
+{
+    std::cout << "Stop" << std::endl;
+    delete server_;
+}
 
 int main(int argc, char *argv[])
 {
@@ -16,7 +23,12 @@ int main(int argc, char *argv[])
     // broadcast tx
   });
 
-  ServerImpl server(node);
+
+  ServerImpl server(node, &a);
+
+  server_ = &server;
+
+  signal(SIGINT, signal_handler);
 
   return  a.exec();
 }

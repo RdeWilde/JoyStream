@@ -18,13 +18,14 @@
 class ServerImpl final
 {
     public:
-        ServerImpl(joystream::core::Node* node);
+        ServerImpl(joystream::core::Node* node, QCoreApplication* app);
         ~ServerImpl();
         void Run();
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService daemonService_;
         joystream::core::Node *node_;
+        QCoreApplication* app_;
         std::unique_ptr<grpc::Server> server_;
         std::unique_ptr<grpc::ServerCompletionQueue> cq_;
         CompletionQueueDispatcher dispatcher_;
