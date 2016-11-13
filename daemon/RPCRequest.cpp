@@ -7,7 +7,7 @@ RPCRequest::RPCRequest()
 void RPCRequest::proceed(bool fok)
 {
     if (!fok) {
-        delete this;
+        this->deleteLater();
     } else {
         if (status_ == READY) {
             onCall();
