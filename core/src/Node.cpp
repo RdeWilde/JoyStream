@@ -226,19 +226,6 @@ Torrent* Node::torrent(const libtorrent::sha1_hash & info_hash) {
         return nullptr;
 }
 
-Torrent* Node::torrent(const std::string & info_hash) {
-    if(info_hash.size() == 40) {
-        char buf[21];
-
-        if(!libtorrent::from_hex(info_hash.c_str(), info_hash.size(), buf))
-            return nullptr;
-
-        return torrent(libtorrent::sha1_hash(buf));
-    }
-    return nullptr;
-}
-
-
 libtorrent::settings_pack Node::session_settings(bool enableDHT) noexcept {
 
     // Initialize with default values

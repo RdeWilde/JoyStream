@@ -165,13 +165,6 @@ public:
      */
     Torrent* torrent(const libtorrent::sha1_hash & info_hash);
 
-    /**
-     * @brief Lookup for a torrent in Node from the string hash
-     * @param The sha1_hash of the torrent we are looking for
-     * @return Torrent object or nullptr if not found
-     */
-    Torrent* torrent(const std::string & info_hash);
-
 signals:
 
     // Signals are emitted for any change in state of the node.
