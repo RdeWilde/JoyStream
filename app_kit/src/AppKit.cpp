@@ -134,15 +134,28 @@ SavedTorrents AppKit::generateSavedTorrents() const {
 }
 
 void AppKit::addTorrent(const SavedTorrentParameters &torrent, const core::Node::AddedTorrent &addedTorrent) {
+    auto metadata = torrent.metaData();
 
-    _node->addTorrent(torrent.uploadLimit(),
-                      torrent.downloadLimit(),
-                      torrent.name(),
-                      torrent.resumeData(),
-                      torrent.savePath(),
-                      torrent.paused(),
-                      torrent.metaData(),
-                      addedTorrent);
+    if(metadata && metadata->is_valid()){
+        _node->addTorrent(torrent.uploadLimit(),
+                          torrent.downloadLimit(),
+                          torrent.name(),
+                          torrent.resumeData(),
+                          torrent.savePath(),
+                          torrent.paused(),
+                          metadata,
+                          addedTorrent);
+    }else {
+        // handle case where we only know a torrent's infohash
+        _node->addTorrent(torrent.uploadLimit(),
+                          torrent.downloadLimit(),
+                          torrent.name(),
+                          torrent.resumeData(),
+                          torrent.savePath(),
+                          torrent.paused(),
+                          core::TorrentIdentifier(torrent.infoHash()),
+                          addedTorrent);
+    }
 }
 
 void AppKit::buyTorrent(int64_t contractFundingAmount,

@@ -1,5 +1,6 @@
 #include <app_kit/SavedTorrentParameters.hpp>
 #include <libtorrent/create_torrent.hpp>
+#include <app_kit/HelperFunctions.hpp>
 
 namespace joystream {
 namespace appkit {
@@ -10,7 +11,8 @@ SavedTorrentParameters::SavedTorrentParameters()
 }
 
 SavedTorrentParameters::SavedTorrentParameters(const core::Torrent *t)
-    : _savePath(QString::fromStdString(t->savePath())),
+    : _infoHash(t->infoHash()),
+      _savePath(QString::fromStdString(t->savePath())),
       _name(QString::fromStdString(t->name())),
       _torrentPaused(t->isPaused()),
       _uploadLimit(t->uploadLimit()),
@@ -34,6 +36,7 @@ SavedTorrentParameters::SavedTorrentParameters(const QJsonValue &value) {
 
     QJsonObject state = value.toObject();
 
+    _infoHash = util::jsonToSha1Hash(state["infoHash"]);
     _savePath = state["savePath"].toString();
     _name = state["name"].toString();
     _torrentPaused = state["paused"].toBool();
@@ -44,6 +47,9 @@ SavedTorrentParameters::SavedTorrentParameters(const QJsonValue &value) {
     _torrentSessionParameters = SavedSessionParameters(state["pluginState"]);
 }
 
+libtorrent::sha1_hash SavedTorrentParameters::infoHash() const {
+    return _infoHash;
+}
 std::string SavedTorrentParameters::savePath() const {
     return _savePath.toStdString();
 }
@@ -87,6 +93,8 @@ SavedSessionParameters SavedTorrentParameters::sessionParameters() const {
 
 QJsonValue SavedTorrentParameters::toJson() const {
     QJsonObject state;
+
+    state["infoHash"] = util::sha1HashToJson(_infoHash);
     state["savePath"] = QJsonValue(_savePath);
     state["name"] = QJsonValue(_name);
     state["paused"] = QJsonValue(_torrentPaused);
