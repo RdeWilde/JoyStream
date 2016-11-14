@@ -12,20 +12,26 @@ class SavedTorrentParameters;
 class SavedTorrents
 {
 public:
+    typedef std::map<libtorrent::sha1_hash, SavedTorrentParameters> SavedTorrentsMap;
+
     SavedTorrents();
 
     // Construct node state from an instance of Node
-    SavedTorrents(const core::Node *);
+    SavedTorrents(const std::map<libtorrent::sha1_hash, core::Torrent*>&);
 
     // Construct node state from json value
     SavedTorrents(const QJsonValue&);
 
+    SavedTorrentsMap::size_type size() const;
+
+    void insert(const SavedTorrentParameters&);
+
     QJsonValue toJson() const;
 
-    std::map<libtorrent::sha1_hash, SavedTorrentParameters> torrents() const;
+    SavedTorrentsMap torrents() const;
 
 private:
-    std::map<libtorrent::sha1_hash, SavedTorrentParameters> _torrents;
+    SavedTorrentsMap _torrents;
 };
 
 }

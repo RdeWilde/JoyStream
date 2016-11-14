@@ -20,10 +20,10 @@ SavedTorrentParameters::SavedTorrentParameters(const core::Torrent *t)
       _resumeData(t->resumeData())
 {
 
-    auto ti = t->metaData().lock();
+    auto metadata = t->metaData().lock();
 
-    if(ti && ti->is_valid()) {
-        _metaData = bencodeMetaData(*ti);
+    if(metadata && metadata->is_valid()) {
+        _metaData = boost::shared_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(*metadata));
     }
 
     if(t->torrentPluginSet())
@@ -32,18 +32,53 @@ SavedTorrentParameters::SavedTorrentParameters(const core::Torrent *t)
 
 SavedTorrentParameters::SavedTorrentParameters(const QJsonValue &value) {
     if(!value.isObject())
-        throw std::runtime_error("expecting object json value");
+        throw std::runtime_error("expecting json object for saved torrent parameters");
 
     QJsonObject state = value.toObject();
 
+    if(state["infoHash"].isNull())
+        throw std::runtime_error("expecting infoHash");
+
     _infoHash = util::jsonToSha1Hash(state["infoHash"]);
+
+    if(!state["savePath"].isString())
+        throw std::runtime_error("expecting json string for savePath");
+
     _savePath = state["savePath"].toString();
+
+    if(!state["name"].isString())
+        throw std::runtime_error("expecting json string for name");
+
     _name = state["name"].toString();
+
+    if(!state["paused"].isBool())
+        throw std::runtime_error("expecting json bool for paused");
+
     _torrentPaused = state["paused"].toBool();
+
+    if(!state["uploadLimit"].isDouble())
+        throw std::runtime_error("expecting json number for uploadLimit");
+
     _uploadLimit = state["uploadLimit"].toInt();
+
+    if(!state["downloadLimit"].isDouble())
+        throw std::runtime_error("expecting json number for downloadLimit");
+
     _downloadLimit = state["downloadLimit"].toInt();
+
+    if(!state["resumeData"].isString())
+        throw std::runtime_error("expecting json string for resumeData");
+
     _resumeData = base64StringToCharVector(state["resumeData"].toString());
-    _metaData = base64StringToCharVector(state["metaData"].toString());
+
+    if(!state["metaData"].isString())
+        throw std::runtime_error("expecting json string for metaData");
+
+    _metaData = bdecodeMetaData(base64StringToCharVector(state["metaData"].toString()));
+
+    if(state["pluginState"].isNull())
+        throw std::runtime_error("expecting pluginState");
+
     _torrentSessionParameters = SavedSessionParameters(state["pluginState"]);
 }
 
@@ -75,16 +110,7 @@ std::vector<char> SavedTorrentParameters::resumeData() const {
 }
 
 boost::shared_ptr<libtorrent::torrent_info> SavedTorrentParameters::metaData() const {
-    libtorrent::bdecode_node decodedMetaData;
-    libtorrent::error_code ec;
-
-    libtorrent::bdecode(_metaData.data(), _metaData.data() + _metaData.size(), decodedMetaData, ec);
-
-    if(ec) {
-        return boost::shared_ptr<libtorrent::torrent_info>(nullptr);
-    }
-
-    return boost::shared_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(decodedMetaData));
+    return _metaData;
 }
 
 SavedSessionParameters SavedTorrentParameters::sessionParameters() const {
@@ -101,23 +127,39 @@ QJsonValue SavedTorrentParameters::toJson() const {
     state["uploadLimit"] = QJsonValue(_uploadLimit);
     state["downloadLimit"] = QJsonValue(_downloadLimit);
     state["resumeData"] = QJsonValue(charVectorToBase64String(_resumeData));
-    state["metaData"] = QJsonValue(charVectorToBase64String(_metaData));
+    state["metaData"] = QJsonValue(charVectorToBase64String(bencodeMetaData(_metaData)));
     state["pluginState"] = _torrentSessionParameters.toJson();
+
     return state;
 }
 
-std::vector<char> SavedTorrentParameters::bencodeMetaData(const libtorrent::torrent_info & ti) {
-    libtorrent::create_torrent ct(ti);
-
-    auto metadata = ct.generate();
-
+std::vector<char> SavedTorrentParameters::bencodeMetaData(const boost::shared_ptr<libtorrent::torrent_info> &ti) {
     std::vector<char> encoded;
 
-    if(metadata.type() != libtorrent::entry::undefined_t) {
-        libtorrent::bencode(std::back_inserter(encoded), metadata);
+    if(ti) {
+        libtorrent::create_torrent ct(*ti);
+
+        auto metadata = ct.generate();
+
+        if(metadata.type() != libtorrent::entry::undefined_t) {
+            libtorrent::bencode(std::back_inserter(encoded), metadata);
+        }
     }
 
     return encoded;
+}
+
+boost::shared_ptr<libtorrent::torrent_info> SavedTorrentParameters::bdecodeMetaData(std::vector<char> metaData) {
+    libtorrent::bdecode_node decodedMetaData;
+    libtorrent::error_code ec;
+
+    libtorrent::bdecode(metaData.data(), metaData.data() + metaData.size(), decodedMetaData, ec);
+
+    if(ec) {
+        return boost::shared_ptr<libtorrent::torrent_info>(nullptr);
+    }
+
+    return boost::shared_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(decodedMetaData));
 }
 
 QString SavedTorrentParameters::charVectorToBase64String(const std::vector<char> &vec) {

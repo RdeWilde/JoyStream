@@ -130,7 +130,7 @@ void AppKit::applySettings(const Settings & settings) {
 }
 
 SavedTorrents AppKit::generateSavedTorrents() const {
-    return SavedTorrents(_node.get());
+    return SavedTorrents(_node->torrents());
 }
 
 void AppKit::addTorrent(const SavedTorrentParameters &torrent, const core::Node::AddedTorrent &addedTorrent) {

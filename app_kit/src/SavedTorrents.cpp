@@ -12,16 +12,16 @@ SavedTorrents::SavedTorrents()
 
 }
 
-SavedTorrents::SavedTorrents(const core::Node* node) {
+SavedTorrents::SavedTorrents(const std::map<libtorrent::sha1_hash, core::Torrent*> &torrents) {
 
-    for(const auto &t : node->torrents()) {
-        _torrents[t.second->infoHash()] = SavedTorrentParameters(t.second);
+    for(const auto &t : torrents) {
+        _torrents[t.first] = SavedTorrentParameters(t.second);
     }
 }
 
 SavedTorrents::SavedTorrents(const QJsonValue& value) {
     if(!value.isArray())
-        throw std::runtime_error("expected json array of torrent states");
+        throw std::runtime_error("expected json array of saved torrents");
 
     for(const QJsonValue &torrentState : value.toArray()) {
         SavedTorrentParameters ts(torrentState);
@@ -31,6 +31,14 @@ SavedTorrents::SavedTorrents(const QJsonValue& value) {
 
         _torrents[ts.infoHash()] = ts;
     }
+}
+
+SavedTorrents::SavedTorrentsMap::size_type SavedTorrents::size() const {
+    return _torrents.size();
+}
+
+void SavedTorrents::insert(const SavedTorrentParameters &params) {
+    _torrents[params.infoHash()] = params;
 }
 
 QJsonValue SavedTorrents::toJson() const {
@@ -44,7 +52,7 @@ QJsonValue SavedTorrents::toJson() const {
     return torrents;
 }
 
-std::map<libtorrent::sha1_hash, SavedTorrentParameters> SavedTorrents::torrents() const {
+SavedTorrents::SavedTorrentsMap SavedTorrents::torrents() const {
     return _torrents;
 }
 

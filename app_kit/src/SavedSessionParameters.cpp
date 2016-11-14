@@ -33,9 +33,9 @@ SavedSessionParameters::SavedSessionParameters(const core::TorrentPlugin* plugin
 }
 
 QJsonValue SavedSessionParameters::toJson() const {
-    QJsonObject state;
+    QJsonObject parameters;
 
-    state["state"] = util::sessionStateToJson(_state);
+    parameters["state"] = util::sessionStateToJson(_state);
 
     switch(_mode) {
         case protocol_session::SessionMode::buying: {
@@ -43,7 +43,7 @@ QJsonValue SavedSessionParameters::toJson() const {
             buying["terms"] = util::buyerTermsToJson(_buyerTerms);
             buying["policy"] = util::buyingPolicyToJson(_buyingPolicy);
 
-            state["buying"] = buying;
+            parameters["buying"] = buying;
             break;
         }
         case protocol_session::SessionMode::selling: {
@@ -51,50 +51,74 @@ QJsonValue SavedSessionParameters::toJson() const {
             selling["terms"] = util::sellerTermsToJson(_sellerTerms);
             selling["policy"] = util::sellingPolicyToJson(_sellingPolicy);
 
-            state["selling"] = selling;
+            parameters["selling"] = selling;
             break;
         }
         case protocol_session::SessionMode::observing: {
             // simple empty object (not null)
-            state["observing"] = QJsonObject();
+            parameters["observing"] = QJsonObject();
             break;
         }
-    case protocol_session::SessionMode::not_set: {
-            // do not add any key to the state object
+        case protocol_session::SessionMode::not_set: {
+            // do not add any key to the parameters object
         }
 
     }
 
-    return state;
+    return parameters;
 }
 
 SavedSessionParameters::SavedSessionParameters(const QJsonValue &value) {
     if(!value.isObject())
-        throw std::runtime_error("expecting json object value");
+        throw std::runtime_error("expecting json object for saved session parameters");
 
-    QJsonObject state = value.toObject();
+    QJsonObject parameters = value.toObject();
 
-    _state = util::jsonToSessionState(state["state"]);
+    if(!parameters["state"].isString())
+        throw std::runtime_error("expecting json string for session state");
 
-    QJsonValue buying = state["buying"];
-    QJsonValue selling = state["selling"];
-    QJsonValue observing = state["observing"];
+    _state = util::jsonToSessionState(parameters["state"]);
+
+    QJsonValue buying = parameters["buying"];
+    QJsonValue selling = parameters["selling"];
+    QJsonValue observing = parameters["observing"];
 
     if(!buying.isNull()) {
-        if(!buying.isObject())
-            throw std::runtime_error("expecting json object value");
 
+        if(!selling.isNull() || !observing.isNull())
+            throw std::runtime_error("cannot have more than one session state for torrent");
+
+        if(!buying.isObject())
+            throw std::runtime_error("expecting json object for buying");
+
+        QJsonValue terms = buying.toObject()["terms"];
+        QJsonValue policy = buying.toObject()["policy"];
+
+        if(terms.isNull() || policy.isNull()) {
+            throw std::runtime_error("missing terms or policy in buying parameters");
+        }
         _mode = protocol_session::SessionMode::buying;
-        _buyerTerms = util::jsonToBuyerTerms(buying.toObject()["terms"]);
-        _buyingPolicy = util::jsonToBuyingPolicy(buying.toObject()["policy"]);
+        _buyerTerms = util::jsonToBuyerTerms(terms);
+        _buyingPolicy = util::jsonToBuyingPolicy(policy);
 
     } else if(!selling.isNull()) {
+
+        if(!buying.isNull() || !observing.isNull())
+            throw std::runtime_error("cannot have more than one session state for torrent");
+
         if(!selling.isObject())
-            throw std::runtime_error("expecting json object value");
+            throw std::runtime_error("expecting json object for selling");
+
+        QJsonValue terms = selling.toObject()["terms"];
+        QJsonValue policy = selling.toObject()["policy"];
+
+        if(terms.isNull() || policy.isNull()) {
+            throw std::runtime_error("missing terms or policy in selling parameters");
+        }
 
         _mode = protocol_session::SessionMode::selling;
-        _sellerTerms = util::jsonToSellerTerms(selling.toObject()["terms"]);
-        _sellingPolicy = util::jsonToSellingPolicy(selling.toObject()["policy"]);
+        _sellerTerms = util::jsonToSellerTerms(terms);
+        _sellingPolicy = util::jsonToSellingPolicy(policy);
 
     } else if(!observing.isNull()) {
         _mode = protocol_session::SessionMode::observing;
