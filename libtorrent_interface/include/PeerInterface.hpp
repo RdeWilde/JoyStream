@@ -20,9 +20,8 @@ public:
     virtual TorrentInterface* getTorrentInterface() = 0;
 
     virtual ~PeerInterface() = 0;
-private:
-    peer_connection_handle *m_nativeHandle;
 
+private:
     SessionInterface *m_sessionInterface;
     TorrentInterface *m_torrentInterface;
 };
