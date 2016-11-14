@@ -23,6 +23,6 @@ private:
 
     PeerInterface *m_peerInterface;
     TorrentInterface *m_torrentInterface;
-}
+};
 
 #endif //TORRENT_SESSION_HANDLE_INTERFACE

@@ -20,6 +20,6 @@ private:
 
     PeerInterface *m_peerInterface;
     SessionInterface *m_sessionInterface;
-}
+};
 
 #endif //TORRENT_INTERFACE

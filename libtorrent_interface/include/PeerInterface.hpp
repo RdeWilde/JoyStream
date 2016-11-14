@@ -25,6 +25,6 @@ private:
 
     SessionInterface *m_sessionInterface;
     TorrentInterface *m_torrentInterface;
-}
+};
 
 #endif //PEER_INTERFACE
