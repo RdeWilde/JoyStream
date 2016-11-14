@@ -1,4 +1,4 @@
-#include "RPCRemoveTorrent.h"
+#include <daemon/RPCRemoveTorrent.hpp>
 
 RPCRemoveTorrent::RPCRemoveTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
     : RPCRequestNormal(service, cq), node_(node)

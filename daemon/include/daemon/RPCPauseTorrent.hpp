@@ -1,7 +1,10 @@
-#ifndef RPCPAUSETORRENT_H
-#define RPCPAUSETORRENT_H
+#ifndef RPCPAUSETORRENT_HPP
+#define RPCPAUSETORRENT_HPP
 
-#include "RPCRequestNormal.h"
+#include "protos/daemon.grpc.pb.h"
+#include "protos/daemon.pb.h"
+
+#include <daemon/RPCRequestNormal.hpp>
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
 
@@ -15,4 +18,4 @@ class RPCPauseTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void> {
         joystream::daemon::rpc::Torrent request_;
 };
 
-#endif // RPCPAUSETORRENT_H
+#endif // RPCPAUSETORRENT_HPP

@@ -1,4 +1,4 @@
-#include "RPCAddTorrent.h"
+#include <daemon/RPCAddTorrent.hpp>
 
 RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
     : RPCRequestNormal(service, cq), node_(node)

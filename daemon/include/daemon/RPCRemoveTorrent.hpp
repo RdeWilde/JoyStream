@@ -1,9 +1,10 @@
-#ifndef RPCREMOVETORRENT_H
-#define RPCREMOVETORRENT_H
+#ifndef RPCREMOVETORRENT_HPP
+#define RPCREMOVETORRENT_HPP
 
 #include "protos/daemon.grpc.pb.h"
 #include "protos/daemon.pb.h"
-#include "RPCRequestNormal.h"
+
+#include <daemon/RPCRequestNormal.hpp>
 #include <core/Torrent.hpp>
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>
@@ -20,4 +21,4 @@ class RPCRemoveTorrent : public RPCRequestNormal<joystream::daemon::rpc::Torrent
 };
 
 
-#endif // RPCREMOVETORRENT_H
+#endif // RPCREMOVETORRENT_HPP

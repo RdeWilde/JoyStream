@@ -1,5 +1,5 @@
-#ifndef ASYNCCALLHANDLER_H
-#define ASYNCCALLHANDLER_H
+#ifndef ASYNCCALLHANDLER_HPP
+#define ASYNCCALLHANDLER_HPP
 
 
 #include <grpc/grpc.h>
@@ -7,7 +7,7 @@
 #include <core/Node.hpp>
 #include <thread>
 
-#include "RPCRequest.h"
+#include <daemon/RPCRequest.hpp>
 
 #include "protos/daemon.grpc.pb.h"
 
@@ -23,4 +23,4 @@ class CompletionQueueDispatcher {
         void run(grpc::ServerCompletionQueue* cq);
 
 };
-#endif // ASYNCCALLHANDLER_H
+#endif // ASYNCCALLHANDLER_HPP

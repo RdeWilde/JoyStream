@@ -1,7 +1,7 @@
-#ifndef RPCSTARTTORRENT_H
-#define RPCSTARTTORRENT_H
+#ifndef RPCSTARTTORRENT_HPP
+#define RPCSTARTTORRENT_HPP
 
-#include "RPCRequestNormal.h"
+#include <daemon/RPCRequestNormal.hpp>
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
 
@@ -16,4 +16,4 @@ class RPCStartTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void>{
 
 };
 
-#endif // RPCSTARTTORRENT_H
+#endif // RPCSTARTTORRENT_HPP

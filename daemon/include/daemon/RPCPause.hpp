@@ -1,7 +1,10 @@
-#ifndef RPCPAUSE_H
-#define RPCPAUSE_H
+#ifndef RPCPAUSE_HPP
+#define RPCPAUSE_HPP
 
-#include "RPCRequestNormal.h"
+#include "protos/daemon.grpc.pb.h"
+#include "protos/daemon.pb.h"
+
+#include <daemon/RPCRequestNormal.hpp>
 #include <core/Node.hpp>
 
 class RPCPause : public RPCRequestNormal<joystream::daemon::rpc::Void> {
@@ -15,4 +18,4 @@ class RPCPause : public RPCRequestNormal<joystream::daemon::rpc::Void> {
 
 };
 
-#endif // RPCPAUSE_H
+#endif // RPCPAUSE_HPP

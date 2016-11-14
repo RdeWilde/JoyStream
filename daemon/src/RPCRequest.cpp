@@ -1,4 +1,4 @@
-#include "RPCRequest.h"
+#include <daemon/RPCRequest.hpp>
 
 
 RPCRequest::RPCRequest(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq)

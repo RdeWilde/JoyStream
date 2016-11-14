@@ -11,15 +11,15 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += src/main.cpp protos/daemon.grpc.pb.cc protos/daemon.pb.cc \
-    RPCPause.cpp \
-    ServerImpl.cpp \
-    CompletionQueueDispatcher.cpp \
-    RPCAddTorrent.cpp \
-    RPCRemoveTorrent.cpp \
-    RPCRequest.cpp \
-    RPCListTorrents.cpp \
-    RPCPauseTorrent.cpp \
-    RPCStartTorrent.cpp
+    src/RPCPause.cpp \
+    src/ServerImpl.cpp \
+    src/CompletionQueueDispatcher.cpp \
+    src/RPCAddTorrent.cpp \
+    src/RPCRemoveTorrent.cpp \
+    src/RPCRequest.cpp \
+    src/RPCListTorrents.cpp \
+    src/RPCPauseTorrent.cpp \
+    src/RPCStartTorrent.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../core/release/ -lcore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../core/debug/ -lcore
@@ -118,16 +118,18 @@ LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf
 
 include(../config.pri)
 
+INCLUDEPATH += $$PWD/include
+
 HEADERS += \
-    RPCRequestNormal.h \
-    RPCRequestStreamServer.h \
-    RPCPause.h \
-    ServerImpl.h \
-    RPCRequest.h \
-    CompletionQueueDispatcher.h \
-    RPCAddTorrent.h \
-    RPCRemoveTorrent.h \
-    RPCListTorrents.h \
-    RPCPauseTorrent.h \
-    RPCStartTorrent.h
+    include/daemon/RPCRequestNormal.hpp \
+    include/daemon/RPCRequestStreamServer.hpp \
+    include/daemon/RPCPause.hpp \
+    include/daemon/ServerImpl.hpp \
+    include/daemon/RPCRequest.hpp \
+    include/daemon/CompletionQueueDispatcher.hpp \
+    include/daemon/RPCAddTorrent.hpp \
+    include/daemon/RPCRemoveTorrent.hpp \
+    include/daemon/RPCListTorrents.hpp \
+    include/daemon/RPCPauseTorrent.hpp \
+    include/daemon/RPCStartTorrent.hpp
 

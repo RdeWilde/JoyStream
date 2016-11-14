@@ -1,7 +1,7 @@
-#ifndef RPCREQUESTNORMAL_H
-#define RPCREQUESTNORMAL_H
+#ifndef RPCREQUESTNORMAL_HPP
+#define RPCREQUESTNORMAL_HPP
 
-#include "RPCRequest.h"
+#include <daemon/RPCRequest.hpp>
 
 
 /**
@@ -38,4 +38,4 @@ class RPCRequestNormal : public RPCRequest {
         using RPCRequest::status_;
 
 };
-#endif // RPCREQUESTNORMAL_H
+#endif // RPCREQUESTNORMAL_HPP

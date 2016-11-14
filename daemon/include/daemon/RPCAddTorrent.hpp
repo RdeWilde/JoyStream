@@ -1,9 +1,10 @@
-#ifndef RPCADDTORRENT_H
-#define RPCADDTORRENT_H
+#ifndef RPCADDTORRENT_HPP
+#define RPCADDTORRENT_HPP
 
 #include "protos/daemon.grpc.pb.h"
 #include "protos/daemon.pb.h"
-#include "RPCRequestNormal.h"
+
+#include <daemon/RPCRequestNormal.hpp>
 
 #include <core/Torrent.hpp>
 #include <core/Exception.hpp>
@@ -22,4 +23,4 @@ class RPCAddTorrent : public RPCRequestNormal<joystream::daemon::rpc::Torrent> {
 
 };
 
-#endif // RPCADDTORRENT_H
+#endif // RPCADDTORRENT_HPP

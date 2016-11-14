@@ -1,8 +1,8 @@
-#ifndef RPCREQUESTSTREAMSERVER_H
-#define RPCREQUESTSTREAMSERVER_H
+#ifndef RPCREQUESTSTREAMSERVER_HPP
+#define RPCREQUESTSTREAMSERVER_HPP
 
 
-#include "RPCRequest.h"
+#include <daemon/RPCRequest.hpp>
 
 /**
  * @brief Template class for rpc call with a server side stream
@@ -47,4 +47,4 @@ class RPCRequestStreamServer : public RPCRequest {
 
 };
 
-#endif // RPCREQUESTSTREAMSERVER_H
+#endif // RPCREQUESTSTREAMSERVER_HPP

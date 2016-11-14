@@ -1,10 +1,10 @@
-#ifndef RPCLISTTORRENTS_H
-#define RPCLISTTORRENTS_H
-
+#ifndef RPCLISTTORRENTS_HPP
+#define RPCLISTTORRENTS_HPP
 
 #include "protos/daemon.grpc.pb.h"
 #include "protos/daemon.pb.h"
-#include "RPCRequestStreamServer.h"
+
+#include <daemon/RPCRequestStreamServer.hpp>
 
 #include <core/Torrent.hpp>
 #include <core/Exception.hpp>
@@ -24,4 +24,4 @@ class RPCListTorrents : public RPCRequestStreamServer<joystream::daemon::rpc::To
 };
 
 
-#endif // RPCLISTTORRENTS_H
+#endif // RPCLISTTORRENTS_HPP

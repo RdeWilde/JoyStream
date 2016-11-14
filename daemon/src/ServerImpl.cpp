@@ -1,4 +1,4 @@
-#include "ServerImpl.h"
+#include <daemon/ServerImpl.hpp>
 
 ServerImpl::ServerImpl(joystream::core::Node* node, QCoreApplication *app)
     : node_(node), app_(app)
@@ -14,6 +14,7 @@ ServerImpl::~ServerImpl()
     // Always shutdown the completion queue after the server.
     cq_->Shutdown();
 
+    // Shutdown before pause() callback get called...
     node_->pause([this](){
         std::cout << "Node paused ready to quit application" << std::endl;
         app_->quit();

@@ -1,5 +1,5 @@
-#ifndef RPCREQUEST_H
-#define RPCREQUEST_H
+#ifndef RPCREQUEST_HPP
+#define RPCREQUEST_HPP
 
 #include <QObject>
 #include <QMetaObject>
@@ -38,4 +38,4 @@ class RPCRequest : public QObject {
 
 };
 
-#endif // RPCREQUEST_H
+#endif // RPCREQUEST_HPP

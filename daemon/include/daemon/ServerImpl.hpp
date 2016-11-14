@@ -1,19 +1,16 @@
-#ifndef SERVERIMPL_H
-#define SERVERIMPL_H
+#ifndef SERVERIMPL_HPP
+#define SERVERIMPL_HPP
 
 #include <core/Node.hpp>
 #include <grpc++/alarm.h>
 
-#include "CompletionQueueDispatcher.h"
-#include "RPCRequest.h"
-#include "RPCPause.h"
-#include "RPCPauseTorrent.h"
-#include "RPCStartTorrent.h"
-#include "RPCAddTorrent.h"
-#include "RPCRemoveTorrent.h"
-#include "RPCListTorrents.h"
-
-#include "protos/daemon.grpc.pb.h"
+#include <daemon/CompletionQueueDispatcher.hpp>
+#include <daemon/RPCPause.hpp>
+#include <daemon/RPCPauseTorrent.hpp>
+#include <daemon/RPCStartTorrent.hpp>
+#include <daemon/RPCAddTorrent.hpp>
+#include <daemon/RPCRemoveTorrent.hpp>
+#include <daemon/RPCListTorrents.hpp>
 
 
 class ServerImpl final
@@ -33,4 +30,4 @@ class ServerImpl final
         std::thread thread_;
 };
 
-#endif // SERVERIMPL_H
+#endif // SERVERIMPL_HPP
