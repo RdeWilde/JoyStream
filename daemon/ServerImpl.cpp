@@ -10,6 +10,7 @@ ServerImpl::~ServerImpl()
 {
     server_->Shutdown();
     std::cout << "Server destroyed" << std::endl;
+
     // Always shutdown the completion queue after the server.
     cq_->Shutdown();
 
@@ -41,6 +42,7 @@ void ServerImpl::Run()
     new RPCRemoveTorrent(&daemonService_, cq_.get(), node_);
     new RPCListTorrents(&daemonService_, cq_.get(), node_);
     new RPCPauseTorrent(&daemonService_, cq_.get(), node_);
+    new RPCStartTorrent(&daemonService_, cq_.get(), node_);
 
     thread_ = std::thread(&CompletionQueueDispatcher::run,dispatcher_,cq_.get());
 

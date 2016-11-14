@@ -1,7 +1,7 @@
 #include "RPCAddTorrent.h"
 
 RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
-    : RPCRequest(), service_(service), cq_(cq), node_(node), responder_(&ctx_)
+    : RPCRequestNormal(service, cq), node_(node)
 {
     service_->RequestAddTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
@@ -27,22 +27,18 @@ void RPCAddTorrent::onCall()
             node_->addTorrent(upload_limit,download_limit,name,resume_data,save_path,paused,torrent_identifier,[this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
                 if (ecode) {
                     std::cout << "We have an error" << std::endl;
-                    this->responder_.Finish(this->request_, grpc::Status::CANCELLED, this);
-                    this->status_ = FINISH;
+                    this->finish(this->request_, false);
                 } else {
                     std::cout << "New torrent added" << std::endl;
-                    this->responder_.Finish(this->request_, grpc::Status::OK, this);
-                    this->status_ = FINISH;
+                    this->finish(this->request_, true);
                 }
             });
         } catch (joystream::core::exception::TorrentAlreadyExists error) {
             std::cout << "Some kind of errors" << std::endl;
-            this->responder_.Finish(this->request_, grpc::Status::CANCELLED, this);
-            this->status_ = FINISH;
+            this->finish(this->request_, false);
         }
     } else {
-        this->responder_.Finish(this->request_, grpc::Status::CANCELLED, this);
-        this->status_ = FINISH;
+        this->finish(this->request_, false);
     }
 
 }

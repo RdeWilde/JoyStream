@@ -4,7 +4,7 @@
 
 #include "protos/daemon.grpc.pb.h"
 #include "protos/daemon.pb.h"
-#include "RPCRequest.h"
+#include "RPCRequestStreamServer.h"
 
 #include <core/Torrent.hpp>
 #include <core/Exception.hpp>
@@ -12,19 +12,14 @@
 #include <core/Node.hpp>
 #include <libtorrent/aux_/escape_string.hpp>
 
-class RPCListTorrents : public RPCRequest {
+class RPCListTorrents : public RPCRequestStreamServer<joystream::daemon::rpc::Torrent> {
     public:
         RPCListTorrents(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
         void onCall();
 
     private:
-        joystream::daemon::rpc::Daemon::AsyncService* service_;
-        grpc::ServerCompletionQueue* cq_;
         joystream::core::Node* node_;
-
-        grpc::ServerAsyncWriter<joystream::daemon::rpc::Torrent> responder_;
         joystream::daemon::rpc::Void request_;
-        grpc::ServerContext ctx_;
 
 };
 

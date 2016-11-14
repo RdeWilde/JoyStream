@@ -1,7 +1,7 @@
 #include "RPCRemoveTorrent.h"
 
 RPCRemoveTorrent::RPCRemoveTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
-    : RPCRequest(),service_(service), cq_(cq), node_(node), responder_(&ctx_)
+    : RPCRequestNormal(service, cq), node_(node)
 {
     service_->RequestRemoveTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
@@ -20,12 +20,11 @@ void RPCRemoveTorrent::onCall()
 
         if (eptr){
             std::cout << "Caught an error" << std::endl;
-            this->responder_.Finish(response, grpc::Status::CANCELLED, this);
+            this->finish(response, false);
         } else {
             std::cout << "Removing Torrent" << std::endl;
             response.set_paused(1);
-            this->responder_.Finish(response, grpc::Status::OK, this);
+            this->finish(response, true);
         }
-        this->status_ = FINISH;
     });
 }

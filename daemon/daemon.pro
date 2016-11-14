@@ -18,7 +18,8 @@ SOURCES += src/main.cpp protos/daemon.grpc.pb.cc protos/daemon.pb.cc \
     RPCRemoveTorrent.cpp \
     RPCRequest.cpp \
     RPCListTorrents.cpp \
-    RPCPauseTorrent.cpp
+    RPCPauseTorrent.cpp \
+    RPCStartTorrent.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../core/release/ -lcore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../core/debug/ -lcore
@@ -118,6 +119,8 @@ LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf
 include(../config.pri)
 
 HEADERS += \
+    RPCRequestNormal.h \
+    RPCRequestStreamServer.h \
     RPCPause.h \
     ServerImpl.h \
     RPCRequest.h \
@@ -125,4 +128,6 @@ HEADERS += \
     RPCAddTorrent.h \
     RPCRemoveTorrent.h \
     RPCListTorrents.h \
-    RPCPauseTorrent.h
+    RPCPauseTorrent.h \
+    RPCStartTorrent.h
+

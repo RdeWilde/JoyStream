@@ -39,3 +39,7 @@ rpc.removeTorrent = function(torrent, callback ) {
 rpc.pauseTorrent = function(torrent, callback ) {
   clientDaemon.pauseTorrent(torrent, callback);
 }
+
+rpc.startTorrent = function(torrent, callback ) {
+  clientDaemon.startTorrent(torrent, callback);
+}

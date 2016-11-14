@@ -1,7 +1,7 @@
 #include "RPCListTorrents.h"
 
 RPCListTorrents::RPCListTorrents(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
-    : RPCRequest(), service_(service), cq_(cq), node_(node), responder_(&ctx_)
+    : RPCRequestStreamServer(service, cq), node_(node)
 {
     service_->RequestListTorrents(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
@@ -19,9 +19,9 @@ void RPCListTorrents::onCall()
         std::cout << "Find one !" << std::endl;
         response.set_infohash(libtorrent::to_hex(t.first.to_string()));
         response.set_name(t.second->name());
-        responder_.Write(response, this);
+        this->write(response, this);
     }
 
-    responder_.Finish(grpc::Status::OK, this);
-    status_ = FINISH;
+    this->finish(true);
+
 }

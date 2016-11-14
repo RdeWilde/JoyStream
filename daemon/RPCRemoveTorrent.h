@@ -3,22 +3,18 @@
 
 #include "protos/daemon.grpc.pb.h"
 #include "protos/daemon.pb.h"
-#include "RPCRequest.h"
+#include "RPCRequestNormal.h"
 #include <core/Torrent.hpp>
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>
 
-class RPCRemoveTorrent : public RPCRequest {
+class RPCRemoveTorrent : public RPCRequestNormal<joystream::daemon::rpc::TorrentState> {
     public:
         RPCRemoveTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
         void onCall();
 
     private:
-        joystream::daemon::rpc::Daemon::AsyncService* service_;
-        grpc::ServerCompletionQueue* cq_;
         joystream::core::Node* node_;
-
-        grpc::ServerAsyncResponseWriter<joystream::daemon::rpc::TorrentState> responder_;
         joystream::daemon::rpc::Torrent request_;
 
 };

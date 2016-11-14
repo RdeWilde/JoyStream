@@ -1,7 +1,7 @@
 #include "RPCPauseTorrent.h"
 
 RPCPauseTorrent::RPCPauseTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
-    : RPCRequest(), service_(service), cq_(cq), node_(node), responder_(&ctx_)
+    : RPCRequestNormal(service, cq), node_(node)
 {
     service_->RequestPauseTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
@@ -21,11 +21,10 @@ void RPCPauseTorrent::onCall()
 
                 if (eptr) {
                     std::cout << "Something wrong happened when trying to pause torrent" << std::endl;
-                    this->responder_.Finish(response, grpc::Status::CANCELLED, this);
+                    this->finish(response, false);
                 } else {
-                    this->responder_.Finish(response, grpc::Status::OK, this);
+                    this->finish(response, true);
                 }
-                this->status_ = FINISH;
             });
 
             break;
