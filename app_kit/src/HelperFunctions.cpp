@@ -56,6 +56,8 @@ QJsonValue sessionStateToJson(const protocol_session::SessionState &state) {
             return QJsonValue("started");
         case protocol_session::SessionState::stopped :
             return QJsonValue("stopped");
+        default:
+            assert(false);
     }
 }
 

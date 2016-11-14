@@ -9,6 +9,8 @@ namespace joystream {
 namespace appkit {
 
 SavedSessionParameters::SavedSessionParameters()
+    : _mode(protocol_session::SessionMode::not_set),
+      _state(protocol_session::SessionState::stopped)
 {
 
 }
