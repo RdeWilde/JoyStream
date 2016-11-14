@@ -19,6 +19,15 @@ libtorrent::sha1_hash sha1_hash_from_hex_string(const char * hex) {
   return libtorrent::sha1_hash(buf);
 }
 
+libtorrent::sha1_hash jsonToSha1Hash(QJsonValue value) {
+    return util::sha1_hash_from_hex_string(value.toString().toStdString().data());
+}
+
+QJsonValue sha1HashToJson(libtorrent::sha1_hash infoHash) {
+    std::string infoHashHex = libtorrent::to_hex(infoHash.to_string());
+    return QJsonValue(QString::fromStdString(infoHashHex));
+}
+
 core::TorrentIdentifier* makeTorrentIdentifier(const std::string torrentId)
 {
     core::TorrentIdentifier* ti;

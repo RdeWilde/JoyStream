@@ -19,6 +19,7 @@ public:
 
     QJsonValue toJson() const;
 
+    libtorrent::sha1_hash infoHash() const;
     std::string savePath() const;
     std::string name() const;
     bool paused() const;
@@ -30,6 +31,7 @@ public:
     SavedSessionParameters sessionParameters() const;
 
 private:
+    libtorrent::sha1_hash _infoHash;
     QString _savePath;
     QString _name;
     bool _torrentPaused;

@@ -25,13 +25,11 @@ SavedTorrents::SavedTorrents(const QJsonValue& value) {
 
     for(const QJsonValue &torrentState : value.toArray()) {
         SavedTorrentParameters ts(torrentState);
-        auto ti = ts.metaData();
-        if(ti) {
-            if(_torrents.find(ti->info_hash()) != _torrents.end())
-                throw std::runtime_error("duplicate torrent info hash");
 
-            _torrents[ti->info_hash()] = ts;
-        }
+        if(_torrents.find(ts.infoHash()) != _torrents.end())
+            throw std::runtime_error("duplicate torrent info hash");
+
+        _torrents[ts.infoHash()] = ts;
     }
 }
 
