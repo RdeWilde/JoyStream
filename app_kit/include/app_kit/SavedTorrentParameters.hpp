@@ -38,15 +38,15 @@ private:
     int _uploadLimit;
     int _downloadLimit;
 
-    // Bencoded torrent info
-    std::vector<char> _metaData;
+    boost::shared_ptr<libtorrent::torrent_info> _metaData;
 
     // Resume data
     std::vector<char> _resumeData;
 
     SavedSessionParameters _torrentSessionParameters;
 
-    static std::vector<char> bencodeMetaData(const libtorrent::torrent_info & ti);
+    static std::vector<char> bencodeMetaData(const boost::shared_ptr<libtorrent::torrent_info> & ti);
+    static boost::shared_ptr<libtorrent::torrent_info> bdecodeMetaData(std::vector<char> metaData);
 
     static QString charVectorToBase64String(const std::vector<char> &data);
 

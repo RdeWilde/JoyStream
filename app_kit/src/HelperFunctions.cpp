@@ -20,6 +20,10 @@ libtorrent::sha1_hash sha1_hash_from_hex_string(const char * hex) {
 }
 
 libtorrent::sha1_hash jsonToSha1Hash(QJsonValue value) {
+
+    if(!value.isString())
+        throw std::runtime_error("expecting json string for infoHash");
+
     return util::sha1_hash_from_hex_string(value.toString().toStdString().data());
 }
 
@@ -95,9 +99,24 @@ protocol_wire::BuyerTerms jsonToBuyerTerms(const QJsonValue & value) {
 
     QJsonObject terms = value.toObject();
 
+    if(!terms["maxContractFeeRate"].isDouble())
+        throw std::runtime_error("expecting json number for maxContractFeeRate");
+
     buyerTerms.setMaxContractFeePerKb(terms["maxContractFeeRate"].toDouble());
+
+    if(!terms["maxLock"].isDouble())
+        throw std::runtime_error("expecting json number for maxLock");
+
     buyerTerms.setMaxLock(terms["maxLock"].toDouble());
+
+    if(!terms["maxPrice"].isDouble())
+        throw std::runtime_error("expecting json number for maxPrice");
+
     buyerTerms.setMaxPrice(terms["maxPrice"].toDouble());
+
+    if(!terms["minSellers"].isDouble())
+        throw std::runtime_error("expecting json number for minSellers");
+
     buyerTerms.setMinNumberOfSellers(terms["minSellers"].toDouble());
 
     return buyerTerms;
@@ -118,9 +137,23 @@ protocol_session::BuyingPolicy jsonToBuyingPolicy(const QJsonValue &value) {
 
     QJsonObject policy = value.toObject();
 
-    return protocol_session::BuyingPolicy(policy["minTimeBeforeBuildingContract"].toDouble(),
-                                          policy["servicingPieceTimeOutLimit"].toDouble(),
-                                          (protocol_wire::SellerTerms::OrderingPolicy)policy["sellerTermsOrderingPolicy"].toInt());
+    if(!policy["minTimeBeforeBuildingContract"].isDouble())
+        throw std::runtime_error("expected json number for minTimeBeforeBuildingContract");
+    double minTimeBeforeBuildingContract = policy["minTimeBeforeBuildingContract"].toDouble();
+
+    if(!policy["servicingPieceTimeOutLimit"].isDouble())
+        throw std::runtime_error("expected json number for servicingPieceTimeOutLimit");
+
+    double servicingPieceTimeOutLimit = policy["servicingPieceTimeOutLimit"].toDouble();
+
+    if(!policy["sellerTermsOrderingPolicy"].isDouble())
+        throw std::runtime_error("expected json number for sellerTermsOrderingPolicy");
+
+    int sellerTermsOrderingPolicy = policy["sellerTermsOrderingPolicy"].toInt();
+
+    return protocol_session::BuyingPolicy(minTimeBeforeBuildingContract,
+                                          servicingPieceTimeOutLimit,
+                                          (protocol_wire::SellerTerms::OrderingPolicy)sellerTermsOrderingPolicy);
 }
 
 QJsonValue sellerTermsToJson(const protocol_wire::SellerTerms &sellerTerms) {
@@ -141,20 +174,42 @@ protocol_wire::SellerTerms jsonToSellerTerms(const QJsonValue &value) {
 
     protocol_wire::SellerTerms sellerTerms;
 
+    if(!terms["maxSellers"].isDouble())
+        throw std::runtime_error("expecting json number for maxSellers");
+
     sellerTerms.setMaxSellers(terms["maxSellers"].toInt());
+
+    if(!terms["minContractFeeRate"].isDouble())
+        throw std::runtime_error("expecting json number for minContractFeeRate");
+
     sellerTerms.setMinContractFeePerKb(terms["minContractFeeRate"].toDouble());
+
+    if(!terms["minLock"].isDouble())
+        throw std::runtime_error("expecting json number for minLock");
+
     sellerTerms.setMinLock(terms["minLock"].toInt());
+
+    if(!terms["minPrice"].isDouble())
+        throw std::runtime_error("expecting json number for minPrice");
+
     sellerTerms.setMinPrice(terms["minPrice"].toDouble());
+
+    if(!terms["settlementFee"].isDouble())
+        throw std::runtime_error("expecting json number for settlementFee");
+
     sellerTerms.setSettlementFee(terms["settlementFee"].toDouble());
 
     return sellerTerms;
 }
 
 QJsonValue sellingPolicyToJson(const protocol_session::SellingPolicy &sellingPolicy) {
-    return QJsonValue(true);
+    return QJsonObject();
 }
 
 protocol_session::SellingPolicy jsonToSellingPolicy(const QJsonValue &value) {
+    if(!value.isObject())
+        throw std::runtime_error("expecting json object");
+
     return protocol_session::SellingPolicy();
 }
 
