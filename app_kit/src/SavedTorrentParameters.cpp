@@ -20,7 +20,7 @@ SavedTorrentParameters::SavedTorrentParameters(const core::Torrent *t)
 
     auto ti = t->metaData().lock();
 
-    if(ti) {
+    if(ti && ti->is_valid()) {
         _metaData = bencodeMetaData(*ti);
     }
 
