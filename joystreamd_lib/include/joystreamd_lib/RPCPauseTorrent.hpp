@@ -5,7 +5,7 @@
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
 
-class RPCPauseTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joystream::daemon::rpc::Torrent> {
+class RPCPauseTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joystream::daemon::rpc::Torrent, joystream::daemon::rpc::Daemon::AsyncService> {
     public:
         RPCPauseTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
         void process();

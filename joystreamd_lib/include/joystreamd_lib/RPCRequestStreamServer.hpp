@@ -8,12 +8,12 @@
  * @brief Template class for rpc call with a server side stream
  *
  **/
-template <class RESP, class REQ>
+template <class RESP, class REQ, class SERVICE>
 class RPCRequestStreamServer : public RPCRequest {
 
     public:
-        RPCRequestStreamServer(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq)
-            : RPCRequest(service, cq), responder_(&ctx_) {}
+        RPCRequestStreamServer(SERVICE* service, grpc::ServerCompletionQueue* cq)
+            : RPCRequest(cq), service_(service), responder_(&ctx_) {}
 
         /**
          * @brief Will answer to the client
@@ -41,6 +41,7 @@ class RPCRequestStreamServer : public RPCRequest {
 
     protected:
         grpc::ServerAsyncWriter<RESP> responder_;
+        SERVICE* service_;
         REQ request_;
 
     private:

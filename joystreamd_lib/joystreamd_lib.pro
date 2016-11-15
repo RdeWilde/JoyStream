@@ -32,7 +32,8 @@ SOURCES += \
     src/RPCPauseTorrent.cpp \
     src/RPCStartTorrent.cpp \
     protos/daemon.grpc.pb.cc \
-    protos/daemon.pb.cc
+    protos/daemon.pb.cc \
+    src/RPCReceivedAddress.cpp
 
 HEADERS += \
     include/joystreamd_lib/RPCRequestNormal.hpp \
@@ -46,6 +47,7 @@ HEADERS += \
     include/joystreamd_lib/RPCListTorrents.hpp \
     include/joystreamd_lib/RPCPauseTorrent.hpp \
     include/joystreamd_lib/RPCStartTorrent.hpp \
+    include/joystreamd_lib/RPCReceivedAddress.hpp \
     protos/daemon.grpc.pb.h \
     protos/daemon.pb.h
 

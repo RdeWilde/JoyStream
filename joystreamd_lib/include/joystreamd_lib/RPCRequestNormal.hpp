@@ -8,12 +8,12 @@
  * @brief Template class for all normal rpc call
  *
  **/
-template <class RESP, class REQ>
+template <class RESP, class REQ, class SERVICE>
 class RPCRequestNormal : public RPCRequest {
 
     public:
-        RPCRequestNormal(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq)
-            : RPCRequest(service, cq), responder_(&ctx_) {}
+        RPCRequestNormal(SERVICE* service, grpc::ServerCompletionQueue* cq)
+            : RPCRequest(cq), service_(service), responder_(&ctx_) {}
 
 
         /**
@@ -33,6 +33,7 @@ class RPCRequestNormal : public RPCRequest {
 
     protected:
         grpc::ServerAsyncResponseWriter<RESP> responder_;
+        SERVICE* service_;
         REQ request_;
 
     private:

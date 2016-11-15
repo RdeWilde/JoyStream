@@ -2,6 +2,14 @@ syntax = "proto3";
 
 package joystream.daemon.rpc;
 
+service Wallet {
+  rpc ReceivedAddress(Void) returns (BitcoinAddress) {}
+}
+
+message BitcoinAddress {
+  string address = 1;
+}
+
 service Daemon {
   rpc Pause(Void) returns (Void) {}
 

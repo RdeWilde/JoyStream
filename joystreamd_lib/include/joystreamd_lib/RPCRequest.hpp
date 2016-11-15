@@ -19,7 +19,7 @@ class RPCRequest : public QObject {
     Q_OBJECT
 
     public:
-        RPCRequest(joystream::daemon::rpc::Daemon::AsyncService* service_, grpc::ServerCompletionQueue* cq_);
+        RPCRequest(grpc::ServerCompletionQueue* cq_);
 
         /**
          * @brief will proceed the call or if the server is shutting down (fok=false)

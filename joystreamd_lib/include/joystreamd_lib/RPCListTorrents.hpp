@@ -10,7 +10,7 @@
 #include <core/Node.hpp>
 #include <libtorrent/aux_/escape_string.hpp>
 
-class RPCListTorrents : public RPCRequestStreamServer<joystream::daemon::rpc::Torrent, joystream::daemon::rpc::Void> {
+class RPCListTorrents : public RPCRequestStreamServer<joystream::daemon::rpc::Torrent, joystream::daemon::rpc::Void, joystream::daemon::rpc::Daemon::AsyncService> {
     public:
         RPCListTorrents(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
         void process();

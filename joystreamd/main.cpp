@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
                                              TEST_BITCOIN_NETWORK);
 
 
-  ServerImpl server(kit->node(), &a);
+  ServerImpl server(kit->node(), kit->wallet(), &a);
 
   server_ = &server;
 

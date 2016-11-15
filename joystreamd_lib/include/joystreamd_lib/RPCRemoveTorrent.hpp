@@ -6,7 +6,7 @@
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>
 
-class RPCRemoveTorrent : public RPCRequestNormal<joystream::daemon::rpc::TorrentState, joystream::daemon::rpc::Torrent> {
+class RPCRemoveTorrent : public RPCRequestNormal<joystream::daemon::rpc::TorrentState, joystream::daemon::rpc::Torrent, joystream::daemon::rpc::Daemon::AsyncService> {
     public:
         RPCRemoveTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
         void process();

@@ -4,7 +4,7 @@
 #include <joystreamd_lib/RPCRequestNormal.hpp>
 #include <core/Node.hpp>
 
-class RPCPause : public RPCRequestNormal<joystream::daemon::rpc::Void, joystream::daemon::rpc::Void> {
+class RPCPause : public RPCRequestNormal<joystream::daemon::rpc::Void, joystream::daemon::rpc::Void, joystream::daemon::rpc::Daemon::AsyncService> {
     public:
         RPCPause(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
         void process();

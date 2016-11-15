@@ -1,7 +1,7 @@
 #include <joystreamd_lib/ServerImpl.hpp>
 
-ServerImpl::ServerImpl(joystream::core::Node* node, QCoreApplication *app)
-    : node_(node), app_(app)
+ServerImpl::ServerImpl(joystream::core::Node* node, joystream::bitcoin::SPVWallet *wallet, QCoreApplication *app)
+    : node_(node), wallet_(wallet), app_(app)
 {
     Run();
 }
@@ -31,6 +31,7 @@ void ServerImpl::Run()
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 
     builder.RegisterService(&daemonService_);
+    builder.RegisterService(&walletService_);
 
     cq_ = builder.AddCompletionQueue();
     server_ = builder.BuildAndStart();
@@ -44,6 +45,8 @@ void ServerImpl::Run()
     new RPCListTorrents(&daemonService_, cq_.get(), node_);
     new RPCPauseTorrent(&daemonService_, cq_.get(), node_);
     new RPCStartTorrent(&daemonService_, cq_.get(), node_);
+
+    new RPCReceivedAddress(&walletService_, cq_.get(), wallet_);
 
     thread_ = std::thread(&CompletionQueueDispatcher::run,dispatcher_,cq_.get());
 
