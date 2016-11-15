@@ -14,7 +14,7 @@ HEADERS += \
     include/PeerInterface.hpp \
     include/SessionInterface.hpp \
     include/TorrentInterface.hpp \
-    include/Peer.h \
+    include/Peer.hpp \
 
 SOURCES += \
     src/Peer.cpp

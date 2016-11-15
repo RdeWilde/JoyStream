@@ -1,5 +1,5 @@
-#ifndef PEER_H
-#define PEER_H
+#ifndef PEER_HPP
+#define PEER_HPP
 
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
@@ -13,7 +13,7 @@ typedef boost::system::error_code error_code;
 class Peer : public PeerInterface {
 
 public:
-    Peer();
+    Peer(const peer_connection_handle* pc) : _peerConnectionHandle(pc) {}
 
     virtual void connect() const;
     virtual bool is_outgoing() const;
@@ -23,7 +23,7 @@ public:
 
     ~Peer();
 private:
-    peer_connection_handle *m_peer_connection_handle;
+    peer_connection_handle *_peerConnectionHandle;
 };
 
-#endif // PEER_H
+#endif // PEER_HPP
