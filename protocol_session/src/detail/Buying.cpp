@@ -617,7 +617,17 @@ namespace detail {
         // Make sure we are covering the intended fee rate
         uint64_t fee = _funding.value() - _contractTx.getTotalSent();
         float contractSizeKb = ((float)_contractTx.getSize())/1024;
-        assert((float)fee >= (contractFeePerKb * contractSizeKb));
+
+        std::cout << "contract size (Kb): " << contractSizeKb << std::endl;
+        std::cout << "contract fee: " << fee << std::endl;
+        std::cout << "actual contract fee rate: " << (float)fee/contractSizeKb << std::endl;
+        std::cout << "intended fee rate: " << contractFeePerKb << std::endl;
+
+        // Due to the nature of ecdsa signatures we will not always be able to get
+        // the exact intended fee, as long as we reach within 1% of the intended
+        // fee it is acceptable. The seller should also allow for this margin of error when
+        // checking the contract fee if they choose to enforce the fee rate
+        assert((float)fee >= ((float)contractFeePerKb * 0.99 * contractSizeKb));
 
         // Notify client that transaction should be broadcasted
         _broadcastTransaction(_contractTx);
