@@ -1,7 +1,7 @@
 #ifndef RPCREMOVETORRENT_HPP
 #define RPCREMOVETORRENT_HPP
 
-#include <daemon/RPCRequestNormal.hpp>
+#include <joystreamd_lib/RPCRequestNormal.hpp>
 #include <core/Torrent.hpp>
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>

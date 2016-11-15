@@ -4,13 +4,13 @@
 #include <core/Node.hpp>
 #include <grpc++/alarm.h>
 
-#include <daemon/CompletionQueueDispatcher.hpp>
-#include <daemon/RPCPause.hpp>
-#include <daemon/RPCPauseTorrent.hpp>
-#include <daemon/RPCStartTorrent.hpp>
-#include <daemon/RPCAddTorrent.hpp>
-#include <daemon/RPCRemoveTorrent.hpp>
-#include <daemon/RPCListTorrents.hpp>
+#include <joystreamd_lib/CompletionQueueDispatcher.hpp>
+#include <joystreamd_lib/RPCPause.hpp>
+#include <joystreamd_lib/RPCPauseTorrent.hpp>
+#include <joystreamd_lib/RPCStartTorrent.hpp>
+#include <joystreamd_lib/RPCAddTorrent.hpp>
+#include <joystreamd_lib/RPCRemoveTorrent.hpp>
+#include <joystreamd_lib/RPCListTorrents.hpp>
 
 
 class ServerImpl final

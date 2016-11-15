@@ -7,7 +7,7 @@
 #include <core/Node.hpp>
 #include <thread>
 
-#include <daemon/RPCRequest.hpp>
+#include <joystreamd_lib/RPCRequest.hpp>
 
 #include "protos/daemon.grpc.pb.h"
 

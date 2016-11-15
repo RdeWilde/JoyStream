@@ -2,7 +2,7 @@
 #define RPCLISTTORRENTS_HPP
 
 
-#include <daemon/RPCRequestStreamServer.hpp>
+#include <joystreamd_lib/RPCRequestStreamServer.hpp>
 
 #include <core/Torrent.hpp>
 #include <core/Exception.hpp>

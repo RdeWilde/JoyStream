@@ -1,7 +1,7 @@
 #ifndef RPCREQUESTNORMAL_HPP
 #define RPCREQUESTNORMAL_HPP
 
-#include <daemon/RPCRequest.hpp>
+#include <joystreamd_lib/RPCRequest.hpp>
 
 
 /**

@@ -1,4 +1,4 @@
-#include <daemon/RPCStartTorrent.hpp>
+#include <joystreamd_lib/RPCStartTorrent.hpp>
 
 RPCStartTorrent::RPCStartTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
     : RPCRequestNormal(service, cq), node_(node)

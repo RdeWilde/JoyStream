@@ -1,7 +1,7 @@
 #ifndef RPCPAUSE_HPP
 #define RPCPAUSE_HPP
 
-#include <daemon/RPCRequestNormal.hpp>
+#include <joystreamd_lib/RPCRequestNormal.hpp>
 #include <core/Node.hpp>
 
 class RPCPause : public RPCRequestNormal<joystream::daemon::rpc::Void, joystream::daemon::rpc::Void> {

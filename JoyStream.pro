@@ -17,8 +17,8 @@ SUBDIRS     = \
             mixpanel \
             core \
             app_kit \
-	          daemon \
-    joystreamd
+	          joystreamd_lib \
+            joystreamd
 #            views \
 #            app \
 #            runner \

@@ -2,7 +2,7 @@
 #define RPCADDTORRENT_HPP
 
 
-#include <daemon/RPCRequestNormal.hpp>
+#include <joystreamd_lib/RPCRequestNormal.hpp>
 
 #include <core/Torrent.hpp>
 #include <core/Exception.hpp>

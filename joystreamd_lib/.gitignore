@@ -70,3 +70,8 @@ Thumbs.db
 *.dll
 *.exe
 
+# auto generated gRPC files
+daemon.grpc.pb.cc
+daemon.grpc.pb.h
+daemon.pb.cc
+daemon.pb.h

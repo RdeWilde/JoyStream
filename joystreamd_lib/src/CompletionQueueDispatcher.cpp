@@ -1,4 +1,4 @@
-#include <daemon/CompletionQueueDispatcher.hpp>
+#include <joystreamd_lib/CompletionQueueDispatcher.hpp>
 
 CompletionQueueDispatcher::CompletionQueueDispatcher() {
     std::cout << "AsyncCallHandler created" << std::endl;

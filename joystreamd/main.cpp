@@ -6,7 +6,7 @@
 
 #include <boost/asio/impl/src.hpp>
 
-#include <daemon/ServerImpl.hpp>
+#include <joystreamd_lib/ServerImpl.hpp>
 
 #define TEST_BITCOIN_NETWORK Coin::Network::testnet3
 

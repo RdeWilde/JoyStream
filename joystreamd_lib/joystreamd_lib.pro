@@ -5,7 +5,7 @@
 QT += widgets #Required for QApplication
 QT -= gui
 
-TARGET = daemon
+TARGET = joystreamd_lib
 TEMPLATE = lib
 CONFIG  += staticlib
 CONFIG  += c++11 # Needed for class enum
@@ -35,17 +35,17 @@ SOURCES += \
     protos/daemon.pb.cc
 
 HEADERS += \
-    include/daemon/RPCRequestNormal.hpp \
-    include/daemon/RPCRequestStreamServer.hpp \
-    include/daemon/RPCPause.hpp \
-    include/daemon/ServerImpl.hpp \
-    include/daemon/RPCRequest.hpp \
-    include/daemon/CompletionQueueDispatcher.hpp \
-    include/daemon/RPCAddTorrent.hpp \
-    include/daemon/RPCRemoveTorrent.hpp \
-    include/daemon/RPCListTorrents.hpp \
-    include/daemon/RPCPauseTorrent.hpp \
-    include/daemon/RPCStartTorrent.hpp \
+    include/joystreamd_lib/RPCRequestNormal.hpp \
+    include/joystreamd_lib/RPCRequestStreamServer.hpp \
+    include/joystreamd_lib/RPCPause.hpp \
+    include/joystreamd_lib/ServerImpl.hpp \
+    include/joystreamd_lib/RPCRequest.hpp \
+    include/joystreamd_lib/CompletionQueueDispatcher.hpp \
+    include/joystreamd_lib/RPCAddTorrent.hpp \
+    include/joystreamd_lib/RPCRemoveTorrent.hpp \
+    include/joystreamd_lib/RPCListTorrents.hpp \
+    include/joystreamd_lib/RPCPauseTorrent.hpp \
+    include/joystreamd_lib/RPCStartTorrent.hpp \
     protos/daemon.grpc.pb.h \
     protos/daemon.pb.h
 

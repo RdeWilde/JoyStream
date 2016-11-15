@@ -1,4 +1,4 @@
-#include <daemon/ServerImpl.hpp>
+#include <joystreamd_lib/ServerImpl.hpp>
 
 ServerImpl::ServerImpl(joystream::core::Node* node, QCoreApplication *app)
     : node_(node), app_(app)

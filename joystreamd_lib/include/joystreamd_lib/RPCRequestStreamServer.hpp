@@ -2,7 +2,7 @@
 #define RPCREQUESTSTREAMSERVER_HPP
 
 
-#include <daemon/RPCRequest.hpp>
+#include <joystreamd_lib/RPCRequest.hpp>
 
 /**
  * @brief Template class for rpc call with a server side stream

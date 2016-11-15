@@ -1,7 +1,7 @@
 #ifndef RPCSTARTTORRENT_HPP
 #define RPCSTARTTORRENT_HPP
 
-#include <daemon/RPCRequestNormal.hpp>
+#include <joystreamd_lib/RPCRequestNormal.hpp>
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
 

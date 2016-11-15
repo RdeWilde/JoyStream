@@ -1,7 +1,7 @@
 #ifndef RPCPAUSETORRENT_HPP
 #define RPCPAUSETORRENT_HPP
 
-#include <daemon/RPCRequestNormal.hpp>
+#include <joystreamd_lib/RPCRequestNormal.hpp>
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
 

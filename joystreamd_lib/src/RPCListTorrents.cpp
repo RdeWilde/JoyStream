@@ -1,4 +1,4 @@
-#include <daemon/RPCListTorrents.hpp>
+#include <joystreamd_lib/RPCListTorrents.hpp>
 
 RPCListTorrents::RPCListTorrents(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
     : RPCRequestStreamServer(service, cq), node_(node)
