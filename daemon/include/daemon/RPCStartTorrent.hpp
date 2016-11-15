@@ -5,15 +5,13 @@
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
 
-class RPCStartTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void>{
+class RPCStartTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joystream::daemon::rpc::Torrent>{
     public:
         RPCStartTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
-        void onCall();
+        void process();
 
     private:
         joystream::core::Node* node_;
-        joystream::daemon::rpc::Torrent request_;
-
 };
 
 #endif // RPCSTARTTORRENT_HPP

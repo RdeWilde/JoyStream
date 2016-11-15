@@ -8,7 +8,7 @@
  * @brief Template class for all normal rpc call
  *
  **/
-template <class RESP>
+template <class RESP, class REQ>
 class RPCRequestNormal : public RPCRequest {
 
     public:
@@ -33,6 +33,7 @@ class RPCRequestNormal : public RPCRequest {
 
     protected:
         grpc::ServerAsyncResponseWriter<RESP> responder_;
+        REQ request_;
 
     private:
         using RPCRequest::status_;

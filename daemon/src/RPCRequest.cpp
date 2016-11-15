@@ -5,17 +5,14 @@ RPCRequest::RPCRequest(joystream::daemon::rpc::Daemon::AsyncService* service, gr
     : service_(service), cq_(cq), status_(READY)
 {}
 
-void RPCRequest::proceed(bool fok)
+void RPCRequest::eventCompleted(bool fok)
 {
     if (!fok) {
-        // Need to verify if it is not PROCESSING a call
-        // If it is will need to wait until FINISHED because it might
-        // be in a callback function in node.
-        this->deleteLater();
+        delete this;
     } else {
         if (status_ == READY) {
             status_ = PROCESSING;
-            onCall();
+            process();
         } else {
             delete this;
         }

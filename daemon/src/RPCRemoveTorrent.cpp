@@ -6,7 +6,7 @@ RPCRemoveTorrent::RPCRemoveTorrent(joystream::daemon::rpc::Daemon::AsyncService*
     service_->RequestRemoveTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-void RPCRemoveTorrent::onCall()
+void RPCRemoveTorrent::process()
 {
     new RPCRemoveTorrent(service_, cq_, node_);
 

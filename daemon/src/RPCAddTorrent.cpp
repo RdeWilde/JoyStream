@@ -6,7 +6,7 @@ RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
     service_->RequestAddTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-void RPCAddTorrent::onCall()
+void RPCAddTorrent::process()
 {
     // Pop up a new instance for concurency
     new RPCAddTorrent(service_, cq_, node_);

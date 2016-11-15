@@ -6,7 +6,7 @@ RPCPauseTorrent::RPCPauseTorrent(joystream::daemon::rpc::Daemon::AsyncService* s
     service_->RequestPauseTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-void RPCPauseTorrent::onCall()
+void RPCPauseTorrent::process()
 {
     new RPCPauseTorrent(service_, cq_, node_);
 

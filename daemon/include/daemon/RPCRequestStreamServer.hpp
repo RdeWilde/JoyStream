@@ -8,7 +8,7 @@
  * @brief Template class for rpc call with a server side stream
  *
  **/
-template <class RESP>
+template <class RESP, class REQ>
 class RPCRequestStreamServer : public RPCRequest {
 
     public:
@@ -41,6 +41,7 @@ class RPCRequestStreamServer : public RPCRequest {
 
     protected:
         grpc::ServerAsyncWriter<RESP> responder_;
+        REQ request_;
 
     private:
         using RPCRequest::status_;

@@ -6,7 +6,7 @@ RPCPause::RPCPause(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::
     service_->RequestPause(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-void RPCPause::onCall()
+void RPCPause::process()
 {
     new RPCPause(service_, cq_, node_);
 

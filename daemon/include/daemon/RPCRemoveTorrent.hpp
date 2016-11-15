@@ -9,14 +9,13 @@
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>
 
-class RPCRemoveTorrent : public RPCRequestNormal<joystream::daemon::rpc::TorrentState> {
+class RPCRemoveTorrent : public RPCRequestNormal<joystream::daemon::rpc::TorrentState, joystream::daemon::rpc::Torrent> {
     public:
         RPCRemoveTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
-        void onCall();
+        void process();
 
     private:
         joystream::core::Node* node_;
-        joystream::daemon::rpc::Torrent request_;
 
 };
 

@@ -11,16 +11,13 @@
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>
 
-class RPCAddTorrent : public RPCRequestNormal<joystream::daemon::rpc::Torrent> {
+class RPCAddTorrent : public RPCRequestNormal<joystream::daemon::rpc::Torrent, joystream::daemon::rpc::Torrent> {
     public:
         RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
-        void onCall();
+        void process();
 
     private:
         joystream::core::Node* node_;
-
-        joystream::daemon::rpc::Torrent request_;
-
 };
 
 #endif // RPCADDTORRENT_HPP

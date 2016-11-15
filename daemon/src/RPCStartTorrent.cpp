@@ -6,7 +6,7 @@ RPCStartTorrent::RPCStartTorrent(joystream::daemon::rpc::Daemon::AsyncService* s
     service_->RequestStartTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-void RPCStartTorrent::onCall()
+void RPCStartTorrent::process()
 {
     new RPCStartTorrent(service_, cq_, node_);
 

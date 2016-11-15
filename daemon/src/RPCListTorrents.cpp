@@ -6,7 +6,7 @@ RPCListTorrents::RPCListTorrents(joystream::daemon::rpc::Daemon::AsyncService* s
     service_->RequestListTorrents(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-void RPCListTorrents::onCall()
+void RPCListTorrents::process()
 {
     joystream::daemon::rpc::Torrent response;
 

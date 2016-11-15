@@ -12,15 +12,13 @@
 #include <core/Node.hpp>
 #include <libtorrent/aux_/escape_string.hpp>
 
-class RPCListTorrents : public RPCRequestStreamServer<joystream::daemon::rpc::Torrent> {
+class RPCListTorrents : public RPCRequestStreamServer<joystream::daemon::rpc::Torrent, joystream::daemon::rpc::Void> {
     public:
         RPCListTorrents(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
-        void onCall();
+        void process();
 
     private:
         joystream::core::Node* node_;
-        joystream::daemon::rpc::Void request_;
-
 };
 
 

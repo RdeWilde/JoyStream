@@ -24,11 +24,11 @@ class RPCRequest : public QObject {
         /**
          * @brief will proceed the call or if the server is shutting down (fok=false)
          * will delete himself. Will also delete himself if we done with the call.
-         * @param bool fok
+         * @param bool fok (false if not regular event, true if regular event)
          * */
-        Q_INVOKABLE void proceed(bool fok);
+        Q_INVOKABLE void eventCompleted(bool fok);
 
-        virtual void onCall() = 0;
+        virtual void process() = 0;
 
     protected:
         grpc::ServerCompletionQueue* cq_;
