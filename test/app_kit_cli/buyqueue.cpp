@@ -146,7 +146,8 @@ void BuyQueue::buyTorrent(libtorrent::sha1_hash infoHash) {
     item.tries++;
 
     auto ti = torrent->metaData().lock();
-    auto contractValue = joystream::appkit::util::estimateRequiredFundsToBuyTorrent(ti, item.terms);
+
+    auto contractValue = joystream::protocol_session::Session<libtorrent::tcp::endpoint>::minimumFundsRequiredAsBuyer(item.terms, ti->num_pieces());
 
     _kit->buyTorrent(contractValue, torrent, item.policy, item.terms, [this, torrent, infoHash](const std::exception_ptr &eptr){
         if(eptr){
