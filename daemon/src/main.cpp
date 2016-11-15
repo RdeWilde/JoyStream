@@ -1,6 +1,7 @@
 #include <QCoreApplication>
-#include <core/Node.hpp>
 #include <unistd.h>
+
+#include <app_kit/kit.hpp>
 
 #include <boost/asio/impl/src.hpp>
 
@@ -18,10 +19,12 @@ int main(int argc, char *argv[])
 {
   QCoreApplication a(argc, argv);
 
+  joystream::appkit::DataDirectory dataDir(std::string("/home/lola/joystream/test/"));
+
   // Create the objects we need here to pass to the daemon
-  auto node = joystream::core::Node::create([](const Coin::Transaction &tx){
-    // broadcast tx
-  });
+  auto kit = joystream::core::AppKit::create(dataDir.walletFilePath().toStdString(),
+                                             dataDir.blockTreeFilePath().toStdString(),
+                                             TEST_BITCOIN_NETWORK);
 
 
   ServerImpl server(node, &a);

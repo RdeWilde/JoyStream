@@ -113,6 +113,19 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../app_kit/release/ -lapp_kit
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../app_kit/debug/ -lapp_kit
+else:unix: LIBS += -L$$OUT_PWD/../app_kit/ -lapp_kit
+
+INCLUDEPATH += $$PWD/../app_kit
+DEPENDPATH += $$PWD/../app_kit
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../app_kit/release/libapp_kit.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../app_kit/debug/libapp_kit.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../app_kit/release/app_kit.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../app_kit/debug/app_kit.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../app_kit/libapp_kit.a
+
 # gRPC and protocol buffers libs
 LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf
 
@@ -132,4 +145,3 @@ HEADERS += \
     include/daemon/RPCListTorrents.hpp \
     include/daemon/RPCPauseTorrent.hpp \
     include/daemon/RPCStartTorrent.hpp
-
