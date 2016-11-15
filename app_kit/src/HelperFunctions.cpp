@@ -229,9 +229,12 @@ uint64_t estimateRequiredFundsToBuyTorrent(boost::shared_ptr<const libtorrent::t
     // Similarly we might get a greater number of sellers than the buyer's minimum requirement (seller's maximum value)
     const int numberOfSellers = terms.minNumberOfSellers() * 2;
 
+    // Currently the way the contract is setup - we commit the full value of a torrent to each seller.
+    const uint64_t totaValueToCommitToSellers = maximumTorrentvalue * numberOfSellers;
+
     uint64_t estimatedContractFee = paymentchannel::Contract::fee(numberOfSellers, true, terms.maxContractFeePerKb(), numberOfInputs);
 
-    return maximumTorrentvalue + estimatedContractFee;
+    return totaValueToCommitToSellers + estimatedContractFee;
 }
 
 std::vector<joystream::paymentchannel::Commitment> outputsToOutboundPaymentChannelCommitments(const std::vector<bitcoin::Store::StoreControlledOutput> &nonStandardOutputs) {
