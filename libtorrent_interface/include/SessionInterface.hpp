@@ -1,28 +1,21 @@
 #ifndef TORRENT_SESSION_HANDLE_INTERFACE
 #define TORRENT_SESSION_HANDLE_INTERFACE
 
-#include "PeerInterface.hpp"
-#include "TorrentInterface.hpp"
-
+#include <boost/shared_ptr.hpp>
+#include <libtorrent/torrent.hpp>
+#include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/session_handle.hpp>
+#include <libtorrent/aux_/session_impl.hpp>
 
 class SessionInterface {
 public:
-    virtual void add() = 0;
-    virtual void find() = 0;
     virtual void pause() = 0;
     virtual void remove() = 0;
+    virtual torrent_handle add(add_torrent_params const &params) = 0;
+    virtual boost::shared_ptr<torrent> find(sha1_hash const &info_hash) = 0;
 
-    virtual session_handle* native_handle() = 0;
-    virtual PeerInterface* getPeerInterface() = 0;
-    virtual TorrentInterface* getTorrentInterface() = 0;
-
+    virtual boost::shared_ptr<aux::session_impl> native_handle() = 0;
     virtual ~SessionInterface() = 0;
-private:
-    session_handle* m_nativeHandle;
-
-    PeerInterface *m_peerInterface;
-    TorrentInterface *m_torrentInterface;
 };
 
 #endif //TORRENT_SESSION_HANDLE_INTERFACE
