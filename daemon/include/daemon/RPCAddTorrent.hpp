@@ -1,8 +1,6 @@
 #ifndef RPCADDTORRENT_HPP
 #define RPCADDTORRENT_HPP
 
-#include "protos/daemon.grpc.pb.h"
-#include "protos/daemon.pb.h"
 
 #include <daemon/RPCRequestNormal.hpp>
 

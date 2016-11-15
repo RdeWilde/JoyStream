@@ -1,9 +1,6 @@
 #ifndef RPCREMOVETORRENT_HPP
 #define RPCREMOVETORRENT_HPP
 
-#include "protos/daemon.grpc.pb.h"
-#include "protos/daemon.pb.h"
-
 #include <daemon/RPCRequestNormal.hpp>
 #include <core/Torrent.hpp>
 #include <core/TorrentIdentifier.hpp>

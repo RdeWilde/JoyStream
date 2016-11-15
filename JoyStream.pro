@@ -6,7 +6,7 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            common \            
+            common \
             paymentchannel \
             protocol_wire \
             protocol_statemachine \
@@ -16,13 +16,14 @@ SUBDIRS     = \
             bitcoin \
             mixpanel \
             core \
-	    daemon \
-            views \
-            app \
-            runner \
-            test \
-            demo \
-            app_kit
+            app_kit \
+	          daemon \
+    joystreamd
+#            views \
+#            app \
+#            runner \
+#            test \
+#            demo \
 
 # ensure that the subdirectories are built in the order in which they are specified
 CONFIG += ordered

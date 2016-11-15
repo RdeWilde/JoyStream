@@ -6,8 +6,8 @@
 #include <QApplication>
 #include <QCoreApplication>
 
-#include "protos/daemon.grpc.pb.h"
-#include "protos/daemon.pb.h"
+#include <protos/daemon.grpc.pb.h>
+#include <protos/daemon.pb.h>
 
 enum CallStatus { READY, PROCESSING, WRITING, FINISHED };
 

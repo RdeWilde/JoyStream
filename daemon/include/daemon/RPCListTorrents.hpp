@@ -1,8 +1,6 @@
 #ifndef RPCLISTTORRENTS_HPP
 #define RPCLISTTORRENTS_HPP
 
-#include "protos/daemon.grpc.pb.h"
-#include "protos/daemon.pb.h"
 
 #include <daemon/RPCRequestStreamServer.hpp>
 

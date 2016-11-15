@@ -1,9 +1,6 @@
 #ifndef RPCPAUSETORRENT_HPP
 #define RPCPAUSETORRENT_HPP
 
-#include "protos/daemon.grpc.pb.h"
-#include "protos/daemon.pb.h"
-
 #include <daemon/RPCRequestNormal.hpp>
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
