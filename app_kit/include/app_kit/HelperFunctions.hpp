@@ -40,8 +40,6 @@ protocol_wire::SellerTerms jsonToSellerTerms(const QJsonValue&);
 QJsonValue sellingPolicyToJson(const protocol_session::SellingPolicy&);
 protocol_session::SellingPolicy jsonToSellingPolicy(const QJsonValue&);
 
-uint64_t estimateRequiredFundsToBuyTorrent(boost::shared_ptr<const libtorrent::torrent_info> metadata, joystream::protocol_wire::BuyerTerms terms);
-
 std::vector<joystream::paymentchannel::Commitment> outputsToOutboundPaymentChannelCommitments(const std::vector<bitcoin::Store::StoreControlledOutput>&);
 std::vector<paymentchannel::Commitment> outputsToInboundPaymentChannelCommitments(const std::vector<bitcoin::Store::StoreControlledOutput>&);
 std::vector<paymentchannel::Refund> outputsToRefunds(const std::vector<bitcoin::Store::StoreControlledOutput>&);
