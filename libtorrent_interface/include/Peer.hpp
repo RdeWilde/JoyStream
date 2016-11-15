@@ -1,10 +1,6 @@
 #ifndef PEER_HPP
 #define PEER_HPP
 
-#include <boost/shared_ptr.hpp>
-
-#include <libtorrent/peer_connection.hpp>
-
 #include "PeerInterface.hpp"
 
 typedef boost::system::error_code error_code;
