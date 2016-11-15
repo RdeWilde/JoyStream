@@ -24,3 +24,8 @@ boost::shared_ptr<peer_connection> Peer::native_handle() const
 {
     return _peerConnectionHandle.native_handle();
 }
+
+Peer::~Peer()
+{
+    delete _peerConnectionHandle;
+}
