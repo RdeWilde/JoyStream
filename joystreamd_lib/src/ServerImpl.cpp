@@ -49,6 +49,7 @@ void ServerImpl::Run()
     // Initiate Wallet Service methods
     new RPCReceivedAddress(&walletService_, cq_.get(), wallet_);
     new RPCBalance(&walletService_, cq_.get(), wallet_);
+    new RPCUnconfirmedBalance(&walletService_, cq_.get(), wallet_);
 
     thread_ = std::thread(&CompletionQueueDispatcher::run,dispatcher_,cq_.get());
 

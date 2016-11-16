@@ -52,3 +52,7 @@ rpc.receivedAddress = function(callback ) {
 rpc.balance = function(callback ) {
   wallet.balance({}, callback);
 }
+
+rpc.unconfirmedBalance = function(callback ) {
+  wallet.unconfirmedBalance({}, callback);
+}

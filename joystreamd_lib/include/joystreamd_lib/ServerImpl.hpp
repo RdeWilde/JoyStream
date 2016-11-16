@@ -14,6 +14,8 @@
 #include <joystreamd_lib/RPCListTorrents.hpp>
 #include <joystreamd_lib/RPCReceivedAddress.hpp>
 #include <joystreamd_lib/RPCBalance.hpp>
+#include <joystreamd_lib/RPCUnconfirmedBalance.hpp>
+
 
 class ServerImpl final
 {

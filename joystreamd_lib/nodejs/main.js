@@ -26,6 +26,14 @@ app.listen(3000, function () {
 		}
 	})
 
+	rpc.unconfirmedBalance(function(err, BTCAmount) {
+		if(err) {
+			console.log(err)
+		} else {
+			console.log('Your current unconfirmed Balance:',BTCAmount)
+		}
+	})
+
 	rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
 			console.log(err);
