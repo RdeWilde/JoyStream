@@ -18,6 +18,14 @@ app.listen(3000, function () {
 		}
 	})
 
+	rpc.balance(function(err, BTCAmount) {
+		if(err) {
+			console.log(err)
+		} else {
+			console.log('Your current Balance:',BTCAmount)
+		}
+	})
+
 	rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
 			console.log(err);

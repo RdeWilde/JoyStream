@@ -33,7 +33,8 @@ SOURCES += \
     src/RPCStartTorrent.cpp \
     protos/daemon.grpc.pb.cc \
     protos/daemon.pb.cc \
-    src/RPCReceivedAddress.cpp
+    src/RPCReceivedAddress.cpp \
+    src/RPCBalance.cpp
 
 HEADERS += \
     include/joystreamd_lib/RPCRequestNormal.hpp \
@@ -49,7 +50,8 @@ HEADERS += \
     include/joystreamd_lib/RPCStartTorrent.hpp \
     include/joystreamd_lib/RPCReceivedAddress.hpp \
     protos/daemon.grpc.pb.h \
-    protos/daemon.pb.h
+    protos/daemon.pb.h \
+    include/joystreamd_lib/RPCBalance.hpp
 
 # gRPC and protocol buffers libs
 LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf

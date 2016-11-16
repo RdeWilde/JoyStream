@@ -48,3 +48,7 @@ rpc.startTorrent = function(torrent, callback ) {
 rpc.receivedAddress = function(callback ) {
   wallet.receivedAddress({}, callback);
 }
+
+rpc.balance = function(callback ) {
+  wallet.balance({}, callback);
+}

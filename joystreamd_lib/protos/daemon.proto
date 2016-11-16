@@ -4,6 +4,13 @@ package joystream.daemon.rpc;
 
 service Wallet {
   rpc ReceivedAddress(Void) returns (BitcoinAddress) {}
+  rpc Balance(Void) returns (BTCAmount) {}
+  rpc UnconfirmedBalance(Void) returns (BTCAmount) {}
+
+}
+
+message BTCAmount {
+  float amount = 1;
 }
 
 message BitcoinAddress {

@@ -13,7 +13,7 @@
 #include <joystreamd_lib/RPCRemoveTorrent.hpp>
 #include <joystreamd_lib/RPCListTorrents.hpp>
 #include <joystreamd_lib/RPCReceivedAddress.hpp>
-
+#include <joystreamd_lib/RPCBalance.hpp>
 
 class ServerImpl final
 {
