@@ -4,6 +4,7 @@
 #include <core/Node.hpp>
 #include <bitcoin/SPVWallet.hpp>
 #include <grpc++/alarm.h>
+#include <app_kit/kit.hpp>
 
 #include <joystreamd_lib/CompletionQueueDispatcher.hpp>
 #include <joystreamd_lib/RPCPause.hpp>
@@ -20,15 +21,16 @@
 class ServerImpl final
 {
     public:
-        ServerImpl(joystream::core::Node* node, joystream::bitcoin::SPVWallet* wallet, QCoreApplication* app);
+        ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication* app);
         ~ServerImpl();
         void Run();
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService daemonService_;
         joystream::daemon::rpc::Wallet::AsyncService walletService_;
-        joystream::core::Node *node_;
-        joystream::bitcoin::SPVWallet* wallet_;
+        joystream::appkit::AppKit* kit_;
+        /*joystream::core::Node *node_;
+        joystream::bitcoin::SPVWallet* wallet_;*/
         QCoreApplication* app_;
         std::unique_ptr<grpc::Server> server_;
         std::unique_ptr<grpc::ServerCompletionQueue> cq_;

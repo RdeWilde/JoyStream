@@ -28,13 +28,19 @@ int main(int argc, char *argv[])
   auto kit = joystream::appkit::AppKit::create(dataDir.walletFilePath().toStdString(),
                                              dataDir.blockTreeFilePath().toStdString(),
                                              TEST_BITCOIN_NETWORK);
+  if(!kit) {
+      std::cout << "Failed to create appkit instance" << std::endl;
+      return 3;
+  }
 
+  ServerImpl server(kit, &a);
 
-  ServerImpl server(kit->node(), kit->wallet(), &a);
+  kit->wallet()->sync("testnet-seed.bitcoin.petertodd.org", 18333);
 
   server_ = &server;
 
   signal(SIGINT, signal_handler);
+  signal(SIGTERM, signal_handler);
 
   return  a.exec();
 }
