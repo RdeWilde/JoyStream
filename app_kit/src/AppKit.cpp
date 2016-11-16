@@ -167,8 +167,7 @@ void AppKit::buyTorrent(int64_t contractFundingAmount,
 
     if(outputs.size() == 0) {
         // Not enough funds
-        std::cout << "Not Enough Funds" << std::endl;
-        return;
+        throw std::runtime_error("unable to lock required funds");
     }
 
     core::TorrentPlugin* plugin = torrent->torrentPlugin();
