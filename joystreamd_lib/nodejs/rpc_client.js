@@ -5,6 +5,7 @@ var grpc = require('grpc');
 var rpc = grpc.load(PROTO_PATH).joystream.daemon.rpc;
 
 var clientDaemon = new rpc.Daemon('localhost:3002', grpc.credentials.createInsecure());
+var wallet = new rpc.Wallet('localhost:3002', grpc.credentials.createInsecure());
 
 var rpc = module.exports;
 
@@ -42,4 +43,8 @@ rpc.pauseTorrent = function(torrent, callback ) {
 
 rpc.startTorrent = function(torrent, callback ) {
   clientDaemon.startTorrent(torrent, callback);
+}
+
+rpc.receivedAddress = function(callback ) {
+  wallet.receivedAddress({}, callback);
 }

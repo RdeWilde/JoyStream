@@ -10,6 +10,14 @@ var torrent = {
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 
+	rpc.receivedAddress(function(err, bitcoinAddress) {
+		if(err) {
+			console.log(err)
+		} else {
+			console.log('Received BitcoinAddress to move fund :',bitcoinAddress)
+		}
+	})
+
 	rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
 			console.log(err);
@@ -29,22 +37,23 @@ app.listen(3000, function () {
 					} else {
 						console.log('Torrent restarted')
 
-						/*rpc.removeTorrent(torrent, function(err, torrentState){
+						rpc.pauseTorrent(torrentAdded, function(err, answer) {
 							if (err) {
-								console.log(err);
+								console.log('Something wrong happened')
 							} else {
-								console.log(torrentState);
+								console.log('Empty answer : ', answer)
+
+								/*rpc.removeTorrent(torrent, function(err, torrentState){
+									if (err) {
+										console.log(err);
+									} else {
+										console.log(torrentState);
+									}
+								});*/
 							}
-						});*/
+						})
 					}
 				})
-				/*rpc.pauseTorrent(torrentAdded, function(err, answer) {
-					if (err) {
-						console.log('Something wrong happened')
-					} else {
-						console.log('Empty answer : ', answer)
-					}
-				})*/
 			})
 		}
 	})

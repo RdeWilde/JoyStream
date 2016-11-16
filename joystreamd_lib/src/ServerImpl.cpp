@@ -38,7 +38,7 @@ void ServerImpl::Run()
 
     std::cout << "Server listening on " << server_address << std::endl;
 
-    // Initiate all the RPC methods declared in .proto file
+    // Initiate Daemon Service methods
     new RPCPause(&daemonService_, cq_.get(), node_);
     new RPCAddTorrent(&daemonService_, cq_.get(), node_);
     new RPCRemoveTorrent(&daemonService_, cq_.get(), node_);
@@ -46,6 +46,7 @@ void ServerImpl::Run()
     new RPCPauseTorrent(&daemonService_, cq_.get(), node_);
     new RPCStartTorrent(&daemonService_, cq_.get(), node_);
 
+    // Initiate Wallet Service methods
     new RPCReceivedAddress(&walletService_, cq_.get(), wallet_);
 
     thread_ = std::thread(&CompletionQueueDispatcher::run,dispatcher_,cq_.get());

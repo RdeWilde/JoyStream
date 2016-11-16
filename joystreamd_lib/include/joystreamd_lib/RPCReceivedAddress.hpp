@@ -3,6 +3,7 @@
 
 #include <joystreamd_lib/RPCRequestNormal.hpp>
 #include <bitcoin/SPVWallet.hpp>
+#include <common/P2PKHAddress.hpp>
 
 class RPCReceivedAddress : public RPCRequestNormal<joystream::daemon::rpc::BitcoinAddress, joystream::daemon::rpc::Void, joystream::daemon::rpc::Wallet::AsyncService> {
     public:
