@@ -6,7 +6,22 @@ service Wallet {
   rpc ReceivedAddress(Void) returns (BitcoinAddress) {}
   rpc Balance(Void) returns (BTCAmount) {}
   rpc UnconfirmedBalance(Void) returns (BTCAmount) {}
+  rpc Status(Void) returns (WalletStatus) {}
 
+}
+
+message WalletStatus {
+
+  enum Status {
+    UNINITIALIZED = 0;
+    OFFLINE = 1;
+    CONNECTING = 2;
+    SYNCHING_HEADERS = 3;
+    SYNCHING_BLOCKS = 4;
+    SYNCHED = 5;
+  }
+
+  Status status = 1;
 }
 
 message BTCAmount {

@@ -19,7 +19,8 @@ INCLUDEPATH += $$PWD/../common/include \
                $$PWD/../protocol_statemachine/include \
                $$PWD/../protocol_wire/include \
                $$PWD/../paymentchannel/include \
-               $$PWD/../bitcoin/include
+               $$PWD/../bitcoin/include \
+               $$PWD/../app_kit/include
 
 SOURCES += \
     src/RPCPause.cpp \
@@ -35,7 +36,8 @@ SOURCES += \
     protos/daemon.pb.cc \
     src/RPCReceivedAddress.cpp \
     src/RPCBalance.cpp \
-    src/RPCUnconfirmedBalance.cpp
+    src/RPCUnconfirmedBalance.cpp \
+    src/RPCStatus.cpp
 
 HEADERS += \
     include/joystreamd_lib/RPCRequestNormal.hpp \
@@ -53,7 +55,8 @@ HEADERS += \
     protos/daemon.grpc.pb.h \
     protos/daemon.pb.h \
     include/joystreamd_lib/RPCBalance.hpp \
-    include/joystreamd_lib/RPCUnconfirmedBalance.hpp
+    include/joystreamd_lib/RPCUnconfirmedBalance.hpp \
+    include/joystreamd_lib/RPCStatus.hpp
 
 # gRPC and protocol buffers libs
 LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf
