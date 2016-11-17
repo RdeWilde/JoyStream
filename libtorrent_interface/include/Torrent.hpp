@@ -1,5 +1,5 @@
-#ifndef TORRENT_HPP_INCLUDE
-#define TORRENT_HPP_INCLUDE
+#ifndef LIBTORRENT_INTERFACE_TORRENT_HPP
+#define LIBTORRENT_INTERFACE_TORRENT_HPP
 
 #include "TorrentInterface.hpp"
 
@@ -15,4 +15,4 @@ private:
     torrent_handle _torrentHandle;
 }
 
-#endif // TORRENT_HPP_INCLUDE
+#endif // LIBTORRENT_INTERFACE_TORRENT_HPP

@@ -1,5 +1,5 @@
-#ifndef SESSION_HPP
-#define SESSION_HPP
+#ifndef LIBTORRENT_INTERFACE_SESSION_HPP
+#define LIBTORRENT_INTERFACE_SESSION_HPP
 
 #include "SessionInterface.hpp"
 
@@ -19,4 +19,4 @@ private:
     session_handle _sessionHandle;
 };
 
-#endif //SESSION_HPP
+#endif // LIBTORRENT_INTERFACE_SESSION_HPP

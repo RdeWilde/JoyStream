@@ -1,5 +1,5 @@
-#ifndef TORRENT_SESSION_HANDLE_INTERFACE
-#define TORRENT_SESSION_HANDLE_INTERFACE
+#ifndef LIBTORRENT_INTERFACE_SESSION_INTERFACE_HPP
+#define LIBTORRENT_INTERFACE_SESSION_INTERFACE_HPP
 
 #include <boost/shared_ptr.hpp>
 #include <libtorrent/torrent.hpp>
@@ -18,4 +18,4 @@ public:
     virtual ~SessionInterface() = 0;
 };
 
-#endif //TORRENT_SESSION_HANDLE_INTERFACE
+#endif // LIBTORRENT_INTERFACE_SESSION_INTERFACE_HPP

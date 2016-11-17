@@ -1,5 +1,5 @@
-#ifndef PEER_INTERFACE
-#define PEER_INTERFACE
+#ifndef LIBTORRENT_INTERFACE_PEER_INTERFACE_HPP
+#define LIBTORRENT_INTERFACE_PEER_INTERFACE_HPP
 
 #include <boost/shared_ptr.hpp>
 #include <libtorrent/peer_connection_handle.hpp>
@@ -18,4 +18,4 @@ public:
     virtual boost::shared_ptr<peer_connection> native_handle() const = 0;
 };
 
-#endif //PEER_INTERFACE
+#endif //LIBTORRENT_INTERFACE_PEER_INTERFACE_HPP

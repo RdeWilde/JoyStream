@@ -1,5 +1,5 @@
-#ifndef PEER_HPP
-#define PEER_HPP
+#ifndef LIBTORRENT_INTERFACE_PEER_HPP
+#define LIBTORRENT_INTERFACE_PEER_HPP
 
 #include "PeerInterface.hpp"
 
@@ -21,4 +21,4 @@ private:
     peer_connection_handle _peerConnectionHandle;
 };
 
-#endif // PEER_HPP
+#endif // LIBTORRENT_INTERFACE_PEER_HPP
