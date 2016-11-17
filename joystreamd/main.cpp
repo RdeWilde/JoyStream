@@ -35,8 +35,6 @@ int main(int argc, char *argv[])
 
   ServerImpl server(kit, &a);
 
-  kit->wallet()->sync("testnet-seed.bitcoin.petertodd.org", 18333);
-
   server_ = &server;
 
   signal(SIGINT, signal_handler);
