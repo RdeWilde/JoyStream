@@ -1,5 +1,8 @@
 #include "Peer.hpp"
 
+namespace joystream {
+namespace libtorrent_interface {
+
 bool Peer::is_outgoing() const
 {
     return _peerConnectionHandle.is_outgoing();
@@ -28,4 +31,7 @@ boost::shared_ptr<peer_connection> Peer::native_handle() const
 Peer::~Peer()
 {
     delete _peerConnectionHandle;
+}
+
+}
 }

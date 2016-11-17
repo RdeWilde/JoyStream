@@ -4,6 +4,9 @@
 #include <boost/shared_ptr.hpp>
 #include <libtorrent/peer_connection_handle.hpp>
 
+namespace joystream {
+namespace libtorrent_interface {
+
 class PeerInterface {
 public:
     virtual ~PeerInterface() = 0;
@@ -17,5 +20,8 @@ public:
 
     virtual boost::shared_ptr<peer_connection> native_handle() const = 0;
 };
+
+}
+}
 
 #endif //LIBTORRENT_INTERFACE_PEER_INTERFACE_HPP

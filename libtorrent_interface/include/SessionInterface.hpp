@@ -7,6 +7,9 @@
 #include <libtorrent/session_handle.hpp>
 #include <libtorrent/aux_/session_impl.hpp>
 
+namespace joystream {
+namespace libtorrent_interface {
+
 class SessionInterface {
 public:
     virtual void pause() = 0;
@@ -17,5 +20,8 @@ public:
     virtual boost::shared_ptr<aux::session_impl> native_handle() = 0;
     virtual ~SessionInterface() = 0;
 };
+
+}
+}
 
 #endif // LIBTORRENT_INTERFACE_SESSION_INTERFACE_HPP

@@ -3,6 +3,9 @@
 
 #include "PeerInterface.hpp"
 
+namespace joystream {
+namespace libtorrent_interface {
+
 typedef boost::system::error_code error_code;
 
 class Peer : public PeerInterface {
@@ -20,5 +23,8 @@ public:
 private:
     peer_connection_handle _peerConnectionHandle;
 };
+
+}
+}
 
 #endif // LIBTORRENT_INTERFACE_PEER_HPP

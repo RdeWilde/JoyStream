@@ -1,5 +1,8 @@
 #include "Session.hpp"
 
+namespace joystream {
+namespace libtorrent_interface {
+
 torrent_handle Session::add(add_torrent_params const &p) const
 {
     _sessionHandle.add_torrent(p);
@@ -28,4 +31,7 @@ boost::shared_ptr<aux::session_impl> Session::native_handle() const
 Session::~Session()
 {
     delete _sessionHandle;
+}
+
+}
 }

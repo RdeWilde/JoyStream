@@ -3,6 +3,9 @@
 
 #include "SessionInterface.hpp"
 
+namespace joystream {
+namespace libtorrent_interface {
+
 class Session : public SessionInterface {
 public:
     Session(const session_handle &sh) : _sessionHandle(sh) {}
@@ -18,5 +21,8 @@ public:
 private:
     session_handle _sessionHandle;
 };
+
+}
+}
 
 #endif // LIBTORRENT_INTERFACE_SESSION_HPP

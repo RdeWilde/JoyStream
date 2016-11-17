@@ -3,6 +3,9 @@
 
 #include "TorrentInterface.hpp"
 
+namespace joystream {
+namespace libtorrent_interface {
+
 class Torrent : public TorrentInterface {
 public:
     Torrent(const torrent_handle &th) : _torrentHandle(th) {}
@@ -13,6 +16,9 @@ public:
 
 private:
     torrent_handle _torrentHandle;
+};
+
+}
 }
 
 #endif // LIBTORRENT_INTERFACE_TORRENT_HPP
