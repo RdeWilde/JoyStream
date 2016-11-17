@@ -15,7 +15,7 @@ ServerImpl* server_;
 void signal_handler(int num)
 {
     std::cout << "Stop" << std::endl;
-    delete server_;
+    server_->Shutdown();
 }
 
 int main(int argc, char *argv[])

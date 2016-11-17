@@ -6,7 +6,7 @@ ServerImpl::ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication *app)
     Run();
 }
 
-ServerImpl::~ServerImpl()
+void ServerImpl::Shutdown()
 {
     server_->Shutdown();
     std::cout << "Server destroyed" << std::endl;
@@ -18,9 +18,9 @@ ServerImpl::~ServerImpl()
     kit_->shutdown([this](){
         std::cout << "Stopping..."<< std::endl;
         this->app_->quit();
+        delete this;
     });
 }
-
 
 void ServerImpl::Run()
 {
