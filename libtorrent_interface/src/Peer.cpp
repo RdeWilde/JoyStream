@@ -30,7 +30,6 @@ boost::shared_ptr<peer_connection> Peer::native_handle() const
 
 Peer::~Peer()
 {
-    delete _peerConnectionHandle;
 }
 
 }

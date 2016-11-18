@@ -15,7 +15,6 @@ boost::shared_ptr<torrent> Torrent::native_handle() const
 
 Torrent::~Torrent()
 {
-    delete _torrentHandle;
 }
 
 }

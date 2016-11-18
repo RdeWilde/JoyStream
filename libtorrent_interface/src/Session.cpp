@@ -30,7 +30,6 @@ boost::shared_ptr<aux::session_impl> Session::native_handle() const
 
 Session::~Session()
 {
-    delete _sessionHandle;
 }
 
 }
