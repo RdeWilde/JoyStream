@@ -81,34 +81,15 @@ fi
 # libtorrent
 #
 pushd src
-if [ ! -e "${LIBTORRENT_TARBALL}" ]
+mkdir -p libtorrent
+if rsync ${THIRDPARTY}/libtorrent/ libtorrent/
 then
-    rm -fr libtorrent/
-
-    cp ${THIRDPARTY}/${LIBTORRENT_TARBALL} ./
+    cp "../user-config-${TARGET_ARCH}.jam" libtorrent/user-config.jam
+    echo "Copied joystream libtorrent repo Successfuly"
+else
+    echo "Failed to copy joystream libtorrent repo"
+    exit 1
 fi
-
-if [ ! -e "libtorrent" ]
-then
-  if tar -xzvf ${LIBTORRENT_TARBALL}
-  then
-      mv libtorrent-${LIBTORRENT_VERSION}/ libtorrent
-      cp "../user-config-${TARGET_ARCH}.jam" libtorrent/user-config.jam
-      cd libtorrent/
-      #patch 1 MB packet limit
-      patch src/bt_peer_connection.cpp ../../libtorrent-patch.diff
-
-      #patch case sensitive include files
-      sed -ie "s/^#include <Windows.h>/#include <windows.h>/" ed25519/src/seed.cpp
-      sed -ie "s/^#include <Wincrypt.h>/#include <wincrypt.h>/" ed25519/src/seed.cpp
-  else
-      echo "Failed Extracting Libtorrent"
-      rm ${LIBTORRENT_TARBALL}
-      rm -fr libtorrent-${LIBTORRENT_VERSION}/
-      exit 1
-  fi
-fi
-popd
 
 ./build-libtorrent-${TARGET_ARCH}.sh
 if [ $? -ne 0 ]; then

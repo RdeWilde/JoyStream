@@ -53,27 +53,13 @@ if [ $? -ne 0 ]; then
 fi
 
 pushd src
-if [ ! -e "${LIBTORRENT_TARBALL}" ]
+mkdir -p libtorrent
+if rsync -rtv ${THIRDPARTY}/libtorrent/ libtorrent/
 then
-    rm -fr libtorrent/
-
-    # copy libtorrent source
-    cp ${THIRDPARTY}/${LIBTORRENT_TARBALL} ./
-fi
-
-if [ ! -e "libtorrent" ]
-then
-  if tar -xzvf ${LIBTORRENT_TARBALL}
-  then
-      mv libtorrent-${LIBTORRENT_VERSION}/ libtorrent
-      cd libtorrent/
-      patch src/bt_peer_connection.cpp ../../libtorrent-patch.diff
-  else
-      echo "Failed Extracting Libtorrent"
-      rm ${LIBTORRENT_TARBALL}
-      rm -fr libtorrent-${LIBTORRENT_VERSION}/
-      exit 1
-  fi
+    echo "Copied joystream libtorrent repo Successfuly"
+else
+    echo "Failed to copy joystream libtorrent repo"
+    exit 1
 fi
 popd
 
