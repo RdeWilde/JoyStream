@@ -159,8 +159,8 @@ public:
     std::list<std::shared_ptr<Coin::UnspentOutput> > getUnspentTransactionsOutputs(int32_t confirmations = 0,
                                                                                    const UnspentOutputGenerator & outputGenerator = standardOutputSelectors) const;
 
-    std::vector<StoreControlledOutput> getControlledOutputs(int32_t confirmations = 0) const;
-    std::vector<StoreControlledOutput> getControlledOutputs(KeychainType type, int32_t confirmations = 0) const;
+    std::vector<StoreControlledOutput> getControlledOutputs(int32_t confirmations) const;
+    std::vector<StoreControlledOutput> getControlledOutputsByType(KeychainType type, int32_t confirmations) const;
 
     uint64_t getWalletBalance(int32_t confirmations = 0) const;
 
