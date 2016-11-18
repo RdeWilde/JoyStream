@@ -912,7 +912,7 @@ std::vector<Store::StoreControlledOutput> Store::getControlledOutputs(int32_t co
     return outputs;
 }
 
-std::vector<Store::StoreControlledOutput> Store::getControlledOutputs(KeychainType type, int32_t confirmations) const {
+std::vector<Store::StoreControlledOutput> Store::getControlledOutputsByType(KeychainType type, int32_t confirmations) const {
     std::vector<Store::StoreControlledOutput> outputs;
 
     for(auto const &output : getControlledOutputs(confirmations)) {
