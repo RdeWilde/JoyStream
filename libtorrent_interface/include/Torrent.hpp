@@ -3,16 +3,21 @@
 
 #include "TorrentInterface.hpp"
 
+namespace libtorrent {
+    class sha1_hash;
+    class torrent_handle;
+}
+
 namespace joystream {
 namespace libtorrent_interface {
 
 class Torrent : public TorrentInterface {
 public:
-    Torrent(const torrent_handle &th) : _torrentHandle(th) {}
+    Torrent(const libtorrent::torrent_handle &th) : _torrentHandle(th) {}
     ~Torrent();
 
-    virtual sha1_hash infoHash() const;
-    virtual boost::shared_ptr<torrent> native_handle() const;
+    virtual libtorrent::sha1_hash infoHash() const;
+    virtual libtorrent::torrent_handle native_handle() const;
 
 private:
     torrent_handle _torrentHandle;

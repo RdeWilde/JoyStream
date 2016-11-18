@@ -3,14 +3,14 @@
 namespace joystream {
 namespace libtorrent_interface {
 
-sha1_hash Torrent::infoHash() const
+libtorrent::sha1_hash Torrent::infoHash() const
 {
-    return _torrentHandle.infoHash();
+    return _torrentHandle.info_hash();
 }
 
-boost::shared_ptr<torrent> Torrent::native_handle() const
+libtorrent::torrent_handle Torrent::native_handle() const
 {
-    return _torrentHandle.native_handle();
+    return _torrentHandle;
 }
 
 Torrent::~Torrent()
