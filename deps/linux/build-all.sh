@@ -209,27 +209,16 @@ popd
 
 #mSIGNA (bulding only required libraries for JoyStream)
 pushd src
-if [ ! -e "mSIGNA" ]
+mkdir -p mSIGNA-joystream/
+if rsync -rtvu ${THIRDPARTY}/mSIGNA/ mSIGNA-joystream/
 then
-    if git clone https://github.com/JoyStream/mSIGNA
-    then
-        echo "Cloned mSIGNA Successfuly"
-    else
-        echo "Failed to clone mSIGNA repo"
-        rm -fr mSIGNA
-        exit 1
-    fi
+    echo "Copied joystream mSGINA repo Successfuly"
+else
+    echo "Failed to copy joystream mSIGNA repo"
+    exit 1
 fi
 
-cd mSIGNA/
-git checkout joystream-master
-if [ $? -ne 0 ]; then
-    echo "Local modification of mSIGNA branch, please resolve and try again"
-fi
-git pull origin joystream-master
-if [ $? -ne 0 ]; then
-    echo "Problem getting latest mSIGNA commits, please resolve and try again"
-fi
+cd mSIGNA-joystream/
 cd deps/qrencode-3.4.3
 ./configure
 make
@@ -271,7 +260,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 SYSROOT=../../sysroot make install
-
+popd
 #optionally build full mSIGNA app
 #cd ../../
 #qmake CONFIG+=release BOOST_LIB_SUFFIX=-mt && make OS=linux

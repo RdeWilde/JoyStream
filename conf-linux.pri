@@ -16,7 +16,7 @@ LIBS += -L/usr/lib/x86_64-linux-gnu
 LIBTORRENT_LOCATION= $$PWD/deps/linux/dist
 
 # mSIGNA
-MSIGNA_SYSROOT = $$PWD/deps/linux/src/mSIGNA/sysroot
+MSIGNA_SYSROOT = $$PWD/deps/linux/src/mSIGNA-joystream/sysroot
 
 # Boost
 # boost was build with --layout=tagged option so libraries are suffixed
