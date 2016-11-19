@@ -214,38 +214,6 @@ sudo ln -s ../../include/sqlite3.h sqlite3.h
 sudo ln -s ../../include/sqlite3ext.h sqlite3ext.h
 popd
 
-pushd src
-if [ ! -e "${LIBPNG_TARBALL}" ]
-then
-    rm -fr ${LIBPNG_VERSION}
-
-    cp ${THIRDPARTY}/${LIBPNG_TARBALL} ./
-fi
-
-if [ ! -e "${LIBPNG_VERSION}" ]
-then
-    if tar -xzvf "${LIBPNG_TARBALL}"
-    then
-        cd "${LIBPNG_VERSION}"/
-        ./configure --host=${TARGET_ARCH} --target=windows --prefix=/usr/${TARGET_ARCH} \
-            CPPFLAGS=-I/usr/${TARGET_ARCH}/include LDFLAGS=-L/usr/${TARGET_ARCH}/lib --enable-static --disable-shared
-        make
-        if [ $? -ne 0 ]; then
-          echo "Failed to build libpng"
-          cd ../
-          rm -fr ${LIBPNG_VERSION}
-          exit 1
-        fi
-        sudo make install
-    else
-        echo "Failed to extract libpng"
-        rm ${LIBPNG_TARBALL}
-        rm -fr ${LIBPNG_VERSION}
-        exit 1
-    fi
-fi
-popd
-
 #mSIGNA (bulding only required libraries for JoyStream)
 pushd src
 mkdir -p mSIGNA-joystream/
@@ -258,15 +226,8 @@ else
 fi
 
 cd mSIGNA-joystream/
-cd deps/qrencode-3.4.3
-./configure --host=${TARGET_ARCH} --prefix=/usr/${TARGET_ARCH} --without-tools --enable-static --disable-shared
-make
-if [ $? -ne 0 ]; then
-    echo "Failed to build mSIGNA qrencode"
-    exit 1
-fi
-sudo make install
-cd ../stdutils
+
+cd deps/stdutils
 OS=mingw32 SYSROOT=../../sysroot make install
 if [ $? -ne 0 ]; then
     echo "Failed to build mSIGNA stdutils"
