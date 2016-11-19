@@ -14,7 +14,10 @@ TARGET_ARCH=$WINDOWS_32BIT
 . ../thirdparty-libs/versions.sh
 THIRDPARTY=`pwd`/../thirdparty-libs/
 
-rm -fr dist/
+#If we remove the dist folder then everytime we run this script, it will
+#cause all libraries that depend on libtorrent to be recompiled which is not necessary
+#if the libtorrent headers and source haven't changed
+#rm -fr dist/
 
 mkdir -p src/
 mkdir -p dist/
