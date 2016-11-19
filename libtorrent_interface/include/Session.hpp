@@ -3,6 +3,14 @@
 
 #include "SessionInterface.hpp"
 
+namespace libtorrent {
+    class sha1_hash;
+
+    struct torrent_handle;
+    struct session_handle;
+    struct add_torrent_params;
+}
+
 namespace joystream {
 namespace libtorrent_interface {
 
@@ -13,10 +21,10 @@ public:
 
     virtual void pause() const;
     virtual void remove() const;
-    virtual torrent_handle add(add_torrent_params const &params) const;
-    virtual boost::shared_ptr<torrent> find(sha1_hash const &info_hash) const;
+    virtual libtorrent::torrent_handle add(libtorrent::add_torrent_params const &params) const;
+    virtual libtorrent::torrent_handle find(libtorrent::sha1_hash const &info_hash) const;
 
-    virtual boost::shared_ptr<aux::session_impl*> native_handle() const;
+    virtual libtorrent::session_handle native_handle() const;
 
 private:
     session_handle _sessionHandle;

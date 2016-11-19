@@ -3,11 +3,6 @@
 namespace joystream {
 namespace libtorrent_interface {
 
-torrent_handle Session::add(add_torrent_params const &p) const
-{
-    _sessionHandle.add_torrent(p);
-}
-
 void Session::pause() const
 {
     _sessionHandle.pause();
@@ -18,12 +13,17 @@ void Session::remove() const
     _sessionHandle.remove();
 }
 
-boost::shared_ptr<aux::session_impl> Session::find(sha1_hash const &info_hash) const
+torrent_handle Session::add(libtorrent::add_torrent_params const &p) const
 {
-    return _sessionHandle.find(info_hash);
+    _sessionHandle.add_torrent(p);
 }
 
-boost::shared_ptr<aux::session_impl> Session::native_handle() const
+libtorrent::torrent_handle Session::find(libtorrent::sha1_hash const &info_hash) const
+{
+    return _sessionHandle.find_torrent(info_hash);
+}
+
+libtorrent::session_handle Session::native_handle() const
 {
     return _sessionHandle.native_handle();
 }
