@@ -84,8 +84,8 @@ fi
 # libtorrent
 #
 pushd src
-mkdir -p libtorrent
-if rsync ${THIRDPARTY}/libtorrent/ libtorrent/
+mkdir -p libtorrent-joystream/
+if rsync -rtvu ${THIRDPARTY}/libtorrent/ libtorrent-joystream/
 then
     cp "../user-config-${TARGET_ARCH}.jam" libtorrent/user-config.jam
     echo "Copied joystream libtorrent repo Successfuly"

@@ -56,8 +56,8 @@ if [ $? -ne 0 ]; then
 fi
 
 pushd src
-mkdir -p libtorrent
-if rsync -rtv ${THIRDPARTY}/libtorrent/ libtorrent/
+mkdir -p libtorrent-joystream/
+if rsync -rtvu ${THIRDPARTY}/libtorrent/ libtorrent-joystream/
 then
     echo "Copied joystream libtorrent repo Successfuly"
 else

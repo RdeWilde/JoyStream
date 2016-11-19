@@ -8,7 +8,7 @@
 export BOOST_ROOT=$PWD/src/boost/
 PREFIX_PATH=$PWD/dist/debug/
 
-cd src/libtorrent
+cd src/libtorrent-joystream
 
 $BOOST_ROOT/b2 install \
   toolset=gcc \
@@ -27,4 +27,3 @@ $BOOST_ROOT/b2 install \
   variant=debug \
   cxxflags="-std=gnu++11" \
   --prefix=$PREFIX_PATH
-
