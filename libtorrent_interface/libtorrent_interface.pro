@@ -22,3 +22,5 @@ SOURCES += \
     src/Peer.cpp \
     src/Session.cpp \
     src/Torrent.cpp \
+
+include(../config.pri)
