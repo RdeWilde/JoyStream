@@ -32,8 +32,8 @@ public:
 
     virtual void connect() const = 0;
     virtual void getPeerInfo(libtorrent::peer_info &p) const = 0;
-    virtual void sendBuffer(char const *begin, int size, int flags = 0) const = 0;
-    virtual void disconnect(libtorrent::error_code const &ec, libtorrent::operation_t op, int error = 0) const = 0;
+    virtual void sendBuffer(char const *begin, int size, int flags = 0) = 0;
+    virtual void disconnect(libtorrent::error_code const &ec, libtorrent::operation_t op, int error = 0) = 0;
 
     virtual libtorrent::peer_id const& pid() const = 0;
     virtual libtorrent::peer_connection_handle native_handle() const = 0;

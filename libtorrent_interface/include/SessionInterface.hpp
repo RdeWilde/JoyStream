@@ -6,7 +6,7 @@
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/session_handle.hpp>
-#include <libtorrent/add_torrent_params.h>
+#include <libtorrent/add_torrent_params.hpp>
 
 namespace libtorrent {
     class sha1_hash;
@@ -22,7 +22,7 @@ namespace libtorrent_interface {
 class SessionInterface {
 public:
     virtual void pause() = 0;
-    virtual void remove() = 0;
+    virtual void resume() = 0;
 
     virtual libtorrent::session_handle native_handle() = 0;
     virtual libtorrent::torrent_handle find(libtorrent::sha1_hash const &info_hash) = 0;

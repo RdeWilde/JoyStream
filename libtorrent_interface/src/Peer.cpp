@@ -11,7 +11,7 @@ bool Peer::is_outgoing() const
 
 void Peer::connect() const
 {
-    _peerConnectionHandle.connect();
+    //_peerConnectionHandle.connect();
 }
 
 void Peer::getPeerInfo(libtorrent::peer_info &p) const
@@ -19,19 +19,19 @@ void Peer::getPeerInfo(libtorrent::peer_info &p) const
     _peerConnectionHandle.get_peer_info(p);
 }
 
-void Peer::sendBuffer(const char *begin, int size, int flags=0) const
+void Peer::sendBuffer(const char *begin, int size, int flags)
 {
     _peerConnectionHandle.send_buffer(begin, size, flags);
 }
 
-void Peer::disconnect(const libtorrent::error_code &ec, libtorrent::operation_t op, int error) const
+void Peer::disconnect(const libtorrent::error_code &ec, libtorrent::operation_t op, int error)
 {
     _peerConnectionHandle.disconnect(ec, op, error);
 }
 
 libtorrent::peer_id const& Peer::pid() const
 {
-    _peerConnectionHandle.pid();
+    return _peerConnectionHandle.pid();
 }
 
 libtorrent::peer_connection_handle Peer::native_handle() const

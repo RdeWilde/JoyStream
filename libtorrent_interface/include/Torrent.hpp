@@ -13,14 +13,16 @@ namespace libtorrent_interface {
 
 class Torrent : public TorrentInterface {
 public:
-    Torrent(const libtorrent::torrent_handle &th) : _torrentHandle(th) {}
+    Torrent(const libtorrent::torrent_handle &th)
+        : _torrentHandle(th)
+    {}
     ~Torrent();
 
     virtual libtorrent::sha1_hash infoHash() const;
     virtual libtorrent::torrent_handle native_handle() const;
 
 private:
-    torrent_handle _torrentHandle;
+    libtorrent::torrent_handle _torrentHandle;
 };
 
 }

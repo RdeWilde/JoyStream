@@ -3,17 +3,17 @@
 namespace joystream {
 namespace libtorrent_interface {
 
-void Session::pause() const
+void Session::pause()
 {
     _sessionHandle.pause();
 }
 
-void Session::remove() const
+void Session::resume()
 {
-    _sessionHandle.remove();
+    _sessionHandle.resume();
 }
 
-torrent_handle Session::add(libtorrent::add_torrent_params const &p) const
+libtorrent::torrent_handle Session::add(libtorrent::add_torrent_params const &p)
 {
     _sessionHandle.add_torrent(p);
 }

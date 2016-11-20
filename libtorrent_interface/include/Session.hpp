@@ -16,18 +16,18 @@ namespace libtorrent_interface {
 
 class Session : public SessionInterface {
 public:
-    Session(const session_handle &sh) : _sessionHandle(sh) {}
+    Session(const libtorrent::session_handle &sh) : _sessionHandle(sh) {}
     ~Session();
 
-    virtual void pause() const;
-    virtual void remove() const;
-    virtual libtorrent::torrent_handle add(libtorrent::add_torrent_params const &params) const;
+    virtual void pause();
+    virtual void resume();
+    virtual libtorrent::torrent_handle add(libtorrent::add_torrent_params const &params);
     virtual libtorrent::torrent_handle find(libtorrent::sha1_hash const &info_hash) const;
 
     virtual libtorrent::session_handle native_handle() const;
 
 private:
-    session_handle _sessionHandle;
+    libtorrent::session_handle _sessionHandle;
 };
 
 }
