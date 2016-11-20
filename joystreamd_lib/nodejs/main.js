@@ -34,7 +34,25 @@ app.listen(3000, function () {
 		}
 	})
 
-	rpc.addTorrent(torrent, function(err, torrentAdded) {
+	rpc.status(function(err, WalletStatus) {
+		if(err) {
+			console.log(err)
+		} else {
+			console.log('WalletStatus :',WalletStatus)
+		}
+	})
+
+	rpc.suscribeStatus(function(err, WalletStatus) {
+		if (err) {
+			console.log(err)
+		} else {
+			console.log(WalletStatus)
+		}
+	}, function() {
+		console.log('Call Terminated !')
+	})
+
+	/*rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
 			console.log(err);
 		} else {
@@ -59,18 +77,18 @@ app.listen(3000, function () {
 							} else {
 								console.log('Empty answer : ', answer)
 
-								/*rpc.removeTorrent(torrent, function(err, torrentState){
+								rpc.removeTorrent(torrent, function(err, torrentState){
 									if (err) {
 										console.log(err);
 									} else {
 										console.log(torrentState);
 									}
-								});*/
+								});
 							}
 						})
 					}
 				})
 			})
 		}
-	})
+	})*/
 })

@@ -28,10 +28,6 @@ int main(int argc, char *argv[])
   auto kit = joystream::appkit::AppKit::create(dataDir.walletFilePath().toStdString(),
                                              dataDir.blockTreeFilePath().toStdString(),
                                              TEST_BITCOIN_NETWORK);
-  if(!kit) {
-      std::cout << "Failed to create appkit instance" << std::endl;
-      return 3;
-  }
 
   ServerImpl server(kit, &a);
 

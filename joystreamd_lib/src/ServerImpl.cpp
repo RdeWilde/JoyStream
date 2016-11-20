@@ -51,6 +51,8 @@ void ServerImpl::Run()
     new RPCBalance(&walletService_, cq_.get(), kit_->wallet());
     new RPCUnconfirmedBalance(&walletService_, cq_.get(), kit_->wallet());
     new RPCStatus(&walletService_, cq_.get(), kit_->wallet());
+    new RPCSuscribeStatus(&walletService_, cq_.get(), kit_->wallet());
+
 
     thread_ = std::thread(&CompletionQueueDispatcher::run,dispatcher_,cq_.get());
 

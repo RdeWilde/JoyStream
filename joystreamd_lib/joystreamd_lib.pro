@@ -37,7 +37,8 @@ SOURCES += \
     src/RPCReceivedAddress.cpp \
     src/RPCBalance.cpp \
     src/RPCUnconfirmedBalance.cpp \
-    src/RPCStatus.cpp
+    src/RPCStatus.cpp \
+    src/RPCSuscribeStatus.cpp
 
 HEADERS += \
     include/joystreamd_lib/RPCRequestNormal.hpp \
@@ -56,7 +57,8 @@ HEADERS += \
     protos/daemon.pb.h \
     include/joystreamd_lib/RPCBalance.hpp \
     include/joystreamd_lib/RPCUnconfirmedBalance.hpp \
-    include/joystreamd_lib/RPCStatus.hpp
+    include/joystreamd_lib/RPCStatus.hpp \
+    include/joystreamd_lib/RPCSuscribeStatus.hpp
 
 # gRPC and protocol buffers libs
 LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf

@@ -17,6 +17,7 @@
 #include <joystreamd_lib/RPCBalance.hpp>
 #include <joystreamd_lib/RPCUnconfirmedBalance.hpp>
 #include <joystreamd_lib/RPCStatus.hpp>
+#include <joystreamd_lib/RPCSuscribeStatus.hpp>
 
 
 class ServerImpl final

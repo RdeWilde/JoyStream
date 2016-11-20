@@ -56,3 +56,23 @@ rpc.balance = function(callback ) {
 rpc.unconfirmedBalance = function(callback ) {
   wallet.unconfirmedBalance({}, callback);
 }
+
+rpc.status = function(callback ) {
+  wallet.status({}, callback);
+}
+
+rpc.suscribeStatus = function(data, done ) {
+  var call = wallet.suscribeStatus();
+
+  call.on('data', function(WalletStatus){
+    data(null, WalletStatus);
+  });
+
+  call.on('end',function(){
+    done();
+  });
+
+  call.on('error', function(err){
+  	data(err);
+  });
+}
