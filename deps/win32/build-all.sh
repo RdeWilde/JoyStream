@@ -87,12 +87,13 @@ pushd src
 mkdir -p libtorrent-joystream/
 if rsync -rtvu ${THIRDPARTY}/libtorrent/ libtorrent-joystream/
 then
-    cp "../user-config-${TARGET_ARCH}.jam" libtorrent/user-config.jam
+    cp "../user-config-${TARGET_ARCH}.jam" libtorrent-joystream/user-config.jam
     echo "Copied joystream libtorrent repo Successfuly"
 else
     echo "Failed to copy joystream libtorrent repo"
     exit 1
 fi
+popd
 
 ./build-libtorrent-${TARGET_ARCH}.sh
 if [ $? -ne 0 ]; then
