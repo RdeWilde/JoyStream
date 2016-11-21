@@ -9,7 +9,7 @@ Building Windows 32-bit binary on Ubuntu 14.04
 
 3) Clone the JoyStream repo
 
-   $ git clone https://github.com/JoyStreamApp/JoyStream JoyStream
+   $ git clone --recursive https://github.com/JoyStreamApp/JoyStream JoyStream
 
 4) Build Qt
 
