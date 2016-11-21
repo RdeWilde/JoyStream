@@ -10,8 +10,8 @@ then
   exit 1
 fi
 
-git submodule init
-git submodule update
+git submodule init --recursive
+git submodule update --recursive
 
 echo "Building All Joystream dependencies..."
 pushd deps/win32
