@@ -56,7 +56,7 @@ then
             rm -fr openssl/
             exit 1
         fi
-        make install
+        sudo make install
         if [ $? -ne 0 ]; then
             echo "Installing OpenSSL failed";
             popd
