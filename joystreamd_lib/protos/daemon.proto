@@ -43,6 +43,7 @@ service Daemon {
   rpc SuscribeEvents(Void) returns (stream Event) {}
 
   rpc AddTorrent(Torrent) returns (Torrent) {}
+  rpc BuyTorrent(Torrent) returns (Void) {}
   rpc RemoveTorrent(Torrent) returns (TorrentState) {}
   rpc ListTorrents(Void) returns (stream Torrent) {}
   rpc GetTorrentState (Torrent) returns (TorrentState) {}

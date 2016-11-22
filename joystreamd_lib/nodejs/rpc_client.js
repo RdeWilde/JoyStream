@@ -45,6 +45,11 @@ rpc.startTorrent = function(torrent, callback ) {
   clientDaemon.startTorrent(torrent, callback);
 }
 
+rpc.buyTorrent = function(torrent, callback ) {
+  console.log('Hey')
+  clientDaemon.buyTorrent(torrent, callback);
+}
+
 rpc.receivedAddress = function(callback ) {
   wallet.receivedAddress({}, callback);
 }

@@ -18,6 +18,7 @@
 #include <joystreamd_lib/RPCUnconfirmedBalance.hpp>
 #include <joystreamd_lib/RPCStatus.hpp>
 #include <joystreamd_lib/RPCSuscribeStatus.hpp>
+#include <joystreamd_lib/RPCBuyTorrent.hpp>
 
 
 class ServerImpl final

@@ -52,7 +52,7 @@ app.listen(3000, function () {
 		console.log('Call Terminated !')
 	})
 
-	/*rpc.addTorrent(torrent, function(err, torrentAdded) {
+	rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
 			console.log(err);
 		} else {
@@ -65,7 +65,15 @@ app.listen(3000, function () {
 					console.log(torrentRecieved);
 				}
 			}, function() {
-				rpc.startTorrent(torrentAdded, function(err, answer) {
+
+				rpc.buyTorrent(torrentAdded, function(err, answer) {
+						if (err) {
+							console.log(err)
+						} else {
+							console.log('We are buying the torrent')
+						}
+					})
+				/*rpc.startTorrent(torrentAdded, function(err, answer) {
 					if (err) {
 						console.log(err)
 					} else {
@@ -87,8 +95,8 @@ app.listen(3000, function () {
 							}
 						})
 					}
-				})
+				})*/
 			})
 		}
-	})*/
+	})
 })

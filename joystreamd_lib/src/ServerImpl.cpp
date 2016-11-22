@@ -14,7 +14,6 @@ void ServerImpl::Shutdown()
     // Always shutdown the completion queue after the server.
     cq_->Shutdown();
 
-    // Shutdown but doesn't show 'Stopping...'
     kit_->shutdown([this](){
         std::cout << "Stopping..."<< std::endl;
         this->app_->quit();
@@ -45,6 +44,7 @@ void ServerImpl::Run()
     new RPCListTorrents(&daemonService_, cq_.get(), kit_->node());
     new RPCPauseTorrent(&daemonService_, cq_.get(), kit_->node());
     new RPCStartTorrent(&daemonService_, cq_.get(), kit_->node());
+    new RPCBuyTorrent(&daemonService_, cq_.get(), kit_);
 
     // Initiate Wallet Service methods
     new RPCReceivedAddress(&walletService_, cq_.get(), kit_->wallet());
