@@ -10,13 +10,7 @@ then
   exit 1
 fi
 
-git submodule init
-git submodule update
-
-pushd deps/thirdparty-libs/
-git submodule init
-git submodule update
-popd
+git submodule update --init --recursive
 
 echo "Building All Joystream dependencies..."
 pushd deps/win32
