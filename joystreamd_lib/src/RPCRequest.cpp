@@ -14,7 +14,9 @@ void RPCRequest::eventCompleted(bool fok)
             status_ = PROCESSING;
             process();
         } else {
-            delete this;
+            if (status_ == FINISHED) {
+                delete this;
+            }
         }
     }
 }
