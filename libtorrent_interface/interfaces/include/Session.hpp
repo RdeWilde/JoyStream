@@ -28,7 +28,6 @@ public:
     virtual libtorrent::session_handle native_handle() const;
 
 private:
-    Torrent _torrent;
     libtorrent::session_handle _sessionHandle;
 };
 
