@@ -10,6 +10,12 @@ void RPCRequest::eventCompleted(bool fok)
     if (!fok) {
         delete this;
     } else {
+
+        if (ctx_.IsCancelled()) {
+            std::cout << "Client cancelled request" << std::endl;
+            delete this;
+        }
+
         if (status_ == READY) {
             status_ = PROCESSING;
             process();

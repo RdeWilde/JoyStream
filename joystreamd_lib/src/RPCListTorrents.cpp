@@ -14,9 +14,6 @@ void RPCListTorrents::process()
     new RPCListTorrents(service_, cq_, node_);
 
     for (const auto t : node_->torrents()) {
-
-        std::cout << libtorrent::to_hex(t.first.to_string()) << std::endl;
-        std::cout << "Find one !" << std::endl;
         response.set_infohash(libtorrent::to_hex(t.first.to_string()));
         response.set_name(t.second->name());
         this->write(response);

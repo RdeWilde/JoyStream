@@ -8,7 +8,11 @@ ServerImpl::ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication *app)
 
 void ServerImpl::Shutdown()
 {
-    server_->Shutdown();
+
+    std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(1000);
+
+    // Adding deadline so server will cancel server side streaming request
+    server_->Shutdown(deadline);
     std::cout << "Server destroyed" << std::endl;
 
     // Always shutdown the completion queue after the server.

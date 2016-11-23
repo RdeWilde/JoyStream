@@ -14,8 +14,6 @@ void RPCReceivedAddress::process()
 
     std::string receiveAddress = wallet_->generateReceiveAddress().toBase58CheckEncoding().toStdString();
 
-    std::cout << "Sending new Bitcoin Address" << std::endl;
-
     response.set_address(receiveAddress);
 
     finish(response, true);

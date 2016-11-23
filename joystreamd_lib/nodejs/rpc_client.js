@@ -46,7 +46,6 @@ rpc.startTorrent = function(torrent, callback ) {
 }
 
 rpc.buyTorrent = function(torrent, callback ) {
-  console.log('Hey')
   clientDaemon.buyTorrent(torrent, callback);
 }
 

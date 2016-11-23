@@ -10,14 +10,10 @@ void RPCStartTorrent::process()
 {
     new RPCStartTorrent(service_, cq_, node_);
 
-    std::cout << "Trying to start torrent" << std::endl;
-
     for (const auto t : node_->torrents()) {
         if (libtorrent::to_hex(t.first.to_string()) == request_.infohash()) {
 
             joystream::daemon::rpc::Void response;
-
-            std::cout << "We are starting the torrent" << std::endl;
 
             if (t.second->isPaused()){
                 t.second->resume([this, response](const std::exception_ptr &eptr) {

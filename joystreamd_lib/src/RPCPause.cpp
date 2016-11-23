@@ -10,7 +10,6 @@ void RPCPause::process()
 {
     new RPCPause(service_, cq_, node_);
 
-    std::cout << "We want to pause the node" << std::endl;
     node_->pause([this](){
 
         joystream::daemon::rpc::Void response;

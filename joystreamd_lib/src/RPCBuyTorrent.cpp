@@ -29,8 +29,6 @@ void RPCBuyTorrent::process()
 
     joystream::protocol_wire::BuyerTerms buyerTerms(price, locktime, nsellers, contractFeeRate);
 
-    std::cout << "BUYING TORRENT" << std::endl;
-
     joystream::core::Torrent* torrent;
 
     torrent = appKit_->node()->torrent(joystream::appkit::util::sha1_hash_from_hex_string(request_.infohash().c_str()));
