@@ -66,14 +66,14 @@ app.listen(3000, function () {
 				}
 			}, function() {
 
-				rpc.buyTorrent(torrentAdded, function(err, answer) {
+				/*rpc.buyTorrent(torrentAdded, function(err, answer) {
 						if (err) {
 							console.log(err)
 						} else {
 							console.log('We are buying the torrent')
 						}
-					})
-				/*rpc.startTorrent(torrentAdded, function(err, answer) {
+					})*/
+				rpc.startTorrent(torrentAdded, function(err, answer) {
 					if (err) {
 						console.log(err)
 					} else {
@@ -95,7 +95,7 @@ app.listen(3000, function () {
 							}
 						})
 					}
-				})*/
+				})
 			})
 		}
 	})

@@ -20,8 +20,6 @@ void RPCBuyTorrent::process()
     const uint64_t settlement_fee = 5000;
     const uint64_t contractFeeRate = 20000;
 
-    const joystream::core::Torrent* torrent;
-
     const double secondsBeforeCreatingContract = 3;
     const double secondsBeforePieceTimeout = 25;
 
@@ -33,20 +31,21 @@ void RPCBuyTorrent::process()
 
     std::cout << "BUYING TORRENT" << std::endl;
 
-    for (const auto t : appKit_->node()->torrents()) {
-        if (libtorrent::to_hex(t.first.to_string()) == request_.infohash()) {
-            // We've found the torrent to buy.
-            try {
-                appKit_->buyTorrent(20000, t.second, buyingPolicy, buyerTerms, [](const std::exception_ptr &e){
-                    std::cout << "We are buying the torrent" << std::endl;
-                });
-            } catch(std::runtime_error) {
-                this->finish(response, false);
-            }
-            break;
+    joystream::core::Torrent* torrent;
+
+    torrent = appKit_->node()->torrent(joystream::appkit::util::sha1_hash_from_hex_string(request_.infohash().c_str()));
+
+    if (torrent != nullptr) {
+        // We have found the torrent that we want to buy in the Node
+        try {
+            appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [](const std::exception_ptr &e){
+                std::cout << "We are buying the torrent" << std::endl;
+            });
+        } catch(std::runtime_error) {
+            this->finish(response, false);
         }
+    } else {
+        // Torrent not found in Node return error
+        this->finish(response, false);
     }
-
-    //appKit_->buyTorrent();
-
 }

@@ -12,23 +12,25 @@ void RPCPauseTorrent::process()
 
     std::cout << "Trying to pause torrent" << std::endl;
 
-    // A getTorrent function in Node class would be better
-    for (const auto t : node_->torrents()) {
-        if (libtorrent::to_hex(t.first.to_string()) == request_.infohash()) {
-            std::cout << "We are pausing the torrent" << std::endl;
-            t.second->pause(true, [this](const std::exception_ptr &eptr) {
-                joystream::daemon::rpc::Void response;
+    joystream::core::Torrent* torrent;
+    joystream::daemon::rpc::Void response;
 
-                if (eptr) {
-                    std::cout << "Something wrong happened when trying to pause torrent" << std::endl;
-                    this->finish(response, false);
-                } else {
-                    this->finish(response, true);
-                }
-            });
+    torrent = node_->torrent(joystream::appkit::util::sha1_hash_from_hex_string(request_.infohash().c_str()));
 
-            break;
-        }
+    if (torrent != nullptr) {
+        // We have the torrent we are going to pause it
+        torrent->pause(true, [this, response](const std::exception_ptr &eptr) {
+
+            if (eptr) {
+                std::cout << "Something wrong happened when trying to pause torrent" << std::endl;
+                this->finish(response, false);
+            } else {
+                this->finish(response, true);
+            }
+        });
+    } else {
+        // Torrent not found in Node return error
+        this->finish(response, false);
     }
 
 }

@@ -2,6 +2,7 @@
 #define RPCPAUSETORRENT_HPP
 
 #include <joystreamd_lib/RPCRequestNormal.hpp>
+#include <app_kit/kit.hpp>
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
 
