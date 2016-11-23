@@ -158,6 +158,13 @@ public:
      */
     std::map<libtorrent::sha1_hash, Torrent *> torrents() const noexcept;
 
+    /**
+     * @brief Lookup for a torrent in Node from sha1_hash
+     * @param The sha1_hash of the torrent we are looking for
+     * @return Torrent object or nullptr if not found
+     */
+    Torrent* torrent(const libtorrent::sha1_hash & info_hash);
+
 signals:
 
     // Signals are emitted for any change in state of the node.

@@ -12,7 +12,7 @@ LIBS += -L/usr/local/lib
 LIBTORRENT_LOCATION= $$PWD/deps/osx/dist
 
 # mSIGNA
-MSIGNA_SYSROOT = $$PWD/deps/osx/src/mSIGNA/sysroot
+MSIGNA_SYSROOT = $$PWD/deps/osx/src/mSIGNA-joystream/sysroot
 
 # Boost
 # boost was build with --layout=tagged option so libraries are suffixed

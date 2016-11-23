@@ -7,8 +7,7 @@ then
   exit 1
 fi
 
-git submodule init
-git submodule update
+git submodule update --init --recursive
 
 echo "Building All Joystream dependencies..."
 pushd deps/osx/

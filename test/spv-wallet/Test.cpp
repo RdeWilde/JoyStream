@@ -134,6 +134,8 @@ void Test::extendedPublicKey() {
 
     QVERIFY(privKey1 == privKey2);
     QVERIFY(pubKey1 == pubKey2);
+
+    delete store;
 }
 
 void Test::walletEncryption() {

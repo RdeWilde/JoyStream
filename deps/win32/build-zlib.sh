@@ -20,7 +20,7 @@ mkdir -p src/
 # zlib
 #
 pushd src
-if [ ! -e "${ZLIB_TARBALL}"]
+if [ ! -e "${ZLIB_TARBALL}" ]
 then
   rm -fr zlib/
 

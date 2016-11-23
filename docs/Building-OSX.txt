@@ -34,7 +34,7 @@ Build OSX app minimum OSX 10.7
 
 7) Clone the JoyStream repo
 
-   $ git clone https://github.com/JoyStreamApp/JoyStream JoyStream
+   $ git clone --recursive https://github.com/JoyStreamApp/JoyStream JoyStream
 
 8) Build JoyStream
 

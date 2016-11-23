@@ -26,7 +26,7 @@ LIBS += -static-libgcc -static-libstdc++ -static
 LIBTORRENT_LOCATION= $$PWD/deps/win32/dist
 
 # mSIGNA
-MSIGNA_SYSROOT = $$PWD/deps/win32/src/mSIGNA/sysroot
+MSIGNA_SYSROOT = $$PWD/deps/win32/src/mSIGNA-joystream/sysroot
 
 # Boost
 # boost was build with --layout=tagged option so libraries are suffixed (mt=multithreaded, s=static, d=debug)
