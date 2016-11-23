@@ -1,26 +1,7 @@
-TARGET = libtorrent_interface
-TEMPLATE = lib
+TEMPLATE = subdirs
 
-CONFIG += staticlib
-CONFIG += create_prl
-CONFIG += c++11
+SUBDIRS = \
+    interfaces \
+    gmock \
 
-QT += core
-QT += network
-
-INCLUDEPATH += $$PWD/include
-
-HEADERS += \
-    include/PeerInterface.hpp \
-    include/SessionInterface.hpp \
-    include/TorrentInterface.hpp \
-    include/Peer.hpp \
-    include/Session.hpp \
-    include/Torrent.hpp \
-
-SOURCES += \
-    src/Peer.cpp \
-    src/Session.cpp \
-    src/Torrent.cpp \
-
-include(../config.pri)
+CONFIG += ordered

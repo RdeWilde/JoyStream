@@ -26,7 +26,7 @@ namespace libtorrent_interface {
 
 class PeerInterface {
 public:
-    virtual ~PeerInterface() = 0;
+    virtual ~PeerInterface() {}
 
     virtual bool isOutgoing() const = 0;
 

@@ -2,6 +2,7 @@
 #define LIBTORRENT_INTERFACE_SESSION_HPP
 
 #include "SessionInterface.hpp"
+#include "Torrent.hpp"
 
 namespace libtorrent {
     class sha1_hash;
@@ -16,17 +17,18 @@ namespace libtorrent_interface {
 
 class Session : public SessionInterface {
 public:
-    Session(const libtorrent::session_handle &sh) : _sessionHandle(sh) {}
+    Session(const libtorrent::session_handle& sh);
     ~Session();
 
     virtual void pause();
     virtual void resume();
-    virtual libtorrent::torrent_handle add(libtorrent::add_torrent_params const &params);
-    virtual libtorrent::torrent_handle find(libtorrent::sha1_hash const &info_hash) const;
+    virtual Torrent* add(libtorrent::add_torrent_params const &params);
+    virtual Torrent* find(libtorrent::sha1_hash const &info_hash) const;
 
     virtual libtorrent::session_handle native_handle() const;
 
 private:
+    Torrent _torrent;
     libtorrent::session_handle _sessionHandle;
 };
 
