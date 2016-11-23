@@ -24,7 +24,7 @@ Build Linux app on Ubuntu 14.04
 
 4) Clone JoyStream repo
 
-   $ git clone https://github.com/JoyStreamApp/JoyStream JoyStream
+   $ git clone --recursive https://github.com/JoyStreamApp/JoyStream JoyStream
 
 5) Build JoyStream
 

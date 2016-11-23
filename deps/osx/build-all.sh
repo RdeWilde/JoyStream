@@ -10,7 +10,10 @@
 . ../thirdparty-libs/versions.sh
 THIRDPARTY=`pwd`/../thirdparty-libs/
 
-rm -fr dist/
+#If we remove the dist folder then everytime we run this script, it will
+#cause all libraries that depend on libtorrent to be recompiled which is not necessary
+#if the libtorrent headers and source haven't changed
+#rm -fr dist/
 
 mkdir -p src/
 mkdir -p dist/
@@ -53,7 +56,7 @@ then
             rm -fr openssl/
             exit 1
         fi
-        make install
+        sudo make install
         if [ $? -ne 0 ]; then
             echo "Installing OpenSSL failed";
             popd
@@ -114,26 +117,13 @@ if [ $? -ne 0 ]; then
 fi
 
 pushd src
-if [ ! -e "${LIBTORRENT_TARBALL}" ]
+mkdir -p libtorrent-joystream/
+if rsync -rtvu ${THIRDPARTY}/libtorrent/ libtorrent-joystream/
 then
-    rm -fr libtorrent/
-
-    cp ${THIRDPARTY}/${LIBTORRENT_TARBALL} ./
-fi
-
-if [ ! -e "libtorrent" ]
-then
-  if tar -xzvf ${LIBTORRENT_TARBALL}
-  then
-      mv libtorrent-${LIBTORRENT_VERSION}/ libtorrent
-      cd libtorrent/
-      patch src/bt_peer_connection.cpp ../../libtorrent-patch.diff
-  else
-      echo "Failed Extracting Libtorrent"
-      rm ${LIBTORRENT_TARBALL}
-      rm -fr libtorrent-${LIBTORRENT_VERSION}/
-      exit 1
-  fi
+    echo "Copied joystream libtorrent repo Successfuly"
+else
+    echo "Failed to copy joystream libtorrent repo"
+    exit 1
 fi
 popd
 
@@ -259,69 +249,20 @@ then
 fi
 popd
 
-pushd src
-if [ ! -e "${LIBPNG_TARBALL}" ]
-then
-    rm -fr ${LIBPNG_VERSION}
-
-    cp ${THIRDPARTY}/${LIBPNG_TARBALL} ./
-fi
-
-if [ ! -e "${LIBPNG_VERSION}" ]
-then
-    if tar -xzvf "${LIBPNG_TARBALL}"
-    then
-        cd "${LIBPNG_VERSION}"/
-        CFLAGS=-mmacosx-version-min=10.7 ./configure
-        make
-        if [ $? -ne 0 ]; then
-          echo "Failed to build libpng"
-          cd ../
-          rm -fr ${LIBPNG_VERSION}
-          exit 1
-        fi
-        make install
-    else
-        echo "Failed to extract libpng"
-        rm ${LIBPNG_TARBALL}
-        rm -fr ${LIBPNG_VERSION}
-        exit 1
-    fi
-fi
-popd
-
 #mSIGNA (bulding only required libraries for JoyStream)
 pushd src
-if [ ! -e "mSIGNA" ]
+mkdir -p mSIGNA-joystream/
+if rsync -rtvu ${THIRDPARTY}/mSIGNA/ mSIGNA-joystream/
 then
-    if git clone https://github.com/JoyStream/mSIGNA
-    then
-        echo "Cloned mSIGNA Successfuly"
-    else
-        echo "Failed to clone mSIGNA repo"
-        rm -fr mSIGNA
-        exit 1
-    fi
-fi
-
-cd mSIGNA/
-git checkout joystream-master
-if [ $? -ne 0 ]; then
-    echo "Local modification of mSIGNA branch, please resolve and try again"
-fi
-git pull origin joystream-master
-if [ $? -ne 0 ]; then
-    echo "Problem getting latest mSIGNA commits, please resolve and try again"
-fi
-cd deps/qrencode-3.4.3
-CFLAGS=-mmacosx-version-min=10.7 ./configure
-make
-if [ $? -ne 0 ]; then
-    echo "Failed to build mSIGNA qrencode"
+    echo "Copied joystream mSGINA repo Successfuly"
+else
+    echo "Failed to copy joystream mSIGNA repo"
     exit 1
 fi
-make install
-cd ../stdutils
+
+cd mSIGNA-joystream/
+
+cd deps/stdutils
 OS=osx SYSROOT=../../sysroot make install
 if [ $? -ne 0 ]; then
     echo "Failed to build mSIGNA stdutils"
@@ -354,7 +295,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 SYSROOT=../../sysroot make install
-
+popd
 #optionally build full mSIGNA app
 #cd ../../
 #./build-all.sh osx

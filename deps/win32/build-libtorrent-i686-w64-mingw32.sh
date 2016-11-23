@@ -8,7 +8,7 @@
 export BOOST_ROOT=$PWD/src/boost/
 PREFIX_PATH=$PWD/dist/release/
 
-cd src/libtorrent
+cd src/libtorrent-joystream
 
 $PWD/../boost/b2 install \
   toolset=gcc \
