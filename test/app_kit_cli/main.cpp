@@ -5,7 +5,6 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 8 2015
  */
 
-#include <cli.hpp>
 #include <app_kit/kit.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
@@ -29,22 +28,22 @@
 #include <QJsonObject>
 
 #include <iostream>
-#include <signal.h>
 #include <string>
 
-#include "buyqueue.hpp"
-#include "sellqueue.hpp"
+#include <cli.hpp>
+#include <buyqueue.hpp>
+#include <sellqueue.hpp>
+#include <SignalHandler.hpp>
 
-bool shuttingDown = false;
-int shutdownAttempts = 0;
-
-void handleSignal(int sig)
-{
-    shuttingDown = true;
-    std::cout << "Got Quit Signal" << std::endl;
-    if(++shutdownAttempts > 2) {
-        std::cerr << "Application Not Exiting - Force Quit" << std::endl;
-        exit(1);
+void claimRefunds(joystream::appkit::AppKit* kit, uint64_t txFee) {
+    // Attempt to claim refunds
+    for(auto refund : joystream::appkit::util::outputsToRefunds(kit->wallet()->getNonStandardStoreControlledOutputs())) {
+        // suggested improvements - we should check that the locktime has expired
+        //                        - combine multiple refunds into one transaction
+        auto destination = kit->wallet()->generateReceiveAddress();
+        auto tx = refund.getSignedSpendingTransaction(destination, txFee);
+        kit->broadcastTransaction(tx);
+        std::cout << "Broadcasting Refund Tx: " << Coin::TransactionId::fromTx(tx).toRPCByteOrder() << std::endl;
     }
 }
 
@@ -104,206 +103,134 @@ void dumpWalletInfo(joystream::bitcoin::SPVWallet *wallet) {
 
 }
 
-int main(int argc, char *argv[])
-{
-    const int nsellers = 1;
-    const uint64_t price = 100; //satoshis per piece
+class CliApp : public SignalHandler {
 
-    const uint32_t locktime = 5;
-    const uint64_t settlement_fee = 5000;
-    const uint64_t contractFeeRate = 20000;   //satoshis/KByte - ref https://bitcoinfees.github.io/
+public:
 
-    joystream::protocol_wire::BuyerTerms buyerTerms(price, locktime, nsellers, contractFeeRate);
-    joystream::protocol_wire::SellerTerms sellerTerms(price, locktime, nsellers, contractFeeRate, settlement_fee);
+    CliApp(int argc, char *argv[], const std::string &dataDir, Coin::Network network) :
+        _app(argc, argv),
+        _torrentIdentifier(nullptr),
+        _dataDir(dataDir),
+        _network(network),
+        _shuttingDown(false)
+    {
+        _dataDir.lock();
 
-    assert(sellerTerms.satisfiedBy(buyerTerms));
-    assert(buyerTerms.satisfiedBy(sellerTerms));
+        parseArgs();
 
-    const double secondsBeforeCreatingContract = 3;
-    const double secondsBeforePieceTimeout = 25;
-    joystream::protocol_session::BuyingPolicy buyingPolicy(secondsBeforeCreatingContract,
-                                                           secondsBeforePieceTimeout,
-                                                           joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
-
-    joystream::core::TorrentIdentifier* torrentIdentifier = nullptr;
-    joystream::appkit::Settings settings;
-
-
-    std::string command;
-
-    if(argc > 1) command = argv[1];
-
-    if(argc > 2 && (command == "buy" || command == "sell")) {
-        torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(argv[2]);
-        if(!torrentIdentifier) {
-            return 2;
+        try {
+            createAppKitInstance();
+        } catch(...) {
+            _dataDir.unlock();
+            throw;
         }
-        std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
-    } else if(argc > 1 && command == "info"){
-        settings.autoStartWalletSync = false;
+
+        QObject::connect(this, &SignalHandler::signalReceived, this, &CliApp::handleSignal);
     }
 
-    if(getenv("DEBUG") != NULL) {
-        INIT_LOGGER("netsync.log");
+    int run();
+
+public slots:
+    void handleSignal(int signal);
+
+private:
+
+    void parseArgs();
+    void createAppKitInstance();
+
+    QCoreApplication _app;
+    std::string _command;
+    std::string _argument;
+    joystream::core::TorrentIdentifier* _torrentIdentifier;
+    joystream::appkit::Settings _appKitSettings;
+    joystream::appkit::DataDirectory _dataDir;
+    joystream::appkit::AppKit* _kit;
+    Coin::Network _network;
+    bool _shuttingDown;
+
+};
+
+void CliApp::parseArgs()
+{
+    int argc = _app.arguments().size();
+
+    if(argc > 1) _command = _app.arguments().at(1).toStdString();
+    if(argc > 2) _argument = _app.arguments().at(2).toStdString();
+
+    if(_command == "info"){
+        _appKitSettings.autoStartWalletSync = false;
     }
+}
 
-    QCoreApplication app(argc, argv);
-
+void CliApp::createAppKitInstance()
+{
     std::cout << "Creating AppKit Instance\n";
+    _kit = joystream::appkit::AppKit::create(_dataDir.walletFilePath().toStdString(),
+                                             _dataDir.blockTreeFilePath().toStdString(),
+                                             _network,
+                                             _appKitSettings);
+}
 
-    std::string kitDataDirectory = getenv("JOYSTREAM_DATADIR") != NULL ? getenv("JOYSTREAM_DATADIR") : QDir::homePath().toStdString();
-    joystream::appkit::DataDirectory dir(kitDataDirectory);
+void CliApp::handleSignal(int signal) {
+    if(signal & SignalHandler::SIGNALS::QUIT_SIGNALS) {
+        //only handle shutdown signal once
+        if(_shuttingDown)
+            return;
 
-    dir.lock();
+        _shuttingDown = true;
 
-    joystream::appkit::AppKit* kit = joystream::appkit::AppKit::create(dir.walletFilePath().toStdString(),
-                                                                       dir.blockTreeFilePath().toStdString(),
-                                                                       Coin::Network::testnet3,
-                                                                       settings);
-
-    if(!kit) {
-        std::cout << "Failed to create appkit instance" << std::endl;
-        return 3;
+        _kit->shutdown([this](){
+            _app.quit();
+        });
     }
+}
 
-    dumpWalletInfo(kit->wallet());
+int CliApp::run()
+{
+    dumpWalletInfo(_kit->wallet());
 
-    if(command == "info") {
-        dir.unlock();
+    if(_command == "buy" || _command == "sell") {
+        if(_argument == "") {
+            std::cout << "Error: Missing torrent argument" << std::endl;
+            return -1;
+        } else {
+            _torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
+            if(_torrentIdentifier) {
+                std::cout << "Torrent InfoHash: " << _torrentIdentifier->infoHash() << std::endl;
+            } else {
+                std::cout << "Error: Invalid torrent argument" << std::endl;
+                return -1;
+            }
+        }
+    } else if(_command == "info") {
+        _dataDir.unlock();
         return 0;
     }
 
-    // Attempt to claim refunds
-    for(auto refund : joystream::appkit::util::outputsToRefunds(kit->wallet()->getNonStandardStoreControlledOutputs())) {
-        // suggested improvements - we should check that the locktime has expired
-        //                        - combine multiple refunds into one transaction
-        auto destination = kit->wallet()->generateReceiveAddress();
-        auto tx = refund.getSignedSpendingTransaction(destination, 5000);
-        kit->broadcastTransaction(tx);
-        std::cout << "Broadcasting Refund Tx: " << Coin::TransactionId::fromTx(tx).toRPCByteOrder() << std::endl;
-    }
+    claimRefunds(_kit, 5000);
 
-    auto saveTorrents = [&dir, kit]() {
-        joystream::appkit::SavedTorrents savedTorrents = kit->generateSavedTorrents();
-        QJsonObject rootObj;
-        rootObj["torrents"] = savedTorrents.toJson();
-        QJsonDocument doc(rootObj);
-        auto savePath = dir.savedTorrentsFilePath();
-        QFile saveFile(savePath);
-        saveFile.open(QIODevice::WriteOnly);
-        if(saveFile.isWritable()) {
-            auto data = doc.toJson();
-            saveFile.write(data);
-            saveFile.close();
-        }
-    };
-
-    auto loadTorrents = [&dir, kit]() -> joystream::appkit::SavedTorrents {
-        auto savePath = dir.savedTorrentsFilePath();
-        QFile saveFile(savePath);
-        saveFile.open(QIODevice::ReadOnly);
-        if(saveFile.isReadable()) {
-            auto data = saveFile.readAll();
-            saveFile.close();
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            auto savedTorrents = doc.object()["torrents"];
-
-            if(!savedTorrents.isNull())
-                return joystream::appkit::SavedTorrents(savedTorrents);
-        }
-
-        return joystream::appkit::SavedTorrents();
-    };
-
-    QTimer timer;
-
-    QObject::connect(&timer, &QTimer::timeout, [&timer, &app, &kit, &saveTorrents](){
-        if(!shuttingDown) {
-            return;
-        }
-
-        timer.stop();
-
-        saveTorrents();
-
-        std::cout << "Stopping..." << std::endl;
-        kit->shutdown([&app](){
-            app.quit();
-        });
-    });
-
-    timer.start(500);
-
-    signal(SIGINT, &handleSignal);
-    signal(SIGTERM, &handleSignal);
-
-    BuyQueue buyQueue(kit);
-    SellQueue sellQueue(kit);
-
-    // Load Saved Torrents
-    joystream::appkit::SavedTorrents savedTorrents = loadTorrents();
-
-    for(const auto &torrent : savedTorrents.torrents()) {
-        libtorrent::sha1_hash infoHash = torrent.first;
-        joystream::appkit::SavedTorrentParameters torrentParams = torrent.second;
-        joystream::appkit::SavedSessionParameters sessionParams = torrentParams.sessionParameters();
-
-        if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
-            buyQueue.add(infoHash, sessionParams.buyerTerms(), sessionParams.buyingPolicy(), sessionParams.state());
-        } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::selling) {
-            sellQueue.add(infoHash, sessionParams.sellerTerms(), sessionParams.sellingPolicy(), sessionParams.state());
-        }
-
-        try {
-            kit->addTorrent(torrentParams, [](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
-
-                if(ecode) {
-                    std::cerr << "addTorrent failed: " << ecode.message().c_str() << std::endl;
-                }
-
-                std::cout << "Torrent Starting Status:" << stateToString(th.status().state) << std::endl;
-            });
-
-        } catch(std::exception &e) {
-            std::cout << e.what() << std::endl;
-        }
-    }
-
-    if(torrentIdentifier) {
-        std::cout << "Adding Torrent" << std::endl;
-
-        try {
-            kit->node()->addTorrent(0, 0,
-                                    libtorrent::to_hex(torrentIdentifier->infoHash().to_string()),
-                                    std::vector<char>(),
-                                    dir.defaultSavePath().toStdString(), true, *torrentIdentifier,
-                                    [command, &buyQueue, &sellQueue, buyerTerms, sellerTerms, buyingPolicy](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
-
-                if(ecode) {
-                    std::cerr << "addTorrent failed: " << ecode.message().c_str() << std::endl;
-                    return;
-                }
-
-                std::cout << "Torrent Starting Status:" << stateToString(th.status().state) << std::endl;
-                if(command == "buy")
-                    buyQueue.add(th.info_hash(), buyerTerms, buyingPolicy, joystream::protocol_session::SessionState::started);
-
-                if(command == "sell")
-                    sellQueue.add(th.info_hash(), sellerTerms, joystream::protocol_session::SellingPolicy(), joystream::protocol_session::SessionState::started);
-
-            });
-
-        } catch(std::exception &e) {
-            std::cout << e.what() << std::endl;
-        }
-    }
+    // Add torrent to node
+    // processTorrent();
 
     std::cout << "Starting Qt Application Event loop\n";
-    int ret = app.exec();
+    int ret = _app.exec();
 
-    dir.unlock();
+    _dataDir.unlock();
 
     std::cout << "Exited Qt Application event loop with code: " << ret << std::endl;
     return ret;
 }
 
+int main(int argc, char *argv[])
+{
+    if(getenv("DEBUG") != NULL) {
+        INIT_LOGGER("netsync.log");
+    }
+
+    auto env_data_dir = getenv("JOYSTREAM_DATADIR");
+    std::string kitDataDirectory =  env_data_dir != NULL ? env_data_dir : QDir::currentPath().toStdString();
+
+    CliApp app(argc, argv, kitDataDirectory, Coin::Network::testnet3);
+    int ret = app.run();
+    return ret;
+}
