@@ -24,7 +24,7 @@ app.listen(3000, function () {
 		} else {
 			console.log('Your current Balance:',BTCAmount)
 		}
-	})
+	})	
 
 	rpc.unconfirmedBalance(function(err, BTCAmount) {
 		if(err) {

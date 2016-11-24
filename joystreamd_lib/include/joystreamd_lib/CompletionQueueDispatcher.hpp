@@ -13,14 +13,18 @@
 
 /**
  * @brief Basic class that handle all the rpcs calls
- *
+ * in a new thread
  */
 class CompletionQueueDispatcher {
-    public:
 
+    public:
         CompletionQueueDispatcher();
         ~CompletionQueueDispatcher();
+        void StartDispatcher(grpc::ServerCompletionQueue* cq);
+
+    private:
         void run(grpc::ServerCompletionQueue* cq);
+        std::thread thread_;
 
 };
 #endif // ASYNCCALLHANDLER_HPP

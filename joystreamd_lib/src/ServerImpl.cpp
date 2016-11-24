@@ -12,8 +12,10 @@ void ServerImpl::Shutdown()
     std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(1000);
 
     // Adding deadline so server will cancel server side streaming request
+    // Without the deadline, request that already started (called send by the client )
+    // will wait until they are finished which will block the queue.
     server_->Shutdown(deadline);
-    std::cout << "Server destroyed" << std::endl;
+    std::cout << "Server Shutting Done" << std::endl;
 
     // Always shutdown the completion queue after the server.
     cq_->Shutdown();
@@ -21,8 +23,9 @@ void ServerImpl::Shutdown()
     kit_->shutdown([this](){
         std::cout << "Stopping..."<< std::endl;
         this->app_->quit();
-        delete this;
+        //delete this;
     });
+
 }
 
 void ServerImpl::Run()
@@ -57,7 +60,6 @@ void ServerImpl::Run()
     new RPCStatus(&walletService_, cq_.get(), kit_->wallet());
     new RPCSuscribeStatus(&walletService_, cq_.get(), kit_->wallet());
 
-
-    thread_ = std::thread(&CompletionQueueDispatcher::run,dispatcher_,cq_.get());
+    dispatcher_.StartDispatcher(cq_.get());
 
 }
