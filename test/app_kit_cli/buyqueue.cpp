@@ -149,16 +149,20 @@ void BuyQueue::buyTorrent(libtorrent::sha1_hash infoHash) {
 
     auto contractValue = joystream::protocol_session::Session<libtorrent::tcp::endpoint>::minimumFundsRequiredAsBuyer(item.terms, ti->num_pieces());
 
-    _kit->buyTorrent(contractValue, torrent, item.policy, item.terms, [this, torrent, infoHash](const std::exception_ptr &eptr){
-        if(eptr){
-            // retry
-            QTimer::singleShot(5000, [this, infoHash](){
-                buyTorrent(infoHash);
-            });
-        } else {
-            startTorrent(torrent);
-        }
-    });
+    try {
+        _kit->buyTorrent(contractValue, torrent, item.policy, item.terms, [this, torrent, infoHash](const std::exception_ptr &eptr){
+            if(eptr){
+                // retry
+                QTimer::singleShot(5000, [this, infoHash](){
+                    buyTorrent(infoHash);
+                });
+            } else {
+                startTorrent(torrent);
+            }
+        });
+    } catch(...) {
+        std::cout << "failed to go to buy mode..\n";
+    }
 }
 
 void BuyQueue::startTorrent(joystream::core::Torrent *torrent) {
