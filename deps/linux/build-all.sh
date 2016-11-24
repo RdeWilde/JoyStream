@@ -57,7 +57,7 @@ fi
 
 pushd src
 mkdir -p libtorrent-joystream/
-if rsync -rtvu ${THIRDPARTY}/libtorrent/ libtorrent-joystream/
+if rsync -rvuc ${THIRDPARTY}/libtorrent/ libtorrent-joystream/
 then
     echo "Copied joystream libtorrent repo Successfuly"
 else
@@ -179,7 +179,7 @@ popd
 #mSIGNA (bulding only required libraries for JoyStream)
 pushd src
 mkdir -p mSIGNA-joystream/
-if rsync -rtvu ${THIRDPARTY}/mSIGNA/ mSIGNA-joystream/
+if rsync -rvuc ${THIRDPARTY}/mSIGNA/ mSIGNA-joystream/
 then
     echo "Copied joystream mSGINA repo Successfuly"
 else
