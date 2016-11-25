@@ -44,7 +44,7 @@ service Daemon {
 
   rpc AddTorrent(Torrent) returns (Torrent) {}
   rpc BuyTorrent(Torrent) returns (Void) {}
-  rpc RemoveTorrent(Torrent) returns (TorrentState) {}
+  rpc RemoveTorrent(Torrent) returns (Void) {}
   rpc ListTorrents(Void) returns (stream Torrent) {}
 
   rpc GetTorrentState (Torrent) returns (TorrentState) {}
@@ -62,7 +62,17 @@ message Torrent {
 }
 
 message TorrentState {
-  bool paused = 1;
+
+  enum State {
+    QUEUED_FOR_CHECKING = 0;
+    CHECKING_FILES = 1;
+    DOWNLOADING = 2;
+    FINISHED = 3;
+    SEEDING = 4;
+    ALLOCATING = 5;
+  }
+  
+  State state = 1;
 }
 
 message Event {
