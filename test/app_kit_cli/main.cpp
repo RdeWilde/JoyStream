@@ -114,8 +114,6 @@ public:
         _network(network),
         _shuttingDown(false)
     {
-        _dataDir.lock();
-
         parseArgs();
 
         try {
@@ -126,6 +124,10 @@ public:
         }
 
         QObject::connect(this, &SignalHandler::signalReceived, this, &CliApp::handleSignal);
+    }
+
+    ~CliApp() {
+        delete _kit;
     }
 
     int run();
@@ -203,7 +205,6 @@ int CliApp::run()
             }
         }
     } else if(_command == "info") {
-        _dataDir.unlock();
         return 0;
     }
 
@@ -214,8 +215,6 @@ int CliApp::run()
 
     std::cout << "Starting Qt Application Event loop\n";
     int ret = _app.exec();
-
-    _dataDir.unlock();
 
     std::cout << "Exited Qt Application event loop with code: " << ret << std::endl;
     return ret;
