@@ -174,6 +174,13 @@ void CliApp::createAppKitInstance()
 }
 
 void CliApp::handleSignal(int signal) {
+
+    if(signal == SignalHandler::SIGNALS::SIG_TERM) {
+        _shuttingDown = true;
+        _app.quit();
+        return;
+    }
+
     if(signal & SignalHandler::SIGNALS::QUIT_SIGNALS) {
         //only handle shutdown signal once
         if(_shuttingDown)
