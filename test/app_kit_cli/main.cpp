@@ -109,19 +109,13 @@ public:
 
     CliApp(int argc, char *argv[], const std::string &dataDir, Coin::Network network) :
         _app(argc, argv),
-        _torrentIdentifier(nullptr),
         _dataDir(dataDir),
         _network(network),
         _shuttingDown(false)
     {
         parseArgs();
 
-        try {
-            createAppKitInstance();
-        } catch(...) {
-            _dataDir.unlock();
-            throw;
-        }
+        createAppKitInstance();
 
         QObject::connect(this, &SignalHandler::signalReceived, this, &CliApp::handleSignal);
     }
@@ -143,7 +137,6 @@ private:
     QCoreApplication _app;
     std::string _command;
     std::string _argument;
-    joystream::core::TorrentIdentifier* _torrentIdentifier;
     joystream::appkit::Settings _appKitSettings;
     joystream::appkit::DataDirectory _dataDir;
     joystream::appkit::AppKit* _kit;
@@ -162,6 +155,10 @@ void CliApp::parseArgs()
     if(_command == "info"){
         _appKitSettings.autoStartWalletSync = false;
     }
+
+    if((_command == "buy" || _command == "sell") && _argument == "") {
+        throw std::runtime_error("Missing Torrent argument");
+    }
 }
 
 void CliApp::createAppKitInstance()
@@ -173,14 +170,8 @@ void CliApp::createAppKitInstance()
                                              _appKitSettings);
 }
 
-void CliApp::handleSignal(int signal) {
-
-    if(signal == SignalHandler::SIGNALS::SIG_TERM) {
-        _shuttingDown = true;
-        _app.quit();
-        return;
-    }
-
+void CliApp::handleSignal(int signal)
+{
     if(signal & SignalHandler::SIGNALS::QUIT_SIGNALS) {
         //only handle shutdown signal once
         if(_shuttingDown)
@@ -196,23 +187,27 @@ void CliApp::handleSignal(int signal) {
 
 int CliApp::run()
 {
+    if(_shuttingDown)
+        return 0;
+
     dumpWalletInfo(_kit->wallet());
 
-    if(_command == "buy" || _command == "sell") {
-        if(_argument == "") {
-            std::cout << "Error: Missing torrent argument" << std::endl;
-            return -1;
-        } else {
-            _torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
-            if(_torrentIdentifier) {
-                std::cout << "Torrent InfoHash: " << _torrentIdentifier->infoHash() << std::endl;
-            } else {
-                std::cout << "Error: Invalid torrent argument" << std::endl;
-                return -1;
-            }
-        }
-    } else if(_command == "info") {
+    if(_command == "info")
         return 0;
+
+    joystream::core::TorrentIdentifier* torrentIdentifier;
+
+    if(_command == "buy" || _command == "sell") {
+        assert(_argument != "");
+
+        torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
+
+        if(torrentIdentifier) {
+            std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
+        } else {
+            std::cout << "Warning: Invalid torrent argument" << std::endl;
+        }
+
     }
 
     claimRefunds(_kit, 5000);
