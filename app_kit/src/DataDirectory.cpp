@@ -30,6 +30,8 @@ DataDirectory::DataDirectory(const std::string &dir)
 
     _lockFile.setStaleLockTime(0);
 
+    lock();
+
     makeDirs();
 }
 
