@@ -46,7 +46,9 @@ service Daemon {
   rpc BuyTorrent(Torrent) returns (Void) {}
   rpc RemoveTorrent(Torrent) returns (TorrentState) {}
   rpc ListTorrents(Void) returns (stream Torrent) {}
+
   rpc GetTorrentState (Torrent) returns (TorrentState) {}
+  //rpc GetPeerState (PeerStateRequest) returns (PeerState) {}
 
 }
 

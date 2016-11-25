@@ -51,6 +51,7 @@ void ServerImpl::Run()
     new RPCPauseTorrent(&daemonService_, cq_.get(), kit_->node());
     new RPCStartTorrent(&daemonService_, cq_.get(), kit_->node());
     new RPCSuscribeEvents(&daemonService_, cq_.get(), kit_->node());
+    new RPCGetTorrentState(&daemonService_, cq_.get(), kit_->node());
     new RPCBuyTorrent(&daemonService_, cq_.get(), kit_);
 
     // Initiate Wallet Service methods

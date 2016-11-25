@@ -10,7 +10,7 @@ var torrent = {
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 
-	rpc.receivedAddress(function(err, bitcoinAddress) {
+	/*rpc.receivedAddress(function(err, bitcoinAddress) {
 		if(err) {
 			console.log(err)
 		} else {
@@ -60,7 +60,7 @@ app.listen(3000, function () {
 		}
 	}, function() {
 		console.log('Call Terminated')
-	})
+	})*/
 
 	rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
@@ -68,7 +68,15 @@ app.listen(3000, function () {
 		} else {
 			console.log(torrentAdded);
 
-			rpc.listTorrents(function(err, torrentRecieved) {
+			rpc.getTorrentState(torrentAdded, function(err, torrentState) {
+				if (err) {
+					console.log(err)
+				} else {
+					console.log('Torrent State :', torrentState)
+				}
+			})
+
+			/*rpc.listTorrents(function(err, torrentRecieved) {
 				if (err) {
 					console.log(err)
 				} else {
@@ -94,7 +102,7 @@ app.listen(3000, function () {
 					}
 				});
 
-				/*rpc.buyTorrent(torrentAdded, function(err, answer) {
+				rpc.buyTorrent(torrentAdded, function(err, answer) {
 						if (err) {
 							console.log(err)
 						} else {
@@ -116,8 +124,8 @@ app.listen(3000, function () {
 							}
 						})
 					}
-				})*/
-			})
+				})
+			})*/
 		}
 	})
 })

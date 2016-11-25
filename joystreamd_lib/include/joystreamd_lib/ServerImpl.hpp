@@ -19,6 +19,7 @@
 #include <joystreamd_lib/RPCStatus.hpp>
 #include <joystreamd_lib/RPCSuscribeStatus.hpp>
 #include <joystreamd_lib/RPCSuscribeEvents.hpp>
+#include <joystreamd_lib/RPCGetTorrentState.hpp>
 #include <joystreamd_lib/RPCBuyTorrent.hpp>
 
 
