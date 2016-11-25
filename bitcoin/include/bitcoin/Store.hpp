@@ -79,24 +79,13 @@ public:
         TransactionNotFound() : std::runtime_error("Transaction not found in store") {}
     };
 
-    class NotConnected : public std::runtime_error {
-    public:
-        NotConnected() : std::runtime_error("Database not connected") {}
-    };
-
     class OperationNotAllowed : public std::runtime_error {
     public:
         OperationNotAllowed() : std::runtime_error("Store operation not allowed") {}
     };
 
-    Store(){}
-    Store(std::string file, Coin::Network network);
+    Store(const std::string& file, Coin::Network network, const Coin::Entropy* entropy = nullptr, uint32_t timestamp = std::time(nullptr));
     ~Store();
-
-    // optional passphrase to decrypt entropy when loaded from db, only try it if metadata says the entropy is encrypted
-    bool open(std::string file, Coin::Network network);
-    bool create(std::string file, Coin::Network network);
-    bool create(std::string file, Coin::Network network, const Coin::Entropy &entropy, uint32_t timestamp);
 
     bool encrypted() const;// is entropy in db encrypted?
     void encrypt(std::string passphrase);//encrypt the entropy in db (throw if already encrypted or something else goes wrong)
@@ -105,9 +94,6 @@ public:
     bool locked() const; // is the store in locked state?
     void lock(); // set store to locked state
     void unlock(std::string passphrase);
-
-    bool connected() const;
-    void close();
 
     Coin::Network network() const { return _network; }
     uint32_t created() const { return _timestamp; }
@@ -176,18 +162,31 @@ public:
     void setTxUpdatedCallback(transactionUpdatedCallback callback) { notifyTxUpdated = callback; }
 
 private:
-    // don't allow copying, store should be passed by reference only
-    Store(const Store &){}
+    // Do not allow copying
+    Store(const Store &);
+    Store& operator=(const Store&);
 
-    Coin::Network _network;
-    Coin::Entropy _entropy;
-    bool _locked;
-    uint32_t _coin_type;
-    Coin::HDKeychain _accountPrivKeychain;
-    Coin::HDKeychain _accountPubKeychain;
+    const Coin::Network _network;
+
+    const uint32_t _coin_type;
+
     uint32_t _timestamp;
+
+    bool _locked;
+
+    Coin::Entropy _entropy;
+
+    Coin::HDKeychain _accountPrivKeychain;
+
+    Coin::HDKeychain _accountPubKeychain;
+
     std::unique_ptr<odb::database> _db;
+
     mutable std::mutex _storeMutex;
+
+    // ctor helper functions will throw if database instance already created
+    void open(const std::string& file);
+    void create(const std::string& file, const Coin::Entropy*);
 
     //internal methods used to persist new keys
     //should be wrapped in an odb::transaction

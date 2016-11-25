@@ -33,11 +33,12 @@ const CoinQ::CoinParams getCoinParamsForNetwork(Coin::Network network) {
     throw std::runtime_error("network not supported");
 }
 
-SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network) :
-  _storePath(storePath),
+SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network, const Coin::Entropy* entropy, uint32_t timestamp)
+    :
+  _store(storePath, network, entropy, timestamp),
   _network(network),
   _networkSync(getCoinParamsForNetwork(network), true),
-  _walletStatus(wallet_status_t::UNINITIALIZED),
+  _walletStatus(wallet_status_t::OFFLINE),
   _blockTreeLoaded(false),
   _blockTreeFile(blockTreeFile),
   _unconfirmedBalance(0),
@@ -45,6 +46,19 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 {
     // == Important == Make sure to catch all exceptions in callbacks
     // failing to do so might cause undefined behaviour in netsync
+
+    recalculateBalance();
+
+    auto scripts = _store.listRedeemScripts();
+    auto recvKeys = _store.listPublicKeys(Store::KeychainType::External);
+    auto changeKeys = _store.listPublicKeys(Store::KeychainType::Internal);
+
+    std::vector<Coin::PublicKey> pubKeys;
+
+    for(auto pk : recvKeys) pubKeys.push_back(pk);
+    for(auto pk : changeKeys) pubKeys.push_back(pk);
+
+    updateBloomFilter(scripts, pubKeys);
 
     _networkSync.subscribeStatus([this](const std::string& message)
     {
@@ -130,70 +144,6 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
     });
 }
 
-void SPVWallet::create() {
-
-    if(isInitialized()) {
-        throw std::runtime_error("wallet already opened");
-    }
-
-    if(!_store.create(_storePath, _network)){
-        throw std::runtime_error("unable to create store");
-    }
-
-    updateStatus(wallet_status_t::OFFLINE);
-}
-
-void SPVWallet::create(const Coin::Entropy & entropy, uint32_t timestamp) {
-
-    if(isInitialized()) {
-        throw std::runtime_error("wallet already opened");
-    }
-
-    if(!_store.create(_storePath, _network, entropy, timestamp == 0 ? std::time(nullptr) : timestamp)){
-        throw std::runtime_error("unable to create store");
-    }
-
-    updateStatus(wallet_status_t::OFFLINE);
-}
-
-void SPVWallet::open(std::string passphrase) {
-
-    // Only open the store once
-    if(!isInitialized()) {
-        if(!_store.open(_storePath, _network)) {
-            throw std::runtime_error("failed to open wallet");
-        }
-
-        if(_store.locked() && passphrase != "") {
-            try {
-                _store.unlock(passphrase);
-            } catch(std::exception & e) {
-                // wrong passphrase
-                _store.close();
-                return;
-            }
-        }
-
-        updateStatus(wallet_status_t::OFFLINE);
-
-        recalculateBalance();
-
-        auto scripts = _store.listRedeemScripts();
-        auto recvKeys = _store.listPublicKeys(Store::KeychainType::External);
-        auto changeKeys = _store.listPublicKeys(Store::KeychainType::Internal);
-
-        std::vector<Coin::PublicKey> pubKeys;
-
-        for(auto pk : recvKeys) pubKeys.push_back(pk);
-        for(auto pk : changeKeys) pubKeys.push_back(pk);
-
-        updateBloomFilter(scripts, pubKeys);
-
-    } else {
-        throw std::runtime_error("wallet already opened");
-    }
-}
-
 bool SPVWallet::encrypted() const {
     return _store.encrypted();
 }
@@ -239,17 +189,10 @@ void SPVWallet::loadBlockTree(std::function<void(std::string)> feedback) {
 
 void SPVWallet::sync(std::string host, int port, unsigned int timeout) {
 
-    // Wallet must be opened or created before synching
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     // Only start synching from offline state
     if(!isOffline()) {
         return;
     }
-
-    Q_ASSERT(_store.connected());
 
     if(!_blockTreeLoaded) {
         loadBlockTree();
@@ -263,10 +206,6 @@ void SPVWallet::stopSync() {
 }
 
 Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGenerator) {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     uchar_vector script;
 
     Coin::PrivateKey sk = _store.generatePrivateKey([&scriptGenerator, &script](const Coin::PublicKey & pubKey){
@@ -281,10 +220,6 @@ Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGene
 }
 
 std::vector<Coin::PrivateKey> SPVWallet::generateKeys(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator) {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     std::vector<uchar_vector> scripts;
 
     std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerator, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
@@ -300,10 +235,6 @@ std::vector<Coin::PrivateKey> SPVWallet::generateKeys(uint32_t numKeys, const Re
 
 std::vector<Coin::KeyPair>
 SPVWallet::generateKeyPairs(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator) {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     std::vector<uchar_vector> scripts;
     std::vector<Coin::KeyPair> keyPairs;
 
@@ -324,10 +255,6 @@ SPVWallet::generateKeyPairs(uint32_t numKeys, const RedeemScriptGenerator & scri
 
 Coin::PublicKey SPVWallet::generateReceivePublicKey()
 {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     auto pubKey = _store.generateReceivePublicKey();
 
     updateBloomFilter({}, {pubKey});
@@ -337,10 +264,6 @@ Coin::PublicKey SPVWallet::generateReceivePublicKey()
 
 Coin::PublicKey SPVWallet::generateChangePublicKey()
 {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     auto pubKey = _store.generateChangePublicKey();
 
     updateBloomFilter({}, {pubKey});
@@ -360,10 +283,6 @@ Coin::P2PKHAddress SPVWallet::generateChangeAddress() {
 
 Coin::PrivateKey SPVWallet::generateReceivePrivateKey()
 {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     auto sk = _store.generateReceivePrivateKey();
 
     updateBloomFilter({}, {sk.toPublicKey()});
@@ -373,10 +292,6 @@ Coin::PrivateKey SPVWallet::generateReceivePrivateKey()
 
 Coin::PrivateKey SPVWallet::generateChangePrivateKey()
 {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     auto sk = _store.generateChangePrivateKey();
 
     updateBloomFilter({}, {sk.toPublicKey()});
@@ -405,10 +320,6 @@ void SPVWallet::broadcastTx(Coin::Transaction cointx) {
 }
 
 int32_t SPVWallet::bestHeight() const {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
     return _store.getBestHeaderHeight();
 }
 
@@ -418,11 +329,7 @@ std::string SPVWallet::getSeedWords() const {
 
 Coin::UnspentOutputSet
 SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const Store::UnspentOutputGenerator & outputGenerator) {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-    
-    std::lock_guard<std::mutex> lock(_utxoMutex);
+   std::lock_guard<std::mutex> lock(_utxoMutex);
 
     Coin::UnspentOutputSet selectedOutputs;
 
@@ -507,7 +414,7 @@ void SPVWallet::updateStatus(wallet_status_t status) {
 }
 
 void SPVWallet::onBlockTreeError(const std::string& error, int code) {
-    if(_walletStatus > wallet_status_t::UNINITIALIZED) {
+    if(isConnected()) {
 
         if(code == CoinQ::ErrorCodes::BLOCKTREE_FILE_WRITE_FAILURE) {
             emit blockTreeWriteFailed(error);
@@ -720,10 +627,6 @@ bool SPVWallet::createsWalletOutput(const Coin::TxOut & txout) const {
 }
 
 void SPVWallet::recalculateBalance() {
-    if(!isInitialized()) {
-        return;
-    }
-
     uint64_t confirmed = 0;
 
     if(_store.getBestHeaderHeight() != 0) {

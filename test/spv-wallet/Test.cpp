@@ -49,16 +49,10 @@ void Test::init() {
     // delete existing blocktree file
     boost::filesystem::remove(TEST_BLOCKTREE_PATH_A);
     boost::filesystem::remove(TEST_BLOCKTREE_PATH_B);
-
-    // create new testnet wallet
-    _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
-    _walletB = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_B, TEST_BLOCKTREE_PATH_B, Coin::Network::regtest);
 }
 
 void Test::cleanup() {
-    _walletA->stopSync();
-    delete _walletA;
-    delete _walletB;
+
 }
 
 void Test::cleanupTestCase() {
@@ -67,128 +61,126 @@ void Test::cleanupTestCase() {
 }
 
 void Test::walletCreation() {
+
+    // no wallet file exists
+    QVERIFY(!boost::filesystem::exists(TEST_WALLET_PATH_A));
+
     // Should create a fresh new wallet
     try{
-        _walletA->create();
-        QVERIFY(true);
-    } catch(std::exception & e) {
+        joystream::bitcoin::SPVWallet w(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::mainnet);
+    } catch(...) {
         QVERIFY(false);
     }
 
     // Wallet file should now exist
     QVERIFY(boost::filesystem::exists(TEST_WALLET_PATH_A));
 
-    // After creating the wallet, we cannot call Create() again
-    QVERIFY_EXCEPTION_THROWN(_walletA->create(), std::exception);
-
-    delete _walletA;
-    _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
-
-    // Should throw exception if we try to create wallet over existing file
-    QVERIFY_EXCEPTION_THROWN(_walletA->create(), std::exception);
-
-    // Should open existing wallet
+    // Re-open existing wallet
     try {
-        _walletA->open();
-    } catch(std::exception & e) {
+        joystream::bitcoin::SPVWallet w(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::mainnet);
+        // Check correct metadata values of created wallet
+        QCOMPARE(w.network(), Coin::Network::mainnet);
+    } catch(...) {
         QVERIFY(false);
     }
-
-    // Check correct metadata values of created wallet
-    QCOMPARE(_walletA->network(), Coin::Network::regtest);
-
-    // After opening a wallet, we cannot call Open() again
-    QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
 
 }
 
 void Test::walletNetworkMismatch() {
 
-    // create default regtest wallet
-    _walletA->create();
-    delete _walletA;
+    // no wallet file exists
+    QVERIFY(!boost::filesystem::exists(TEST_WALLET_PATH_A));
 
-    // init a mainnet wallet
-    _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::mainnet);
+    // Should create a fresh new wallet
+    try{
+        joystream::bitcoin::SPVWallet w(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
+    } catch(...) {
+        QVERIFY(false);
+    }
 
-    // Attempting to open wallet with wrong network type should throw
-    QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
+    // Wallet file should now exist
+    QVERIFY(boost::filesystem::exists(TEST_WALLET_PATH_A));
+
+    // Re-open existing wallet with wrong network parameter should throw
+    try {
+        joystream::bitcoin::SPVWallet w(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::mainnet);
+        QVERIFY(false);
+    } catch(...) {
+
+    }
 }
 
 void Test::extendedPublicKey() {
-    auto store = new joystream::bitcoin::Store();
-    store->create(TEST_WALLET_PATH_A, Coin::Network::regtest);
 
-    auto privKey1 = store->derivePrivateKey(joystream::bitcoin::Store::KeychainType::External, 5);
-    auto pubKey1 = store->derivePublicKey(joystream::bitcoin::Store::KeychainType::External, 5);
+    joystream::bitcoin::Store store1(TEST_WALLET_PATH_A, Coin::Network::regtest);
+
+    auto privKey1 = store1.derivePrivateKey(joystream::bitcoin::Store::KeychainType::External, 5);
+    auto pubKey1 = store1.derivePublicKey(joystream::bitcoin::Store::KeychainType::External, 5);
 
     QVERIFY(privKey1.toPublicKey() == pubKey1);
 
-    delete store;
-
-    store = new joystream::bitcoin::Store(TEST_WALLET_PATH_A, Coin::Network::regtest);
-    auto privKey2 = store->derivePrivateKey(joystream::bitcoin::Store::KeychainType::External, 5);
-    auto pubKey2 = store->derivePublicKey(joystream::bitcoin::Store::KeychainType::External, 5);
+    joystream::bitcoin::Store store2(TEST_WALLET_PATH_A, Coin::Network::regtest);
+    auto privKey2 = store2.derivePrivateKey(joystream::bitcoin::Store::KeychainType::External, 5);
+    auto pubKey2 = store2.derivePublicKey(joystream::bitcoin::Store::KeychainType::External, 5);
 
     QVERIFY(privKey2.toPublicKey() == pubKey2);
 
     QVERIFY(privKey1 == privKey2);
     QVERIFY(pubKey1 == pubKey2);
-
-    delete store;
 }
 
 void Test::walletEncryption() {
-    _walletA->create();
-    std::string seed = _walletA->getSeedWords();
 
-    _walletA->encrypt("password");
-    delete _walletA;
+    std::string seed;
+
+    {
+        joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
+        seed = walletA.getSeedWords();
+        walletA.encrypt("password");
+    }
 
     // Opening an encrypted wallet without a passphrase it will be in locked state
-    _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
-    _walletA->open();
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
 
-    QVERIFY(_walletA->locked());
-    QVERIFY_EXCEPTION_THROWN(_walletA->getSeedWords(), std::exception);
+    QVERIFY(walletA.locked());
+    QVERIFY_EXCEPTION_THROWN(walletA.getSeedWords(), std::exception);
 
-    QVERIFY_EXCEPTION_THROWN(_walletA->decrypt("wrongPassword"), std::exception);
-    QVERIFY(_walletA->locked());
+    QVERIFY_EXCEPTION_THROWN(walletA.decrypt("wrongPassword"), std::exception);
+    QVERIFY(walletA.locked());
 
-    _walletA->decrypt("password");
-    QVERIFY(seed == _walletA->getSeedWords());
+    walletA.decrypt("password");
+    QVERIFY(seed == walletA.getSeedWords());
 }
 
 void Test::walletLocking() {
-    _walletA->create();
-    QVERIFY(!_walletA->locked());
-    QVERIFY(!_walletA->encrypted());
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
+    QVERIFY(!walletA.locked());
+    QVERIFY(!walletA.encrypted());
 
-    _walletA->encrypt("password");
-    QVERIFY(_walletA->encrypted());
-    QVERIFY(!_walletA->locked());
+    walletA.encrypt("password");
+    QVERIFY(walletA.encrypted());
+    QVERIFY(!walletA.locked());
 
-    _walletA->lock();
-    QVERIFY(_walletA->locked());
+    walletA.lock();
+    QVERIFY(walletA.locked());
 
-    _walletA->decrypt("password");
-    QVERIFY(!_walletA->encrypted());
-    QVERIFY(!_walletA->locked());
+    walletA.decrypt("password");
+    QVERIFY(!walletA.encrypted());
+    QVERIFY(!walletA.locked());
 }
 
 void Test::Synching() {
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
 
-    QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
-    QSignalSpy spy_store_error(_walletA, SIGNAL(storeUpdateFailed(std::string)));
+    QSignalSpy spy_blocks_synched(&walletA, SIGNAL(synched()));
+    QSignalSpy spy_store_error(&walletA, SIGNAL(storeUpdateFailed(std::string)));
 
-    //_walletA->create(WALLET_SEED);
-    _walletA->create();
     // Should connect and synch headers
-    _walletA->sync("localhost", 18444);
+    walletA.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    int32_t startingHeight = _walletA->bestHeight();
+    int32_t startingHeight = walletA.bestHeight();
 
     int32_t lastCount = spy_blocks_synched.count();
 
@@ -199,7 +191,7 @@ void Test::Synching() {
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, DEFAULT_SIGNAL_TIMEOUT);
 
     // One block was mined height should increase by one
-    QCOMPARE(_walletA->bestHeight(), startingHeight + 1);
+    QCOMPARE(walletA.bestHeight(), startingHeight + 1);
 
     lastCount = spy_blocks_synched.count();
 
@@ -210,9 +202,9 @@ void Test::Synching() {
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, DEFAULT_SIGNAL_TIMEOUT);
 
     // One block was mined height should increase by one
-    QCOMPARE(_walletA->bestHeight(), startingHeight + 2);
+    QCOMPARE(walletA.bestHeight(), startingHeight + 2);
 
-    QCOMPARE(_walletA->bestHeight(), _walletA->test_netsyncBestHeight());
+    QCOMPARE(walletA.bestHeight(), walletA.test_netsyncBestHeight());
 
     // Make sure there were no store errors
     QCOMPARE(spy_store_error.count(), 0);
@@ -220,22 +212,20 @@ void Test::Synching() {
 
 void Test::BalanceCheck() {
 
-    QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
-    QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
-    QSignalSpy spy_store_error(_walletA, SIGNAL(storeUpdateFailed(std::string)));
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
+    QSignalSpy spy_balance_changed(&walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_blocks_synched(&walletA, SIGNAL(synched()));
+    QSignalSpy spy_store_error(&walletA, SIGNAL(storeUpdateFailed(std::string)));
 
-    //_walletA->create(WALLET_SEED);
-    _walletA->create();
-
-    auto addr = _walletA->generateReceiveAddress();
+    auto addr = walletA.generateReceiveAddress();
 
     // Should connect and synch headers
-    _walletA->sync("localhost", 18444);
+    walletA.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    uint64_t startingConfirmedBalance = _walletA->balance();
-    uint64_t startingUnconfirmedBalance = _walletA->unconfirmedBalance();
+    uint64_t startingConfirmedBalance = walletA.balance();
+    uint64_t startingUnconfirmedBalance = walletA.unconfirmedBalance();
 
     int lastBalanceChangeCount = spy_balance_changed.count();
 
@@ -245,8 +235,8 @@ void Test::BalanceCheck() {
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, DEFAULT_SIGNAL_TIMEOUT);
 
-    QCOMPARE(_walletA->balance(), startingConfirmedBalance);
-    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
+    QCOMPARE(walletA.balance(), startingConfirmedBalance);
+    QCOMPARE(walletA.unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
 
     lastBalanceChangeCount = spy_balance_changed.count();
 
@@ -264,33 +254,33 @@ void Test::BalanceCheck() {
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, DEFAULT_SIGNAL_TIMEOUT);
 
-    QCOMPARE(_walletA->balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
-    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
+    QCOMPARE(walletA.balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
+    QCOMPARE(walletA.unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
 
     // Simulate effect of a reorg
 
-    int startAtHeight = _walletA->bestHeight() - 1;
+    int startAtHeight = walletA.bestHeight() - 1;
     // Send another 0.003BTC to our wallet
     QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.003") == 0);
     QVERIFY(regtest::generate_blocks(3) == 0);
 
-    _walletA->test_syncBlocksStaringAtHeight(startAtHeight);
+    walletA.test_syncBlocksStaringAtHeight(startAtHeight);
     QTest::qWait(15000);
 
-    QCOMPARE(_walletA->balance(), uint64_t(startingConfirmedBalance + uint64_t(1300000)) );
+    QCOMPARE(walletA.balance(), uint64_t(startingConfirmedBalance + uint64_t(1300000)) );
 
-    _walletA->stopSync();
+    walletA.stopSync();
 
     // Make sure there were no store errors
     QCOMPARE(spy_store_error.count(), 0);
 }
 
 void Test::Utxo() {
-    _walletA->create();
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
 
-    auto addr1 = _walletA->generateReceiveAddress();
-    auto addr2 = _walletA->generateReceiveAddress();
-    auto addr3 = _walletA->generateReceiveAddress();
+    auto addr1 = walletA.generateReceiveAddress();
+    auto addr2 = walletA.generateReceiveAddress();
+    auto addr3 = walletA.generateReceiveAddress();
 
     // 100,000 satoshi (2 conf)
     QVERIFY(regtest::send_to_address(addr1.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
@@ -301,14 +291,14 @@ void Test::Utxo() {
     QVERIFY(regtest::generate_blocks(1) == 0);
 
 
-    QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
+    QSignalSpy spy_blocks_synched(&walletA, SIGNAL(synched()));
 
     // Should connect and synch headers
-    _walletA->sync("localhost", 18444);
+    walletA.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changed(&walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
     //  25,000 satoshi (0 conf)
     QVERIFY(regtest::send_to_address(addr3.toBase58CheckEncoding().toStdString(), "0.00025") == 0);
@@ -316,13 +306,13 @@ void Test::Utxo() {
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(175000));
+    QCOMPARE(walletA.unconfirmedBalance(), uint64_t(175000));
 
     Coin::UnspentOutputSet lockedOutputs;
 
     // Check existence of all UTXOs
     {
-        auto utxos(_walletA->lockOutputs(100000, 2));
+        auto utxos(walletA.lockOutputs(100000, 2));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(100000));
         QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr1.pubKeyHash()).serialize().getHex());
@@ -330,7 +320,7 @@ void Test::Utxo() {
     }
 
     {
-        auto utxos(_walletA->lockOutputs(50000, 1));
+        auto utxos(walletA.lockOutputs(50000, 1));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(50000));
         QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr2.pubKeyHash()).serialize().getHex());
@@ -339,12 +329,12 @@ void Test::Utxo() {
 
     // An empty utxo list should be returned when not enough funds available
     {
-        auto utxos(_walletA->lockOutputs(100000, 0));
+        auto utxos(walletA.lockOutputs(100000, 0));
         QCOMPARE(int(utxos.size()), 0);
     }
 
     {
-        auto utxos(_walletA->lockOutputs(25000, 0));
+        auto utxos(walletA.lockOutputs(25000, 0));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(25000));
         QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr3.pubKeyHash()).serialize().getHex());
@@ -352,12 +342,12 @@ void Test::Utxo() {
     }
 
     // Outputs can be unlocked
-    QCOMPARE(_walletA->unlockOutputs(lockedOutputs), uint(3));
+    QCOMPARE(walletA.unlockOutputs(lockedOutputs), uint(3));
 
 
     /* Largest Utxos are returned first
     {
-        auto utxos(_walletA->lockOutputs(175000, 0));
+        auto utxos(walletA.lockOutputs(175000, 0));
         QCOMPARE(int(utxos.size()), 3);
         auto i = utxos.begin();
         QCOMPARE(uint64_t((*i)->value()), uint64_t(100000));
@@ -370,44 +360,44 @@ void Test::Utxo() {
 }
 
 void Test::BroadcastingTx() {
-    _walletA->create();
-    _walletB->create();
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
+    joystream::bitcoin::SPVWallet walletB(TEST_WALLET_PATH_B, TEST_BLOCKTREE_PATH_B, Coin::Network::regtest);
 
-    auto addrA = _walletA->generateReceiveAddress();
-    auto addrB = _walletB->generateReceiveAddress();
+    auto addrA = walletA.generateReceiveAddress();
+    auto addrB = walletB.generateReceiveAddress();
 
     QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
     QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
     QVERIFY(regtest::generate_blocks(1) == 0);
 
-    QSignalSpy synchedA(_walletA, SIGNAL(synched()));
+    QSignalSpy synchedA(&walletA, SIGNAL(synched()));
 
-    _walletA->sync("localhost", 18444);
+    walletA.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QSignalSpy synchedB(_walletB, SIGNAL(synched()));
+    QSignalSpy synchedB(&walletB, SIGNAL(synched()));
 
-    _walletB->sync("localhost", 18444);
+    walletB.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
-    QSignalSpy spy_balance_changedB(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changedA(&walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changedB(&walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
-    _walletA->test_sendToAddress(70000, addrB, 5000);
+    walletA.test_sendToAddress(70000, addrB, 5000);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(70000));
+    QCOMPARE(walletB.unconfirmedBalance(), uint64_t(70000));
 
-    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(25000));
+    QCOMPARE(walletA.unconfirmedBalance(), uint64_t(25000));
 
 }
 
 void Test::UsingOptionalDataInP2SHSpend() {
-    _walletA->create();
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
 
     // script = OP_ADD 2 OP_EQUALVERIFY
     uchar_vector script;
@@ -417,7 +407,7 @@ void Test::UsingOptionalDataInP2SHSpend() {
     uchar_vector data;
     data.push_back(0x51); data.push_back(0x51);
 
-    Coin::PrivateKey key(_walletA->generateKey([&script, &data](const Coin::PublicKey &pubkey){
+    Coin::PrivateKey key(walletA.generateKey([&script, &data](const Coin::PublicKey &pubkey){
         // Push Public Key to script
         script += Coin::opPushData(0x21);
         script += pubkey.toUCharVector();
@@ -432,21 +422,21 @@ void Test::UsingOptionalDataInP2SHSpend() {
     QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
     QVERIFY(regtest::generate_blocks(1) == 0);
 
-    QSignalSpy synchedA(_walletA, SIGNAL(synched()));
+    QSignalSpy synchedA(&walletA, SIGNAL(synched()));
 
-    _walletA->sync("localhost", 18444);
+    walletA.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changedA(&walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
-    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(100000));
+    QCOMPARE(walletA.unconfirmedBalance(), uint64_t(100000));
 
     {
-        auto utxos = _walletA->lockOutputs(0, 0);
+        auto utxos = walletA.lockOutputs(0, 0);
         // Our custom p2sh output should not be recognised as a standard output
         QCOMPARE(uint(utxos.size()), uint(0));
-        _walletA->unlockOutputs(utxos);
+        walletA.unlockOutputs(utxos);
     }
 
     // Selector for our custom p2sh output
@@ -463,45 +453,45 @@ void Test::UsingOptionalDataInP2SHSpend() {
     };
 
     {
-        auto utxos = _walletA->lockOutputs(0, 0, selector);
+        auto utxos = walletA.lockOutputs(0, 0, selector);
         QCOMPARE(uint(utxos.size()), uint(1));
-        _walletA->unlockOutputs(utxos);
+        walletA.unlockOutputs(utxos);
     }
 
-    _walletA->test_sendToAddress(10000, addrA, 5000, selector);
+    walletA.test_sendToAddress(10000, addrA, 5000, selector);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
-    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(95000));
+    QCOMPARE(walletA.unconfirmedBalance(), uint64_t(95000));
 }
 
 void Test::FinanceTxFromMultipleSets() {
-    _walletA->create();
-    _walletB->create();
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
+    joystream::bitcoin::SPVWallet walletB(TEST_WALLET_PATH_B, TEST_BLOCKTREE_PATH_B, Coin::Network::regtest);
 
-    auto addrA = _walletA->generateReceiveAddress();
-    auto addrB = _walletB->generateReceiveAddress();
+    auto addrA = walletA.generateReceiveAddress();
+    auto addrB = walletB.generateReceiveAddress();
 
     QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
     QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
     QVERIFY(regtest::generate_blocks(1) == 0);
 
-    QSignalSpy synchedA(_walletA, SIGNAL(synched()));
+    QSignalSpy synchedA(&walletA, SIGNAL(synched()));
 
-    _walletA->sync("localhost", 18444);
+    walletA.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QSignalSpy synchedB(_walletB, SIGNAL(synched()));
+    QSignalSpy synchedB(&walletB, SIGNAL(synched()));
 
-    _walletB->sync("localhost", 18444);
+    walletB.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
-    QSignalSpy spy_balance_changedB(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changedA(&walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changedB(&walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
-    auto utxoSet1(_walletA->lockOutputs(50000));
-    auto utxoSet2(_walletA->lockOutputs(50000));
+    auto utxoSet1(walletA.lockOutputs(50000));
+    auto utxoSet2(walletA.lockOutputs(50000));
 
     Coin::Transaction tx;
 
@@ -511,24 +501,24 @@ void Test::FinanceTxFromMultipleSets() {
     utxoSet1.finance(tx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, true));
     utxoSet2.finance(tx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, true));
 
-    _walletA->broadcastTx(tx);
+    walletA.broadcastTx(tx);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
-    QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(70000));
+    QCOMPARE(walletB.unconfirmedBalance(), uint64_t(70000));
 
-    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(25000));
+    QCOMPARE(walletA.unconfirmedBalance(), uint64_t(25000));
 }
 
 void Test::RedeemScriptFiltering() {
-    _walletA->create();
+    joystream::bitcoin::SPVWallet walletA(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
 
     // script = OP_ADD 2 OP_EQUALVERIFY
     uchar_vector script;
     script.push_back(0x93); script.push_back(0x52); script.push_back(0x88);
 
-    Coin::PrivateKey key(_walletA->generateKey([&script](const Coin::PublicKey &pubkey){
+    Coin::PrivateKey key(walletA.generateKey([&script](const Coin::PublicKey &pubkey){
         return script;
     }));
 
@@ -537,9 +527,9 @@ void Test::RedeemScriptFiltering() {
     QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
     QVERIFY(regtest::generate_blocks(1) == 0);
 
-    QSignalSpy synchedA(_walletA, SIGNAL(synched()));
+    QSignalSpy synchedA(&walletA, SIGNAL(synched()));
 
-    _walletA->sync("localhost", 18444);
+    walletA.sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
 
@@ -547,7 +537,7 @@ void Test::RedeemScriptFiltering() {
         return nullptr;
     };
 
-    auto outputs1 = _walletA->lockOutputs(10000,0, selector1);
+    auto outputs1 = walletA.lockOutputs(10000,0, selector1);
 
     QCOMPARE(uint(outputs1.size()), uint(0));
 
@@ -561,7 +551,7 @@ void Test::RedeemScriptFiltering() {
         return nullptr;
     };
 
-    auto outputs2 = _walletA->lockOutputs(10000,0, selector2);
+    auto outputs2 = walletA.lockOutputs(10000,0, selector2);
 
     QCOMPARE(uint(outputs2.size()), uint(1));
 

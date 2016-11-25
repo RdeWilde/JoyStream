@@ -27,8 +27,7 @@ class Test : public QObject
     Q_OBJECT
 
 private:
-    joystream::bitcoin::SPVWallet *_walletA;
-    joystream::bitcoin::SPVWallet *_walletB;
+
 
 private slots:
 

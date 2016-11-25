@@ -54,40 +54,6 @@ int main(int argc, char *argv[])
 
     joystream::bitcoin::SPVWallet wallet("test-store.db", "test-blocktree.dat", Coin::Network::testnet3);
 
-    /*
-    // Same seed as blockcypher-wallet test
-    Coin::Seed seed("27891465891239001238391236589203948574567842549230457167823941893047812940123194312489312840923849010124893128409238490101248931");
-
-    // Time when first tx was mined funding our wallet @ block height 716216
-    // https://live.blockcypher.com/btc-testnet/tx/4f41e57c02d18b9bf65bd218439ac8a620df119fa4b964a3135f31ec00a3d176/
-    // * When backing up a wallet we should make sure to preserve the created date as well as the seed
-    QDateTime created = QDateTime::fromString("2016-02-19T07:52:31Z", Qt::ISODate);
-
-    if(!QFile("test-store.db").exists()) {
-        std::cout << "creating wallet...\n";
-        wallet.create(seed, created.toTime_t());
-        wallet.getReceiveAddress();
-        wallet.getReceiveAddress();
-        wallet.getReceiveAddress();
-    } else {
-        std::cout << "openning wallet...\n";
-        wallet.open();
-    }
-    */
-
-    if(!QFile("test-store.db").exists()) {
-        std::cout << "creating wallet...\n";
-        wallet.create();
-    } else {
-        std::cout << "openning wallet...\n";
-        wallet.open();
-    }
-
-    if(!wallet.isInitialized()) {
-        std::cerr << "Failed to open the wallet.\n";
-        return -1;
-    }
-
     std::cout << "Wallet Seed Words:\n" << wallet.getSeedWords() << std::endl;
 
     auto recvAddresses = wallet.listReceiveAddresses();

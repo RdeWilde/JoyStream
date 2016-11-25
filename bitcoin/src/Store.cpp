@@ -95,116 +95,89 @@ const Store::UnspentOutputGenerator Store::standardOutputSelectors = Store::stan
 const Store::UnspentOutputGenerator Store::standardP2PKHOutputSelector = Store::standardP2PKHOutputSelectorFunction;
 const Store::UnspentOutputGenerator Store::standardP2SHOutputSelector = Store::standardP2SHOutputSelectorFunction;
 
-// open existing store
-// used Store::connected() to check if store was opened successfully
-Store::Store(std::string file, Coin::Network network) {
-    open(file, network);
+// open existing store, or create new one if db file doesn't exist
+Store::Store(const std::string& file, Coin::Network network, const Coin::Entropy* entropy, uint32_t timestamp)
+    : _network(network),
+      _coin_type(network == Coin::Network::mainnet ? BIP44_COIN_TYPE_BITCOIN : BIP44_COIN_TYPE_BITCOIN_TESTNET),
+      _timestamp(timestamp),
+      _locked(false)
+{
+    if(boost::filesystem::exists(file)) {
+        open(file);
+    } else {
+        create(file, entropy);
+    }
 }
 
 Store::~Store(){
-    close();
+    _entropy.clear();
 }
 
-// open existing store, return true if opened successfully
-bool Store::open(std::string file, Coin::Network network) {
+void Store::open(const std::string& file) {
+    if(_db)
+        throw OperationNotAllowed();
 
-    close();
+    _db = std::unique_ptr<odb::database>(new odb::sqlite::database(file.c_str(), SQLITE_OPEN_READWRITE));
 
-    // attempt to open existing database
-    try {
-        std::lock_guard<std::mutex> lock(_storeMutex);
+    odb::schema_version v(_db->schema_version());
+    odb::schema_version bv(odb::schema_catalog::base_version(*_db));
+    odb::schema_version cv(odb::schema_catalog::current_version(*_db));
 
-        _db = std::unique_ptr<odb::database>(new odb::sqlite::database(file.c_str(), SQLITE_OPEN_READWRITE));
+    // database schema is too old, an cannot be migrated
+    // user should either use an older version of joystream
+    // or regenerate wallet from seed
+    if (v < bv)
+        throw std::runtime_error("Store Error: Database no longer supported");
 
-        odb::schema_version v(_db->schema_version());
-        odb::schema_version bv(odb::schema_catalog::base_version(*_db));
-        odb::schema_version cv(odb::schema_catalog::current_version(*_db));
+    // database schema is newer than application supports
+    // updating version of joystream should work
+    if (v > cv)
+        throw std::runtime_error("Store Error: Database is from newer version of joystream");
 
-        // database schema is too old, an cannot be migrated
-        // user should either use an older version of joystream
-        // or regenerate wallet from seed
-        if (v < bv) {
-            std::cerr << "Store Error: Database no longer supported\n";
-            close();
-            return false;
-        }
-
-        // database schema is newer than application supports
-        // updating version of joystream should work
-        if (v > cv) {
-            std::cerr << "Store Error: Database is from newer version of joystream\n";
-            close();
-            return false;
-        }
-
-        //migrate the database
-        if (v < cv) {
-            std::cout << "Store: Migrating database...\n";
-            odb::transaction t(_db->begin());
-            odb::schema_catalog::migrate(*_db);
-            t.commit();
-
-            // run any other custom code following a schema change..
-        }
-
-        //load metadata
+    // Migrate the database
+    if (v < cv) {
+        std::cout << "Store: Migrating database...\n";
         odb::transaction t(_db->begin());
-        std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
+        odb::schema_catalog::migrate(*_db);
         t.commit();
 
-        // Make sure the network the client is attempting to use matches the store's network
-        if(network != metadata->network()){
-            throw std::runtime_error("Network Mismatch");
-        }
-
-        _network = network;
-
-        _coin_type = network == Coin::Network::mainnet ? BIP44_COIN_TYPE_BITCOIN : BIP44_COIN_TYPE_BITCOIN_TESTNET;
-
-        _timestamp = metadata->created();
-
-        _accountPubKeychain = Coin::HDKeychain(uchar_vector(metadata->xpublicKey()));
-
-        if(metadata->encrypted()) {
-            _locked = true;
-            std::cerr << "Store opened in locked state\n";
-        }else {
-            _locked = false;
-            _entropy = Coin::Entropy(metadata->entropy());
-            _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
-        }
-
-        return true;
-
-    } catch (odb::exception &e) {
-        // failed to open the database file
-        std::cerr << e.what() << std::endl;
-        close();
-    } catch (std::runtime_error &e) {
-        std::cerr << "Store::open() error: " << e.what() << std::endl;
-        close();
+        // run any other custom code following a schema change..
     }
 
-    return false;
+    // Load metadata
+    odb::transaction t(_db->begin());
+    std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
+    t.commit();
+
+    // Make sure the network the client is attempting to use matches the store's network
+    if(_network != metadata->network())
+        throw std::runtime_error("Store Error: Network mismatch");
+
+    _timestamp = metadata->created();
+
+    _accountPubKeychain = Coin::HDKeychain(uchar_vector(metadata->xpublicKey()));
+
+    if(metadata->encrypted()) {
+        _locked = true;
+    } else {
+        _entropy = Coin::Entropy(metadata->entropy());
+        _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
+    }
 }
 
-bool Store::create(std::string file, Coin::Network network) {
-    return create(file, network, Coin::Entropy::generate(), std::time(nullptr));
-}
+void Store::create(const std::string& file, const Coin::Entropy* entropy) {
+    if(_db)
+        throw OperationNotAllowed();
 
-bool Store::create(std::string file, Coin::Network network, const Coin::Entropy & entropy, uint32_t timestamp) {
+    // Do not overwrite existing database file
+    bool dbFileExists = boost::filesystem::exists(file);
 
-    close();
+    assert(!dbFileExists);
+
+    if(dbFileExists)
+        throw std::runtime_error("Cannot create database over existing file");
 
     try {
-        std::lock_guard<std::mutex> lock(_storeMutex);
-
-        //don't overwrite existing file
-        if(boost::filesystem::exists(file)) {
-            std::cerr << "Cannot create database over existing file.\n";
-            return false;
-        }
-
         _db = std::unique_ptr<odb::database>(new odb::sqlite::database(file.c_str(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 
         // Create the database schema. Due to bugs in SQLite foreign key
@@ -219,33 +192,24 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
         odb::schema_catalog::create_schema (*_db);
 
         //initialise metadata
-        _network = network;
-        _coin_type = _network == Coin::Network::mainnet ? BIP44_COIN_TYPE_BITCOIN : BIP44_COIN_TYPE_BITCOIN_TESTNET;
-        _entropy = entropy;
+        _entropy = entropy == nullptr ? Coin::Entropy::generate() : *entropy;
         _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
         _accountPubKeychain = _accountPrivKeychain.getPublic();
-        _timestamp = timestamp;
-        detail::store::Metadata metadata(_entropy.getHex(), uchar_vector(_accountPubKeychain.extkey()).getHex(), timestamp, network);
-        _timestamp = timestamp;
-        _locked = false;
+
+        detail::store::Metadata metadata(_entropy.getHex(), uchar_vector(_accountPubKeychain.extkey()).getHex(), _timestamp, _network);
         _db->persist(metadata);
 
         t.commit ();
         c->execute ("PRAGMA foreign_keys=ON");
-        return true;
 
     } catch (odb::exception &e) {
-        // failed to initialise the database
-        std::cerr << "Store::create() error: " << e.what() << std::endl;
-        close();
-
         // cleanup
         if(boost::filesystem::exists(file)) {
             boost::filesystem::remove(file);
         }
-    }
 
-    return false;
+        throw;
+    }
 }
 
 std::string Store::getSeedWords() const
@@ -369,23 +333,8 @@ void Store::unlock(std::string passphrase) {
     _locked = false;
 }
 
-bool Store::connected() const {
-    return _db != nullptr;
-}
-
-void Store::close() {
-    std::lock_guard<std::mutex> lock(_storeMutex);
-
-    if(_db) _db.reset();
-    _entropy.clear();
-}
-
 // Generates a new key - P2SH
 Coin::PrivateKey Store::generatePrivateKey(const RedeemScriptGenerator & scriptGenerator) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     if(_locked) {
         throw OperationNotAllowed();
     }
@@ -403,10 +352,6 @@ Coin::PrivateKey Store::generatePrivateKey(const RedeemScriptGenerator & scriptG
 }
 
 std::vector<Coin::PrivateKey> Store::generatePrivateKeys(uint32_t numKeys, const Store::MultiRedeemScriptGenerator & multiScriptGenerator) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     if(_locked) {
         throw OperationNotAllowed();
     }
@@ -443,10 +388,6 @@ std::vector<Coin::KeyPair> Store::generateKeyPairs(uint32_t numKeys, const Store
 
 // Generates a new key - P2PKH
 Coin::PrivateKey Store::generatePrivateKey(KeychainType type) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     if(_locked) {
         throw OperationNotAllowed();
     }
@@ -465,9 +406,6 @@ Coin::PrivateKey Store::generatePrivateKey(KeychainType type) {
 
 // Generates a new key - P2PKH
 Coin::PublicKey Store::generatePublicKey(KeychainType type) {
-    if(!connected()) {
-        throw NotConnected();
-    }
 
     std::lock_guard<std::mutex> lock(_storeMutex);
 
@@ -482,9 +420,6 @@ Coin::PublicKey Store::generatePublicKey(KeychainType type) {
 }
 
 std::vector<Coin::PrivateKey> Store::generatePrivateKeys(uint32_t numKeys, KeychainType chainType) {
-    if(!connected()) {
-        throw NotConnected();
-    }
 
     if(_locked) {
         throw OperationNotAllowed();
@@ -558,9 +493,6 @@ Coin::PublicKey Store::derivePublicKey(KeychainType chainType, uint32_t index) c
 }
 
 std::vector<Coin::PublicKey> Store::listPublicKeys(KeychainType chainType) const {
-    if(!connected()) {
-        throw NotConnected();
-    }
 
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
@@ -579,9 +511,6 @@ std::vector<Coin::PublicKey> Store::listPublicKeys(KeychainType chainType) const
 // Needed to update bloom filter to detect P2SH outputs and spends
 // We can mark p2sh addresses spent when joystream paychan is settled (keeping bloom filter to minimal size)
 std::vector<uchar_vector> Store::listRedeemScripts() const {
-    if(!connected()) {
-        throw NotConnected();
-    }
 
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
@@ -650,10 +579,6 @@ bool Store::addressExists(const Coin::P2SHAddress & p2shaddress) {
 */
 
 bool Store::transactionExists(const Coin::TransactionId & txid) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     odb::transaction t(_db->begin());
 
     odb::result<detail::store::Transaction> r(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txid.toHex().toStdString()));
@@ -661,10 +586,6 @@ bool Store::transactionExists(const Coin::TransactionId & txid) {
 }
 
 void Store::addTransaction(const Coin::Transaction & cointx) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -677,10 +598,6 @@ void Store::addTransaction(const Coin::Transaction & cointx) {
 }
 
 void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -710,9 +627,6 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
 }
 
 void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
-    if(!connected()) {
-        throw NotConnected();
-    }
 
     std::lock_guard<std::mutex> lock(_storeMutex);
 
@@ -793,10 +707,6 @@ void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
 }
 
 void Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock &chainmerkleblock) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -830,10 +740,6 @@ void Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock 
 
 /*
 bool Store::loadKey(const Coin::P2SHAddress & p2shaddress, Coin::PrivateKey & sk) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     bool found = false;
     typedef odb::query<detail::store::Address> query;
     odb::transaction t(_db->begin());
@@ -869,10 +775,6 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, const UnspentOutputG
 }
 
 std::vector<Store::StoreControlledOutput> Store::getControlledOutputs(int32_t confirmations) const {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     if(_locked) {
         throw OperationNotAllowed();
     }
@@ -924,10 +826,6 @@ std::vector<Store::StoreControlledOutput> Store::getControlledOutputsByType(Keyc
 }
 
 uint64_t Store::getWalletBalance(int32_t confirmations) const {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     auto main_chain_height = getBestHeaderHeight();
 
     if(confirmations > 0  && main_chain_height == 0) {
@@ -951,10 +849,6 @@ uint64_t Store::getWalletBalance(int32_t confirmations) const {
 }
 
 Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerator, uint32_t index) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     if(_locked) {
         throw OperationNotAllowed();
     }
@@ -976,10 +870,6 @@ Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerato
 }
 
 Coin::PrivateKey Store::createNewPrivateKey(KeychainType chainType, uint32_t index) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     if(_locked) {
         throw OperationNotAllowed();
     }
@@ -998,10 +888,6 @@ Coin::PrivateKey Store::createNewPrivateKey(KeychainType chainType, uint32_t ind
 }
 
 Coin::PublicKey Store::createNewPublicKey(KeychainType chainType, uint32_t index) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     Coin::PublicKey pk(derivePublicKey(chainType, index));
 
     // persist a new key
@@ -1016,11 +902,6 @@ Coin::PublicKey Store::createNewPublicKey(KeychainType chainType, uint32_t index
 }
 
 uint32_t Store::getNextKeyIndex(KeychainType chainType) {
-
-    if(!connected()) {
-        throw NotConnected();
-    }
-
     typedef odb::query<detail::store::Key> query;
 
     auto stat(_db->query_value<detail::store::key_stat_t>(query::path.coin_type == _coin_type && query::path.change == (uint32_t)chainType));
