@@ -33,6 +33,4 @@ void CompletionQueueDispatcher::run(grpc::ServerCompletionQueue* cq)
     std::cout << "In the loop" << std::endl;
     QMetaObject::invokeMethod(call, "eventCompleted", Qt::QueuedConnection, Q_ARG(bool, fok));
   }
-
-  std::cout << "Out of the loop" << std::endl;
 }

@@ -23,7 +23,6 @@ void ServerImpl::Shutdown()
     kit_->shutdown([this](){
         std::cout << "Stopping..."<< std::endl;
         this->app_->quit();
-        //delete this;
     });
 
 }
@@ -51,6 +50,7 @@ void ServerImpl::Run()
     new RPCListTorrents(&daemonService_, cq_.get(), kit_->node());
     new RPCPauseTorrent(&daemonService_, cq_.get(), kit_->node());
     new RPCStartTorrent(&daemonService_, cq_.get(), kit_->node());
+    new RPCSuscribeEvents(&daemonService_, cq_.get(), kit_->node());
     new RPCBuyTorrent(&daemonService_, cq_.get(), kit_);
 
     // Initiate Wallet Service methods

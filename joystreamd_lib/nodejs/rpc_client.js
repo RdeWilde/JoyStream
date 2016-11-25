@@ -80,3 +80,19 @@ rpc.suscribeStatus = function(data, done ) {
   	data(err);
   });
 }
+
+rpc.suscribeEvents = function(data, done ) {
+  var call = clientDaemon.suscribeEvents();
+
+  call.on('data', function(WalletStatus){
+    data(null, WalletStatus);
+  });
+
+  call.on('end',function(){
+    done();
+  });
+
+  call.on('error', function(err){
+  	data(err);
+  });
+}

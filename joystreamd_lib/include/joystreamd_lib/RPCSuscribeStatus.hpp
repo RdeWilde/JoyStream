@@ -9,7 +9,6 @@
 class RPCSuscribeStatus : public RPCRequestStreamServer<joystream::daemon::rpc::WalletStatus, joystream::daemon::rpc::Void, joystream::daemon::rpc::Wallet::AsyncService> {
     public:
         RPCSuscribeStatus(joystream::daemon::rpc::Wallet::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::bitcoin::SPVWallet* wallet);
-        void writeToClient(const joystream::daemon::rpc::WalletStatus response);
         void process();
 
     public slots:

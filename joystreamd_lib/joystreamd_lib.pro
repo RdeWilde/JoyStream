@@ -39,7 +39,8 @@ SOURCES += \
     src/RPCUnconfirmedBalance.cpp \
     src/RPCStatus.cpp \
     src/RPCSuscribeStatus.cpp \
-    src/RPCBuyTorrent.cpp
+    src/RPCBuyTorrent.cpp \
+    src/RPCSuscribeEvents.cpp
 
 HEADERS += \
     include/joystreamd_lib/RPCRequestNormal.hpp \
@@ -60,7 +61,8 @@ HEADERS += \
     include/joystreamd_lib/RPCUnconfirmedBalance.hpp \
     include/joystreamd_lib/RPCStatus.hpp \
     include/joystreamd_lib/RPCSuscribeStatus.hpp \
-    include/joystreamd_lib/RPCBuyTorrent.hpp
+    include/joystreamd_lib/RPCBuyTorrent.hpp \
+    include/joystreamd_lib/RPCSuscribeEvents.hpp
 
 # gRPC and protocol buffers libs
 LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf
