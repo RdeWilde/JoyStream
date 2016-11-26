@@ -140,7 +140,7 @@ private:
     joystream::appkit::Settings _appKitSettings;
     joystream::appkit::DataDirectory _dataDir;
     joystream::appkit::AppKit* _kit;
-    Coin::Network _network;
+    const Coin::Network _network;
     bool _shuttingDown;
 
 };

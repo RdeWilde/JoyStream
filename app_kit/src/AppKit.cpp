@@ -21,59 +21,39 @@
 #include <QJsonArray>
 
 #include <QDir>
+#include <memory>
 
 namespace joystream {
 namespace appkit {
-
-bitcoin::SPVWallet * AppKit::getWallet(const std::string &storeFile, const std::string blockTreeFile, Coin::Network network) {
-
-    auto wallet = new bitcoin::SPVWallet(storeFile, blockTreeFile, network);
-
-    std::cout << "Looking for wallet file " << storeFile << std::endl;
-
-    if(!QFile::exists(QString::fromStdString(storeFile))){
-        std::cout << "Wallet not found.\nCreating a new wallet..." << std::endl;
-        wallet->create();
-    } else {
-        std::cout << "Wallet found, opening..." << std::endl;
-        wallet->open();
-    }
-
-    return wallet;
-}
 
 AppKit* AppKit::create(const std::string &walletFilePath,
                        const std::string &walletBlockTreeFilePath,
                        Coin::Network network, const Settings &settings)
 {
-
-    bitcoin::SPVWallet* wallet = nullptr;
-    core::Node* node = nullptr;
-    TransactionSendBuffer *txSendBuffer = nullptr;
-
-    wallet = getWallet(walletFilePath, walletBlockTreeFilePath, network);
+    std::unique_ptr<bitcoin::SPVWallet> wallet(new bitcoin::SPVWallet(walletFilePath, walletBlockTreeFilePath, network));
 
     if(settings.autoStartWalletSync)
         wallet->loadBlockTree();
 
-    txSendBuffer = new TransactionSendBuffer(wallet);
+    std::unique_ptr<TransactionSendBuffer> txSendBuffer(new TransactionSendBuffer(wallet.get()));
 
-    node = core::Node::create([txSendBuffer](const Coin::Transaction &tx){
-        txSendBuffer->insert(tx);
-    });
+    auto txSendBufferPtr = txSendBuffer.get();
+    std::unique_ptr<core::Node> node(core::Node::create([txSendBufferPtr](const Coin::Transaction &tx){
+        txSendBufferPtr->insert(tx);
+    }));
 
-    return new AppKit(node, wallet, txSendBuffer, settings);
+    return new AppKit(settings, wallet, txSendBuffer, node);
 }
 
-AppKit::AppKit(core::Node* node,
-               bitcoin::SPVWallet* wallet,
-               TransactionSendBuffer *txSendBuffer,
-               const Settings &settings)
-    : _node(node),
-      _wallet(wallet),
-      _transactionSendBuffer(txSendBuffer),
-      _settings(settings),
-      _trySyncWallet(settings.autoStartWalletSync) {
+AppKit::AppKit(const Settings &settings,
+               std::unique_ptr<bitcoin::SPVWallet>& wallet,
+               std::unique_ptr<TransactionSendBuffer>& txSendBuffer,
+               std::unique_ptr<core::Node>& node)
+    : _settings(settings),
+      _trySyncWallet(settings.autoStartWalletSync),
+      _wallet(std::move(wallet)),
+      _transactionSendBuffer(std::move(txSendBuffer)),
+      _node(std::move(node)) {
 
     QObject::connect(&_timer, &QTimer::timeout, [this](){
         _node->updateStatus();
@@ -162,6 +142,8 @@ void AppKit::buyTorrent(int64_t contractFundingAmount,
     if(libtorrent::torrent_status::state_t::downloading != torrent->state()) {
         throw std::runtime_error("torrent must be in downloading state to buy");
     }
+
+    std::cout << "trying to lock contractFundingAmount: " << contractFundingAmount << std::endl;
 
     auto outputs = _wallet->lockOutputs(contractFundingAmount, 0);
 

@@ -11,9 +11,7 @@
 #include <functional>
 #include <QString>
 #include <QTimer>
-#include <QLockFile>
 
-#include <app_kit/DataDirectory.hpp>
 #include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
 
@@ -92,21 +90,26 @@ public:
 
 private:
 
-    static bitcoin::SPVWallet* getWallet(const std::string &storeFile, const std::string blockTreeFile, Coin::Network network);
+    // Do not allow copying
+    AppKit(const AppKit &);
+    AppKit& operator=(const AppKit&);
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendBuffer*, const Settings &settings);
-
-    std::unique_ptr<core::Node> _node;
-
-    std::unique_ptr<bitcoin::SPVWallet> _wallet;
-
-    QTimer _timer;
-
-    std::unique_ptr<TransactionSendBuffer> _transactionSendBuffer;
+    AppKit(const Settings&,
+           std::unique_ptr<bitcoin::SPVWallet>&,
+           std::unique_ptr<TransactionSendBuffer>&,
+           std::unique_ptr<core::Node>&);
 
     Settings _settings;
 
     bool _trySyncWallet;
+
+    std::unique_ptr<bitcoin::SPVWallet> _wallet;
+
+    std::unique_ptr<TransactionSendBuffer> _transactionSendBuffer;
+
+    std::unique_ptr<core::Node> _node;
+
+    QTimer _timer;
 
     void buyTorrent(core::TorrentPlugin *,
                     const protocol_session::BuyingPolicy &,
