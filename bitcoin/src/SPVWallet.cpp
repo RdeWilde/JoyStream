@@ -35,14 +35,14 @@ const CoinQ::CoinParams getCoinParamsForNetwork(Coin::Network network) {
 
 SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network, const Coin::Entropy* entropy, uint32_t timestamp)
     :
-  _store(storePath, network, entropy, timestamp),
   _network(network),
-  _networkSync(getCoinParamsForNetwork(network), true),
   _walletStatus(wallet_status_t::OFFLINE),
   _blockTreeLoaded(false),
   _blockTreeFile(blockTreeFile),
   _unconfirmedBalance(0),
-  _confirmedBalance(0)
+  _confirmedBalance(0),
+  _store(storePath, network, entropy, timestamp),
+  _networkSync(getCoinParamsForNetwork(network), true)
 {
     // == Important == Make sure to catch all exceptions in callbacks
     // failing to do so might cause undefined behaviour in netsync

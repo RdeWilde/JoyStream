@@ -150,20 +150,22 @@ public slots:
 private:
     friend class ::Test;
 
-    Store _store;
+    // Do not allow copying
+    SPVWallet(const Store &);
+    SPVWallet& operator=(const SPVWallet&);
 
+    mutable std::mutex _utxoMutex;
     const Coin::Network _network;
-
-    CoinQ::Network::NetworkSync _networkSync;
     wallet_status_t _walletStatus;
-
-    void updateStatus(wallet_status_t status);
-
     bool _blockTreeLoaded;
     std::string _blockTreeFile;
-
     uint64_t _confirmedBalance;
     uint64_t _unconfirmedBalance;
+    std::set<Coin::typesafeOutPoint> _lockedOutpoints;
+    Store _store;
+    CoinQ::Network::NetworkSync _networkSync;
+
+    void updateStatus(wallet_status_t status);
 
     // NetSync event handlers
     void onBlockTreeError(const std::string &error, int code);
@@ -188,9 +190,6 @@ private:
     bool createsWalletOutput(const Coin::TxOut &) const;
 
     void recalculateBalance();
-
-    mutable std::mutex _utxoMutex;
-    std::set<Coin::typesafeOutPoint> _lockedOutpoints;
     
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
