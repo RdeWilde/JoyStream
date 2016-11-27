@@ -7,6 +7,7 @@ HEADERS += \
     include/MockPeer.hpp \
     include/MockTorrent.hpp \
     include/MockSession.hpp \
+    include/MockAlertManager.hpp \
 
 SOURCES += src/main.cpp
 
