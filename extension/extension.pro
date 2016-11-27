@@ -28,7 +28,8 @@ HEADERS += \
     include/extension/Alert.hpp \
     include/extension/Exception.hpp \
     include/extension/detail.hpp \
-    include/extension/Callbacks.hpp
+    include/extension/Callbacks.hpp \
+    include/extension/PieceAssignorInterface.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
