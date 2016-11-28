@@ -7,38 +7,37 @@ AlertManager::AlertManager(int queue_limit /*, boost::uint32_t alert_mask = libt
 {
     //libtorrent::alert_manager altMng(queue_limit);
     libtorrent::alert_manager *altMng = new libtorrent::alert_manager(queue_limit);
-    _alertManager = *altMng;
+    _alertManager = altMng;
 }
 
 bool AlertManager::pending() const
 {
-    return _alertManager.pending();
+    return _alertManager->pending();
 }
 
 int AlertManager::numQueuedResume() const
 {
-    return _alertManager.num_queued_resume();
+    return _alertManager->num_queued_resume();
 }
 
 void AlertManager::getAll(std::vector<libtorrent::alert*>& alerts, int& num_resume)
 {
-    _alertManager.get_all(alerts, num_resume);
+    _alertManager->get_all(alerts, num_resume);
 }
 
-libtorrent::alert_manager AlertManager::native_handle() const
+libtorrent::alert_manager* AlertManager::native_handle() const
 {
-    // FIXME
     return _alertManager;
 }
 
 void AlertManager::emplace_alert(extension::Plugin *pl)
 {
-    _alertManager.emplace_alert<extension::alert::PluginStatus>(pl->status());
+    _alertManager->emplace_alert<extension::alert::PluginStatus>(pl->status());
 }
 
 void AlertManager::emplace_alert(extension::alert::LoadedCallBack &c)
 {
-    _alertManager.emplace_alert<extension::alert::RequestResult>(c);
+    _alertManager->emplace_alert<extension::alert::RequestResult>(c);
 }
 
 /*

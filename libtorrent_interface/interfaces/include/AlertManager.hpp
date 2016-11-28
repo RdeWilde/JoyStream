@@ -40,7 +40,7 @@ public:
     virtual int  numQueuedResume() const;
     virtual void getAll(std::vector<libtorrent::alert*>& alerts, int& num_resume);
 
-    virtual libtorrent::alert_manager native_handle() const;
+    virtual libtorrent::alert_manager* native_handle() const;
 
     /*
      * templated methods are not directly mockable by gmock.
@@ -79,7 +79,7 @@ public:
      */
 
 private:
-    libtorrent::alert_manager _alertManager;
+    libtorrent::alert_manager *_alertManager;
 };
 
 }

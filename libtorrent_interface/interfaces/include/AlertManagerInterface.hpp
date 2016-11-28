@@ -33,7 +33,7 @@ public:
     virtual int numQueuedResume() const = 0;
     virtual void getAll(std::vector<libtorrent::alert*>& alerts, int& num_resume) = 0;
 
-    virtual libtorrent::alert_manager native_handle() const = 0;
+    virtual libtorrent::alert_manager* native_handle() const = 0;
 
     virtual void emplace_alert(extension::Plugin *pl) = 0;
     virtual void emplace_alert(extension::alert::LoadedCallBack &c) = 0;
