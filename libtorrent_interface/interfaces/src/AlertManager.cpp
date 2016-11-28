@@ -7,7 +7,7 @@ AlertManager::AlertManager(int queue_limit /*, boost::uint32_t alert_mask = libt
 {
     //libtorrent::alert_manager altMng(queue_limit);
     libtorrent::alert_manager *altMng = new libtorrent::alert_manager(queue_limit);
-    _alertManager = altMng;
+    _alertManager = *altMng;
 }
 
 bool AlertManager::pending() const
