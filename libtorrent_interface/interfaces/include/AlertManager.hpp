@@ -20,36 +20,23 @@ namespace extension {
     namespace alert {
         struct PluginStatus;
         struct RequestResult;
+        struct AnchorAnnounced;
+
         typedef std::function<void()> LoadedCallBack;
     }
-    class Plugin;
+    namespace status {
+        struct Plugin;
+    }
 }
 
 namespace libtorrent_interface {
 
 class AlertManager : public AlertManagerInterface {
 public:
-    AlertManager(
-        int queue_limit
-        //boost::uint32_t alert_mask = libtorrent::alert::error_notification
-    );
-
+    AlertManager(int queue_limit);
     ~AlertManager() {}
 
-    virtual bool pending() const;
-    virtual int  numQueuedResume() const;
-    virtual void getAll(std::vector<libtorrent::alert*>& alerts, int& num_resume);
-
     virtual libtorrent::alert_manager* native_handle() const;
-
-    /*
-     * templated methods are not directly mockable by gmock.
-     * A possible workaround this problem is to write a wrapper
-     * method for the templated method and mock the wrapper instead.
-     */
-    // NOTE: shouldPost() method is not required by extension at this
-    //       stage and hence not worth working around.
-    //template<class T> bool shouldPost() const;
 
     /*
      * It is not directly possible to mock variadic methods
@@ -62,21 +49,13 @@ public:
      * Overloaded methods for the variadic template
      * emplace_alert() method.
      */
-    virtual void emplace_alert(extension::Plugin *pl);
-    virtual void emplace_alert(extension::alert::LoadedCallBack &c);
-
-    /*
-     * TODO: Setup Coin libs and includes and
-     *       implement the below overloaded call.
-    void emplace_alert(
-        libtorrent::torrent_handle h,
-        libtorrent::tcp::endpoint &endPoint,
-        quint64 value,
-        const Coin::typesafeOutPoint &anchor,
-        const Coin::PublicKey &contractPk,
-        const Coin::PubKeyHash &finalPkHash
+    virtual void plugin_emplace_alert(extension::status::Plugin status);
+    virtual void request_emplace_alert(extension::alert::LoadedCallBack &c);
+    void anchorAnnounced_emplace_alert(
+        libtorrent::torrent_handle h, libtorrent::tcp::endpoint &endPoint,
+        quint64 value, const Coin::typesafeOutPoint &anchor,
+        const Coin::PublicKey &contractPk, const Coin::PubKeyHash &finalPkHash
     );
-     */
 
 private:
     libtorrent::alert_manager *_alertManager;
