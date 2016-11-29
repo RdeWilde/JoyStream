@@ -37,7 +37,6 @@
 #include <common/PubKeyHash.hpp>
 #include <common/PublicKey.hpp>
 #include <common/PublicKeyCompression.hpp>
-#include <common/RawCompressedPublicKey.hpp>
 #include <common/RedeemScriptHash.hpp>
 #include <common/Script.hpp>
 #include <common/Seed.hpp>
