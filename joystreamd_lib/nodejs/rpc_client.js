@@ -1,5 +1,6 @@
 var PROTO_PATH = __dirname + '/../protos/daemon.proto';
 
+var fs = require('fs');
 var grpc = require('grpc');
 
 var rpc = grpc.load(PROTO_PATH).joystream.daemon.rpc;
@@ -31,6 +32,11 @@ rpc.listTorrents = function(data, done ) {
 
 rpc.addTorrent = function(torrent, callback ) {
   clientDaemon.addTorrent(torrent, callback);
+}
+
+rpc.addTorrentWithTorrentFile = function(path, callback ) {
+  var buffer = fs.readFileSync(path);
+  clientDaemon.addTorrentWithTorrentFile({data: buffer}, callback);
 }
 
 rpc.removeTorrent = function(torrent, callback ) {

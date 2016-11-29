@@ -7,6 +7,8 @@ var torrent = {
 	'name': 'Sintel'
 }
 
+var torrentFilePath = 'sintel.torrent'
+
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 
@@ -62,7 +64,23 @@ app.listen(3000, function () {
 		console.log('Call Terminated')
 	})*/
 
-	rpc.addTorrent(torrent, function(err, torrentAdded) {
+	rpc.addTorrentWithTorrentFile(torrentFilePath, function(err, data) {
+		if (err) {
+			console.log(err)
+		} else {
+			console.log('Torrent added')
+
+			rpc.buyTorrent(torrent, function(err, answer) {
+					if (err) {
+						console.log(err)
+					} else {
+						console.log('We are buying the torrent')
+					}
+			})
+		}
+	})
+
+	/*rpc.addTorrent(torrent, function(err, torrentAdded) {
 		if (err) {
 			console.log(err);
 		} else {
@@ -76,7 +94,15 @@ app.listen(3000, function () {
 				}
 			})
 
-			/*rpc.listTorrents(function(err, torrentRecieved) {
+			rpc.buyTorrent(torrentAdded, function(err, answer) {
+					if (err) {
+						console.log(err)
+					} else {
+						console.log('We are buying the torrent')
+					}
+			})
+
+			rpc.listTorrents(function(err, torrentRecieved) {
 				if (err) {
 					console.log(err)
 				} else {
@@ -102,14 +128,6 @@ app.listen(3000, function () {
 					}
 				});
 
-				rpc.buyTorrent(torrentAdded, function(err, answer) {
-						if (err) {
-							console.log(err)
-						} else {
-							console.log('We are buying the torrent')
-						}
-					})
-
 				rpc.startTorrent(torrentAdded, function(err, answer) {
 					if (err) {
 						console.log(err)
@@ -125,7 +143,7 @@ app.listen(3000, function () {
 						})
 					}
 				})
-			})*/
+			})
 		}
-	})
+	})*/
 })

@@ -43,6 +43,7 @@ service Daemon {
   rpc SuscribeEvents(Void) returns (stream Event) {}
 
   rpc AddTorrent(Torrent) returns (Torrent) {}
+  rpc AddTorrentWithTorrentFile(TorrentFile) returns (Void) {}
   rpc BuyTorrent(Torrent) returns (Void) {}
   rpc RemoveTorrent(Torrent) returns (Void) {}
   rpc ListTorrents(Void) returns (stream Torrent) {}
@@ -61,6 +62,10 @@ message Torrent {
   string name = 2;
 }
 
+message TorrentFile {
+  bytes data = 1;
+}
+
 message TorrentState {
 
   enum State {
@@ -71,7 +76,7 @@ message TorrentState {
     SEEDING = 4;
     ALLOCATING = 5;
   }
-  
+
   State state = 1;
 }
 

@@ -16,9 +16,11 @@ void RPCRequest::eventCompleted(bool fok)
         }
         if (status_ == READY) {
             status_ = PROCESSING;
+            std::cout << "PROCESSING" << std::endl;
             process();
         } else {
             if (status_ == FINISHED) {
+                std::cout << "DELETE" << std::endl;
                 delete this;
             }
         }

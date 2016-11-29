@@ -6,6 +6,18 @@ RPCBuyTorrent::RPCBuyTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
     service_->RequestBuyTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
+void RPCBuyTorrent::checkStatus(libtorrent::torrent_status::state_t state, float progress) {
+    std::cout << state << std::endl;
+    joystream::daemon::rpc::Void response;
+
+    std::cout << "STATUS UPDATED" << std::endl;
+
+    if (state == libtorrent::torrent_status::state_t::downloading) {
+        std::cout << "We can buy people !" << std::endl;
+        this->finish(response, true);
+    }
+}
+
 void RPCBuyTorrent::process()
 {
     // Pop up a new instance for concurency
@@ -31,19 +43,33 @@ void RPCBuyTorrent::process()
 
     joystream::core::Torrent* torrent;
 
+    std::cout << "We are looking for the torrent in the node" << std::endl;
+
     torrent = appKit_->node()->torrent(joystream::appkit::util::sha1_hash_from_hex_string(request_.infohash().c_str()));
 
     if (torrent != nullptr) {
         // We have found the torrent that we want to buy in the Node
-        try {
-            appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [](const std::exception_ptr &e){
-                std::cout << "We are buying the torrent" << std::endl;
-            });
-        } catch(std::runtime_error) {
-            this->finish(response, false);
+        libtorrent::torrent_status::state_t torrentState = torrent->state();
+        std::cout << torrentState << std::endl;
+
+        if (torrentState == libtorrent::torrent_status::state_t::downloading) {
+            try {
+                appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [](const std::exception_ptr &e){
+                    std::cout << "We are buying the torrent" << std::endl;
+                });
+            } catch(const std::runtime_error& error) {
+                std::cout << error.what() << std::endl;
+                this->finish(response, false);
+            }
+        } else {
+            std::cout << "Need to wait for it to be on downloading state" << std::endl;
+            QObject::connect(torrent, &joystream::core::Torrent::stateChanged, this, &RPCBuyTorrent::checkStatus);
         }
+
     } else {
         // Torrent not found in Node return error
         this->finish(response, false);
+        return;
     }
+
 }
