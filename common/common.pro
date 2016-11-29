@@ -58,7 +58,8 @@ HEADERS += \
     include/common/P2PKScriptPubKey.hpp \
     include/common/Payment.hpp \
     include/common/UnspentOutputSet.hpp \
-    include/common/Script.hpp
+    include/common/Script.hpp \
+    include/common/common.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
