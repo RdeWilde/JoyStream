@@ -29,14 +29,17 @@ HEADERS += \
     include/extension/Exception.hpp \
     include/extension/detail.hpp \
     include/extension/Callbacks.hpp \
-    include/extension/PieceAssignorInterface.hpp
+    include/extension/PieceAssignorInterface.hpp \
+    include/extension/PieceReaderInterface.hpp \
+    include/extension/PieceReaderPlugin.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
     src/Plugin.cpp \
     src/PeerPlugin.cpp \
     src/ExtendedMessageIdMapping.cpp \
-    src/detail.cpp
+    src/detail.cpp \
+    src/PieceReaderPlugin.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
