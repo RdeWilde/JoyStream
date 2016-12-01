@@ -34,10 +34,10 @@ rpc.addTorrent = function(torrent, callback ) {
   clientDaemon.addTorrent(torrent, callback);
 }
 
-rpc.addTorrentWithTorrentFile = function(path, callback ) {
+/*rpc.addTorrentWithTorrentFile = function(path, callback ) {
   var buffer = fs.readFileSync(path);
   clientDaemon.addTorrentWithTorrentFile({data: buffer}, callback);
-}
+}*/
 
 rpc.removeTorrent = function(torrent, callback ) {
   clientDaemon.removeTorrent(torrent, callback);

@@ -3,11 +3,22 @@ var express = require('express');
 var app = express();
 
 var torrent = {
-	'infohash': '6a9759bffd5c0af65319979fb7832189f4f3c35d',
-	'name': 'Sintel'
+	'type': 'INFOHASH',
+	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1'
 }
 
-var torrentFilePath = 'sintel.torrent'
+var torrentFilePath = '306497171.torrent'
+
+var buyTorrentRequest = {
+	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1',
+	'nsellers': 1,
+	'price': 100,
+	'locktime': 5,
+	'settlement_fee': 5000,
+	'contractFeeRate': 20000,
+	'secondsBeforeCreatingContract': 3,
+	'secondsBeforePieceTimeout': 25
+}
 
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
@@ -64,13 +75,29 @@ app.listen(3000, function () {
 		console.log('Call Terminated')
 	})*/
 
-	rpc.addTorrentWithTorrentFile(torrentFilePath, function(err, data) {
+	rpc.addTorrent(torrent, function(err, data) {
 		if (err) {
 			console.log(err)
 		} else {
 			console.log('Torrent added')
 
-			rpc.buyTorrent(torrent, function(err, answer) {
+			rpc.listTorrents(function(err, torrentRecieved) {
+				if (err) {
+					console.log(err)
+				} else {
+					console.log(torrentRecieved);
+				}
+			}, function() {})
+
+			rpc.getTorrentState(torrent, function(err, torrentState) {
+				if (err) {
+					console.log(err)
+				} else {
+					console.log('Torrent State :', torrentState)
+				}
+			})
+
+			rpc.buyTorrent(buyTorrentRequest, function(err, answer) {
 					if (err) {
 						console.log(err)
 					} else {

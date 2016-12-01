@@ -46,7 +46,6 @@ void ServerImpl::Run()
     // Initiate Daemon Service methods
     new RPCPause(&daemonService_, cq_.get(), kit_->node());
     new RPCAddTorrent(&daemonService_, cq_.get(), kit_->node());
-    new RPCAddTorrentWithTorrentFile(&daemonService_, cq_.get(), kit_->node());
     new RPCRemoveTorrent(&daemonService_, cq_.get(), kit_->node());
     new RPCListTorrents(&daemonService_, cq_.get(), kit_->node());
     new RPCPauseTorrent(&daemonService_, cq_.get(), kit_->node());

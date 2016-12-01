@@ -10,8 +10,6 @@ void RPCPauseTorrent::process()
 {
     new RPCPauseTorrent(service_, cq_, node_);
 
-    std::cout << "Trying to pause torrent" << std::endl;
-
     joystream::core::Torrent* torrent;
     joystream::daemon::rpc::Void response;
 

@@ -10,7 +10,6 @@ void RPCListTorrents::process()
 {
     joystream::daemon::rpc::Torrent response;
 
-    // Pop up a new instance for concurency
     new RPCListTorrents(service_, cq_, node_);
 
     for (const auto t : node_->torrents()) {

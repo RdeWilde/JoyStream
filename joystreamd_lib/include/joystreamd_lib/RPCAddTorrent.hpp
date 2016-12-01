@@ -9,7 +9,7 @@
 #include <core/TorrentIdentifier.hpp>
 #include <core/Node.hpp>
 
-class RPCAddTorrent : public RPCRequestNormal<joystream::daemon::rpc::Torrent, joystream::daemon::rpc::Torrent, joystream::daemon::rpc::Daemon::AsyncService> {
+class RPCAddTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joystream::daemon::rpc::TorrentIdentifierRequest, joystream::daemon::rpc::Daemon::AsyncService> {
     public:
         RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::core::Node* node);
         void process();

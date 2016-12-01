@@ -21,7 +21,6 @@
 #include <joystreamd_lib/RPCSuscribeEvents.hpp>
 #include <joystreamd_lib/RPCGetTorrentState.hpp>
 #include <joystreamd_lib/RPCBuyTorrent.hpp>
-#include <joystreamd_lib/RPCAddTorrentWithTorrentFile.hpp>
 
 
 class ServerImpl final

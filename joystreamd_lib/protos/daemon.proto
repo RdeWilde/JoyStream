@@ -8,7 +8,6 @@ service Wallet {
   rpc UnconfirmedBalance(Void) returns (BTCAmount) {}
   rpc Status(Void) returns (WalletStatus) {}
   rpc SuscribeStatus(Void) returns (stream WalletStatus) {}
-
 }
 
 message WalletStatus {
@@ -42,19 +41,41 @@ service Daemon {
 
   rpc SuscribeEvents(Void) returns (stream Event) {}
 
-  rpc AddTorrent(Torrent) returns (Torrent) {}
-  rpc AddTorrentWithTorrentFile(TorrentFile) returns (Void) {}
-  rpc BuyTorrent(Torrent) returns (Void) {}
+  rpc AddTorrent(TorrentIdentifierRequest) returns (Void) {}
+  rpc BuyTorrent(BuyTorrentRequest) returns (Void) {}
   rpc RemoveTorrent(Torrent) returns (Void) {}
   rpc ListTorrents(Void) returns (stream Torrent) {}
 
-  rpc GetTorrentState (Torrent) returns (TorrentState) {}
-  //rpc GetPeerState (PeerStateRequest) returns (PeerState) {}
-
+  rpc GetTorrentState(Torrent) returns (TorrentState) {}
+  //rpc GetPeerState(PeerStateRequest) returns (PeerState) {}
 }
 
 message Void {
 
+}
+
+message BuyTorrentRequest {
+  string infohash = 1;
+  int32 nsellers = 2;
+  uint64 price = 3;
+  uint32 locktime = 4;
+  uint64 settlement_fee = 5;
+  uint64 contractFeeRate = 6;
+  double secondsBeforeCreatingContract = 7;
+  double secondsBeforePieceTimeout  = 8;
+}
+
+message TorrentIdentifierRequest {
+  enum Type {
+    INFOHASH = 0;
+    MAGNETLINK = 1;
+    TORRENTFILE = 2;
+  }
+
+  Type type = 1;
+  string infohash = 2;
+  string mangetlink = 3;
+  bytes data = 4;
 }
 
 message Torrent {
