@@ -14,6 +14,7 @@
 
 #include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
+#include <app_kit/TorrentAddResponse.hpp>
 
 #include <core/core.hpp>
 
@@ -73,7 +74,9 @@ public:
     SavedTorrents generateSavedTorrents() const;
 
     // Add torrent from TorrentState
-    void addTorrent(const joystream::appkit::SavedTorrentParameters &torrent, const core::Node::AddedTorrent &);
+    std::shared_ptr<TorrentAddResponse> addTorrent(const joystream::appkit::SavedTorrentParameters&);
+
+    std::shared_ptr<TorrentAddResponse> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
 
     void buyTorrent(int64_t contractFundingAmount,
                     const core::Torrent*,

@@ -6,6 +6,8 @@
 #include <core/Torrent.hpp>
 #include <core/TorrentPlugin.hpp>
 
+#include <app_kit/TorrentAddResponse.hpp>
+
 namespace joystream {
 namespace appkit {
 
@@ -13,45 +15,38 @@ class TorrentAdder : public QObject {
     Q_OBJECT
 
 public:
-    TorrentAdder(core::Node*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::vector<char> resumeData, std::string savePath);
-
-    // Tries to add the torrent to the node
-    void add();
+    static std::shared_ptr<TorrentAddResponse> add(core::Node*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
 
 signals:
-    void added();
-    void addFailed(std::string err);
-    void resumed();
-    void resumeFailed();
-
-    // torrent state signals
-    void checkingFiles();
-    void downloadingMetaData();
-    void downloading();
     void finished();
-    void seeding();
-    void allocating();
-    void checkingResumeData();
 
-public slots:
+protected slots:
     // slots are connected to signals from core::Node
     void torrentAdded(joystream::core::Torrent * torrent);
     void torrentRemoved(const libtorrent::sha1_hash & info_hash);
     void torrentPluginAdded(joystream::core::TorrentPlugin *plugin);
-    void torrentStateChanged(libtorrent::torrent_status::state_t state, float progress);
 
 private:
+    TorrentAdder(core::Node*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
+
     core::Node* _node;
     int _downloadLimit;
     int _uploadLimit;
+    std::string _name;
     std::vector<char> _resumeData;
     std::string _savePath;
     core::TorrentIdentifier _torrentIdentifier;
-
     core::Torrent *_torrent;
+    bool _addPaused;
+    std::shared_ptr<TorrentAddResponse> _response;
+
+    void finishedWithError(TorrentAddResponse::Error);
+    void finishedWithLibtorrentError(libtorrent::error_code);
+    void finishedSuccessfully();
+
+    std::shared_ptr<TorrentAddResponse> response() const;
 
     void addTorrentCallback(libtorrent::error_code &ecode, libtorrent::torrent_handle &th);
-    void emitState();
 };
 
 }

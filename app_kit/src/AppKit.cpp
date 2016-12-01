@@ -10,6 +10,7 @@
 #include <app_kit/Settings.hpp>
 #include <app_kit/SavedTorrents.hpp>
 #include <app_kit/SavedTorrentParameters.hpp>
+#include <app_kit/TorrentAdder.hpp>
 
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
@@ -120,17 +121,23 @@ SavedTorrents AppKit::generateSavedTorrents() const {
     return SavedTorrents(_node->torrents());
 }
 
-void AppKit::addTorrent(const SavedTorrentParameters &torrent, const core::Node::AddedTorrent &addedTorrent) {
+std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const SavedTorrentParameters &torrent) {
+
     auto metadata = torrent.metaData();
 
-    _node->addTorrent(torrent.uploadLimit(),
-                      torrent.downloadLimit(),
-                      torrent.name(),
-                      torrent.resumeData(),
-                      torrent.savePath(),
-                      torrent.paused(),
-                      metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
-                      addedTorrent);
+    return TorrentAdder::add(_node.get(),
+                             metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
+                             torrent.uploadLimit(),
+                             torrent.downloadLimit(),
+                             torrent.name(),
+                             torrent.resumeData(),
+                             torrent.savePath(),
+                             torrent.paused());
+}
+
+std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
+
+    return TorrentAdder::add(_node.get(), ti, 0, 0, "", std::vector<char>(), savePath, false);
 }
 
 void AppKit::buyTorrent(int64_t contractFundingAmount,

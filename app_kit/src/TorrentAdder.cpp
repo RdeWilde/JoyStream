@@ -1,4 +1,5 @@
 #include <app_kit/TorrentAdder.hpp>
+#include <core/Exception.hpp>
 
 namespace joystream {
 namespace appkit {
@@ -6,47 +7,74 @@ namespace appkit {
 TorrentAdder::TorrentAdder(core::Node* node,
                            core::TorrentIdentifier ti,
                            int downloadLimit, int uploadLimit,
-                           std::vector<char> resumeData, std::string savePath)
+                           std::string name,
+                           const std::vector<char> &resumeData, std::string savePath, bool paused)
     :  _node(node),
        _downloadLimit(downloadLimit),
        _uploadLimit(uploadLimit),
+       _name(name),
        _resumeData(resumeData),
        _savePath(savePath),
-       _torrentIdentifier(ti)
+       _torrentIdentifier(ti),
+       _response(new TorrentAddResponse(ti)),
+       _addPaused(paused)
 {
 
     QObject::connect(_node, &joystream::core::Node::addedTorrent, this, &TorrentAdder::torrentAdded);
     QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::torrentRemoved);
-}
 
-void TorrentAdder::add()
-{
     try {
-        _node->addTorrent(_downloadLimit, _uploadLimit,
-                          libtorrent::to_hex(_torrentIdentifier.infoHash().to_string()),
+        _node->addTorrent(_uploadLimit, _downloadLimit,
+                          _name == "" ? libtorrent::to_hex(_torrentIdentifier.infoHash().to_string()) : _name,
                           _resumeData,
-                          _savePath, true, _torrentIdentifier,
+                          _savePath, _addPaused, _torrentIdentifier,
                           [this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
             addTorrentCallback(ecode, th);
         });
 
-    } catch(std::exception &e) {
-        emit addFailed(std::string(e.what()));
+    } catch (core::exception::TorrentAlreadyExists &e) {
+        finishedWithError(TorrentAddResponse::Error::TorrentAlreadyExists);
     }
 }
 
-void TorrentAdder::addTorrentCallback(libtorrent::error_code &ecode, libtorrent::torrent_handle &th)
+std::shared_ptr<TorrentAddResponse> TorrentAdder::add(core::Node *node, core::TorrentIdentifier ti, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused)
 {
-    if(ecode) {
-        std::cout << "addTorrent failed: " << ecode.message().c_str() << std::endl;
+    auto adder = new TorrentAdder(node, ti, downloadLimit, uploadLimit, name, resumeData, savePath, paused);
 
-        // It would be more useful to emit different signals for different error codes
-        emit addFailed(ecode.message().c_str());
-    }
+    auto response = adder->response();
+
+    QObject::connect(adder, &TorrentAdder::finished, response.get(), &TorrentAddResponse::finishedProcessing);
+
+    return response;
+}
+
+void TorrentAdder::finishedWithLibtorrentError(libtorrent::error_code ec)
+{
+    _response->setLibtorrentErrorCode(ec);
+
+    finishedWithError(TorrentAddResponse::Error::LibtorrentError);
+}
+
+void TorrentAdder::finishedWithError(TorrentAddResponse::Error err)
+{
+    _response->setError(err);
+
+    emit finished();
+
+    delete this;
+}
+
+void TorrentAdder::finishedSuccessfully()
+{
+    _response->setSuccess();
+
+    emit finished();
+
+    delete this;
 }
 
 void TorrentAdder::torrentAdded(core::Torrent *torrent) {
-    // Only handle our torrent
+
     if (torrent->infoHash() != _torrentIdentifier.infoHash())
         return;
 
@@ -54,57 +82,41 @@ void TorrentAdder::torrentAdded(core::Torrent *torrent) {
 
     // wait for torrent plugin to be added
     QObject::connect(_torrent, &joystream::core::Torrent::torrentPluginAdded, this, &TorrentAdder::torrentPluginAdded);
-
-    emit added();
 }
 
 void TorrentAdder::torrentRemoved(const libtorrent::sha1_hash &info_hash) {
-    _torrent = nullptr;
+    if(_torrentIdentifier.infoHash() != info_hash)
+        return;
+
+    finishedWithError(TorrentAddResponse::Error::TorrentRemovedBeforePluginWasAdded);
 }
 
 void TorrentAdder::torrentPluginAdded(core::TorrentPlugin *plugin) {
 
-    QObject::connect(_torrent, &joystream::core::Torrent::stateChanged, this, &TorrentAdder::torrentStateChanged);
-
-    emitState();
+    if(_addPaused) {
+        finishedSuccessfully();
+        return;
+    }
 
     _torrent->resume([this](const std::exception_ptr &e) {
         if(e) {
-            emit resumeFailed();
+            finishedWithError(TorrentAddResponse::Error::ResumeFailed);
         } else {
-            emit resumed();
+            finishedSuccessfully();
         }
     });
 }
 
-void TorrentAdder::torrentStateChanged(libtorrent::torrent_status::state_t state, float progress) {
-    emitState();
+std::shared_ptr<TorrentAddResponse> TorrentAdder::response() const {
+    return _response;
 }
 
-void TorrentAdder::emitState() {
-  switch(_torrent->state()) {
-    case libtorrent::torrent_status::state_t::checking_files :
-        emit checkingFiles();
-        break;
-    case libtorrent::torrent_status::state_t::downloading_metadata :
-        emit downloadingMetaData();
-        break;
-    case libtorrent::torrent_status::state_t::downloading:
-        emit downloading();
-        break;
-    case libtorrent::torrent_status::state_t::finished:
-        emit finished();
-        break;
-    case libtorrent::torrent_status::state_t::seeding:
-        emit seeding();
-        break;
-    case libtorrent::torrent_status::state_t::allocating:
-        emit allocating();
-        break;
-    case libtorrent::torrent_status::state_t::checking_resume_data:
-        emit checkingResumeData();
-        break;
-  }
+void TorrentAdder::addTorrentCallback(libtorrent::error_code &ec, libtorrent::torrent_handle &th)
+{
+    if(ec) {
+        std::cout << "addTorrent failed: " << ec.message().c_str() << std::endl;
+        finishedWithLibtorrentError(ec);
+    }
 }
 
 }

@@ -195,25 +195,29 @@ int CliApp::run()
     if(_command == "info")
         return 0;
 
-    joystream::core::TorrentIdentifier* torrentIdentifier;
+    joystream::core::TorrentIdentifier* torrentIdentifier = nullptr;
 
-    if(_command == "buy" || _command == "sell") {
-        assert(_argument != "");
+    try {
+        if(_command == "buy" || _command == "sell") {
+            assert(_argument != "");
 
-        torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
+            torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
 
-        if(torrentIdentifier) {
-            std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
-        } else {
-            std::cout << "Warning: Invalid torrent argument" << std::endl;
+            if(torrentIdentifier == nullptr) {
+                std::cout << "Warning: Invalid torrent argument" << std::endl;
+            }
         }
+    } catch(std::exception &e) {
+        std::cout << "Error: Parsing torrent argument" << e.what() << std::endl;
+    }
 
+    if(torrentIdentifier) {
+        std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
+        _kit->addTorrent(*torrentIdentifier, _dataDir.defaultSavePath().toStdString());
+        delete torrentIdentifier;
     }
 
     claimRefunds(_kit, 5000);
-
-    // Add torrent to node
-    // processTorrent();
 
     std::cout << "Starting Qt Application Event loop\n";
     int ret = _app.exec();
