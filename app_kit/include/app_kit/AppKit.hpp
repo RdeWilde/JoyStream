@@ -51,8 +51,9 @@ struct Settings;
 class SavedTorrents;
 class SavedTorrentParameters;
 
-class AppKit
+class AppKit : public QObject
 {
+    Q_OBJECT
 
 public:
     typedef std::function<void()> Callback;

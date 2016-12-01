@@ -21,6 +21,7 @@ public:
 
     explicit TorrentAddResponse(const core::TorrentIdentifier& ti)
         : _finished(false),
+          _added(false),
           _ti(ti),
           _err(Error::NoError) {
     }
@@ -31,7 +32,8 @@ public:
     void setLibtorrentErrorCode(libtorrent::error_code ec) { _ec = ec; }
     libtorrent::error_code errorCode() const { return _ec; }
 
-    void setSuccess() { _err = Error::NoError; }
+    void setAdded() { _added = true; }
+    bool added() const { return _added; }
 
     core::TorrentIdentifier torrentIdentifier() const { return _ti; }
 
@@ -48,6 +50,7 @@ public slots:
 
 private:
     bool _finished;
+    bool _added;
     libtorrent::error_code _ec;
     core::TorrentIdentifier _ti;
     Error _err;

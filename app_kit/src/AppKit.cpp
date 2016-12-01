@@ -125,7 +125,7 @@ std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const SavedTorrentParamet
 
     auto metadata = torrent.metaData();
 
-    return TorrentAdder::add(_node.get(),
+    return TorrentAdder::add(this,
                              metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
                              torrent.uploadLimit(),
                              torrent.downloadLimit(),
@@ -137,7 +137,7 @@ std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const SavedTorrentParamet
 
 std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
 
-    return TorrentAdder::add(_node.get(), ti, 0, 0, "", std::vector<char>(), savePath, false);
+    return TorrentAdder::add(this, ti, 0, 0, "", std::vector<char>(), savePath, false);
 }
 
 void AppKit::buyTorrent(int64_t contractFundingAmount,

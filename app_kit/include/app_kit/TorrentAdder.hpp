@@ -6,6 +6,7 @@
 #include <core/Torrent.hpp>
 #include <core/TorrentPlugin.hpp>
 
+#include <app_kit/AppKit.hpp>
 #include <app_kit/TorrentAddResponse.hpp>
 
 namespace joystream {
@@ -15,7 +16,7 @@ class TorrentAdder : public QObject {
     Q_OBJECT
 
 public:
-    static std::shared_ptr<TorrentAddResponse> add(core::Node*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
+    static std::shared_ptr<TorrentAddResponse> add(AppKit*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
 
 signals:
     void finished();
@@ -27,18 +28,12 @@ protected slots:
     void torrentPluginAdded(joystream::core::TorrentPlugin *plugin);
 
 private:
-    TorrentAdder(core::Node*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
+    TorrentAdder(AppKit*, std::shared_ptr<TorrentAddResponse>, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
 
-    core::Node* _node;
-    int _downloadLimit;
-    int _uploadLimit;
-    std::string _name;
-    std::vector<char> _resumeData;
-    std::string _savePath;
-    core::TorrentIdentifier _torrentIdentifier;
-    core::Torrent *_torrent;
+    libtorrent::sha1_hash _infoHash;
     bool _addPaused;
     std::shared_ptr<TorrentAddResponse> _response;
+    core::Torrent *_torrent;
 
     void finishedWithError(TorrentAddResponse::Error);
     void finishedWithLibtorrentError(libtorrent::error_code);
