@@ -26,20 +26,23 @@ public:
           _err(Error::NoError) {
     }
 
-    void setError(Error err) { _err = err; }
-    Error error() const { return _err; }
+    void setError(Error err) { _err = err; emit error(_err, _ec); }
+    void setError(libtorrent::error_code ec) { _err = Error::LibtorrentError; _ec = ec; emit error(_err, _ec); }
 
-    void setLibtorrentErrorCode(libtorrent::error_code ec) { _ec = ec; }
+    Error getError() const { return _err; }
+
     libtorrent::error_code errorCode() const { return _ec; }
 
-    void setAdded() { _added = true; }
-    bool added() const { return _added; }
+    void setAdded() { _added = true; emit added(); }
+    bool wasAdded() const { return _added; }
 
     core::TorrentIdentifier torrentIdentifier() const { return _ti; }
 
     bool isFinished() const { return _finished; }
 
 signals:
+    void added();
+    void error(Error, libtorrent::error_code);
     void finished();
 
 public slots:

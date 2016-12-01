@@ -15,8 +15,8 @@ TorrentAdder::TorrentAdder(appkit::AppKit* kit,
        _addPaused(paused),
        _response(response) {
 
-    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, this, &TorrentAdder::torrentAdded);
-    QObject::connect(kit->node(), &joystream::core::Node::removedTorrent, this, &TorrentAdder::torrentRemoved);
+    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
+    QObject::connect(kit->node(), &joystream::core::Node::removedTorrent, this, &TorrentAdder::onTorrentRemoved);
 
     QObject::connect(this, &TorrentAdder::destroyed, response.get(), &TorrentAddResponse::finishedProcessing);
 
@@ -30,7 +30,7 @@ TorrentAdder::TorrentAdder(appkit::AppKit* kit,
         });
 
     } catch (core::exception::TorrentAlreadyExists &e) {
-        finishedWithError(TorrentAddResponse::Error::TorrentAlreadyExists);
+        finished(TorrentAddResponse::Error::TorrentAlreadyExists);
     }
 }
 
@@ -48,28 +48,30 @@ std::shared_ptr<TorrentAddResponse> TorrentAdder::add(appkit::AppKit* kit,
     return response;
 }
 
-void TorrentAdder::finishedWithLibtorrentError(libtorrent::error_code ec)
+void TorrentAdder::finished()
 {
-    _response->setLibtorrentErrorCode(ec);
-
-    finishedWithError(TorrentAddResponse::Error::LibtorrentError);
+    delete this;
 }
 
-void TorrentAdder::finishedWithError(TorrentAddResponse::Error err)
+void TorrentAdder::finished(libtorrent::error_code ec)
+{
+    _response->setError(ec);
+
+    finished();
+}
+
+void TorrentAdder::finished(TorrentAddResponse::Error err)
 {
     _response->setError(err);
 
-    delete this;
+    finished();
 }
 
-void TorrentAdder::finishedSuccessfully()
-{
+void TorrentAdder::added() {
     _response->setAdded();
-
-    delete this;
 }
 
-void TorrentAdder::torrentAdded(core::Torrent *torrent) {
+void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
 
     if (torrent->infoHash() != _infoHash)
         return;
@@ -77,41 +79,39 @@ void TorrentAdder::torrentAdded(core::Torrent *torrent) {
     _torrent = torrent;
 
     // wait for torrent plugin to be added
-    QObject::connect(_torrent, &joystream::core::Torrent::torrentPluginAdded, this, &TorrentAdder::torrentPluginAdded);
+    QObject::connect(_torrent, &joystream::core::Torrent::torrentPluginAdded, this, &TorrentAdder::onTorrentPluginAdded);
 }
 
-void TorrentAdder::torrentRemoved(const libtorrent::sha1_hash &info_hash) {
+void TorrentAdder::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
     if(info_hash != _infoHash)
         return;
 
-    finishedWithError(TorrentAddResponse::Error::TorrentRemovedBeforePluginWasAdded);
+    finished(TorrentAddResponse::Error::TorrentRemovedBeforePluginWasAdded);
 }
 
-void TorrentAdder::torrentPluginAdded(core::TorrentPlugin *plugin) {
+void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
+
+    added();
 
     if(_addPaused) {
-        finishedSuccessfully();
+        finished();
         return;
     }
 
     _torrent->resume([this](const std::exception_ptr &e) {
         if(e) {
-            finishedWithError(TorrentAddResponse::Error::ResumeFailed);
+            finished(TorrentAddResponse::Error::ResumeFailed);
         } else {
-            finishedSuccessfully();
+            finished();
         }
     });
-}
-
-std::shared_ptr<TorrentAddResponse> TorrentAdder::response() const {
-    return _response;
 }
 
 void TorrentAdder::addTorrentCallback(libtorrent::error_code &ec, libtorrent::torrent_handle &th)
 {
     if(ec) {
         std::cout << "addTorrent failed: " << ec.message().c_str() << std::endl;
-        finishedWithLibtorrentError(ec);
+        finished(ec);
     }
 }
 

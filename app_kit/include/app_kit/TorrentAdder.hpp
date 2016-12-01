@@ -16,18 +16,22 @@ class TorrentAdder : public QObject {
     Q_OBJECT
 
 public:
+    // TorrentAdder does not have a public API. It is always created on the heap and manages its own lifetime
+    // It will be destoyed when it completes a torrent add operation is finished. The TorrentAddResponse
+    // will hold the result of the operation.
     static std::shared_ptr<TorrentAddResponse> add(AppKit*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
 
 signals:
-    void finished();
+
 
 protected slots:
     // slots are connected to signals from core::Node
-    void torrentAdded(joystream::core::Torrent * torrent);
-    void torrentRemoved(const libtorrent::sha1_hash & info_hash);
-    void torrentPluginAdded(joystream::core::TorrentPlugin *plugin);
+    void onTorrentAdded(joystream::core::Torrent * torrent);
+    void onTorrentRemoved(const libtorrent::sha1_hash & info_hash);
+    void onTorrentPluginAdded(joystream::core::TorrentPlugin *plugin);
 
 private:
+    // TorrentAdder manages its own lifetime so we restrict it from being created on the stack
     TorrentAdder(AppKit*, std::shared_ptr<TorrentAddResponse>, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
 
     libtorrent::sha1_hash _infoHash;
@@ -35,11 +39,19 @@ private:
     std::shared_ptr<TorrentAddResponse> _response;
     core::Torrent *_torrent;
 
-    void finishedWithError(TorrentAddResponse::Error);
-    void finishedWithLibtorrentError(libtorrent::error_code);
-    void finishedSuccessfully();
+    // Updated response objects
 
-    std::shared_ptr<TorrentAddResponse> response() const;
+    // Updated the response object to indicate that the torrent and torrentPlugin were added successfully
+    void added();
+
+    // Add operation completed normally
+    void finished();
+
+    // An Error occured while adding the torrent
+    void finished(TorrentAddResponse::Error);
+
+    // An Error occured while adding the torrent
+    void finished(libtorrent::error_code);
 
     void addTorrentCallback(libtorrent::error_code &ecode, libtorrent::torrent_handle &th);
 };
