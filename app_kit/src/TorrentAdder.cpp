@@ -21,9 +21,6 @@ TorrentAdder::TorrentAdder(QObject* parent,
 
     QObject::connect(this, &TorrentAdder::destroyed, response.get(), &TorrentAddResponse::finishedProcessing);
 
-    delete this;
-    return;
-
     try {
         node->addTorrent(uploadLimit, downloadLimit,
                          name == "" ? libtorrent::to_hex(ti.infoHash().to_string()) : name,
