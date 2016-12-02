@@ -1,4 +1,4 @@
-#include "Peer.hpp"
+#include "extension/Peer.hpp"
 
 namespace joystream {
 namespace libtorrent_interface {

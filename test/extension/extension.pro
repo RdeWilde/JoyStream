@@ -1,6 +1,5 @@
 include(gmock.pri)
 
-INCLUDEPATH += $$PWD/../interfaces/include
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \

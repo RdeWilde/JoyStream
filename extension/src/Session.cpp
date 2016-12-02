@@ -1,4 +1,4 @@
-#include "Session.hpp"
+#include "extension/Session.hpp"
 
 namespace joystream {
 namespace libtorrent_interface {

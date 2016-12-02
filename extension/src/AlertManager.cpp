@@ -1,4 +1,4 @@
-#include "AlertManager.hpp"
+#include "extension/AlertManager.hpp"
 
 namespace joystream {
 namespace libtorrent_interface {
