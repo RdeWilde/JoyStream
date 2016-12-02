@@ -11,6 +11,7 @@
 #include <app_kit/SavedTorrents.hpp>
 #include <app_kit/SavedTorrentParameters.hpp>
 #include <app_kit/TorrentAdder.hpp>
+#include <app_kit/TorrentBuyer.hpp>
 
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
@@ -126,6 +127,7 @@ std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const SavedTorrentParamet
     auto metadata = torrent.metaData();
 
     return TorrentAdder::add(this,
+                             node(),
                              metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
                              torrent.uploadLimit(),
                              torrent.downloadLimit(),
@@ -137,78 +139,13 @@ std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const SavedTorrentParamet
 
 std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
 
-    return TorrentAdder::add(this, ti, 0, 0, "", std::vector<char>(), savePath, false);
+    return TorrentAdder::add(this, node(), ti, 0, 0, "", std::vector<char>(), savePath, false);
 }
 
-void AppKit::buyTorrent(int64_t contractFundingAmount,
-                        const core::Torrent *torrent,
-                        const protocol_session::BuyingPolicy& policy,
-                        const protocol_wire::BuyerTerms& terms,
-                        const extension::request::SubroutineHandler& handler){
-
-    if(libtorrent::torrent_status::state_t::downloading != torrent->state()) {
-        throw std::runtime_error("torrent must be in downloading state to buy");
-    }
-
-    std::cout << "trying to lock contractFundingAmount: " << contractFundingAmount << std::endl;
-
-    auto outputs = _wallet->lockOutputs(contractFundingAmount, 0);
-
-    if(outputs.size() == 0) {
-        // Not enough funds
-        throw std::runtime_error("unable to lock required funds");
-    }
-
-    core::TorrentPlugin* plugin = torrent->torrentPlugin();
-
-    buyTorrent(plugin, policy, terms, handler, outputs);
-}
-
-void AppKit::buyTorrent(core::TorrentPlugin *plugin,
-                        const protocol_session::BuyingPolicy& policy,
-                        const protocol_wire::BuyerTerms& terms,
-                        const extension::request::SubroutineHandler& handler,
-                        Coin::UnspentOutputSet outputs){
-
-    plugin->toBuyMode(
-        // protocol_session::GenerateP2SHKeyPairCallbackHandler
-        [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
-
-            Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
-                return bitcoin::RedeemScriptInfo(generateScript(pk), data);
-            });
-
-            return Coin::KeyPair(sk);
-        },
-        // protocol_session::GenerateReceiveAddressesCallbackHandler
-        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
-            std::vector<Coin::P2PKHAddress> addresses;
-
-            for(int n = 0; n < npairs; n++) {
-                addresses.push_back(_wallet->generateReceiveAddress());
-            }
-
-            return addresses;
-        },
-        // protocol_session::GenerateChangeAddressesCallbackHandler
-        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
-            std::vector<Coin::P2PKHAddress> addresses;
-
-            for(int n = 0; n < npairs; n++) {
-                addresses.push_back(_wallet->generateChangeAddress());
-            }
-
-            return addresses;
-        },
-        // Coin::UnspentOutputSet
-        outputs,
-        policy,
-        terms,
-        [this, outputs, handler](const std::exception_ptr & e) {
-            if(e)
-                _wallet->unlockOutputs(outputs);
-            handler(e);
-        });
+std::shared_ptr<BuyTorrentResponse> AppKit::buyTorrent(libtorrent::sha1_hash infoHash,
+                                                       const protocol_session::BuyingPolicy& policy,
+                                                       const protocol_wire::BuyerTerms& terms) {
+    return TorrentBuyer::buy(this, node(), wallet(), infoHash, policy, terms);
 }
 
 void AppKit::sellTorrent(core::TorrentPlugin *plugin,

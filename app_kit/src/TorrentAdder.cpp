@@ -4,46 +4,52 @@
 namespace joystream {
 namespace appkit {
 
-TorrentAdder::TorrentAdder(appkit::AppKit* kit,
+TorrentAdder::TorrentAdder(QObject* parent,
+                           core::Node* node,
                            std::shared_ptr<TorrentAddResponse> response,
                            core::TorrentIdentifier ti,
                            int downloadLimit, int uploadLimit,
                            std::string name,
                            const std::vector<char> &resumeData, std::string savePath, bool paused)
-    :  QObject(kit), // make the adder a child of appkit
+    :  QObject(parent),
        _infoHash(ti.infoHash()),
        _addPaused(paused),
        _response(response) {
 
-    QObject::connect(kit->node(), &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
-    QObject::connect(kit->node(), &joystream::core::Node::removedTorrent, this, &TorrentAdder::onTorrentRemoved);
+    QObject::connect(node, &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
+    QObject::connect(node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::onTorrentRemoved);
 
     QObject::connect(this, &TorrentAdder::destroyed, response.get(), &TorrentAddResponse::finishedProcessing);
 
+    delete this;
+    return;
+
     try {
-        kit->node()->addTorrent(uploadLimit, downloadLimit,
-                                name == "" ? libtorrent::to_hex(ti.infoHash().to_string()) : name,
-                                resumeData,
-                                savePath, _addPaused, ti,
-                                [this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
+        node->addTorrent(uploadLimit, downloadLimit,
+                         name == "" ? libtorrent::to_hex(ti.infoHash().to_string()) : name,
+                         resumeData,
+                         savePath, _addPaused, ti,
+                         [this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
             addTorrentCallback(ecode, th);
         });
 
     } catch (core::exception::TorrentAlreadyExists &e) {
         finished(TorrentAddResponse::Error::TorrentAlreadyExists);
     }
+
 }
 
-std::shared_ptr<TorrentAddResponse> TorrentAdder::add(appkit::AppKit* kit,
+std::shared_ptr<TorrentAddResponse> TorrentAdder::add(QObject* parent,
+                                                      core::Node* node,
                                                       core::TorrentIdentifier ti,
                                                       int downloadLimit, int uploadLimit,
                                                       std::string name,
                                                       const std::vector<char> &resumeData, std::string savePath, bool paused)
 {
 
-    auto response = std::make_shared<TorrentAddResponse>(ti);
+    auto response = std::make_shared<TorrentAddResponse>(ti.infoHash());
 
-    new TorrentAdder(kit, response, ti, downloadLimit, uploadLimit, name, resumeData, savePath, paused);
+    new TorrentAdder(parent, node, response, ti, downloadLimit, uploadLimit, name, resumeData, savePath, paused);
 
     return response;
 }

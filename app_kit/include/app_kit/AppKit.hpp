@@ -14,6 +14,8 @@
 
 #include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
+
+#include <app_kit/BuyTorrentResponse.hpp>
 #include <app_kit/TorrentAddResponse.hpp>
 
 #include <core/core.hpp>
@@ -79,11 +81,7 @@ public:
 
     std::shared_ptr<TorrentAddResponse> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
 
-    void buyTorrent(int64_t contractFundingAmount,
-                    const core::Torrent*,
-                    const protocol_session::BuyingPolicy &,
-                    const protocol_wire::BuyerTerms &,
-                    const SubroutineHandler &);
+    std::shared_ptr<BuyTorrentResponse>  buyTorrent(libtorrent::sha1_hash, const protocol_session::BuyingPolicy& policy, const protocol_wire::BuyerTerms& terms);
 
     void sellTorrent(const core::Torrent *,
                      const protocol_session::SellingPolicy &,
@@ -114,11 +112,6 @@ private:
     std::unique_ptr<core::Node> _node;
 
     QTimer _timer;
-
-    void buyTorrent(core::TorrentPlugin *,
-                    const protocol_session::BuyingPolicy &,
-                    const protocol_wire::BuyerTerms &,
-                    const SubroutineHandler &, Coin::UnspentOutputSet outputs);
 
     void sellTorrent(core::TorrentPlugin *,
                      const protocol_session::SellingPolicy &,

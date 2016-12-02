@@ -133,6 +133,7 @@ private:
 
     void parseArgs();
     void createAppKitInstance();
+    void processTorrent();
 
     QCoreApplication _app;
     std::string _command;
@@ -185,6 +186,54 @@ void CliApp::handleSignal(int signal)
     }
 }
 
+void CliApp::processTorrent() {
+    joystream::core::TorrentIdentifier* torrentIdentifier;
+
+    try {
+        if(_command == "buy" || _command == "sell") {
+
+            assert(_argument != "");
+
+            torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
+
+            if(torrentIdentifier == nullptr) {
+                std::cout << "Warning: Invalid torrent argument" << std::endl;
+                return;
+            }
+        } else {
+            return;
+        }
+    } catch(std::exception &e) {
+        std::cout << "Error: Parsing torrent argument" << e.what() << std::endl;
+        return;
+    }
+
+    if(torrentIdentifier) {
+        std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
+
+        auto torrent = _kit->addTorrent(*torrentIdentifier, _dataDir.defaultSavePath().toStdString());
+
+        delete torrentIdentifier;
+
+        joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
+        joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
+
+        // If the add operation completed we can try to buy or sell
+        if(torrent->isFinished()) {
+
+            if(_command == "buy" && torrent->wasAdded())
+                _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms);
+
+        } else {
+            // Wait for torrent to be added
+            QObject::connect(torrent.get(), &joystream::appkit::TorrentAddResponse::finished, [this, torrent, buyerTerms, buyingPolicy](){
+                if(_command == "buy" && torrent->wasAdded())
+                    _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms);
+            });
+        }
+    }
+}
+
 int CliApp::run()
 {
     if(_shuttingDown)
@@ -195,27 +244,7 @@ int CliApp::run()
     if(_command == "info")
         return 0;
 
-    joystream::core::TorrentIdentifier* torrentIdentifier = nullptr;
-
-    try {
-        if(_command == "buy" || _command == "sell") {
-            assert(_argument != "");
-
-            torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
-
-            if(torrentIdentifier == nullptr) {
-                std::cout << "Warning: Invalid torrent argument" << std::endl;
-            }
-        }
-    } catch(std::exception &e) {
-        std::cout << "Error: Parsing torrent argument" << e.what() << std::endl;
-    }
-
-    if(torrentIdentifier) {
-        std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
-        _kit->addTorrent(*torrentIdentifier, _dataDir.defaultSavePath().toStdString());
-        delete torrentIdentifier;
-    }
+    processTorrent();
 
     claimRefunds(_kit, 5000);
 

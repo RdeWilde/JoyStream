@@ -15,5 +15,7 @@
 #include <app_kit/SavedTorrents.hpp>
 #include <app_kit/SavedTorrentParameters.hpp>
 #include <app_kit/SavedSessionParameters.hpp>
+#include <app_kit/TorrentAddResponse.hpp>
+#include <app_kit/BuyTorrentResponse.hpp>
 
 #endif // JOYSTREAM_KIT_HPP

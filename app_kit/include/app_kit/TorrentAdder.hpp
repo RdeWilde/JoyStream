@@ -6,7 +6,6 @@
 #include <core/Torrent.hpp>
 #include <core/TorrentPlugin.hpp>
 
-#include <app_kit/AppKit.hpp>
 #include <app_kit/TorrentAddResponse.hpp>
 
 namespace joystream {
@@ -19,7 +18,7 @@ public:
     // TorrentAdder does not have a public API. It is always created on the heap and manages its own lifetime
     // It will be destoyed when it completes a torrent add operation is finished. The TorrentAddResponse
     // will hold the result of the operation.
-    static std::shared_ptr<TorrentAddResponse> add(AppKit*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
+    static std::shared_ptr<TorrentAddResponse> add(QObject*, core::Node*, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
 
 signals:
 
@@ -32,14 +31,12 @@ protected slots:
 
 private:
     // TorrentAdder manages its own lifetime so we restrict it from being created on the stack
-    TorrentAdder(AppKit*, std::shared_ptr<TorrentAddResponse>, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
+    TorrentAdder(QObject*, core::Node*, std::shared_ptr<TorrentAddResponse>, core::TorrentIdentifier, int downloadLimit, int uploadLimit, std::string name, const std::vector<char> &resumeData, std::string savePath, bool paused);
 
     libtorrent::sha1_hash _infoHash;
     bool _addPaused;
     std::shared_ptr<TorrentAddResponse> _response;
     core::Torrent *_torrent;
-
-    // Updated response objects
 
     // Updated the response object to indicate that the torrent and torrentPlugin were added successfully
     void added();

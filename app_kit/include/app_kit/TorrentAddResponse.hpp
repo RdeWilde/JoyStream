@@ -19,10 +19,10 @@ public:
         LibtorrentError
     };
 
-    explicit TorrentAddResponse(const core::TorrentIdentifier& ti)
+    explicit TorrentAddResponse(const libtorrent::sha1_hash infoHash)
         : _finished(false),
           _added(false),
-          _ti(ti),
+          _infoHash(infoHash),
           _err(Error::NoError) {
     }
 
@@ -36,7 +36,7 @@ public:
     void setAdded() { _added = true; emit added(); }
     bool wasAdded() const { return _added; }
 
-    core::TorrentIdentifier torrentIdentifier() const { return _ti; }
+    libtorrent::sha1_hash infoHash() const { return _infoHash; }
 
     bool isFinished() const { return _finished; }
 
@@ -55,7 +55,7 @@ private:
     bool _finished;
     bool _added;
     libtorrent::error_code _ec;
-    core::TorrentIdentifier _ti;
+    libtorrent::sha1_hash _infoHash;
     Error _err;
 };
 
