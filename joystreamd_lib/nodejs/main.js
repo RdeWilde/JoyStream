@@ -3,7 +3,7 @@ var express = require('express');
 var app = express();
 
 var torrent = {
-	'type': 'INFOHASH',
+	'type': 0,
 	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1'
 }
 
@@ -88,14 +88,6 @@ app.listen(3000, function () {
 					console.log(torrentRecieved);
 				}
 			}, function() {})
-
-			rpc.getTorrentState(torrent, function(err, torrentState) {
-				if (err) {
-					console.log(err)
-				} else {
-					console.log('Torrent State :', torrentState)
-				}
-			})
 
 			rpc.buyTorrent(buyTorrentRequest, function(err, answer) {
 					if (err) {

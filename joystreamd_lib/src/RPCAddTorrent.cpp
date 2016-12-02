@@ -49,7 +49,7 @@ void RPCAddTorrent::process()
                 }
             });
         } catch (joystream::core::exception::TorrentAlreadyExists error) {
-            std::cout << "Some kind of errors" << std::endl;
+            std::cout << "Torrent already in Node" << std::endl;
             this->finish(response, false);
         }
     } else {
