@@ -43,6 +43,7 @@ service Daemon {
 
   rpc AddTorrent(TorrentIdentifierRequest) returns (Void) {}
   rpc BuyTorrent(BuyTorrentRequest) returns (Void) {}
+  rpc SellTorrent(SellTorrentRequest) returns (Void) {}
   rpc RemoveTorrent(Torrent) returns (Void) {}
   rpc ListTorrents(Void) returns (stream Torrent) {}
 
@@ -63,6 +64,11 @@ message BuyTorrentRequest {
   uint64 contractFeeRate = 6;
   double secondsBeforeCreatingContract = 7;
   double secondsBeforePieceTimeout  = 8;
+}
+
+message SellTorrentRequest {
+  string infohash = 1;
+  
 }
 
 message TorrentIdentifierRequest {

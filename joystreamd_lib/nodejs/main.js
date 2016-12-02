@@ -20,6 +20,10 @@ var buyTorrentRequest = {
 	'secondsBeforePieceTimeout': 25
 }
 
+var sellTorrentRequest = {
+	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1'
+}
+
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 
@@ -89,11 +93,11 @@ app.listen(3000, function () {
 				}
 			}, function() {})
 
-			rpc.buyTorrent(buyTorrentRequest, function(err, answer) {
+			rpc.sellTorrent(sellTorrentRequest, function(err, answer) {
 					if (err) {
 						console.log(err)
 					} else {
-						console.log('We are buying the torrent')
+						console.log('We are selling the torrent')
 					}
 			})
 		}

@@ -55,6 +55,10 @@ rpc.buyTorrent = function(torrent, callback ) {
   clientDaemon.buyTorrent(torrent, callback);
 }
 
+rpc.sellTorrent = function(torrent, callback ) {
+  clientDaemon.sellTorrent(torrent, callback);
+}
+
 rpc.getTorrentState = function(torrent, callback ) {
   clientDaemon.getTorrentState(torrent, callback);
 }

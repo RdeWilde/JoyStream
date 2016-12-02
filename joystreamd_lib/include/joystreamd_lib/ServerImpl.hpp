@@ -21,14 +21,14 @@
 #include <joystreamd_lib/RPCSuscribeEvents.hpp>
 #include <joystreamd_lib/RPCGetTorrentState.hpp>
 #include <joystreamd_lib/RPCBuyTorrent.hpp>
-
+#include <joystreamd_lib/RPCSellTorrent.hpp>
 
 class ServerImpl final
 {
     public:
-        ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication* app);
+        ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication* app, std::string port);
         void Shutdown();
-        void Run();
+        void Run(std::string port);
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService daemonService_;

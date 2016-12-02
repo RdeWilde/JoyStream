@@ -1,9 +1,9 @@
 #include <joystreamd_lib/ServerImpl.hpp>
 
-ServerImpl::ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication *app)
+ServerImpl::ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication *app, std::string port)
     : kit_(kit), app_(app)
 {
-    Run();
+    Run(port);
 }
 
 void ServerImpl::Shutdown()
@@ -27,9 +27,11 @@ void ServerImpl::Shutdown()
 
 }
 
-void ServerImpl::Run()
+void ServerImpl::Run(std::string port)
 {
-    std::string server_address("0.0.0.0:3002");
+    std::stringstream ss;
+    ss << "0.0.0.0:" << port;
+    std::string server_address = ss.str();
 
     grpc::ServerBuilder builder;
 
@@ -53,6 +55,7 @@ void ServerImpl::Run()
     new RPCSuscribeEvents(&daemonService_, cq_.get(), kit_->node());
     new RPCGetTorrentState(&daemonService_, cq_.get(), kit_->node());
     new RPCBuyTorrent(&daemonService_, cq_.get(), kit_);
+    new RPCSellTorrent(&daemonService_, cq_.get(), kit_);
 
     // Initiate Wallet Service methods
     new RPCReceivedAddress(&walletService_, cq_.get(), kit_->wallet());
