@@ -1,6 +1,5 @@
 var PROTO_PATH = __dirname + '/../protos/daemon.proto';
 
-var fs = require('fs');
 var grpc = require('grpc');
 
 var rpc = grpc.load(PROTO_PATH).joystream.daemon.rpc;

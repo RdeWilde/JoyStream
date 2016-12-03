@@ -13,7 +13,7 @@ void RPCAddTorrent::process()
 
     joystream::daemon::rpc::Void response;
 
-    std::string save_path = std::string("/home/lola/joystream");
+    std::string save_path;
     std::vector<char> resume_data = std::vector<char>();
     std::string name;
     boost::optional<uint> upload_limit = -1;

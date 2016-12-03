@@ -17,6 +17,7 @@ class RPCSellTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joy
          * it can start to sell torrent.
          * */
         void checkStatus(libtorrent::torrent_status::state_t state, float progress);
+
     private:
         joystream::appkit::AppKit* appKit_;
 };

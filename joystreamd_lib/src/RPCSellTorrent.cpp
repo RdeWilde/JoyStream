@@ -17,6 +17,13 @@ void RPCSellTorrent::checkStatus(libtorrent::torrent_status::state_t state, floa
 
     torrent = appKit_->node()->torrent(joystream::appkit::util::sha1_hash_from_hex_string(request_.infohash().c_str()));
 
+    std::cout << "STATUS UPDATED" << std::endl;
+    std::cout << state << std::endl;
+
+    if (state == libtorrent::torrent_status::state_t::downloading) {
+        std::cout << "DOWNLOADING" << std::endl;
+    }
+
     if (state == libtorrent::torrent_status::state_t::seeding) {
         try {
             appKit_->sellTorrent(torrent, sellingPolicy, sellerTerms, [this, response](const std::exception_ptr &e){
@@ -64,7 +71,7 @@ void RPCSellTorrent::process()
                 this->finish(response, false);
             }
         } else {
-            std::cout << "Need to wait for it to be on downloading state" << std::endl;
+            std::cout << "Need to wait for it to be on seeding state" << std::endl;
             QObject::connect(torrent, &joystream::core::Torrent::stateChanged, this, &RPCSellTorrent::checkStatus);
         }
 

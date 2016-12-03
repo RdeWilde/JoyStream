@@ -1,10 +1,14 @@
-var rpc = require("./rpc_client.js");
-var express = require('express');
-var app = express();
+var rpc = require("./rpc_client.js")
+var express = require('express')
+var app = express()
+
+var fs = require('fs')
+
+var buffer = fs.readFileSync('306497171.torrent')
 
 var torrent = {
-	'type': 0,
-	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1'
+	'type': 2,
+	'data': buffer
 }
 
 var torrentFilePath = '306497171.torrent'
