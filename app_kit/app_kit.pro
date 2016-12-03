@@ -30,7 +30,8 @@ HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/TorrentAdder.hpp \
     include/app_kit/TorrentAddResponse.hpp \
     include/app_kit/TorrentBuyer.hpp \
-    include/app_kit/BuyTorrentResponse.hpp
+    include/app_kit/BuyTorrentResponse.hpp \
+    include/app_kit/TorrentAddRequest.hpp
 
 INCLUDEPATH += $$PWD/include
 

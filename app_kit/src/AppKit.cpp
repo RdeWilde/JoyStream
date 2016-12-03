@@ -10,6 +10,7 @@
 #include <app_kit/Settings.hpp>
 #include <app_kit/SavedTorrents.hpp>
 #include <app_kit/SavedTorrentParameters.hpp>
+#include <app_kit/TorrentAddRequest.hpp>
 #include <app_kit/TorrentAdder.hpp>
 #include <app_kit/TorrentBuyer.hpp>
 
@@ -126,20 +127,23 @@ std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const SavedTorrentParamet
 
     auto metadata = torrent.metaData();
 
-    return TorrentAdder::add(this,
-                             node(),
-                             metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
-                             torrent.uploadLimit(),
-                             torrent.downloadLimit(),
-                             torrent.name(),
-                             torrent.resumeData(),
-                             torrent.savePath(),
-                             torrent.paused());
+    TorrentAddRequest request(metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
+                              torrent.savePath());
+
+    request.uploadLimit = torrent.uploadLimit();
+    request.downloadLimit = torrent.downloadLimit();
+    request.name = torrent.name() == "" ? libtorrent::to_hex(request.torrentIdentifier.infoHash().to_string()) : torrent.name();
+    request.resumeData = torrent.resumeData();
+    request.paused = torrent.paused();
+
+    return TorrentAdder::add(this, node(), request);
 }
 
 std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
 
-    return TorrentAdder::add(this, node(), ti, 0, 0, "", std::vector<char>(), savePath, false);
+    TorrentAddRequest request(ti, savePath);
+
+    return TorrentAdder::add(this, node(), request);
 }
 
 std::shared_ptr<BuyTorrentResponse> AppKit::buyTorrent(libtorrent::sha1_hash infoHash,

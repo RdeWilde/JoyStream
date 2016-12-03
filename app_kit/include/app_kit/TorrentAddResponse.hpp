@@ -14,6 +14,8 @@ public:
     enum class Error {
         NoError,
         TorrentAlreadyExists,
+        TorrentAlreadyBeingAdded,
+        TorrentDoesNotExist,
         TorrentRemovedBeforePluginWasAdded,
         ResumeFailed,
         LibtorrentError

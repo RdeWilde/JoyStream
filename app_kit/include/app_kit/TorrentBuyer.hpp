@@ -36,7 +36,10 @@ private:
     protocol_wire::BuyerTerms _terms;
     std::shared_ptr<BuyTorrentResponse> _response;
 
-    void start();
+    static std::map<libtorrent::sha1_hash, TorrentBuyer*> _workers;
+
+    Q_INVOKABLE void start();
+    Q_INVOKABLE void abort();
 
     void finished();
     void finished(BuyTorrentResponse::Error);

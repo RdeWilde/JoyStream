@@ -17,6 +17,7 @@ public:
     enum class Error {
         NoError,
         TorrentDoesNotExist,
+        AlreadyTryingToBuyTorrent,
         TorrentPluginNotSet,
         WalletLocked,
         TorrentAlreadyDownloaded,

@@ -218,19 +218,12 @@ void CliApp::processTorrent() {
         joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
         joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
-        // If the add operation completed we can try to buy or sell
-        if(torrent->isFinished()) {
-
+        // Wait for torrent to be added
+        QObject::connect(torrent.get(), &joystream::appkit::TorrentAddResponse::finished, [this, torrent, buyerTerms, buyingPolicy](){
             if(_command == "buy" && torrent->wasAdded())
                 _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms);
+        });
 
-        } else {
-            // Wait for torrent to be added
-            QObject::connect(torrent.get(), &joystream::appkit::TorrentAddResponse::finished, [this, torrent, buyerTerms, buyingPolicy](){
-                if(_command == "buy" && torrent->wasAdded())
-                    _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms);
-            });
-        }
     }
 }
 

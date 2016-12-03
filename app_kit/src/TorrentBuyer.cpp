@@ -6,6 +6,7 @@
 namespace joystream {
 namespace appkit {
 
+std::map<libtorrent::sha1_hash, TorrentBuyer*> TorrentBuyer::_workers;
 
 TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
                            std::shared_ptr<BuyTorrentResponse> response,
@@ -20,10 +21,22 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
       _infoHash(infoHash),
       _response(response)
 {
-    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentBuyer::onTorrentRemoved);
-    QObject::connect(this, &TorrentBuyer::destroyed, response.get(), &BuyTorrentResponse::finishedProcessing);
 
-    start();
+    QObject::connect(this, &TorrentBuyer::destroyed, _response.get(), &BuyTorrentResponse::finishedProcessing);
+
+    // Only one buyer per infohash
+    if(_workers.find(_infoHash) != _workers.end()) {
+
+        QTimer::singleShot(0, this, &TorrentBuyer::abort);
+
+    } else {
+
+        _workers[_infoHash] = this;
+
+        QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentBuyer::onTorrentRemoved);
+
+        QTimer::singleShot(0, this, &TorrentBuyer::start);
+    }
 }
 
 std::shared_ptr<BuyTorrentResponse> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
@@ -39,7 +52,13 @@ std::shared_ptr<BuyTorrentResponse> TorrentBuyer::buy(QObject* parent, core::Nod
 
 }
 
+void TorrentBuyer::abort() {
+    _response->setError(BuyTorrentResponse::Error::AlreadyTryingToBuyTorrent);
+    delete this;
+}
+
 void TorrentBuyer::finished() {
+    _workers.erase(_infoHash);
     delete this;
 }
 
@@ -66,6 +85,7 @@ core::Torrent* TorrentBuyer::getTorrentPointerOrFail() {
 }
 
 void TorrentBuyer::start() {
+
     auto torrent = getTorrentPointerOrFail();
 
     if(!torrent)
