@@ -1,14 +1,15 @@
 #ifndef EXTENSION_MOCK_SESSION_HPP
 #define EXTENSION_MOCK_SESSION_HPP
 
-#include "gmock/gmock.h"
-#include "SessionInterface.hpp"
+#include <gmock/gmock.h>
+
+#include "extension/interface/SessionInterface.hpp"
 
 namespace joystream {
 namespace test {
 namespace extension {
 
-class MockSession : public libtorrent_interface::SessionInterface {
+class MockSession : public interface::SessionInterface {
 public:
     MOCK_METHOD0(pause, void());
     MOCK_METHOD0(resume, void());

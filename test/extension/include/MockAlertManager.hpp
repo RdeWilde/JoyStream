@@ -3,16 +3,16 @@
 
 #include <gmock/gmock.h>
 
-#include <extension/alert.hpp>
 #include <libtorrent/socket.hpp>
 
-#include "AlertManagerInterface.hpp"
+#include "extension/alert.hpp"
+#include "extension/interface/AlertManagerInterface.hpp"
 
 namespace joystream {
 namespace test {
 namespace extension {
 
-class MockAlertManager : public libtorrent_interface::AlertManagerInterface {
+class MockAlertManager : public interface::AlertManagerInterface {
 public:
     MOCK_METHOD0(native_handle, libtorrent::alert_manager*());
     /*

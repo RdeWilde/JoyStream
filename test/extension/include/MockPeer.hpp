@@ -1,14 +1,15 @@
 #ifndef GMOCK_MOCK_PEER_HPP
 #define GMOCK_MOCK_PEER_HPP
 
-#include "gmock/gmock.h"
-#include "PeerInterface.hpp"
+#include <gmock/gmock.h>
+
+#include "extension/interface/PeerInterface.hpp"
 
 namespace joystream {
 namespace test {
 namespace extension {
 
-class MockPeer : public libtorrent_interface::PeerInterface {
+class MockPeer : public interface::PeerInterface {
   public:
     MOCK_CONST_METHOD0(isOutgoing, bool());
     MOCK_CONST_METHOD0(connect, void());

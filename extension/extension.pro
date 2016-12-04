@@ -15,7 +15,6 @@ CONFIG  += c++11 # Needed for class enum
 QT      += core
 
 INCLUDEPATH += $$PWD/include
-INCLUDEPATH += $$PWD/interface
 
 HEADERS += \
     include/extension/TorrentPlugin.hpp \
@@ -30,14 +29,14 @@ HEADERS += \
     include/extension/Exception.hpp \
     include/extension/detail.hpp \
     include/extension/Callbacks.hpp \
-    interface/AlertManagerInterface.hpp \
-    interface/PeerInterface.hpp \
-    interface/SessionInterface.hpp \
-    interface/TorrentInterface.hpp \
     include/extension/AlertManager.hpp \
     include/extension/Session.hpp \
     include/extension/Torrent.hpp \
-    include/extension/Peer.hpp
+    include/extension/Peer.hpp \
+    include/extension/interface/AlertManagerInterface.hpp \
+    include/extension/interface/PeerInterface.hpp \
+    include/extension/interface/SessionInterface.hpp \
+    include/extension/interface/TorrentInterface.hpp \
 
 SOURCES += \
     src/TorrentPlugin.cpp \

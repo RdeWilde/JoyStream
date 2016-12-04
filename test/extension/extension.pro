@@ -1,7 +1,7 @@
 include(gmock.pri)
 
 INCLUDEPATH += $$PWD/include
-INCLUDEPATH += $$PWD/../../extension
+INCLUDEPATH += $$PWD/../../extension/include
 
 HEADERS += \
     include/MockPeer.hpp \
