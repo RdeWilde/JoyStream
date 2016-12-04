@@ -1,7 +1,7 @@
 #include "extension/Torrent.hpp"
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
 
 libtorrent::sha1_hash Torrent::infoHash() const
 {

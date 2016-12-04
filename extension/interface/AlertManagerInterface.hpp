@@ -1,5 +1,5 @@
-#ifndef LIBTORRENT_INTERFACE_ALERT_MANAGER_INTERFACE_HPP
-#define LIBTORRENT_INTERFACE_ALERT_MANAGER_INTERFACE_HPP
+#ifndef JOYSTREAM_EXTENSION_INTERFACE_ALERT_MANAGER_INTERFACE_HPP
+#define JOYSTREAM_EXTENSION_INTERFACE_ALERT_MANAGER_INTERFACE_HPP
 
 #include <libtorrent/socket.hpp>
 #include <libtorrent/alert.hpp>
@@ -15,17 +15,15 @@ namespace libtorrent {
 }
 
 namespace joystream {
-
-    namespace extension {
-        namespace alert {
-            typedef std::function<void()> LoadedCallBack;
-        }
-        namespace status {
-            struct Plugin;
-        }
+namespace extension {
+    namespace alert {
+        typedef std::function<void()> LoadedCallBack;
+    }
+    namespace status {
+        struct Plugin;
     }
 
-namespace libtorrent_interface {
+namespace interface {
 
 class AlertManagerInterface {
 public:
@@ -44,5 +42,6 @@ public:
 
 }
 }
+}
 
-#endif // LIBTORRENT_INTERFACE_ALERT_MANAGER_INTERFACE_HPP
+#endif // JOYSTREAM_EXTENSION_INTERFACE_ALERT_MANAGER_INTERFACE_HPP

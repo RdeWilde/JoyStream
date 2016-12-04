@@ -1,7 +1,7 @@
 #include "extension/Peer.hpp"
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
 
 
 bool Peer::is_outgoing() const

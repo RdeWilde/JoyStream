@@ -1,5 +1,5 @@
-#ifndef LIBTORRENT_INTERFACE_TORRENT_INTERFACE_HPP
-#define LIBTORRENT_INTERFACE_TORRENT_INTERFACE_HPP
+#ifndef JOYSTREAM_EXTENSION_INTERFACE_TORRENT_INTERFACE_HPP
+#define JOYSTREAM_EXTENSION_INTERFACE_TORRENT_INTERFACE_HPP
 
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
@@ -10,7 +10,8 @@ namespace libtorrent {
 }
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
+namespace interface {
 
 class TorrentInterface {
 public:
@@ -22,5 +23,6 @@ public:
 
 }
 }
+}
 
-#endif //LIBTORRENT_INTERFACE_TORRENT_INTERFACE_HPP
+#endif // JOYSTREAM_EXTENSION_INTERFACE_TORRENT_INTERFACE_HPP

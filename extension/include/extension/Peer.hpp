@@ -1,5 +1,5 @@
-#ifndef LIBTORRENT_INTERFACE_PEER_HPP
-#define LIBTORRENT_INTERFACE_PEER_HPP
+#ifndef JOYSTREAM_EXTENSION_PEER_HPP
+#define JOYSTREAM_EXTENSION_PEER_HPP
 
 #include "PeerInterface.hpp"
 
@@ -16,9 +16,9 @@ namespace libtorrent {
 }
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
 
-class Peer : public PeerInterface {
+class Peer : public interface::PeerInterface {
 
 public:
     Peer(const libtorrent::peer_connection_handle &pc)
@@ -43,4 +43,4 @@ private:
 }
 }
 
-#endif // LIBTORRENT_INTERFACE_PEER_HPP
+#endif // JOYSTREAM_EXTENSION_PEER_HPP

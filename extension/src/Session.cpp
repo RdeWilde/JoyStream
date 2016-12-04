@@ -1,7 +1,7 @@
 #include "extension/Session.hpp"
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
 
 Session::Session(const libtorrent::session_handle& sh)
 {

@@ -1,5 +1,5 @@
-#ifndef LIBTORRENT_INTERFACE_PEER_INTERFACE_HPP
-#define LIBTORRENT_INTERFACE_PEER_INTERFACE_HPP
+#ifndef JOYSTREAM_EXTENSION_INTERFACE_PEER_INTERFACE_HPP
+#define JOYSTREAM_EXTENSION_INTERFACE_PEER_INTERFACE_HPP
 
 #include <boost/shared_ptr.hpp>
 
@@ -22,7 +22,8 @@ namespace libtorrent {
 }
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
+namespace interface {
 
 class PeerInterface {
 public:
@@ -41,5 +42,6 @@ public:
 
 }
 }
+}
 
-#endif //LIBTORRENT_INTERFACE_PEER_INTERFACE_HPP
+#endif // JOYSTREAM_EXTENSION_INTERFACE_PEER_INTERFACE_HPP

@@ -1,5 +1,5 @@
-#ifndef LIBTORRENT_INTERFACE_SESSION_INTERFACE_HPP
-#define LIBTORRENT_INTERFACE_SESSION_INTERFACE_HPP
+#ifndef JOYSTREAM_EXTENSION_INTERFACE_SESSION_INTERFACE_HPP
+#define JOYSTREAM_EXTENSION_INTERFACE_SESSION_INTERFACE_HPP
 
 #include "TorrentInterface.hpp"
 
@@ -17,7 +17,8 @@ namespace libtorrent {
 }
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
+namespace interface {
 
 class SessionInterface {
 public:
@@ -33,5 +34,6 @@ public:
 
 }
 }
+}
 
-#endif // LIBTORRENT_INTERFACE_SESSION_INTERFACE_HPP
+#endif // JOYSTREAM_EXTENSION_INTERFACE_SESSION_INTERFACE_HPP

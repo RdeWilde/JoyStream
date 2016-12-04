@@ -1,5 +1,5 @@
-#ifndef LIBTORRENT_INTERFACE_TORRENT_HPP
-#define LIBTORRENT_INTERFACE_TORRENT_HPP
+#ifndef JOYSTREAM_EXTENSION_TORRENT_HPP
+#define JOYSTREAM_EXTENSION_TORRENT_HPP
 
 #include "TorrentInterface.hpp"
 
@@ -9,9 +9,9 @@ namespace libtorrent {
 }
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
 
-class Torrent : public TorrentInterface {
+class Torrent : public interface::TorrentInterface {
 public:
     Torrent(const libtorrent::torrent_handle &th)
         : _torrentHandle(th)
@@ -28,4 +28,4 @@ private:
 }
 }
 
-#endif // LIBTORRENT_INTERFACE_TORRENT_HPP
+#endif // JOYSTREAM_EXTENSION_TORRENT_HPP

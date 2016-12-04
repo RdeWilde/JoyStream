@@ -1,5 +1,5 @@
-#ifndef LIBTORRENT_INTERFACE_ALERT_MANAGER_HPP
-#define LIBTORRENT_INTERFACE_ALERT_MANAGER_HPP
+#ifndef JOYSTREAM_EXTENSION_ALERT_MANAGER_HPP
+#define JOYSTREAM_EXTENSION_ALERT_MANAGER_HPP
 
 #include <boost/config.hpp>
 #include <boost/cstdint.hpp>
@@ -15,7 +15,6 @@ namespace libtorrent {
 }
 
 namespace joystream {
-
 namespace extension {
     namespace alert {
         struct PluginStatus;
@@ -27,11 +26,8 @@ namespace extension {
     namespace status {
         struct Plugin;
     }
-}
 
-namespace libtorrent_interface {
-
-class AlertManager : public AlertManagerInterface {
+class AlertManager : public interface::AlertManagerInterface {
 public:
     AlertManager(int queue_limit);
     ~AlertManager() {}
@@ -64,4 +60,4 @@ private:
 }
 }
 
-#endif // LIBTORRENT_INTERFACE_ALERT_MANAGER_HPP
+#endif // JOYSTREAM_EXTENSION_ALERT_MANAGER_HPP

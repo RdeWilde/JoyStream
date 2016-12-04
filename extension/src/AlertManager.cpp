@@ -1,7 +1,7 @@
 #include "extension/AlertManager.hpp"
 
 namespace joystream {
-namespace libtorrent_interface {
+namespace extension {
 
 AlertManager::AlertManager(int queue_limit)
 {
