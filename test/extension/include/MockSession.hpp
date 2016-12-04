@@ -1,11 +1,12 @@
-#ifndef GMOCK_MOCK_SESSION_HPP
-#define GMOCK_MOCK_SESSION_HPP
+#ifndef EXTENSION_MOCK_SESSION_HPP
+#define EXTENSION_MOCK_SESSION_HPP
 
 #include "gmock/gmock.h"
 #include "SessionInterface.hpp"
 
 namespace joystream {
-namespace gmock {
+namespace test {
+namespace extension {
 
 class MockSession : public libtorrent_interface::SessionInterface {
 public:
@@ -18,5 +19,6 @@ public:
 
 }
 }
+}
 
-#endif // GMOCK_MOCK_SESSION_HPP
+#endif // EXTENSION_MOCK_SESSION_HPP

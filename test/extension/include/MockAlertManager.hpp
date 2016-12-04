@@ -1,5 +1,5 @@
-#ifndef GMOCK_MOCK_ALERT_MANAGER_HPP
-#define GMOCK_MOCK_ALERT_MANAGER_HPP
+#ifndef EXTENSION_MOCK_ALERT_MANAGER_HPP
+#define EXTENSION_MOCK_ALERT_MANAGER_HPP
 
 #include <gmock/gmock.h>
 
@@ -9,7 +9,8 @@
 #include "AlertManagerInterface.hpp"
 
 namespace joystream {
-namespace gmock {
+namespace test {
+namespace extension {
 
 class MockAlertManager : public libtorrent_interface::AlertManagerInterface {
 public:
@@ -29,5 +30,6 @@ public:
 
 }
 }
+}
 
-#endif // GMOCK_MOCK_ALERT_MANAGER_HPP
+#endif // EXTENSION_MOCK_ALERT_MANAGER_HPP

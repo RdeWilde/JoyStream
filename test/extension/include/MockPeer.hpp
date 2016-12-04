@@ -5,7 +5,8 @@
 #include "PeerInterface.hpp"
 
 namespace joystream {
-namespace gmock {
+namespace test {
+namespace extension {
 
 class MockPeer : public libtorrent_interface::PeerInterface {
   public:
@@ -18,6 +19,7 @@ class MockPeer : public libtorrent_interface::PeerInterface {
     MOCK_CONST_METHOD0(native_handle, libtorrent::peer_connection_handle());
 };
 
+}
 }
 }
 
