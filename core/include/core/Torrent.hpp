@@ -146,8 +146,6 @@ signals:
 
     void downloadLimitChanged(int);
 
-    void torrentPluginStatusUpdated(const extension::status::TorrentPlugin &);
-
 private:
 
     friend struct detail::NodeImpl;
@@ -167,8 +165,6 @@ private:
     void updateStatus(const libtorrent::torrent_status &);
 
     void updatePeerStatuses(const std::vector<libtorrent::peer_info> &);
-
-    void updateTorrentPluginStatus(const extension::status::TorrentPlugin &);
 
     void updateUploadLimit(int);
 

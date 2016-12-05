@@ -7,6 +7,7 @@
 
 #include <core/detail/NodeImpl.hpp>
 #include <core/Torrent.hpp>
+#include <core/TorrentPlugin.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
@@ -508,7 +509,7 @@ void NodeImpl::process(const extension::alert::TorrentPluginStatusUpdateAlert * 
             std::unique_ptr<Torrent> & t = it->second;
 
             if(t->torrentPluginSet())
-                t->updateTorrentPluginStatus(m.second);
+                t->torrentPlugin()->update(m.second);
             //else
                 //t->addTorrentPlugin(status.second);
 

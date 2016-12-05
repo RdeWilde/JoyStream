@@ -14,6 +14,9 @@
 
 namespace joystream {
 namespace core {
+namespace detail {
+    struct NodeImpl;
+}
 
 class PeerPlugin;
 class Session;
@@ -91,9 +94,11 @@ signals:
 
     void peerPluginRemoved(const libtorrent::tcp::endpoint &);
 
+    void statusUpdated(const extension::status::TorrentPlugin &);
+
 private:
 
-    friend class Torrent;
+    friend struct detail::NodeImpl;
 
     void addPeerPlugin(const extension::status::PeerPlugin &);
 

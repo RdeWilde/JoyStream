@@ -159,23 +159,11 @@ void TorrentPlugin::update(const extension::status::TorrentPlugin & status) {
 
     assert(_infoHash == status.infoHash);
 
-    /// Update peer plugins
-
-    // for each peer with a status
-    for(auto p: status.peers) {
-
-        auto it = _peers.find(p.first);
-
-        // if peer is present, then update
-        if(it != _peers.cend())
-            it->second->update(p.second);
-        //else // otherwise add
-        //    addPeerPlugin(p.second);
-
-    }
-
     // Session
     _session->update(status.session);
+
+    // Send signal
+    emit statusUpdated(status);
 }
 
 }
