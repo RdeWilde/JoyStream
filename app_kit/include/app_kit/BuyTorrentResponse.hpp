@@ -18,13 +18,14 @@ public:
         NoError,
         TorrentDoesNotExist,
         AlreadyTryingToBuyTorrent,
+        TorrentAlreadyInBuySession,
         TorrentPluginNotSet,
         WalletLocked,
         TorrentAlreadyDownloaded,
         UnableToLockFunds,
-        GoingToBuyModeFailed,
-        GeneralError,
-        FailedToStartPlugin
+        //GoingToBuyModeFailed,
+        //GeneralError,
+        //FailedToStartPlugin
     };
 
     BuyTorrentResponse(libtorrent::sha1_hash infoHash)

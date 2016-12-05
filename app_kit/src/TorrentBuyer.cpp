@@ -2,6 +2,7 @@
 #include <app_kit/BuyTorrentResponse.hpp>
 #include <core/TorrentPlugin.hpp>
 #include <core/Torrent.hpp>
+#include <core/Session.hpp>
 
 namespace joystream {
 namespace appkit {
@@ -76,8 +77,7 @@ core::Torrent* TorrentBuyer::getTorrentPointerOrFail() {
     auto torrents = _node->torrents();
 
     if(torrents.find(_infoHash) == torrents.end()) {
-        _response->setError(BuyTorrentResponse::Error::TorrentDoesNotExist);
-        finished();
+        finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
         return nullptr;
     }
 
@@ -88,26 +88,27 @@ void TorrentBuyer::start() {
 
     auto torrent = getTorrentPointerOrFail();
 
-    if(!torrent)
-        return;
-
-    if(!torrent->torrentPluginSet()) {
-        _response->setError(BuyTorrentResponse::Error::TorrentPluginNotSet);
-        finished();
+    if(!torrent) {
+        finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
         return;
     }
 
-    if(_wallet->locked()) {
-        _response->setError(BuyTorrentResponse::Error::WalletLocked);
-        finished();
+    if(!torrent->torrentPluginSet()) {
+        finished(BuyTorrentResponse::Error::TorrentPluginNotSet);
+        return;
+    }
+
+    core::Session* session = torrent->torrentPlugin()->session();
+
+    if(session->buying()){
+        finished(BuyTorrentResponse::Error::TorrentAlreadyInBuySession);
         return;
     }
 
     auto state = torrent->state();
 
     if (libtorrent::torrent_status::state_t::seeding == state) {
-        _response->setError(BuyTorrentResponse::Error::TorrentAlreadyDownloaded);
-        finished();
+        finished(BuyTorrentResponse::Error::TorrentAlreadyDownloaded);
         return;
     }
 
@@ -121,8 +122,7 @@ void TorrentBuyer::start() {
 
 void TorrentBuyer::onTorrentStateChanged(libtorrent::torrent_status::state_t state, float progress) {
     if(libtorrent::torrent_status::state_t::seeding == state) {
-        _response->setError(BuyTorrentResponse::Error::TorrentAlreadyDownloaded);
-        finished();
+        finished(BuyTorrentResponse::Error::TorrentAlreadyDownloaded);
         return;
     }
 
@@ -135,7 +135,7 @@ void TorrentBuyer::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
     if(_infoHash != info_hash)
         return;
 
-    finished();
+    finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
 }
 
 void TorrentBuyer::startBuying() {
@@ -146,14 +146,12 @@ void TorrentBuyer::startBuying() {
         return;
 
     if(!torrent->torrentPluginSet()) {
-        _response->setError(BuyTorrentResponse::Error::TorrentPluginNotSet);
-        finished();
+        finished(BuyTorrentResponse::Error::TorrentPluginNotSet);
         return;
     }
 
     if(_wallet->locked()) {
-        _response->setError(BuyTorrentResponse::Error::WalletLocked);
-        finished();
+        finished(BuyTorrentResponse::Error::WalletLocked);
         return;
     }
 
@@ -166,8 +164,7 @@ void TorrentBuyer::startBuying() {
     auto outputs = _wallet->lockOutputs(minimumFunds, 0);
 
     if(outputs.size() == 0) {
-        _response->setError(BuyTorrentResponse::Error::UnableToLockFunds);
-        finished();
+        finished(BuyTorrentResponse::Error::UnableToLockFunds);
         return;
     }
 
@@ -222,16 +219,17 @@ void TorrentBuyer::startPlugin() {
 
     auto torrent = getTorrentPointerOrFail();
 
-    if(!torrent)
+    if(!torrent) {
+        finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
         return;
+    }
 
     torrent->torrentPlugin()->start([this](const std::exception_ptr &eptr){
         if(eptr){
-            _response->setError(eptr);
-        }else {
-            // success
+            finished(eptr);
+        } else {
+            finished();
         }
-        finished();
     });
 }
 
