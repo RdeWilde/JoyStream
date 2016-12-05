@@ -47,33 +47,18 @@ namespace status {
         TorrentPlugin() {}
 
         TorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                      const std::map<libtorrent::tcp::endpoint, PeerPlugin> & peers,
                       const protocol_session::status::Session<libtorrent::tcp::endpoint> & session)
             : infoHash(infoHash)
-            , peers(peers)
             , session(session) {
         }
 
         // Torrent info hash
         libtorrent::sha1_hash infoHash;
 
-        // Maps endpoint to peer plugin status
-        std::map<libtorrent::tcp::endpoint, PeerPlugin> peers;
-
         // Status of session
         protocol_session::status::Session<libtorrent::tcp::endpoint> session;
     };
 
-    struct Plugin {
-
-        Plugin() {}
-
-        Plugin(const std::map<libtorrent::sha1_hash, TorrentPlugin> & plugins)
-            : plugins(plugins) {
-        }
-
-        std::map<libtorrent::sha1_hash, TorrentPlugin> plugins;
-    };
 }
 }
 }

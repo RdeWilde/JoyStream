@@ -104,9 +104,10 @@ public:
 
     /**
      * @brief Triggers an update of the status of all torrents,
-     * and any changes in state will be emitted as signals.
+     * torrent plugins and peers, and any changes in state will
+     * be emitted as signals.
      */
-    void updateStatus();
+    void postStatusUpdate();
 
     /**
      * @brief Port on which node is currently listening for BitTorrent

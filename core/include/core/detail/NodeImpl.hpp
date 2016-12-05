@@ -86,7 +86,7 @@ struct NodeImpl {
     void updateTorrentStatus() const;
 
     // Updates torrent plugin statuses
-    void updateTorrentPluginStatus() const;
+    void postTorrentPluginStatusUpdates() const;
 
     // Updates peer statuses
     void updatePeerStatus() const;
@@ -122,7 +122,7 @@ struct NodeImpl {
 
     // Processing (plugin) alerts
     void process(const extension::alert::RequestResult * p);
-    void process(const extension::alert::PluginStatus * p);
+    void process(const extension::alert::TorrentPluginStatusUpdateAlert * p);
 
     // Underlying libtorrent session
     std::unique_ptr<libtorrent::session> _session;

@@ -146,6 +146,8 @@ signals:
 
     void downloadLimitChanged(int);
 
+    void torrentPluginStatusUpdated(const extension::status::TorrentPlugin &);
+
 private:
 
     friend struct detail::NodeImpl;

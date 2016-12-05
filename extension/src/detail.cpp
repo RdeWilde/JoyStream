@@ -94,8 +94,23 @@ void RequestVariantVisitor::operator()(const request::ToBuyMode & r) {
     sendRequestResult(std::bind(r.handler, e));
 }
 
-void RequestVariantVisitor::operator()(const request::UpdateStatus &) {
-    _alertManager->emplace_alert<alert::PluginStatus>(_plugin->status());
+void RequestVariantVisitor::operator()(const request::PostTorrentPluginStatusUpdates &) {
+
+    // Generate all statuses
+    std::map<libtorrent::sha1_hash, status::TorrentPlugin> statuses;
+
+    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > torrentPlugins = _plugin->torrentPlugins();
+
+    for(auto m :torrentPlugins) {
+
+        boost::shared_ptr<TorrentPlugin> torrentPlugin = m.second.lock();
+
+        assert(torrentPlugin);
+
+        statuses.insert(std::make_pair(m.first, torrentPlugin->status()));
+    }
+
+    _alertManager->emplace_alert<alert::TorrentPluginStatusUpdateAlert>(statuses);
 }
 
 void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r) {

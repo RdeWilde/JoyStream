@@ -38,20 +38,19 @@ namespace alert {
 
     typedef std::function<void()> LoadedCallback;
 
-    // Temporary: we are likely ditching plugin level status alerts
-    struct PluginStatus final : public libtorrent::alert {
+    struct TorrentPluginStatusUpdateAlert final : public libtorrent::alert {
 
-        PluginStatus(libtorrent::aux::stack_allocator&,
-                     const status::Plugin & status)
-            : status(status) {}
+        TorrentPluginStatusUpdateAlert(libtorrent::aux::stack_allocator&,
+                                 const std::map<libtorrent::sha1_hash, status::TorrentPlugin> & statuses)
+            : statuses(statuses) {}
 
         TORRENT_DEFINE_ALERT(PluginStatus, libtorrent::user_alert_id + 1)
         static const int static_category = alert::status_notification;
         virtual std::string message() const override {
-            return "Plugin status";
+            return "Torrent plugin statuses.";
         }
 
-        status::Plugin status;
+        std::map<libtorrent::sha1_hash, status::TorrentPlugin> statuses;
     };
 
     struct RequestResult final : public libtorrent::alert {
@@ -130,23 +129,6 @@ namespace alert {
             return torrent_alert::message() + " torrent plugin removed";
         }
         libtorrent::sha1_hash info_hash;
-    };
-
-    struct TorrentPluginStatus : public libtorrent::torrent_alert {
-
-        TorrentPluginStatus(libtorrent::aux::stack_allocator& alloc,
-                            const libtorrent::torrent_handle & h,
-                            const status::TorrentPlugin & status)
-            : libtorrent::torrent_alert(alloc, h)
-            , status(status) {}
-
-        TORRENT_DEFINE_ALERT(TorrentPluginStatus, libtorrent::user_alert_id + 7)
-        static const int static_category = alert::status_notification;
-        virtual std::string message() const override {
-            return torrent_alert::message() + " torrent plugin status";
-        }
-
-        status::TorrentPlugin status;
     };
 
     struct PeerPluginAdded : public libtorrent::peer_alert {

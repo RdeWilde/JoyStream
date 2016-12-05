@@ -69,8 +69,8 @@ void NodeImpl::updateTorrentStatus() const {
     _session->post_torrent_updates();
 }
 
-void NodeImpl::updateTorrentPluginStatus() const {
-    _plugin->submit(extension::request::UpdateStatus());
+void NodeImpl::postTorrentPluginStatusUpdates() const {
+    _plugin->submit(extension::request::PostTorrentPluginStatusUpdates());
 }
 
 void NodeImpl::updatePeerStatus() const {
@@ -154,7 +154,7 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
     //    processPieceFinishedAlert(p);
     else if(extension::alert::RequestResult const * p = libtorrent::alert_cast<extension::alert::RequestResult>(a))
         process(p);
-    else if(extension::alert::PluginStatus const * p = libtorrent::alert_cast<extension::alert::PluginStatus>(a))
+    else if(extension::alert::TorrentPluginStatusUpdateAlert const * p = libtorrent::alert_cast<extension::alert::TorrentPluginStatusUpdateAlert>(a))
         process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
@@ -495,20 +495,20 @@ void NodeImpl::process(const extension::alert::RequestResult * p) {
     p->loadedCallback();
 }
 
-void NodeImpl::process(const extension::alert::PluginStatus * p) {
+void NodeImpl::process(const extension::alert::TorrentPluginStatusUpdateAlert * p) {
 
     // Update torrent plugin statuses
-    for(auto status: p->status.plugins) {
+    for(auto m: p->statuses) {
 
         // Get torrent for this plugin
-        auto it = _torrents.find(status.first);
+        auto it = _torrents.find(m.first);
 
         if(it != _torrents.cend()) {
 
             std::unique_ptr<Torrent> & t = it->second;
 
             if(t->torrentPluginSet())
-                t->updateTorrentPluginStatus(status.second);
+                t->updateTorrentPluginStatus(m.second);
             //else
                 //t->addTorrentPlugin(status.second);
 

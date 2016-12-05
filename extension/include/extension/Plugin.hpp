@@ -48,9 +48,6 @@ public:
     virtual void save_state(libtorrent::entry & stateEntry) const;
     virtual void load_state(const libtorrent::bdecode_node &);
 
-    // Return status of plugin
-    status::Plugin status() const;
-
     // Synchornized submittal of request, request
     // object is not owned by plugin, is returned
     // in response for associating responses to initial

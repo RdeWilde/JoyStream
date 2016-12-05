@@ -106,23 +106,6 @@ const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > & Plugin:
     return _torrentPlugins;
 }
 
-status::Plugin Plugin::status() const {
-
-    status::Plugin status;
-
-    // Get state of each plugin
-    for(auto mapping : _torrentPlugins) {
-
-        boost::shared_ptr<TorrentPlugin> plugin = mapping.second.lock();
-
-        assert(plugin);
-
-        status.plugins.insert(std::make_pair(mapping.first, plugin->status()));
-    }
-
-    return status;
-}
-
 void Plugin::processesRequestQueue() {
 
     detail::RequestVariantVisitor visitor(this, _session, _alertManager);

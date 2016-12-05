@@ -85,9 +85,9 @@ struct ResumeTorrent {
 
 /// Plugin requests
 
-struct UpdateStatus {
+struct PostTorrentPluginStatusUpdates {
 
-    UpdateStatus() {}
+    PostTorrentPluginStatusUpdates() {}
 };
 
 struct PauseLibtorrent {

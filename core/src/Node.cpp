@@ -131,9 +131,9 @@ void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedT
     _pimpl.removeTorrent(info_hash, handler);
 }
 
-void Node::updateStatus() {
+void Node::postStatusUpdate() {
     _pimpl.updateTorrentStatus();
-    _pimpl.updateTorrentPluginStatus();
+    _pimpl.postTorrentPluginStatusUpdates();
     _pimpl.updatePeerStatus();
 }
 

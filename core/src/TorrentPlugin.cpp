@@ -174,19 +174,6 @@ void TorrentPlugin::update(const extension::status::TorrentPlugin & status) {
 
     }
 
-    /**
-    // for each exisiting peer
-    for (auto it = _peers.cbegin(); it != _peers.cend(); ) {
-
-        // if there is no status for it, then remove
-        if(status.peers.count(it->first) == 0){
-            removePeerPlugin(it++);
-        } else {
-            it++;
-        }
-    }
-    */
-
     // Session
     _session->update(status.session);
 }

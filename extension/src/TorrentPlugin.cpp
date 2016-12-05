@@ -384,23 +384,7 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
 
 status::TorrentPlugin TorrentPlugin::status() const {
 
-    status::TorrentPlugin status;
-
-    status.infoHash = _infoHash;
-    status.session = _session.status();
-
-    // Get state of peer plugins
-    for(auto mapping : _peers) {
-
-        // Get shared_ptr reference to peer pluging
-        boost::shared_ptr<PeerPlugin> plugin = mapping.second.lock();
-
-        assert(plugin);
-
-        status.peers.insert(std::make_pair(mapping.first, plugin->status()));
-    }
-
-    return status;
+    return status::TorrentPlugin(_infoHash, _session.status());
 }
 
 TorrentPlugin::LibtorrentInteraction TorrentPlugin::libtorrentInteraction() const {
