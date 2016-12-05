@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <unistd.h>
+#include <stdio.h>
 
 #include <app_kit/kit.hpp>
 #include <common/Network.hpp>
@@ -22,14 +23,35 @@ int main(int argc, char *argv[])
 {
   QCoreApplication a(argc, argv);
 
-  joystream::appkit::DataDirectory dataDir(std::string("/home/lola/joystream/test/"));
+  // Default value
+  std::string path = std::string("/home/lola/joystream/test/");
+  std::string port = "3000";
+
+  int opt;
+  while ((opt = getopt (argc, argv, "p:f:")) != -1) {
+    switch (opt) {
+        case 'p':
+            std::cout << "Server is going to start on port : " << optarg << std::endl;
+            port = optarg;
+            break;
+        case 'f':
+            std::cout << "Joystream folder path :" << optarg << std::endl;
+            path = std::string(optarg);
+            break;
+        default:
+            std::cout << "Unknown argument" << std::endl;
+            break;
+    }
+  }
+
+  joystream::appkit::DataDirectory dataDir(path);
 
   // Create the objects we need here to pass to the daemon
   auto kit = joystream::appkit::AppKit::create(dataDir.walletFilePath().toStdString(),
                                              dataDir.blockTreeFilePath().toStdString(),
                                              TEST_BITCOIN_NETWORK);
 
-  ServerImpl server(kit, &a);
+  ServerImpl server(kit, &a, port, path);
 
   server_ = &server;
 

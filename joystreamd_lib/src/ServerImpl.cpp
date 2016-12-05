@@ -1,9 +1,9 @@
 #include <joystreamd_lib/ServerImpl.hpp>
 
-ServerImpl::ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication *app, std::string port)
+ServerImpl::ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication *app, std::string port, std::string defaultPath)
     : kit_(kit), app_(app)
 {
-    Run(port);
+    Run(port, defaultPath);
 }
 
 void ServerImpl::Shutdown()
@@ -27,7 +27,7 @@ void ServerImpl::Shutdown()
 
 }
 
-void ServerImpl::Run(std::string port)
+void ServerImpl::Run(std::string port, std::string defaultPath)
 {
     std::stringstream ss;
     ss << "0.0.0.0:" << port;
@@ -47,7 +47,7 @@ void ServerImpl::Run(std::string port)
 
     // Initiate Daemon Service methods
     new RPCPause(&daemonService_, cq_.get(), kit_->node());
-    new RPCAddTorrent(&daemonService_, cq_.get(), kit_->node());
+    new RPCAddTorrent(&daemonService_, cq_.get(), kit_->node(), defaultPath);
     new RPCRemoveTorrent(&daemonService_, cq_.get(), kit_->node());
     new RPCListTorrents(&daemonService_, cq_.get(), kit_->node());
     new RPCPauseTorrent(&daemonService_, cq_.get(), kit_->node());

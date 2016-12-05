@@ -26,9 +26,9 @@
 class ServerImpl final
 {
     public:
-        ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication* app, std::string port);
+        ServerImpl(joystream::appkit::AppKit* kit, QCoreApplication* app, std::string port, std::string defaultPath);
         void Shutdown();
-        void Run(std::string port);
+        void Run(std::string port, std::string defaultPath);
 
     private:
         joystream::daemon::rpc::Daemon::AsyncService daemonService_;

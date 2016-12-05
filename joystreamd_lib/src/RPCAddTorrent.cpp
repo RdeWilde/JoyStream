@@ -1,7 +1,7 @@
 #include <joystreamd_lib/RPCAddTorrent.hpp>
 
-RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node)
-    : RPCRequestNormal(service, cq), node_(node)
+RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node, std::string defaultSavePath)
+    : RPCRequestNormal(service, cq), node_(node), defaultSavePath_(defaultSavePath)
 {
     service_->RequestAddTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
@@ -9,11 +9,11 @@ RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
 void RPCAddTorrent::process()
 {
     // Pop up a new instance for concurency
-    new RPCAddTorrent(service_, cq_, node_);
+    new RPCAddTorrent(service_, cq_, node_, defaultSavePath_);
 
     joystream::daemon::rpc::Void response;
 
-    std::string save_path;
+    std::string save_path = defaultSavePath_;
     std::vector<char> resume_data = std::vector<char>();
     std::string name;
     boost::optional<uint> upload_limit = -1;
