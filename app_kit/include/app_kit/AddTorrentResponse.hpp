@@ -1,5 +1,5 @@
-#ifndef TORRENTADDRESPONSE_HPP
-#define TORRENTADDRESPONSE_HPP
+#ifndef AddTorrentResponse_HPP
+#define AddTorrentResponse_HPP
 
 #include <QObject>
 #include <core/TorrentIdentifier.hpp>
@@ -7,7 +7,7 @@
 namespace joystream {
 namespace appkit {
 
-class TorrentAddResponse : public QObject
+class AddTorrentResponse : public QObject
 {
     Q_OBJECT
 public:
@@ -21,7 +21,7 @@ public:
         LibtorrentError
     };
 
-    explicit TorrentAddResponse(const libtorrent::sha1_hash infoHash)
+    explicit AddTorrentResponse(const libtorrent::sha1_hash infoHash)
         : _finished(false),
           _added(false),
           _infoHash(infoHash),
@@ -64,4 +64,4 @@ private:
 }
 }
 
-#endif // TORRENTADDRESPONSE_HPP
+#endif // AddTorrentResponse_HPP

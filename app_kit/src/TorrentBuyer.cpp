@@ -41,9 +41,9 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
 }
 
 std::shared_ptr<BuyTorrentResponse> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
-                                        libtorrent::sha1_hash infoHash,
-                                        const protocol_session::BuyingPolicy& policy,
-                                        const protocol_wire::BuyerTerms& terms) {
+                                                      libtorrent::sha1_hash infoHash,
+                                                      const protocol_session::BuyingPolicy& policy,
+                                                      const protocol_wire::BuyerTerms& terms) {
 
     auto response = std::make_shared<BuyTorrentResponse>(infoHash);
 
@@ -100,7 +100,7 @@ void TorrentBuyer::start() {
 
     core::Session* session = torrent->torrentPlugin()->session();
 
-    if(session->buying()){
+    if(session->buyingSet()){
         finished(BuyTorrentResponse::Error::TorrentAlreadyInBuySession);
         return;
     }
@@ -207,8 +207,7 @@ void TorrentBuyer::startBuying() {
         [this, outputs](const std::exception_ptr & e) {
             if(e) {
                 _wallet->unlockOutputs(outputs);
-                _response->setError(e);
-                finished();
+                finished(e);
             } else {
                 startPlugin();
             }

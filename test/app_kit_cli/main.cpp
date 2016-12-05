@@ -31,8 +31,7 @@
 #include <string>
 
 #include <cli.hpp>
-#include <buyqueue.hpp>
-#include <sellqueue.hpp>
+
 #include <SignalHandler.hpp>
 
 void claimRefunds(joystream::appkit::AppKit* kit, uint64_t txFee) {
@@ -115,13 +114,13 @@ public:
     {
         parseArgs();
 
-        createAppKitInstance();
+        std::cout << "Creating AppKit Instance\n";
+        _kit.reset(joystream::appkit::AppKit::create(_dataDir.walletFilePath().toStdString(),
+                                                     _dataDir.blockTreeFilePath().toStdString(),
+                                                     _network,
+                                                     _appKitSettings));
 
         QObject::connect(this, &SignalHandler::signalReceived, this, &CliApp::handleSignal);
-    }
-
-    ~CliApp() {
-        delete _kit;
     }
 
     int run();
@@ -140,7 +139,7 @@ private:
     std::string _argument;
     joystream::appkit::Settings _appKitSettings;
     joystream::appkit::DataDirectory _dataDir;
-    joystream::appkit::AppKit* _kit;
+    std::unique_ptr<joystream::appkit::AppKit> _kit;
     const Coin::Network _network;
     bool _shuttingDown;
 
@@ -160,15 +159,6 @@ void CliApp::parseArgs()
     if((_command == "buy" || _command == "sell") && _argument == "") {
         throw std::runtime_error("Missing Torrent argument");
     }
-}
-
-void CliApp::createAppKitInstance()
-{
-    std::cout << "Creating AppKit Instance\n";
-    _kit = joystream::appkit::AppKit::create(_dataDir.walletFilePath().toStdString(),
-                                             _dataDir.blockTreeFilePath().toStdString(),
-                                             _network,
-                                             _appKitSettings);
 }
 
 void CliApp::handleSignal(int signal)
@@ -215,13 +205,23 @@ void CliApp::processTorrent() {
 
         delete torrentIdentifier;
 
-        joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
-        joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
-
         // Wait for torrent to be added
-        QObject::connect(torrent.get(), &joystream::appkit::TorrentAddResponse::finished, [this, torrent, buyerTerms, buyingPolicy](){
-            if(_command == "buy" && torrent->wasAdded())
+        QObject::connect(torrent.get(), &joystream::appkit::AddTorrentResponse::finished, [this, torrent](){
+            if(!torrent->wasAdded())
+                return;
+
+            if(_command == "buy") {
+                joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
+                joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
+
                 _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms);
+
+            } else if(_command == "sell") {
+                joystream::protocol_wire::SellerTerms sellerTerms(100, 5, 1, 20000, 5000);
+                joystream::protocol_session::SellingPolicy sellingPolicy;
+
+                _kit->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms);
+            }
         });
 
     }
@@ -239,7 +239,7 @@ int CliApp::run()
 
     processTorrent();
 
-    claimRefunds(_kit, 5000);
+    claimRefunds(_kit.get(), 5000);
 
     std::cout << "Starting Qt Application Event loop\n";
     int ret = _app.exec();

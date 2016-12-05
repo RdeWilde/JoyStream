@@ -10,9 +10,10 @@
 #include <app_kit/Settings.hpp>
 #include <app_kit/SavedTorrents.hpp>
 #include <app_kit/SavedTorrentParameters.hpp>
-#include <app_kit/TorrentAddRequest.hpp>
+#include <app_kit/AddTorrentRequest.hpp>
 #include <app_kit/TorrentAdder.hpp>
 #include <app_kit/TorrentBuyer.hpp>
+#include <app_kit/TorrentSeller.hpp>
 
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
@@ -123,11 +124,11 @@ SavedTorrents AppKit::generateSavedTorrents() const {
     return SavedTorrents(_node->torrents());
 }
 
-std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const SavedTorrentParameters &torrent) {
+std::shared_ptr<AddTorrentResponse> AppKit::addTorrent(const SavedTorrentParameters &torrent) {
 
     auto metadata = torrent.metaData();
 
-    TorrentAddRequest request(metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
+    AddTorrentRequest request(metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
                               torrent.savePath());
 
     request.uploadLimit = torrent.uploadLimit();
@@ -139,9 +140,9 @@ std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const SavedTorrentParamet
     return TorrentAdder::add(this, node(), request);
 }
 
-std::shared_ptr<TorrentAddResponse> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
+std::shared_ptr<AddTorrentResponse> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
 
-    TorrentAddRequest request(ti, savePath);
+    AddTorrentRequest request(ti, savePath);
 
     return TorrentAdder::add(this, node(), request);
 }
@@ -152,48 +153,10 @@ std::shared_ptr<BuyTorrentResponse> AppKit::buyTorrent(libtorrent::sha1_hash inf
     return TorrentBuyer::buy(this, node(), wallet(), infoHash, policy, terms);
 }
 
-void AppKit::sellTorrent(core::TorrentPlugin *plugin,
-                         const protocol_session::SellingPolicy &policy,
-                         const protocol_wire::SellerTerms &terms,
-                         const SubroutineHandler& handler){
-
-    plugin->toSellMode(
-        // protocol_session::GenerateP2SHKeyPairCallbackHandler
-        [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
-
-            Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
-                return bitcoin::RedeemScriptInfo(generateScript(pk), data);
-            });
-
-            return Coin::KeyPair(sk);
-        },
-        // protocol_session::GenerateReceiveAddressesCallbackHandler
-        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
-            std::vector<Coin::P2PKHAddress> addresses;
-
-            for(int n = 0; n < npairs; n++) {
-                addresses.push_back(_wallet->generateReceiveAddress());
-            }
-
-            return addresses;
-        },
-        policy,
-        terms,
-        handler);
-}
-
-void AppKit::sellTorrent(const core::Torrent *torrent,
-                         const protocol_session::SellingPolicy &policy,
-                         const protocol_wire::SellerTerms &terms,
-                         const SubroutineHandler& handler){
-
-    if(libtorrent::torrent_status::state_t::seeding != torrent->state()) {
-        throw std::runtime_error("torrent must be in seeding state to sell");
-    }
-
-    core::TorrentPlugin* plugin = torrent->torrentPlugin();
-
-    sellTorrent(plugin, policy, terms, handler);
+std::shared_ptr<SellTorrentResponse> AppKit::sellTorrent(libtorrent::sha1_hash infoHash,
+                                                         const protocol_session::SellingPolicy& policy,
+                                                         const protocol_wire::SellerTerms& terms) {
+    return TorrentSeller::sell(this, node(), wallet(), infoHash, policy, terms);
 }
 
 void AppKit::broadcastTransaction(Coin::Transaction &tx) const {

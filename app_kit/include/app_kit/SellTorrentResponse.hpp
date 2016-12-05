@@ -1,5 +1,5 @@
-#ifndef BUYTORRENTRESPONSE_HPP
-#define BUYTORRENTRESPONSE_HPP
+#ifndef SellTorrentResponse_HPP
+#define SellTorrentResponse_HPP
 
 #include <QObject>
 
@@ -9,7 +9,7 @@ namespace joystream {
 namespace appkit {
 
 
-class BuyTorrentResponse : public QObject
+class SellTorrentResponse : public QObject
 {
     Q_OBJECT
 
@@ -17,16 +17,16 @@ public:
     enum class Error {
         NoError,
         TorrentDoesNotExist,
-        AlreadyTryingToBuyTorrent,
-        TorrentAlreadyInBuySession,
+        AlreadyTryingToSellTorrent,
+        TorrentAlreadyInSellSession,
         TorrentPluginNotSet,
         WalletLocked,
-        TorrentAlreadyDownloaded,
+        TorrentNotFullyDownloadedYet,
         UnableToLockFunds,
         Exception
     };
 
-    BuyTorrentResponse(libtorrent::sha1_hash infoHash)
+    SellTorrentResponse(libtorrent::sha1_hash infoHash)
       : _infoHash(infoHash),
         _finished(false),
         _err(Error::NoError),
@@ -59,4 +59,4 @@ private:
 }
 }
 
-#endif // BUYTORRENTRESPONSE_HPP
+#endif // SellTorrentResponse_HPP

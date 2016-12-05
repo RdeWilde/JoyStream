@@ -1,14 +1,14 @@
-#ifndef TORRENTADDREQUEST_HPP
-#define TORRENTADDREQUEST_HPP
+#ifndef AddTorrentRequest_HPP
+#define AddTorrentRequest_HPP
 
 #include <core/TorrentIdentifier.hpp>
 
 namespace joystream {
 namespace appkit {
 
-struct TorrentAddRequest
+struct AddTorrentRequest
 {    
-    TorrentAddRequest(const core::TorrentIdentifier &ti, const std::string& savePath)
+    AddTorrentRequest(const core::TorrentIdentifier &ti, const std::string& savePath)
         : torrentIdentifier(ti),
           downloadLimit(0),
           uploadLimit(0),
@@ -30,4 +30,4 @@ struct TorrentAddRequest
 }
 }
 
-#endif // TORRENTADDREQUEST_HPP
+#endif // AddTorrentRequest_HPP

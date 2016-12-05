@@ -6,8 +6,8 @@
 #include <core/Torrent.hpp>
 #include <core/TorrentPlugin.hpp>
 
-#include <app_kit/TorrentAddRequest.hpp>
-#include <app_kit/TorrentAddResponse.hpp>
+#include <app_kit/AddTorrentRequest.hpp>
+#include <app_kit/AddTorrentResponse.hpp>
 
 namespace joystream {
 namespace appkit {
@@ -17,9 +17,9 @@ class TorrentAdder : public QObject {
 
 public:
     // TorrentAdder does not have a public API. It is always created on the heap and manages its own lifetime
-    // It will be destoyed when a torrent add operation is finished. The TorrentAddResponse
+    // It will be destoyed when a torrent add operation is finished. The AddTorrentResponse
     // will hold the result of the operation.
-    static std::shared_ptr<TorrentAddResponse> add(QObject*, core::Node*, TorrentAddRequest);
+    static std::shared_ptr<AddTorrentResponse> add(QObject*, core::Node*, AddTorrentRequest);
 
 signals:
 
@@ -32,13 +32,13 @@ protected slots:
 
 private:
     // TorrentAdder manages its own lifetime so we restrict it from being created on the stack
-    TorrentAdder(QObject*, core::Node*, TorrentAddRequest, std::shared_ptr<TorrentAddResponse>);
+    TorrentAdder(QObject*, core::Node*, AddTorrentRequest, std::shared_ptr<AddTorrentResponse>);
 
     static std::map<libtorrent::sha1_hash, TorrentAdder*> _workers;
 
     core::Node* _node;
-    TorrentAddRequest _request;
-    std::shared_ptr<TorrentAddResponse> _response;
+    AddTorrentRequest _request;
+    std::shared_ptr<AddTorrentResponse> _response;
 
     Q_INVOKABLE void start();
     Q_INVOKABLE void abort();
@@ -50,7 +50,7 @@ private:
     void finished();
 
     // An Error occured while adding the torrent
-    void finished(TorrentAddResponse::Error);
+    void finished(AddTorrentResponse::Error);
 
     // An Error occured while adding the torrent
     void finished(libtorrent::error_code);

@@ -15,8 +15,9 @@
 #include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
 
+#include <app_kit/AddTorrentResponse.hpp>
 #include <app_kit/BuyTorrentResponse.hpp>
-#include <app_kit/TorrentAddResponse.hpp>
+#include <app_kit/SellTorrentResponse.hpp>
 
 #include <core/core.hpp>
 
@@ -66,6 +67,7 @@ public:
                           Coin::Network, const Settings &settings = Settings());
 
     bitcoin::SPVWallet* wallet();
+
     core::Node* node();
 
     void syncWallet();
@@ -77,16 +79,13 @@ public:
     SavedTorrents generateSavedTorrents() const;
 
     // Add torrent from TorrentState
-    std::shared_ptr<TorrentAddResponse> addTorrent(const joystream::appkit::SavedTorrentParameters&);
+    std::shared_ptr<AddTorrentResponse> addTorrent(const joystream::appkit::SavedTorrentParameters&);
 
-    std::shared_ptr<TorrentAddResponse> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
+    std::shared_ptr<AddTorrentResponse> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
 
-    std::shared_ptr<BuyTorrentResponse>  buyTorrent(libtorrent::sha1_hash, const protocol_session::BuyingPolicy& policy, const protocol_wire::BuyerTerms& terms);
+    std::shared_ptr<BuyTorrentResponse> buyTorrent(libtorrent::sha1_hash, const protocol_session::BuyingPolicy& policy, const protocol_wire::BuyerTerms& terms);
 
-    void sellTorrent(const core::Torrent *,
-                     const protocol_session::SellingPolicy &,
-                     const protocol_wire::SellerTerms &,
-                     const SubroutineHandler &);
+    std::shared_ptr<SellTorrentResponse> sellTorrent(libtorrent::sha1_hash, const protocol_session::SellingPolicy& policy, const protocol_wire::SellerTerms& terms);
 
     void broadcastTransaction(Coin::Transaction &) const;
 
@@ -112,12 +111,6 @@ private:
     std::unique_ptr<core::Node> _node;
 
     QTimer _timer;
-
-    void sellTorrent(core::TorrentPlugin *,
-                     const protocol_session::SellingPolicy &,
-                     const protocol_wire::SellerTerms &,
-                     const SubroutineHandler &);
-
 };
 
 }
