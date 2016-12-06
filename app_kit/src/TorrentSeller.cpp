@@ -13,14 +13,18 @@ TorrentSeller::TorrentSeller(QObject* parent, core::Node* node, bitcoin::SPVWall
                            std::shared_ptr<SellTorrentResponse> response,
                            libtorrent::sha1_hash infoHash,
                            const protocol_session::SellingPolicy& policy,
-                           const protocol_wire::SellerTerms& terms)
+                           const protocol_wire::SellerTerms& terms,
+                           protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
+                           protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator)
     : QObject(parent),
       _node(node),
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
       _infoHash(infoHash),
-      _response(response)
+      _response(response),
+      _paychanKeysGenerator(paychanKeysGenerator),
+      _receiveAddressesGenerator(receiveAddressesGenerator)
 {
 
     QObject::connect(this, &TorrentSeller::destroyed, _response.get(), &SellTorrentResponse::finishedProcessing);
@@ -49,11 +53,13 @@ TorrentSeller::~TorrentSeller() {
 std::shared_ptr<SellTorrentResponse> TorrentSeller::sell(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
                                                          libtorrent::sha1_hash infoHash,
                                                          const protocol_session::SellingPolicy& policy,
-                                                         const protocol_wire::SellerTerms& terms) {
+                                                         const protocol_wire::SellerTerms& terms,
+                                                         protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
+                                                         protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator) {
 
     auto response = std::make_shared<SellTorrentResponse>(infoHash);
 
-    new TorrentSeller(parent, node, wallet, response, infoHash, policy, terms);
+    new TorrentSeller(parent, node, wallet, response, infoHash, policy, terms, paychanKeysGenerator, receiveAddressesGenerator);
 
     return response;
 
@@ -162,31 +168,7 @@ void TorrentSeller::startSelling() {
 
     core::TorrentPlugin* plugin = torrent->torrentPlugin();
 
-    // Make a copy of the wallet pointer to use in the lambda
-    auto wallet = _wallet;
-
-    plugin->toSellMode(
-        // protocol_session::GenerateP2SHKeyPairCallbackHandler
-        [wallet](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
-
-            Coin::PrivateKey sk = wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
-                return bitcoin::RedeemScriptInfo(generateScript(pk), data);
-            });
-
-            return Coin::KeyPair(sk);
-        },
-        // protocol_session::GenerateReceiveAddressesCallbackHandler
-        [wallet](int npairs) -> std::vector<Coin::P2PKHAddress> {
-            std::vector<Coin::P2PKHAddress> addresses;
-
-            for(int n = 0; n < npairs; n++) {
-                addresses.push_back(wallet->generateReceiveAddress());
-            }
-
-            return addresses;
-        },
-        _policy,
-        _terms,
+    plugin->toSellMode(_paychanKeysGenerator, _receiveAddressesGenerator, _policy, _terms,
         [this](const std::exception_ptr & e) {
             if(e) {
                 finished(e);

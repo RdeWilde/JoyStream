@@ -150,17 +150,64 @@ std::shared_ptr<AddTorrentResponse> AppKit::addTorrent(const core::TorrentIdenti
 std::shared_ptr<BuyTorrentResponse> AppKit::buyTorrent(libtorrent::sha1_hash infoHash,
                                                        const protocol_session::BuyingPolicy& policy,
                                                        const protocol_wire::BuyerTerms& terms) {
-    return TorrentBuyer::buy(this, node(), wallet(), infoHash, policy, terms);
+    return TorrentBuyer::buy(this, node(), wallet(), infoHash, policy, terms, paychanKeysGenerator(), receiveAddressesGenerator(), changeAddressesGenerator());
 }
 
 std::shared_ptr<SellTorrentResponse> AppKit::sellTorrent(libtorrent::sha1_hash infoHash,
                                                          const protocol_session::SellingPolicy& policy,
                                                          const protocol_wire::SellerTerms& terms) {
-    return TorrentSeller::sell(this, node(), wallet(), infoHash, policy, terms);
+    return TorrentSeller::sell(this, node(), wallet(), infoHash, policy, terms, paychanKeysGenerator(), receiveAddressesGenerator());
 }
 
 void AppKit::broadcastTransaction(Coin::Transaction &tx) const {
     _transactionSendBuffer->insert(tx);
+}
+
+protocol_session::GenerateP2SHKeyPairCallbackHandler AppKit::paychanKeysGenerator() {
+    return [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
+        return paychanKeysGeneratorFunction(generateScript, data);
+    };
+}
+
+Coin::KeyPair AppKit::paychanKeysGeneratorFunction(const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data)
+{
+    Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
+        return bitcoin::RedeemScriptInfo(generateScript(pk), data);
+    });
+
+    return Coin::KeyPair(sk);
+}
+
+protocol_session::GenerateReceiveAddressesCallbackHandler AppKit::receiveAddressesGenerator() {
+    return [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
+        return receiveAddressesGeneratorFunction(npairs);
+    };
+}
+
+std::vector<Coin::P2PKHAddress> AppKit::receiveAddressesGeneratorFunction(int npairs) {
+    std::vector<Coin::P2PKHAddress> addresses;
+
+    for(int n = 0; n < npairs; n++) {
+        addresses.push_back(_wallet->generateReceiveAddress());
+    }
+
+    return addresses;
+}
+
+protocol_session::GenerateChangeAddressesCallbackHandler AppKit::changeAddressesGenerator() {
+    return [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
+        return changeAddressesGeneratorFunction(npairs);
+    };
+}
+
+std::vector<Coin::P2PKHAddress> AppKit::changeAddressesGeneratorFunction(int npairs) {
+    std::vector<Coin::P2PKHAddress> addresses;
+
+    for(int n = 0; n < npairs; n++) {
+        addresses.push_back(_wallet->generateChangeAddress());
+    }
+
+    return addresses;
 }
 
 } // appkit namespace

@@ -16,9 +16,12 @@ class TorrentBuyer : public QObject
 {
 public:
     static std::shared_ptr<BuyTorrentResponse> buy(QObject* parent, core::Node*, bitcoin::SPVWallet*,
-                                                   libtorrent::sha1_hash infoHash,
-                                                   const protocol_session::BuyingPolicy& policy,
-                                                   const protocol_wire::BuyerTerms& terms);
+                                                   libtorrent::sha1_hash,
+                                                   const protocol_session::BuyingPolicy&,
+                                                   const protocol_wire::BuyerTerms&,
+                                                   protocol_session::GenerateP2SHKeyPairCallbackHandler,
+                                                   protocol_session::GenerateReceiveAddressesCallbackHandler,
+                                                   protocol_session::GenerateChangeAddressesCallbackHandler);
     ~TorrentBuyer();
 
 protected slots:
@@ -27,9 +30,12 @@ protected slots:
 
 private:
     TorrentBuyer(QObject* parent, core::Node*, bitcoin::SPVWallet*, std::shared_ptr<BuyTorrentResponse> response,
-                 libtorrent::sha1_hash infoHash,
-                 const protocol_session::BuyingPolicy& policy,
-                 const protocol_wire::BuyerTerms& terms);
+                 libtorrent::sha1_hash,
+                 const protocol_session::BuyingPolicy&,
+                 const protocol_wire::BuyerTerms&,
+                 protocol_session::GenerateP2SHKeyPairCallbackHandler,
+                 protocol_session::GenerateReceiveAddressesCallbackHandler,
+                 protocol_session::GenerateChangeAddressesCallbackHandler);
 
     bitcoin::SPVWallet* _wallet;
     core::Node* _node;
@@ -37,6 +43,10 @@ private:
     protocol_session::BuyingPolicy _policy;
     protocol_wire::BuyerTerms _terms;
     std::shared_ptr<BuyTorrentResponse> _response;
+
+    const protocol_session::GenerateP2SHKeyPairCallbackHandler _paychanKeysGenerator;
+    const protocol_session::GenerateReceiveAddressesCallbackHandler _receiveAddressesGenerator;
+    const protocol_session::GenerateChangeAddressesCallbackHandler _changeAddressesGenerator;
 
     static std::map<libtorrent::sha1_hash, TorrentBuyer*> _workers;
 

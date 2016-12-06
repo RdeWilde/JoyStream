@@ -111,6 +111,16 @@ private:
     std::unique_ptr<core::Node> _node;
 
     QTimer _timer;
+
+    protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator();
+    Coin::KeyPair paychanKeysGeneratorFunction(const protocol_session::P2SHScriptGeneratorFromPubKey&, const uchar_vector&);
+
+    protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator();
+    std::vector<Coin::P2PKHAddress> receiveAddressesGeneratorFunction(int npairs);
+
+    protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator();
+    std::vector<Coin::P2PKHAddress> changeAddressesGeneratorFunction(int npairs);
+
 };
 
 }
