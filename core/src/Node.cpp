@@ -162,8 +162,8 @@ void Node::processAlertQueue() {
     _pimpl.processAlertQueue();
 }
 
-void Node::port() const noexcept {
-    _pimpl.port();
+unsigned short Node::port() const noexcept {
+    return _pimpl.port();
 }
 
 bool Node::assistedPeerDiscovery() const noexcept {
