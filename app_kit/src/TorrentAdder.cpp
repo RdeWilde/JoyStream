@@ -117,11 +117,6 @@ void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
 
     added();
 
-    if(_request.paused) {
-        finished();
-        return;
-    }
-
     auto torrents = _node->torrents();
 
     if(torrents.find(_request.torrentIdentifier.infoHash()) == torrents.end()) {
@@ -129,6 +124,8 @@ void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
         return;
     }
 
+    // We always resume the torrent otherwise the torrent will not go to seeding state
+    // if the torrent is fully available
     torrents[_request.torrentIdentifier.infoHash()]->resume([this](const std::exception_ptr &e) {
         if(e) {
             finished(AddTorrentResponse::Error::ResumeFailed);
