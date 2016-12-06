@@ -112,6 +112,7 @@ public:
     /**
      * @brief Port on which node is currently listening for BitTorrent
      * connections
+     * @return Port used by Node.
      */
     unsigned short port() const noexcept;
 
