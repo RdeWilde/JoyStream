@@ -9,31 +9,31 @@ namespace appkit {
 TorrentAdder::TorrentAdder(QObject* parent,
                            core::Node* node,
                            AddTorrentRequest request,
-                           std::shared_ptr<AddTorrentResponse> response)
+                           std::shared_ptr<WorkerResult> response)
     :  Worker(parent, request.torrentIdentifier.infoHash()),
        _node(node),
        _request(request),
        _response(response)
 {
-    QObject::connect(this, &TorrentAdder::destroyed, _response.get(), &AddTorrentResponse::finishedProcessing);
+    QObject::connect(this, &TorrentAdder::destroyed, _response.get(), &WorkerResult::finishedProcessing);
 }
 
 void TorrentAdder::abort()
 {
-    _response->setError(AddTorrentResponse::Error::TorrentAlreadyBeingAdded);
+    _response->setError(WorkerResult::Error::TorrentAlreadyBeingAdded);
     delete this;
 }
 
-std::shared_ptr<AddTorrentResponse> TorrentAdder::add(QObject* parent,
-                                                      core::Node* node,
-                                                      AddTorrentRequest request)
+std::shared_ptr<WorkerResult> TorrentAdder::add(QObject* parent,
+                                                core::Node* node,
+                                                AddTorrentRequest request)
 {
 
-    auto response = std::make_shared<AddTorrentResponse>(request.torrentIdentifier.infoHash());
+    auto result = std::make_shared<WorkerResult>(request.torrentIdentifier.infoHash());
 
-    new TorrentAdder(parent, node, request, response);
+    new TorrentAdder(parent, node, request, result);
 
-    return response;
+    return result;
 }
 
 void TorrentAdder::start() {
@@ -53,7 +53,7 @@ void TorrentAdder::start() {
         });
 
     } catch (core::exception::TorrentAlreadyExists &e) {
-        finished(AddTorrentResponse::Error::TorrentAlreadyExists);
+        finished(WorkerResult::Error::TorrentAlreadyExists);
     }
 }
 
@@ -69,15 +69,11 @@ void TorrentAdder::finished(libtorrent::error_code ec)
     finished();
 }
 
-void TorrentAdder::finished(AddTorrentResponse::Error err)
+void TorrentAdder::finished(WorkerResult::Error err)
 {
     _response->setError(err);
 
     finished();
-}
-
-void TorrentAdder::added() {
-    _response->setAdded();
 }
 
 void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
@@ -93,17 +89,15 @@ void TorrentAdder::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
     if(info_hash != infoHash())
         return;
 
-    finished(AddTorrentResponse::Error::TorrentRemovedBeforePluginWasAdded);
+    finished(WorkerResult::Error::TorrentRemovedBeforePluginWasAdded);
 }
 
 void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
 
-    added();
-
     auto torrents = _node->torrents();
 
     if(torrents.find(infoHash()) == torrents.end()) {
-        finished(AddTorrentResponse::Error::TorrentDoesNotExist);
+        finished(WorkerResult::Error::TorrentDoesNotExist);
         return;
     }
 
@@ -111,7 +105,7 @@ void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
     // if the torrent is fully available
     torrents[infoHash()]->resume([this](const std::exception_ptr &e) {
         if(e) {
-            finished(AddTorrentResponse::Error::ResumeFailed);
+            finished(WorkerResult::Error::ResumeFailed);
         } else {
             finished();
         }

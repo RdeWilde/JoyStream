@@ -206,8 +206,8 @@ void CliApp::processTorrent() {
         delete torrentIdentifier;
 
         // Wait for torrent to be added
-        QObject::connect(torrent.get(), &joystream::appkit::AddTorrentResponse::finished, [this, torrent](){
-            if(!torrent->wasAdded())
+        QObject::connect(torrent.get(), &joystream::appkit::WorkerResult::finished, [this, torrent](){
+            if(torrent->getError() != joystream::appkit::WorkerResult::Error::NoError)
                 return;
 
             if(_command == "buy") {
@@ -216,7 +216,7 @@ void CliApp::processTorrent() {
 
                 auto buyer = _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms);
 
-                QObject::connect(buyer.get(), &joystream::appkit::BuyTorrentResponse::finished, [this, buyer](){
+                QObject::connect(buyer.get(), &joystream::appkit::WorkerResult::finished, [this, buyer](){
                    std::cout << "Buyer Finished:" << std::endl;
                 });
 
@@ -226,7 +226,7 @@ void CliApp::processTorrent() {
 
                 auto seller = _kit->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms);
 
-                QObject::connect(seller.get(), &joystream::appkit::SellTorrentResponse::finished, [this, seller](){
+                QObject::connect(seller.get(), &joystream::appkit::WorkerResult::finished, [this, seller](){
                    std::cout << "Seller Finished:" << std::endl;
                 });
             }

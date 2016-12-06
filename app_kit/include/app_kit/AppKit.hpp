@@ -15,9 +15,7 @@
 #include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
 
-#include <app_kit/AddTorrentResponse.hpp>
-#include <app_kit/BuyTorrentResponse.hpp>
-#include <app_kit/SellTorrentResponse.hpp>
+#include <app_kit/WorkerResult.hpp>
 
 #include <core/core.hpp>
 
@@ -79,13 +77,13 @@ public:
     SavedTorrents generateSavedTorrents() const;
 
     // Add torrent from TorrentState
-    std::shared_ptr<AddTorrentResponse> addTorrent(const joystream::appkit::SavedTorrentParameters&);
+    std::shared_ptr<WorkerResult> addTorrent(const joystream::appkit::SavedTorrentParameters&);
 
-    std::shared_ptr<AddTorrentResponse> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
+    std::shared_ptr<WorkerResult> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
 
-    std::shared_ptr<BuyTorrentResponse> buyTorrent(libtorrent::sha1_hash, const protocol_session::BuyingPolicy& policy, const protocol_wire::BuyerTerms& terms);
+    std::shared_ptr<WorkerResult> buyTorrent(libtorrent::sha1_hash, const protocol_session::BuyingPolicy& policy, const protocol_wire::BuyerTerms& terms);
 
-    std::shared_ptr<SellTorrentResponse> sellTorrent(libtorrent::sha1_hash, const protocol_session::SellingPolicy& policy, const protocol_wire::SellerTerms& terms);
+    std::shared_ptr<WorkerResult> sellTorrent(libtorrent::sha1_hash, const protocol_session::SellingPolicy& policy, const protocol_wire::SellerTerms& terms);
 
     void broadcastTransaction(Coin::Transaction &) const;
 

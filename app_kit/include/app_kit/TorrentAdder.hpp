@@ -8,7 +8,7 @@
 
 #include <app_kit/Worker.hpp>
 #include <app_kit/AddTorrentRequest.hpp>
-#include <app_kit/AddTorrentResponse.hpp>
+#include <app_kit/WorkerResult.hpp>
 
 namespace joystream {
 namespace appkit {
@@ -17,9 +17,9 @@ class TorrentAdder : public Worker {
 
 public:
     // TorrentAdder does not have a public API. It is always created on the heap and manages its own lifetime
-    // It will be destoyed when a torrent add operation is finished. The AddTorrentResponse
+    // It will be destoyed when a torrent add operation is finished. The WorkerResult
     // will hold the result of the operation.
-    static std::shared_ptr<AddTorrentResponse> add(QObject*, core::Node*, AddTorrentRequest);
+    static std::shared_ptr<WorkerResult> add(QObject*, core::Node*, AddTorrentRequest);
 
 signals:
 
@@ -35,20 +35,17 @@ protected slots:
 
 private:
     // TorrentAdder manages its own lifetime so we restrict it from being created on the stack
-    TorrentAdder(QObject*, core::Node*, AddTorrentRequest, std::shared_ptr<AddTorrentResponse>);
+    TorrentAdder(QObject*, core::Node*, AddTorrentRequest, std::shared_ptr<WorkerResult>);
 
     core::Node* _node;
     AddTorrentRequest _request;
-    std::shared_ptr<AddTorrentResponse> _response;
-
-    // Updated the response object to indicate that the torrent and torrentPlugin were added successfully
-    void added();
+    std::shared_ptr<WorkerResult> _response;
 
     // Add operation completed normally
     void finished();
 
     // An Error occured while adding the torrent
-    void finished(AddTorrentResponse::Error);
+    void finished(WorkerResult::Error);
 
     // An Error occured while adding the torrent
     void finished(libtorrent::error_code);

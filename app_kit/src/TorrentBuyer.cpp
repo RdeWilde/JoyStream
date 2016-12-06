@@ -1,5 +1,5 @@
 #include <app_kit/TorrentBuyer.hpp>
-#include <app_kit/BuyTorrentResponse.hpp>
+#include <app_kit/WorkerResult.hpp>
 #include <core/TorrentPlugin.hpp>
 #include <core/Torrent.hpp>
 #include <core/Session.hpp>
@@ -8,7 +8,7 @@ namespace joystream {
 namespace appkit {
 
 TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
-                           std::shared_ptr<BuyTorrentResponse> response,
+                           std::shared_ptr<WorkerResult> response,
                            libtorrent::sha1_hash infoHash,
                            const protocol_session::BuyingPolicy& policy,
                            const protocol_wire::BuyerTerms& terms,
@@ -25,10 +25,10 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
       _receiveAddressesGenerator(receiveAddressesGenerator),
       _changeAddressesGenerator(changeAddressesGenerator)
 {
-    QObject::connect(this, &TorrentBuyer::destroyed, _response.get(), &BuyTorrentResponse::finishedProcessing);
+    QObject::connect(this, &TorrentBuyer::destroyed, _response.get(), &WorkerResult::finishedProcessing);
 }
 
-std::shared_ptr<BuyTorrentResponse> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
+std::shared_ptr<WorkerResult> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
                                                       libtorrent::sha1_hash infoHash,
                                                       const protocol_session::BuyingPolicy& policy,
                                                       const protocol_wire::BuyerTerms& terms,
@@ -36,7 +36,7 @@ std::shared_ptr<BuyTorrentResponse> TorrentBuyer::buy(QObject* parent, core::Nod
                                                       protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
                                                       protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator) {
 
-    auto response = std::make_shared<BuyTorrentResponse>(infoHash);
+    auto response = std::make_shared<WorkerResult>(infoHash);
 
     new TorrentBuyer(parent, node, wallet, response, infoHash, policy, terms, paychanKeysGenerator, receiveAddressesGenerator, changeAddressesGenerator);
 
@@ -45,7 +45,7 @@ std::shared_ptr<BuyTorrentResponse> TorrentBuyer::buy(QObject* parent, core::Nod
 }
 
 void TorrentBuyer::abort() {
-    _response->setError(BuyTorrentResponse::Error::AlreadyTryingToBuyTorrent);
+    _response->setError(WorkerResult::Error::AlreadyTryingToBuyTorrent);
     delete this;
 }
 
@@ -53,7 +53,7 @@ void TorrentBuyer::finished() {
     delete this;
 }
 
-void TorrentBuyer::finished(BuyTorrentResponse::Error e) {
+void TorrentBuyer::finished(WorkerResult::Error e) {
     _response->setError(e);
     finished();
 }
@@ -67,7 +67,7 @@ core::Torrent* TorrentBuyer::getTorrentPointerOrFail() {
     auto torrents = _node->torrents();
 
     if(torrents.find(infoHash()) == torrents.end()) {
-        finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
+        finished(WorkerResult::Error::TorrentDoesNotExist);
         return nullptr;
     }
 
@@ -81,26 +81,26 @@ void TorrentBuyer::start() {
     auto torrent = getTorrentPointerOrFail();
 
     if(!torrent) {
-        finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
+        finished(WorkerResult::Error::TorrentDoesNotExist);
         return;
     }
 
     if(!torrent->torrentPluginSet()) {
-        finished(BuyTorrentResponse::Error::TorrentPluginNotSet);
+        finished(WorkerResult::Error::TorrentPluginNotSet);
         return;
     }
 
     core::Session* session = torrent->torrentPlugin()->session();
 
     if(session->buyingSet()){
-        finished(BuyTorrentResponse::Error::TorrentAlreadyInBuySession);
+        finished(WorkerResult::Error::TorrentAlreadyInBuySession);
         return;
     }
 
     auto state = torrent->state();
 
     if (libtorrent::torrent_status::state_t::seeding == state) {
-        finished(BuyTorrentResponse::Error::TorrentAlreadyDownloaded);
+        finished(WorkerResult::Error::TorrentAlreadyDownloaded);
         return;
     }
 
@@ -114,7 +114,7 @@ void TorrentBuyer::start() {
 
 void TorrentBuyer::onTorrentStateChanged(libtorrent::torrent_status::state_t state, float progress) {
     if(libtorrent::torrent_status::state_t::seeding == state) {
-        finished(BuyTorrentResponse::Error::TorrentAlreadyDownloaded);
+        finished(WorkerResult::Error::TorrentAlreadyDownloaded);
         return;
     }
 
@@ -127,7 +127,7 @@ void TorrentBuyer::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
     if(infoHash() != info_hash)
         return;
 
-    finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
+    finished(WorkerResult::Error::TorrentDoesNotExist);
 }
 
 void TorrentBuyer::startBuying() {
@@ -138,12 +138,12 @@ void TorrentBuyer::startBuying() {
         return;
 
     if(!torrent->torrentPluginSet()) {
-        finished(BuyTorrentResponse::Error::TorrentPluginNotSet);
+        finished(WorkerResult::Error::TorrentPluginNotSet);
         return;
     }
 
     if(_wallet->locked()) {
-        finished(BuyTorrentResponse::Error::WalletLocked);
+        finished(WorkerResult::Error::WalletLocked);
         return;
     }
 
@@ -156,7 +156,7 @@ void TorrentBuyer::startBuying() {
     auto outputs = _wallet->lockOutputs(minimumFunds, 0);
 
     if(outputs.size() == 0) {
-        finished(BuyTorrentResponse::Error::UnableToLockFunds);
+        finished(WorkerResult::Error::UnableToLockFunds);
         return;
     }
 
@@ -181,7 +181,7 @@ void TorrentBuyer::startPlugin() {
     auto torrent = getTorrentPointerOrFail();
 
     if(!torrent) {
-        finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
+        finished(WorkerResult::Error::TorrentDoesNotExist);
         return;
     }
 

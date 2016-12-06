@@ -124,7 +124,7 @@ SavedTorrents AppKit::generateSavedTorrents() const {
     return SavedTorrents(_node->torrents());
 }
 
-std::shared_ptr<AddTorrentResponse> AppKit::addTorrent(const SavedTorrentParameters &torrent) {
+std::shared_ptr<WorkerResult> AppKit::addTorrent(const SavedTorrentParameters &torrent) {
 
     auto metadata = torrent.metaData();
 
@@ -140,20 +140,20 @@ std::shared_ptr<AddTorrentResponse> AppKit::addTorrent(const SavedTorrentParamet
     return TorrentAdder::add(this, node(), request);
 }
 
-std::shared_ptr<AddTorrentResponse> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
+std::shared_ptr<WorkerResult> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
 
     AddTorrentRequest request(ti, savePath);
 
     return TorrentAdder::add(this, node(), request);
 }
 
-std::shared_ptr<BuyTorrentResponse> AppKit::buyTorrent(libtorrent::sha1_hash infoHash,
+std::shared_ptr<WorkerResult> AppKit::buyTorrent(libtorrent::sha1_hash infoHash,
                                                        const protocol_session::BuyingPolicy& policy,
                                                        const protocol_wire::BuyerTerms& terms) {
     return TorrentBuyer::buy(this, node(), wallet(), infoHash, policy, terms, paychanKeysGenerator(), receiveAddressesGenerator(), changeAddressesGenerator());
 }
 
-std::shared_ptr<SellTorrentResponse> AppKit::sellTorrent(libtorrent::sha1_hash infoHash,
+std::shared_ptr<WorkerResult> AppKit::sellTorrent(libtorrent::sha1_hash infoHash,
                                                          const protocol_session::SellingPolicy& policy,
                                                          const protocol_wire::SellerTerms& terms) {
     return TorrentSeller::sell(this, node(), wallet(), infoHash, policy, terms, paychanKeysGenerator(), receiveAddressesGenerator());

@@ -31,12 +31,10 @@ HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/SavedSessionParameters.hpp \
     include/app_kit/TorrentAdder.hpp \
     include/app_kit/AddTorrentRequest.hpp \
-    include/app_kit/AddTorrentResponse.hpp \
     include/app_kit/TorrentBuyer.hpp \
-    include/app_kit/BuyTorrentResponse.hpp \
     include/app_kit/TorrentSeller.hpp \
-    include/app_kit/SellTorrentResponse.hpp \
-    include/app_kit/Worker.hpp
+    include/app_kit/Worker.hpp \
+    include/app_kit/WorkerResult.hpp
 
 INCLUDEPATH += $$PWD/include
 
