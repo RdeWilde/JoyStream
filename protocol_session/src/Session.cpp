@@ -447,6 +447,22 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
+    status::Connection<ConnectionIdType> Session<ConnectionIdType>::connectionStatus(const ConnectionIdType & id) const noexcept {
+
+        if(_mode == SessionMode::not_set)
+            throw exception::SessionModeNotSetException();
+
+        // Try to recover conneciton based on id
+        auto it = _connections.find(id);
+
+        if(it == _connections.cend())
+            throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
+
+        // Generate status for connection
+        return (*it).second->status();
+    }
+
+    template<class ConnectionIdType>
     std::set<ConnectionIdType> Session<ConnectionIdType>::connectionIds() const {
 
         std::set<ConnectionIdType> ids;
@@ -683,18 +699,10 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    typename status::Session<ConnectionIdType> Session<ConnectionIdType>::status() const {
+    typename status::Session<ConnectionIdType> Session<ConnectionIdType>::status() const noexcept {
 
-        // Collect connection statuses
-        std::map<ConnectionIdType, status::Connection<ConnectionIdType>> connectionStatuses;
-
-        for(auto mapping : _connections)
-            connectionStatuses.insert(std::make_pair(mapping.first, (mapping.second)->status()));
-
-        // Generate Session status
         return status::Session<ConnectionIdType>(_mode,
                                                  _state,
-                                                 connectionStatuses,
                                                  (_mode == SessionMode::selling ? _selling->status() : status::Selling()),
                                                  (_mode == SessionMode::buying ? _buying->status() : status::Buying<ConnectionIdType>()));
     }

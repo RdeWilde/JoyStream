@@ -13,6 +13,8 @@
 #include <libtorrent/socket.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
+#include <boost/optional.hpp>
+
 #include <map>
 
 namespace joystream {
@@ -25,10 +27,12 @@ namespace status {
 
         PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
                    const BEPSupportStatus & peerBEP10SupportStatus,
-                   const BEPSupportStatus & peerBitSwaprBEPSupportStatus)
+                   const BEPSupportStatus & peerBitSwaprBEPSupportStatus,
+                   const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections)
             : endPoint(endPoint)
             , peerBEP10SupportStatus(peerBEP10SupportStatus)
-            , peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
+            , peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus)
+            , connections(connections) {
         }
 
         // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
@@ -40,6 +44,8 @@ namespace status {
         // Indicates whether peer supports BEP43 .. BitSwapr
         BEPSupportStatus peerBitSwaprBEPSupportStatus;
 
+        // *** TEMPORARY ***: Status of connection
+        boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> connections;
     };
 
     struct TorrentPlugin {

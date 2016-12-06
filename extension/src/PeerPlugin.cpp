@@ -650,10 +650,11 @@ namespace extension {
         }
     }
 
-    status::PeerPlugin PeerPlugin::status() const {
+    status::PeerPlugin PeerPlugin::status(const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections) const {
         return status::PeerPlugin(_endPoint,
                                   _peerBEP10SupportStatus,
-                                  _peerPaymentBEPSupportStatus);
+                                  _peerPaymentBEPSupportStatus,
+                                  connections);
     }
 
     bool PeerPlugin::undead() const  {

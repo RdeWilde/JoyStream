@@ -126,6 +126,16 @@ namespace detail {
         // Remove connection if one exists with given id, otherwise returns false.
         bool removeConnection(const ConnectionIdType &);
 
+        // *** TEMPORARY FIX ***
+
+        /**
+         * @brief Returns status of connection with given id
+         * @return status of connection
+         * @throws exception::SessionModeNotSetException if mode is not set
+         * @throws exception::ConnectionDoesNotExist<ConnectionIdType> if connection does not exist which corresponds to @a id
+         */
+        status::Connection<ConnectionIdType> connectionStatus(const ConnectionIdType & id) const noexcept;
+
         // Get vector of all connection ids
         std::set<ConnectionIdType> connectionIds() const;
 
@@ -162,7 +172,7 @@ namespace detail {
         SessionMode mode() const;
 
         // Status of session
-        status::Session<ConnectionIdType> status() const;
+        status::Session<ConnectionIdType> status() const noexcept;
 
     private:
 

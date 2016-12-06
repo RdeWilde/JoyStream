@@ -12,6 +12,8 @@
 #include <extension/ExtendedMessageIdMapping.hpp>
 #include <common/MajorMinorSoftwareVersion.hpp>
 
+#include <protocol_session/protocol_session.hpp> // TEMPORARY
+
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/peer_connection_handle.hpp>
 #include <libtorrent/entry.hpp>
@@ -149,7 +151,7 @@ namespace status {
         void send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessage);
 
         // Status of plugin
-        status::PeerPlugin status() const;
+        status::PeerPlugin status(const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections) const;
 
         // Getters
         bool undead() const;
