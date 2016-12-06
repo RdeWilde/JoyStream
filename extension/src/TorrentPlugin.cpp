@@ -90,7 +90,14 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
     _peers[endPoint] = boost::weak_ptr<PeerPlugin>(plugin);
 
     // Send alert notification
-    _alertManager->emplace_alert<alert::PeerPluginAdded>(_torrent, endPoint, connection.pid(), rawPeerPlugin->status());
+
+    boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> connectionStatus;
+
+    try{
+        connectionStatus = _session.connectionStatus(endPoint);
+    } catch(...) {}
+
+    _alertManager->emplace_alert<alert::PeerPluginAdded>(_torrent, endPoint, connection.pid(), rawPeerPlugin->status(connectionStatus));
 
     // Return pointer to plugin as required
     return plugin;
@@ -382,6 +389,10 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
     _alertManager->emplace_alert<alert::SessionToBuyMode>(_torrent, funding, policy, terms);
 }
 
+std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
+    return _peers;
+}
+
 status::TorrentPlugin TorrentPlugin::status() const {
 
     return status::TorrentPlugin(_infoHash, _session.status());
@@ -475,6 +486,10 @@ protocol_session::SessionState TorrentPlugin::sessionState() const {
     return _session.state();
 }
 
+const protocol_session::Session<libtorrent::tcp::endpoint> & TorrentPlugin::session() const noexcept {
+    return _session;
+}
+
 void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
 
     // we must know peer
@@ -502,8 +517,8 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
     // Send notification
     boost::shared_ptr<PeerPlugin> plugin = wPeerPlugin.lock();
     assert(plugin);
-    auto s = _session.status(); //<== temporray until issue # is fixed
-    _alertManager->emplace_alert<alert::ConnectionAddedToSession>(_torrent, endPoint, plugin->connection().pid(), s.connections[endPoint]);
+    auto connectionStatus = _session.connectionStatus(endPoint);
+    _alertManager->emplace_alert<alert::ConnectionAddedToSession>(_torrent, endPoint, plugin->connection().pid(), connectionStatus);
 }
 
 void TorrentPlugin::removeFromSession(const libtorrent::tcp::endpoint & endPoint) {

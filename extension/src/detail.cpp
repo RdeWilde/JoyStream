@@ -96,6 +96,8 @@ void RequestVariantVisitor::operator()(const request::ToBuyMode & r) {
 
 void RequestVariantVisitor::operator()(const request::PostTorrentPluginStatusUpdates &) {
 
+    /// TEMPORARY: FACTOR OUT LATER
+
     // Generate all statuses
     std::map<libtorrent::sha1_hash, status::TorrentPlugin> statuses;
 
@@ -111,6 +113,46 @@ void RequestVariantVisitor::operator()(const request::PostTorrentPluginStatusUpd
     }
 
     _alertManager->emplace_alert<alert::TorrentPluginStatusUpdateAlert>(statuses);
+}
+
+void RequestVariantVisitor::operator()(const request::PostPeerPluginStatusUpdates & r) {
+
+    /// TEMPORARY: FACTOR OUT LATER
+
+    // Get torrent plugin
+    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > torrentPlugins = _plugin->torrentPlugins();
+
+    auto it = torrentPlugins.find(r._infoHash);
+
+    // If torrent has expired, we just ignore request
+    if(it == torrentPlugins.cend())
+        return;
+
+    boost::shared_ptr<TorrentPlugin> torrentPlugin = it->second.lock();
+
+    assert(torrentPlugin);
+
+    // Generate statuses for all peer plugins
+    std::map<libtorrent::tcp::endpoint, status::PeerPlugin> statuses;
+
+    std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > torrentPeerPlugins = torrentPlugin->peers();
+
+    for(auto m : torrentPeerPlugins) {
+
+        // Get connection status corresponding to peer plugin
+        auto connectionStatus = torrentPlugin->session().connectionStatus(m.first);
+
+        // Generate peer plugin status, and add it to the map
+        boost::shared_ptr<PeerPlugin> peerPlugin = m.second.lock();
+
+        assert(peerPlugin);
+
+        statuses.insert(std::make_pair(m.first, peerPlugin->status(connectionStatus)));
+    }
+
+    libtorrent::torrent_handle h = _session->find_torrent_handle(r._infoHash);
+
+    _alertManager->emplace_alert<alert::PeerPluginStatusUpdateAlert>(h, statuses);
 }
 
 void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r) {

@@ -53,12 +53,29 @@ namespace alert {
         std::map<libtorrent::sha1_hash, status::TorrentPlugin> statuses;
     };
 
+    struct PeerPluginStatusUpdateAlert final : public libtorrent::torrent_alert {
+
+        PeerPluginStatusUpdateAlert(libtorrent::aux::stack_allocator & alloc,
+                                    const libtorrent::torrent_handle & h,
+                                    const std::map<libtorrent::tcp::endpoint, status::PeerPlugin> & statuses)
+            : libtorrent::torrent_alert(alloc, h)
+            , statuses(statuses) {}
+
+        TORRENT_DEFINE_ALERT(PluginStatus, libtorrent::user_alert_id + 2)
+        static const int static_category = alert::status_notification;
+        virtual std::string message() const override {
+            return "Peer plugin statuses.";
+        }
+
+        std::map<libtorrent::tcp::endpoint, status::PeerPlugin> statuses;
+    };
+
     struct RequestResult final : public libtorrent::alert {
 
         RequestResult(libtorrent::aux::stack_allocator&, LoadedCallback loadedCallback)
             : loadedCallback(loadedCallback) {}
 
-        TORRENT_DEFINE_ALERT(RequestResult, libtorrent::user_alert_id + 2)
+        TORRENT_DEFINE_ALERT(RequestResult, libtorrent::user_alert_id + 3)
         static const int static_category = alert::status_notification;
         virtual std::string message() const override {
             return "Request result";
@@ -84,7 +101,7 @@ namespace alert {
             , _contractPk(contractPk)
             , _finalPkHash(finalPkHash) {}
 
-        TORRENT_DEFINE_ALERT(AnchorAnnounced, libtorrent::user_alert_id + 3)
+        TORRENT_DEFINE_ALERT(AnchorAnnounced, libtorrent::user_alert_id + 4)
         static const int static_category = alert::status_notification;
         virtual std::string message() const override {
             return torrent_alert::message() + " anchor announced";

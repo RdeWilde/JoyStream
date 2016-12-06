@@ -90,6 +90,14 @@ struct PostTorrentPluginStatusUpdates {
     PostTorrentPluginStatusUpdates() {}
 };
 
+struct PostPeerPluginStatusUpdates {
+
+    PostPeerPluginStatusUpdates(const libtorrent::sha1_hash & infoHash)
+        : _infoHash(infoHash) {}
+
+    libtorrent::sha1_hash _infoHash;
+};
+
 struct PauseLibtorrent {
 
     PauseLibtorrent() {}

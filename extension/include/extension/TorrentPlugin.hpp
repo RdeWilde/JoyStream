@@ -138,6 +138,12 @@ public:
     // State of session
     protocol_session::SessionState sessionState() const;
 
+    // ***TEMPORARY***
+    const protocol_session::Session<libtorrent::tcp::endpoint> & session() const noexcept;
+
+    // ***TEMPORARY***
+    std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > peers() const noexcept;
+
     /// Getters & setters
 
     status::TorrentPlugin status() const;

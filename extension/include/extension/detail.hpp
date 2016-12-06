@@ -31,6 +31,7 @@ typedef boost::variant<request::Start,
                        request::ToSellMode,
                        request::ToBuyMode,
                        request::PostTorrentPluginStatusUpdates,
+                       request::PostPeerPluginStatusUpdates,
                        request::StopAllTorrentPlugins,
                        request::PauseLibtorrent,
                        request::AddTorrent,
@@ -58,6 +59,7 @@ public:
     void operator()(const request::ToSellMode & r);
     void operator()(const request::ToBuyMode & r);
     void operator()(const request::PostTorrentPluginStatusUpdates & r);
+    void operator()(const request::PostPeerPluginStatusUpdates & r);
     void operator()(const request::StopAllTorrentPlugins & r);
     void operator()(const request::PauseLibtorrent & r);
     void operator()(const request::AddTorrent & r);
