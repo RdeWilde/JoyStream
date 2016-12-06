@@ -20,7 +20,6 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
-      _infoHash(infoHash),
       _response(response),
       _paychanKeysGenerator(paychanKeysGenerator),
       _receiveAddressesGenerator(receiveAddressesGenerator),
@@ -67,12 +66,12 @@ void TorrentBuyer::finished(std::exception_ptr e) {
 core::Torrent* TorrentBuyer::getTorrentPointerOrFail() {
     auto torrents = _node->torrents();
 
-    if(torrents.find(_infoHash) == torrents.end()) {
+    if(torrents.find(infoHash()) == torrents.end()) {
         finished(BuyTorrentResponse::Error::TorrentDoesNotExist);
         return nullptr;
     }
 
-    return torrents[_infoHash];
+    return torrents[infoHash()];
 }
 
 void TorrentBuyer::start() {
@@ -125,7 +124,7 @@ void TorrentBuyer::onTorrentStateChanged(libtorrent::torrent_status::state_t sta
 }
 
 void TorrentBuyer::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
-    if(_infoHash != info_hash)
+    if(infoHash() != info_hash)
         return;
 
     finished(BuyTorrentResponse::Error::TorrentDoesNotExist);

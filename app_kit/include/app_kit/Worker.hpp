@@ -16,13 +16,15 @@ public:
     Worker(QObject* parent, libtorrent::sha1_hash);
     ~Worker();
 
+    libtorrent::sha1_hash infoHash() const;
+
 protected slots:
     virtual void start() = 0;
     virtual void abort() = 0;
 
 private:
-    static std::map<libtorrent::sha1_hash, Worker*> _workers;
-    libtorrent::sha1_hash _infoHash;
+    static std::map<libtorrent::sha1_hash, const Worker*> _workers;
+    const libtorrent::sha1_hash _infoHash;
 };
 
 }

@@ -19,7 +19,6 @@ TorrentSeller::TorrentSeller(QObject* parent, core::Node* node, bitcoin::SPVWall
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
-      _infoHash(infoHash),
       _response(response),
       _paychanKeysGenerator(paychanKeysGenerator),
       _receiveAddressesGenerator(receiveAddressesGenerator)
@@ -64,12 +63,12 @@ void TorrentSeller::finished(std::exception_ptr e) {
 core::Torrent* TorrentSeller::getTorrentPointerOrFail() {
     auto torrents = _node->torrents();
 
-    if(torrents.find(_infoHash) == torrents.end()) {
+    if(torrents.find(infoHash()) == torrents.end()) {
         finished(SellTorrentResponse::Error::TorrentDoesNotExist);
         return nullptr;
     }
 
-    return torrents[_infoHash];
+    return torrents[infoHash()];
 }
 
 void TorrentSeller::start() {
@@ -122,7 +121,7 @@ void TorrentSeller::onTorrentStateChanged(libtorrent::torrent_status::state_t st
 }
 
 void TorrentSeller::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
-    if(_infoHash != info_hash)
+    if(infoHash() != info_hash)
         return;
 
     finished(SellTorrentResponse::Error::TorrentDoesNotExist);

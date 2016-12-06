@@ -4,7 +4,7 @@
 namespace joystream {
 namespace appkit {
 
-std::map<libtorrent::sha1_hash, Worker*> Worker::_workers;
+std::map<libtorrent::sha1_hash, const Worker*> Worker::_workers;
 
 Worker::Worker(QObject *parent, libtorrent::sha1_hash infoHash) :
     QObject(parent),
@@ -29,5 +29,8 @@ Worker::~Worker() {
     }
 }
 
+libtorrent::sha1_hash Worker::infoHash() const {
+    return _infoHash;
+}
 }
 }

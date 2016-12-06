@@ -82,7 +82,7 @@ void TorrentAdder::added() {
 
 void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
 
-    if (torrent->infoHash() != _request.torrentIdentifier.infoHash())
+    if (torrent->infoHash() != infoHash())
         return;
 
     // wait for torrent plugin to be added
@@ -90,7 +90,7 @@ void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
 }
 
 void TorrentAdder::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
-    if(info_hash != _request.torrentIdentifier.infoHash())
+    if(info_hash != infoHash())
         return;
 
     finished(AddTorrentResponse::Error::TorrentRemovedBeforePluginWasAdded);
@@ -102,14 +102,14 @@ void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
 
     auto torrents = _node->torrents();
 
-    if(torrents.find(_request.torrentIdentifier.infoHash()) == torrents.end()) {
+    if(torrents.find(infoHash()) == torrents.end()) {
         finished(AddTorrentResponse::Error::TorrentDoesNotExist);
         return;
     }
 
     // We always resume the torrent otherwise the torrent will not go to seeding state
     // if the torrent is fully available
-    torrents[_request.torrentIdentifier.infoHash()]->resume([this](const std::exception_ptr &e) {
+    torrents[infoHash()]->resume([this](const std::exception_ptr &e) {
         if(e) {
             finished(AddTorrentResponse::Error::ResumeFailed);
         } else {

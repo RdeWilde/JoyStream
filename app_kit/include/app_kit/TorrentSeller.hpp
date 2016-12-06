@@ -34,14 +34,13 @@ private:
                  libtorrent::sha1_hash,
                  const protocol_session::SellingPolicy&,
                  const protocol_wire::SellerTerms&,
-                  protocol_session::GenerateP2SHKeyPairCallbackHandler,
-                  protocol_session::GenerateReceiveAddressesCallbackHandler);
+                 protocol_session::GenerateP2SHKeyPairCallbackHandler,
+                 protocol_session::GenerateReceiveAddressesCallbackHandler);
 
-    bitcoin::SPVWallet* _wallet;
-    core::Node* _node;
-    libtorrent::sha1_hash _infoHash;
-    protocol_session::SellingPolicy _policy;
-    protocol_wire::SellerTerms _terms;
+    bitcoin::SPVWallet* const _wallet;
+    core::Node* const _node;
+    const protocol_session::SellingPolicy _policy;
+    const protocol_wire::SellerTerms _terms;
     std::shared_ptr<SellTorrentResponse> _response;
 
     const protocol_session::GenerateP2SHKeyPairCallbackHandler _paychanKeysGenerator;

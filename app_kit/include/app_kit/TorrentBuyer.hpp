@@ -39,11 +39,10 @@ private:
                  protocol_session::GenerateReceiveAddressesCallbackHandler,
                  protocol_session::GenerateChangeAddressesCallbackHandler);
 
-    bitcoin::SPVWallet* _wallet;
-    core::Node* _node;
-    libtorrent::sha1_hash _infoHash;
-    protocol_session::BuyingPolicy _policy;
-    protocol_wire::BuyerTerms _terms;
+    bitcoin::SPVWallet* const _wallet;
+    core::Node* const _node;
+    const protocol_session::BuyingPolicy _policy;
+    const protocol_wire::BuyerTerms _terms;
     std::shared_ptr<BuyTorrentResponse> _response;
 
     const protocol_session::GenerateP2SHKeyPairCallbackHandler _paychanKeysGenerator;
