@@ -7,8 +7,6 @@
 namespace joystream {
 namespace appkit {
 
-std::map<libtorrent::sha1_hash, TorrentBuyer*> TorrentBuyer::_workers;
-
 TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
                            std::shared_ptr<BuyTorrentResponse> response,
                            libtorrent::sha1_hash infoHash,
@@ -17,7 +15,7 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
                            protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                            protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
                            protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator)
-    : QObject(parent),
+    : Worker(parent, infoHash),
       _node(node),
       _wallet(wallet),
       _policy(policy),
@@ -28,28 +26,7 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
       _receiveAddressesGenerator(receiveAddressesGenerator),
       _changeAddressesGenerator(changeAddressesGenerator)
 {
-
     QObject::connect(this, &TorrentBuyer::destroyed, _response.get(), &BuyTorrentResponse::finishedProcessing);
-
-    // Only one buyer per infohash
-    if(_workers.find(_infoHash) != _workers.end()) {
-
-        QTimer::singleShot(0, this, &TorrentBuyer::abort);
-
-    } else {
-
-        _workers[_infoHash] = this;
-
-        QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentBuyer::onTorrentRemoved);
-
-        QTimer::singleShot(0, this, &TorrentBuyer::start);
-    }
-}
-
-TorrentBuyer::~TorrentBuyer() {
-    if(_workers.find(_infoHash) != _workers.end() && _workers[_infoHash] == this) {
-        _workers.erase(_infoHash);
-    }
 }
 
 std::shared_ptr<BuyTorrentResponse> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
@@ -99,6 +76,8 @@ core::Torrent* TorrentBuyer::getTorrentPointerOrFail() {
 }
 
 void TorrentBuyer::start() {
+
+    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentBuyer::onTorrentRemoved);
 
     auto torrent = getTorrentPointerOrFail();
 

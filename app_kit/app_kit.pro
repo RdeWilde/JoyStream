@@ -17,7 +17,8 @@ SOURCES += src/AppKit.cpp \
     src/SavedSessionParameters.cpp \
     src/TorrentAdder.cpp \
     src/TorrentBuyer.cpp \
-    src/TorrentSeller.cpp
+    src/TorrentSeller.cpp \
+    src/Worker.cpp
 
 HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/DataDirectory.hpp \
@@ -34,7 +35,8 @@ HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/TorrentBuyer.hpp \
     include/app_kit/BuyTorrentResponse.hpp \
     include/app_kit/TorrentSeller.hpp \
-    include/app_kit/SellTorrentResponse.hpp
+    include/app_kit/SellTorrentResponse.hpp \
+    include/app_kit/Worker.hpp
 
 INCLUDEPATH += $$PWD/include
 

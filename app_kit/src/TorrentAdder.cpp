@@ -6,34 +6,16 @@
 namespace joystream {
 namespace appkit {
 
-// Initialize private static workers set
-std::map<libtorrent::sha1_hash, TorrentAdder*> TorrentAdder::_workers;
-
 TorrentAdder::TorrentAdder(QObject* parent,
                            core::Node* node,
                            AddTorrentRequest request,
                            std::shared_ptr<AddTorrentResponse> response)
-    :  QObject(parent),
+    :  Worker(parent, request.torrentIdentifier.infoHash()),
        _node(node),
        _request(request),
-       _response(response) {
-
+       _response(response)
+{
     QObject::connect(this, &TorrentAdder::destroyed, _response.get(), &AddTorrentResponse::finishedProcessing);
-
-    // Only one adder per infohash
-    if(_workers.find(_request.torrentIdentifier.infoHash()) != _workers.end()) {
-
-        QTimer::singleShot(0, this, &TorrentAdder::abort);
-
-    } else {
-
-        _workers[_request.torrentIdentifier.infoHash()] = this;
-
-        QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::onTorrentRemoved);
-
-        // Delay starting the worker to allow user to connect signals to the response object
-        QTimer::singleShot(0, this, &TorrentAdder::start);
-    }
 }
 
 void TorrentAdder::abort()
@@ -58,6 +40,8 @@ void TorrentAdder::start() {
 
     QObject::connect(_node, &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
 
+    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::onTorrentRemoved);
+
     try {
         _node->addTorrent(_request.uploadLimit,
                          _request.downloadLimit,
@@ -75,7 +59,6 @@ void TorrentAdder::start() {
 
 void TorrentAdder::finished()
 {
-    _workers.erase(_request.torrentIdentifier.infoHash());
     delete this;
 }
 

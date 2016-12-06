@@ -6,14 +6,14 @@
 #include <core/Torrent.hpp>
 #include <core/TorrentPlugin.hpp>
 
+#include <app_kit/Worker.hpp>
 #include <app_kit/AddTorrentRequest.hpp>
 #include <app_kit/AddTorrentResponse.hpp>
 
 namespace joystream {
 namespace appkit {
 
-class TorrentAdder : public QObject {
-    Q_OBJECT
+class TorrentAdder : public Worker {
 
 public:
     // TorrentAdder does not have a public API. It is always created on the heap and manages its own lifetime
@@ -30,18 +30,16 @@ protected slots:
     void onTorrentRemoved(const libtorrent::sha1_hash & info_hash);
     void onTorrentPluginAdded(joystream::core::TorrentPlugin *plugin);
 
+    void start();
+    void abort();
+
 private:
     // TorrentAdder manages its own lifetime so we restrict it from being created on the stack
     TorrentAdder(QObject*, core::Node*, AddTorrentRequest, std::shared_ptr<AddTorrentResponse>);
 
-    static std::map<libtorrent::sha1_hash, TorrentAdder*> _workers;
-
     core::Node* _node;
     AddTorrentRequest _request;
     std::shared_ptr<AddTorrentResponse> _response;
-
-    Q_INVOKABLE void start();
-    Q_INVOKABLE void abort();
 
     // Updated the response object to indicate that the torrent and torrentPlugin were added successfully
     void added();

@@ -6,13 +6,14 @@
 #include <bitcoin/SPVWallet.hpp>
 #include <core/Node.hpp>
 
+#include <app_kit/Worker.hpp>
 #include <app_kit/SellTorrentResponse.hpp>
 
 namespace joystream {
 namespace appkit {
 
 
-class TorrentSeller : public QObject
+class TorrentSeller : public Worker
 {
 public:
     static std::shared_ptr<SellTorrentResponse> sell(QObject* parent, core::Node*, bitcoin::SPVWallet*,
@@ -21,11 +22,12 @@ public:
                                                      const protocol_wire::SellerTerms&,
                                                      protocol_session::GenerateP2SHKeyPairCallbackHandler,
                                                      protocol_session::GenerateReceiveAddressesCallbackHandler);
-    ~TorrentSeller();
 
 protected slots:
     void onTorrentStateChanged(libtorrent::torrent_status::state_t state, float progress);
     void onTorrentRemoved(const libtorrent::sha1_hash&);
+    void start();
+    void abort();
 
 private:
     TorrentSeller(QObject* parent, core::Node*, bitcoin::SPVWallet*, std::shared_ptr<SellTorrentResponse> response,
@@ -45,11 +47,6 @@ private:
     const protocol_session::GenerateP2SHKeyPairCallbackHandler _paychanKeysGenerator;
     const protocol_session::GenerateReceiveAddressesCallbackHandler _receiveAddressesGenerator;
     const protocol_session::GenerateChangeAddressesCallbackHandler _changeAddressesGenerator;
-
-    static std::map<libtorrent::sha1_hash, TorrentSeller*> _workers;
-
-    Q_INVOKABLE void start();
-    Q_INVOKABLE void abort();
 
     void finished();
     void finished(SellTorrentResponse::Error);
