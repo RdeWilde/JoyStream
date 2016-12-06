@@ -28,11 +28,11 @@ namespace status {
         PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
                    const BEPSupportStatus & peerBEP10SupportStatus,
                    const BEPSupportStatus & peerBitSwaprBEPSupportStatus,
-                   const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections)
+                   const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connection)
             : endPoint(endPoint)
             , peerBEP10SupportStatus(peerBEP10SupportStatus)
             , peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus)
-            , connections(connections) {
+            , connection(connection) {
         }
 
         // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
@@ -45,7 +45,7 @@ namespace status {
         BEPSupportStatus peerBitSwaprBEPSupportStatus;
 
         // *** TEMPORARY ***: Status of connection
-        boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> connections;
+        boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> connection;
     };
 
     struct TorrentPlugin {
