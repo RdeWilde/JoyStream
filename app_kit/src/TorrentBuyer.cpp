@@ -40,6 +40,12 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
     }
 }
 
+TorrentBuyer::~TorrentBuyer() {
+    if(_workers.find(_infoHash) != _workers.end() && _workers[_infoHash] == this) {
+        _workers.erase(_infoHash);
+    }
+}
+
 std::shared_ptr<BuyTorrentResponse> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
                                                       libtorrent::sha1_hash infoHash,
                                                       const protocol_session::BuyingPolicy& policy,
@@ -59,7 +65,6 @@ void TorrentBuyer::abort() {
 }
 
 void TorrentBuyer::finished() {
-    _workers.erase(_infoHash);
     delete this;
 }
 

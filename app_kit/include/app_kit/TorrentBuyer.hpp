@@ -19,6 +19,8 @@ public:
                                                    libtorrent::sha1_hash infoHash,
                                                    const protocol_session::BuyingPolicy& policy,
                                                    const protocol_wire::BuyerTerms& terms);
+    ~TorrentBuyer();
+
 protected slots:
     void onTorrentStateChanged(libtorrent::torrent_status::state_t state, float progress);
     void onTorrentRemoved(const libtorrent::sha1_hash&);

@@ -40,6 +40,12 @@ TorrentSeller::TorrentSeller(QObject* parent, core::Node* node, bitcoin::SPVWall
     }
 }
 
+TorrentSeller::~TorrentSeller() {
+    if(_workers.find(_infoHash) != _workers.end() && _workers[_infoHash] == this) {
+        _workers.erase(_infoHash);
+    }
+}
+
 std::shared_ptr<SellTorrentResponse> TorrentSeller::sell(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
                                                          libtorrent::sha1_hash infoHash,
                                                          const protocol_session::SellingPolicy& policy,
@@ -59,7 +65,6 @@ void TorrentSeller::abort() {
 }
 
 void TorrentSeller::finished() {
-    _workers.erase(_infoHash);
     delete this;
 }
 
