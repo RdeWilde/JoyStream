@@ -157,22 +157,25 @@ void TorrentSeller::startSelling() {
 
     core::TorrentPlugin* plugin = torrent->torrentPlugin();
 
+    // Make a copy of the wallet pointer to use in the lambda
+    auto wallet = _wallet;
+
     plugin->toSellMode(
         // protocol_session::GenerateP2SHKeyPairCallbackHandler
-        [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
+        [wallet](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
 
-            Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
+            Coin::PrivateKey sk = wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
                 return bitcoin::RedeemScriptInfo(generateScript(pk), data);
             });
 
             return Coin::KeyPair(sk);
         },
         // protocol_session::GenerateReceiveAddressesCallbackHandler
-        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
+        [wallet](int npairs) -> std::vector<Coin::P2PKHAddress> {
             std::vector<Coin::P2PKHAddress> addresses;
 
             for(int n = 0; n < npairs; n++) {
-                addresses.push_back(_wallet->generateReceiveAddress());
+                addresses.push_back(wallet->generateReceiveAddress());
             }
 
             return addresses;
