@@ -15,8 +15,7 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
                            protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                            protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
                            protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator)
-    : Worker(parent, infoHash, result),
-      _node(node),
+    : Worker(parent, infoHash, result, node),
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
@@ -24,7 +23,7 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
       _receiveAddressesGenerator(receiveAddressesGenerator),
       _changeAddressesGenerator(changeAddressesGenerator)
 {
-    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentBuyer::finishIfTorrentRemoved);
+
 }
 
 std::shared_ptr<WorkerResult> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
@@ -41,16 +40,6 @@ std::shared_ptr<WorkerResult> TorrentBuyer::buy(QObject* parent, core::Node* nod
 
     return result;
 
-}
-
-core::Torrent* TorrentBuyer::getTorrent() {
-    auto torrents = _node->torrents();
-
-    if(torrents.find(infoHash()) == torrents.end()) {
-        return nullptr;
-    }
-
-    return torrents[infoHash()];
 }
 
 void TorrentBuyer::start() {
@@ -146,29 +135,6 @@ void TorrentBuyer::startBuying() {
                 startPlugin();
             }
         });
-}
-
-void TorrentBuyer::startPlugin() {
-
-    auto torrent = getTorrent();
-
-    if(!torrent) {
-        finished(WorkerResult::Error::TorrentDoesNotExist);
-        return;
-    }
-
-    if(!torrent->torrentPluginSet()) {
-        finished(WorkerResult::Error::TorrentPluginNotSet);
-        return;
-    }
-
-    torrent->torrentPlugin()->start([this](const std::exception_ptr &eptr){
-        if(eptr){
-            finished(eptr);
-        } else {
-            finished();
-        }
-    });
 }
 
 }

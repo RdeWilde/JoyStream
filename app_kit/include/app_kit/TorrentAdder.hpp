@@ -35,7 +35,6 @@ private:
     // TorrentAdder manages its own lifetime so we restrict it from being created on the stack
     TorrentAdder(QObject*, core::Node*, AddTorrentRequest, std::shared_ptr<WorkerResult>);
 
-    core::Node* _node;
     AddTorrentRequest _request;
 
     void addTorrentCallback(libtorrent::error_code &ecode, libtorrent::torrent_handle &th);

@@ -10,11 +10,10 @@ TorrentAdder::TorrentAdder(QObject* parent,
                            core::Node* node,
                            AddTorrentRequest request,
                            std::shared_ptr<WorkerResult> result)
-    :  Worker(parent, request.torrentIdentifier.infoHash(), result),
-       _node(node),
+    :  Worker(parent, request.torrentIdentifier.infoHash(), result, node),
        _request(request)
 {
-    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::finishIfTorrentRemoved);
+
 }
 
 std::shared_ptr<WorkerResult> TorrentAdder::add(QObject* parent,
@@ -31,10 +30,10 @@ std::shared_ptr<WorkerResult> TorrentAdder::add(QObject* parent,
 
 void TorrentAdder::start() {
 
-    QObject::connect(_node, &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
+    QObject::connect(node(), &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
 
     try {
-        _node->addTorrent(_request.uploadLimit,
+        node()->addTorrent(_request.uploadLimit,
                          _request.downloadLimit,
                          _request.name,
                          _request.resumeData,
@@ -59,7 +58,7 @@ void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
 
 void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
 
-    auto torrents = _node->torrents();
+    auto torrents = node()->torrents();
 
     if(torrents.find(infoHash()) == torrents.end()) {
         finished(WorkerResult::Error::TorrentDoesNotExist);

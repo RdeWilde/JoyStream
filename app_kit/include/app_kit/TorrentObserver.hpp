@@ -19,11 +19,6 @@ protected slots:
 
 private:
     TorrentObserver(QObject* parent, core::Node*, libtorrent::sha1_hash, std::shared_ptr<WorkerResult> result);
-
-    core::Node* const _node;
-
-    core::Torrent* getTorrent();
-    void startPlugin();
 };
 
 }

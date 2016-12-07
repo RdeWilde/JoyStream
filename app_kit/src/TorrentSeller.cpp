@@ -14,15 +14,14 @@ TorrentSeller::TorrentSeller(QObject* parent, core::Node* node, bitcoin::SPVWall
                            const protocol_wire::SellerTerms& terms,
                            protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                            protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator)
-    : Worker(parent, infoHash, result),
-      _node(node),
+    : Worker(parent, infoHash, result, node),
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
       _paychanKeysGenerator(paychanKeysGenerator),
       _receiveAddressesGenerator(receiveAddressesGenerator)
 {
-    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentSeller::finishIfTorrentRemoved);
+
 }
 
 std::shared_ptr<WorkerResult> TorrentSeller::sell(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
@@ -38,16 +37,6 @@ std::shared_ptr<WorkerResult> TorrentSeller::sell(QObject* parent, core::Node* n
 
     return result;
 
-}
-
-core::Torrent* TorrentSeller::getTorrent() {
-    auto torrents = _node->torrents();
-
-    if(torrents.find(infoHash()) == torrents.end()) {
-        return nullptr;
-    }
-
-    return torrents[infoHash()];
 }
 
 void TorrentSeller::start() {
@@ -126,29 +115,6 @@ void TorrentSeller::startSelling() {
                 startPlugin();
             }
         });
-}
-
-void TorrentSeller::startPlugin() {
-
-    auto torrent = getTorrent();
-
-    if(!torrent) {
-        finished(WorkerResult::Error::TorrentDoesNotExist);
-        return;
-    }
-
-    if(!torrent->torrentPluginSet()) {
-        finished(WorkerResult::Error::TorrentPluginNotSet);
-        return;
-    }
-
-    torrent->torrentPlugin()->start([this](const std::exception_ptr &eptr){
-        if(eptr){
-            finished(eptr);
-        } else {
-            finished();
-        }
-    });
 }
 
 }

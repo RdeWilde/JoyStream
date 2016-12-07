@@ -36,7 +36,6 @@ private:
                  protocol_session::GenerateReceiveAddressesCallbackHandler);
 
     bitcoin::SPVWallet* const _wallet;
-    core::Node* const _node;
     const protocol_session::SellingPolicy _policy;
     const protocol_wire::SellerTerms _terms;
 
@@ -44,9 +43,7 @@ private:
     const protocol_session::GenerateReceiveAddressesCallbackHandler _receiveAddressesGenerator;
     const protocol_session::GenerateChangeAddressesCallbackHandler _changeAddressesGenerator;
 
-    core::Torrent* getTorrent();
     void startSelling();
-    void startPlugin();
 
 };
 
