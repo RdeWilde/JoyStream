@@ -17,6 +17,11 @@ class RPCSellTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joy
          * it can start to sell torrent.
          * */
         void checkStatus(libtorrent::torrent_status::state_t state, float progress);
+        /**
+         * @brief Get called once a plugin is added to
+         * the torrent
+         * */
+        void pluginAdded(joystream::core::TorrentPlugin* torrentPlugin);
 
     private:
         joystream::appkit::AppKit* appKit_;

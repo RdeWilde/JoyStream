@@ -26,9 +26,12 @@ void RPCBuyTorrent::checkStatus(libtorrent::torrent_status::state_t state, float
         if (hasPlugin)
         {
             try {
-                appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [this, response](const std::exception_ptr &e){
+                appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [this, response, torrent](const std::exception_ptr &e){
                     std::cout << "We are buying the torrent" << std::endl;
-                    this->finish(response, true);
+                    torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
+                        std::cout << "We started pluggin" << std::endl;
+                        this->finish(response, true);
+                    });
                 });
             } catch(const std::runtime_error& error) {
                 std::cout << error.what() << std::endl;
@@ -65,9 +68,12 @@ void RPCBuyTorrent::pluginAdded(joystream::core::TorrentPlugin* torrentPlugin) {
         {
             std::cout << "Ok we have the plugin set" << std::endl;
             try {
-                appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [this, response](const std::exception_ptr &e){
+                appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [this, response, torrent](const std::exception_ptr &e){
                     std::cout << "We are buying the torrent" << std::endl;
-                    this->finish(response, true);
+                    torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
+                        std::cout << "We started pluggin" << std::endl;
+                        this->finish(response, true);
+                    });
                 });
             } catch(const std::runtime_error& error) {
                 std::cout << error.what() << std::endl;
@@ -106,8 +112,12 @@ void RPCBuyTorrent::process()
 
         if (torrentState == libtorrent::torrent_status::state_t::downloading) {
             try {
-                appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [](const std::exception_ptr &e){
+                appKit_->buyTorrent(20000, torrent, buyingPolicy, buyerTerms, [this, response, torrent](const std::exception_ptr &e){
                     std::cout << "We are buying the torrent" << std::endl;
+                    torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
+                        std::cout << "We started pluggin" << std::endl;
+                        this->finish(response, true);
+                    });
                 });
             } catch(const std::runtime_error& error) {
                 std::cout << error.what() << std::endl;

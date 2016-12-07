@@ -11,19 +11,6 @@ var torrent = {
 	'data': buffer
 }
 
-var torrentFilePath = '306497171.torrent'
-
-var buyTorrentRequest = {
-	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1',
-	'nsellers': 1,
-	'price': 100,
-	'locktime': 5,
-	'settlement_fee': 5000,
-	'contractFeeRate': 20000,
-	'secondsBeforeCreatingContract': 3,
-	'secondsBeforePieceTimeout': 25
-}
-
 var sellTorrentRequest = {
 	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1'
 }

@@ -13,7 +13,7 @@ var torrent = {
 
 var buyTorrentRequest = {
 	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1',
-	'nsellers': 1,
+	'nsellers': 0,
 	'price': 100,
 	'locktime': 5,
 	'settlement_fee': 5000,
@@ -59,7 +59,7 @@ app.listen(3001, function () {
 					if (err) {
 						console.log(err)
 					} else {
-						console.log('We are selling the torrent')
+						console.log('We are buying the torrent')
 					}
 			})
 		}
