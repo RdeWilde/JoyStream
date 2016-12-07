@@ -14,7 +14,7 @@ TorrentAdder::TorrentAdder(QObject* parent,
        _node(node),
        _request(request)
 {
-
+    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::finishIfTorrentRemoved);
 }
 
 std::shared_ptr<WorkerResult> TorrentAdder::add(QObject* parent,
@@ -32,8 +32,6 @@ std::shared_ptr<WorkerResult> TorrentAdder::add(QObject* parent,
 void TorrentAdder::start() {
 
     QObject::connect(_node, &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
-
-    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::finishIfTorrentRemoved);
 
     try {
         _node->addTorrent(_request.uploadLimit,

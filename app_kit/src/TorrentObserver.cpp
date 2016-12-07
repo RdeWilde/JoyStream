@@ -10,6 +10,7 @@ TorrentObserver::TorrentObserver(QObject* parent, core::Node* node, libtorrent::
     Worker(parent, infoHash, result),
     _node(node)
 {
+    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentObserver::finishIfTorrentRemoved);
 }
 
 std::shared_ptr<WorkerResult> TorrentObserver::observe(QObject *parent, core::Node *node, libtorrent::sha1_hash infoHash) {
@@ -31,7 +32,6 @@ core::Torrent* TorrentObserver::getTorrent() {
 }
 
 void TorrentObserver::start() {
-    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentObserver::finishIfTorrentRemoved);
 
     auto torrent = getTorrent();
 
@@ -58,10 +58,33 @@ void TorrentObserver::start() {
         if(eptr) {
             finished(eptr);
         } else {
-            finished();
+            startPlugin();
         }
     });
 
+}
+
+void TorrentObserver::startPlugin() {
+
+    auto torrent = getTorrent();
+
+    if(!torrent) {
+        finished(WorkerResult::Error::TorrentDoesNotExist);
+        return;
+    }
+
+    if(!torrent->torrentPluginSet()) {
+        finished(WorkerResult::Error::TorrentPluginNotSet);
+        return;
+    }
+
+    torrent->torrentPlugin()->start([this](const std::exception_ptr &eptr){
+        if(eptr){
+            finished(eptr);
+        } else {
+            finished();
+        }
+    });
 }
 
 }

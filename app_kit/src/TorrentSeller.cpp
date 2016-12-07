@@ -22,7 +22,7 @@ TorrentSeller::TorrentSeller(QObject* parent, core::Node* node, bitcoin::SPVWall
       _paychanKeysGenerator(paychanKeysGenerator),
       _receiveAddressesGenerator(receiveAddressesGenerator)
 {
-
+    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentSeller::finishIfTorrentRemoved);
 }
 
 std::shared_ptr<WorkerResult> TorrentSeller::sell(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
@@ -40,11 +40,10 @@ std::shared_ptr<WorkerResult> TorrentSeller::sell(QObject* parent, core::Node* n
 
 }
 
-core::Torrent* TorrentSeller::getTorrentPointerOrFail() {
+core::Torrent* TorrentSeller::getTorrent() {
     auto torrents = _node->torrents();
 
     if(torrents.find(infoHash()) == torrents.end()) {
-        finished(WorkerResult::Error::TorrentDoesNotExist);
         return nullptr;
     }
 
@@ -53,9 +52,7 @@ core::Torrent* TorrentSeller::getTorrentPointerOrFail() {
 
 void TorrentSeller::start() {
 
-    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentSeller::finishIfTorrentRemoved);
-
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
     if(!torrent) {
         finished(WorkerResult::Error::TorrentDoesNotExist);
@@ -102,10 +99,12 @@ void TorrentSeller::onTorrentStateChanged(libtorrent::torrent_status::state_t st
 
 void TorrentSeller::startSelling() {
 
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
-    if(!torrent)
+    if(!torrent) {
+        finished(WorkerResult::Error::TorrentDoesNotExist);
         return;
+    }
 
     if(!torrent->torrentPluginSet()) {
         finished(WorkerResult::Error::TorrentPluginNotSet);
@@ -131,10 +130,15 @@ void TorrentSeller::startSelling() {
 
 void TorrentSeller::startPlugin() {
 
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
     if(!torrent) {
         finished(WorkerResult::Error::TorrentDoesNotExist);
+        return;
+    }
+
+    if(!torrent->torrentPluginSet()) {
+        finished(WorkerResult::Error::TorrentPluginNotSet);
         return;
     }
 

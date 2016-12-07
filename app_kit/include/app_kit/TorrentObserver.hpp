@@ -23,6 +23,7 @@ private:
     core::Node* const _node;
 
     core::Torrent* getTorrent();
+    void startPlugin();
 };
 
 }

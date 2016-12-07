@@ -24,7 +24,7 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
       _receiveAddressesGenerator(receiveAddressesGenerator),
       _changeAddressesGenerator(changeAddressesGenerator)
 {
-
+    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentBuyer::finishIfTorrentRemoved);
 }
 
 std::shared_ptr<WorkerResult> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
@@ -43,11 +43,10 @@ std::shared_ptr<WorkerResult> TorrentBuyer::buy(QObject* parent, core::Node* nod
 
 }
 
-core::Torrent* TorrentBuyer::getTorrentPointerOrFail() {
+core::Torrent* TorrentBuyer::getTorrent() {
     auto torrents = _node->torrents();
 
     if(torrents.find(infoHash()) == torrents.end()) {
-        finished(WorkerResult::Error::TorrentDoesNotExist);
         return nullptr;
     }
 
@@ -56,9 +55,7 @@ core::Torrent* TorrentBuyer::getTorrentPointerOrFail() {
 
 void TorrentBuyer::start() {
 
-    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentBuyer::finishIfTorrentRemoved);
-
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
     if(!torrent) {
         finished(WorkerResult::Error::TorrentDoesNotExist);
@@ -105,10 +102,12 @@ void TorrentBuyer::onTorrentStateChanged(libtorrent::torrent_status::state_t sta
 
 void TorrentBuyer::startBuying() {
 
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
-    if(!torrent)
+    if(!torrent) {
+        finished(WorkerResult::Error::TorrentDoesNotExist);
         return;
+    }
 
     if(!torrent->torrentPluginSet()) {
         finished(WorkerResult::Error::TorrentPluginNotSet);
@@ -151,10 +150,15 @@ void TorrentBuyer::startBuying() {
 
 void TorrentBuyer::startPlugin() {
 
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
     if(!torrent) {
         finished(WorkerResult::Error::TorrentDoesNotExist);
+        return;
+    }
+
+    if(!torrent->torrentPluginSet()) {
+        finished(WorkerResult::Error::TorrentPluginNotSet);
         return;
     }
 

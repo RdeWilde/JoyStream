@@ -46,7 +46,7 @@ private:
     const protocol_session::GenerateReceiveAddressesCallbackHandler _receiveAddressesGenerator;
     const protocol_session::GenerateChangeAddressesCallbackHandler _changeAddressesGenerator;
 
-    core::Torrent* getTorrentPointerOrFail();
+    core::Torrent* getTorrent();
     void startBuying();
     void startPlugin();
 
