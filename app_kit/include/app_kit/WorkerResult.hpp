@@ -26,6 +26,7 @@ public:
         UnableToLockFunds,
         TorrentAlreadyInSellSession,
         TorrentNotFullyDownloadedYet,
+        TorrentAlreadyInObservingMode,
         Exception
     };
 

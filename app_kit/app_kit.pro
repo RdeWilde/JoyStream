@@ -18,7 +18,8 @@ SOURCES += src/AppKit.cpp \
     src/TorrentAdder.cpp \
     src/TorrentBuyer.cpp \
     src/TorrentSeller.cpp \
-    src/Worker.cpp
+    src/Worker.cpp \
+    src/TorrentObserver.cpp
 
 HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/DataDirectory.hpp \
@@ -34,7 +35,8 @@ HEADERS += include/app_kit/AppKit.hpp \
     include/app_kit/TorrentBuyer.hpp \
     include/app_kit/TorrentSeller.hpp \
     include/app_kit/Worker.hpp \
-    include/app_kit/WorkerResult.hpp
+    include/app_kit/WorkerResult.hpp \
+    include/app_kit/TorrentObserver.hpp
 
 INCLUDEPATH += $$PWD/include
 
