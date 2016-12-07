@@ -11,7 +11,7 @@ void RPCSellTorrent::checkStatus(libtorrent::torrent_status::state_t state, floa
 
     joystream::protocol_session::SellingPolicy sellingPolicy;
 
-    joystream::protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
+    joystream::protocol_wire::SellerTerms sellerTerms(100, 5, 1, 20000, 5000);
 
     joystream::core::Torrent* torrent;
 
