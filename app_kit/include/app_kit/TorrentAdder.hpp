@@ -27,11 +27,9 @@ signals:
 protected slots:
     // slots are connected to signals from core::Node
     void onTorrentAdded(joystream::core::Torrent * torrent);
-    void onTorrentRemoved(const libtorrent::sha1_hash & info_hash);
     void onTorrentPluginAdded(joystream::core::TorrentPlugin *plugin);
 
     void start();
-    void abort();
 
 private:
     // TorrentAdder manages its own lifetime so we restrict it from being created on the stack
@@ -39,16 +37,6 @@ private:
 
     core::Node* _node;
     AddTorrentRequest _request;
-    std::shared_ptr<WorkerResult> _response;
-
-    // Add operation completed normally
-    void finished();
-
-    // An Error occured while adding the torrent
-    void finished(WorkerResult::Error);
-
-    // An Error occured while adding the torrent
-    void finished(libtorrent::error_code);
 
     void addTorrentCallback(libtorrent::error_code &ecode, libtorrent::torrent_handle &th);
 };

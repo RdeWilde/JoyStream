@@ -9,19 +9,12 @@ namespace appkit {
 TorrentAdder::TorrentAdder(QObject* parent,
                            core::Node* node,
                            AddTorrentRequest request,
-                           std::shared_ptr<WorkerResult> response)
-    :  Worker(parent, request.torrentIdentifier.infoHash()),
+                           std::shared_ptr<WorkerResult> result)
+    :  Worker(parent, request.torrentIdentifier.infoHash(), result),
        _node(node),
-       _request(request),
-       _response(response)
+       _request(request)
 {
-    QObject::connect(this, &TorrentAdder::destroyed, _response.get(), &WorkerResult::finishedProcessing);
-}
 
-void TorrentAdder::abort()
-{
-    _response->setError(WorkerResult::Error::TorrentAlreadyBeingAdded);
-    delete this;
 }
 
 std::shared_ptr<WorkerResult> TorrentAdder::add(QObject* parent,
@@ -40,7 +33,7 @@ void TorrentAdder::start() {
 
     QObject::connect(_node, &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
 
-    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::onTorrentRemoved);
+    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::finishIfTorrentRemoved);
 
     try {
         _node->addTorrent(_request.uploadLimit,
@@ -57,25 +50,6 @@ void TorrentAdder::start() {
     }
 }
 
-void TorrentAdder::finished()
-{
-    delete this;
-}
-
-void TorrentAdder::finished(libtorrent::error_code ec)
-{
-    _response->setError(ec);
-
-    finished();
-}
-
-void TorrentAdder::finished(WorkerResult::Error err)
-{
-    _response->setError(err);
-
-    finished();
-}
-
 void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
 
     if (torrent->infoHash() != infoHash())
@@ -83,13 +57,6 @@ void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
 
     // wait for torrent plugin to be added
     QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, this, &TorrentAdder::onTorrentPluginAdded);
-}
-
-void TorrentAdder::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
-    if(info_hash != infoHash())
-        return;
-
-    finished(WorkerResult::Error::TorrentRemovedBeforePluginWasAdded);
 }
 
 void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
