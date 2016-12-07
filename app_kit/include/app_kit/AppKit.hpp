@@ -14,8 +14,9 @@
 
 #include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
-
 #include <app_kit/WorkerResult.hpp>
+
+#include <bitcoin/SPVWallet.hpp>
 
 #include <core/core.hpp>
 
