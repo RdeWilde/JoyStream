@@ -12,8 +12,10 @@ CONFIG  += c++11
 
 QT      += core network
 
-SOURCES += main.cpp SignalHandler.cpp
-HEADERS += cli.hpp SignalHandler.hpp
+SOURCES += main.cpp SignalHandler.cpp \
+    CliApp.cpp
+HEADERS += SignalHandler.hpp \
+    CliApp.hpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../app_kit/release/ -lapp_kit
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../app_kit/debug/ -lapp_kit
