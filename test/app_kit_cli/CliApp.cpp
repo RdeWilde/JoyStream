@@ -108,33 +108,21 @@ void CliApp::processTorrent() {
 
         delete torrentIdentifier;
 
-        // Wait for torrent to be added
-        QObject::connect(torrent.get(), &joystream::appkit::WorkerResult::finished, [this, torrent](){
-            if(torrent->getError() != joystream::appkit::WorkerResult::Error::NoError)
-                return;
+       if(_command == "buy") {
+            joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
+            joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
-            if(_command == "buy") {
-                joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
-                joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
+            buyTorrent(torrent, buyerTerms, buyingPolicy, joystream::protocol_session::SessionState::started);
 
-                auto buyer = _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms, joystream::protocol_session::SessionState::started);
+        } else if(_command == "sell") {
+            joystream::protocol_wire::SellerTerms sellerTerms(50, 1, 10, 15000, 5000);
+            joystream::protocol_session::SellingPolicy sellingPolicy;
 
-                QObject::connect(buyer.get(), &joystream::appkit::WorkerResult::finished, [this, buyer](){
-                   std::cout << "Buyer Finished:" << std::endl;
-                });
+            sellTorrent(torrent, sellerTerms, sellingPolicy, joystream::protocol_session::SessionState::started);
 
-            } else if(_command == "sell") {
-                joystream::protocol_wire::SellerTerms sellerTerms(50, 1, 10, 15000, 5000);
-                joystream::protocol_session::SellingPolicy sellingPolicy;
-
-                auto seller = _kit->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms, joystream::protocol_session::SessionState::started);
-
-                QObject::connect(seller.get(), &joystream::appkit::WorkerResult::finished, [this, seller](){
-                   std::cout << "Seller Finished:" << std::endl;
-                });
-            }
-        });
-
+        } else {
+            observeTorrent(torrent, joystream::protocol_session::SessionState::started);
+        }
     }
 }
 
@@ -148,9 +136,9 @@ int CliApp::run()
     if(_command == "info")
         return 0;
 
-    processTorrent();
-
     claimRefunds(5000);
+
+    processTorrent();
 
     try {
         loadTorrents();
@@ -277,20 +265,52 @@ void CliApp::loadTorrents()
         joystream::appkit::SavedTorrentParameters torrentParams = torrent.second;
         joystream::appkit::SavedSessionParameters sessionParams = torrentParams.sessionParameters();
 
-        auto addResult = _kit->addTorrent(torrentParams);
+        auto result = _kit->addTorrent(torrentParams);
 
-        QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, sessionParams, addResult]() {
+        if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
+            buyTorrent(result, sessionParams.buyerTerms(), sessionParams.buyingPolicy(), sessionParams.state());
+        } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::selling) {
+            sellTorrent(result, sessionParams.sellerTerms(), sessionParams.sellingPolicy(), sessionParams.state());
+        } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::observing) {
+            observeTorrent(result, sessionParams.state());
+        }
 
-            if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError)
-                return;
-
-            if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
-                _kit->buyTorrent(addResult->infoHash(), sessionParams.buyingPolicy(), sessionParams.buyerTerms());
-
-            } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::selling) {
-
-                _kit->sellTorrent(addResult->infoHash(), sessionParams.sellingPolicy(), sessionParams.sellerTerms());
-            }
-        });
     }
+}
+
+void CliApp::buyTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult,
+                        joystream::protocol_wire::BuyerTerms terms,
+                        joystream::protocol_session::BuyingPolicy policy,
+                        joystream::protocol_session::SessionState state) {
+    QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, terms, policy, state, addResult]() {
+
+        if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError)
+            return;
+
+        _kit->buyTorrent(addResult->infoHash(), policy, terms, state);
+    });
+}
+
+void CliApp::sellTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult,
+                         joystream::protocol_wire::SellerTerms terms,
+                         joystream::protocol_session::SellingPolicy policy,
+                         joystream::protocol_session::SessionState state) {
+    QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, terms, policy, state, addResult]() {
+
+        if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError)
+            return;
+
+        _kit->sellTorrent(addResult->infoHash(), policy, terms, state);
+    });
+}
+
+void CliApp::observeTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult,
+                            joystream::protocol_session::SessionState state) {
+    QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, state, addResult]() {
+
+        if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError)
+            return;
+
+        _kit->observeTorrent(addResult->infoHash(), state);
+    });
 }

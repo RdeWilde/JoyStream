@@ -35,6 +35,10 @@ private:
     static void writeDataToFile(QString filePath, QByteArray data);
     static void saveTorrentsToFile(joystream::appkit::SavedTorrents savedTorrents, QString savePath);
 
+    void buyTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult, joystream::protocol_wire::BuyerTerms terms, joystream::protocol_session::BuyingPolicy policy, joystream::protocol_session::SessionState state);
+    void sellTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult, joystream::protocol_wire::SellerTerms terms, joystream::protocol_session::SellingPolicy policy, joystream::protocol_session::SessionState state);
+    void observeTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult, joystream::protocol_session::SessionState state);
+
     QCoreApplication _app;
     std::string _command;
     std::string _argument;
