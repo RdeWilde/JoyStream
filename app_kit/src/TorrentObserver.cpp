@@ -6,16 +6,17 @@ namespace joystream {
 namespace appkit {
 
 
-TorrentObserver::TorrentObserver(QObject* parent, core::Node* node, libtorrent::sha1_hash infoHash, std::shared_ptr<WorkerResult> result) :
-    Worker(parent, infoHash, result, node)
+TorrentObserver::TorrentObserver(QObject* parent, core::Node* node, libtorrent::sha1_hash infoHash, protocol_session::SessionState state, std::shared_ptr<WorkerResult> result) :
+    Worker(parent, infoHash, result, node),
+    _state(state)
 {
 
 }
 
-std::shared_ptr<WorkerResult> TorrentObserver::observe(QObject *parent, core::Node *node, libtorrent::sha1_hash infoHash) {
+std::shared_ptr<WorkerResult> TorrentObserver::observe(QObject *parent, core::Node *node, libtorrent::sha1_hash infoHash, protocol_session::SessionState state) {
     auto result = std::make_shared<WorkerResult>(infoHash);
 
-    new TorrentObserver(parent, node, infoHash, result);
+    new TorrentObserver(parent, node, infoHash, state, result);
 
     return result;
 }
@@ -47,7 +48,11 @@ void TorrentObserver::start() {
         if(eptr) {
             finished(eptr);
         } else {
-            startPlugin();
+            if(_state == protocol_session::SessionState::started) {
+                startPlugin();
+            } else {
+                finished();
+            }
         }
     });
 

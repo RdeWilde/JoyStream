@@ -117,17 +117,17 @@ void CliApp::processTorrent() {
                 joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
                 joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
-                auto buyer = _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms);
+                auto buyer = _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms, joystream::protocol_session::SessionState::started);
 
                 QObject::connect(buyer.get(), &joystream::appkit::WorkerResult::finished, [this, buyer](){
                    std::cout << "Buyer Finished:" << std::endl;
                 });
 
             } else if(_command == "sell") {
-                joystream::protocol_wire::SellerTerms sellerTerms(100, 5, 1, 20000, 5000);
+                joystream::protocol_wire::SellerTerms sellerTerms(50, 1, 10, 15000, 5000);
                 joystream::protocol_session::SellingPolicy sellingPolicy;
 
-                auto seller = _kit->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms);
+                auto seller = _kit->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms, joystream::protocol_session::SessionState::started);
 
                 QObject::connect(seller.get(), &joystream::appkit::WorkerResult::finished, [this, seller](){
                    std::cout << "Seller Finished:" << std::endl;

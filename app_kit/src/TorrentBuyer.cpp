@@ -12,6 +12,7 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
                            libtorrent::sha1_hash infoHash,
                            const protocol_session::BuyingPolicy& policy,
                            const protocol_wire::BuyerTerms& terms,
+                           protocol_session::SessionState state,
                            protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                            protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
                            protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator)
@@ -19,6 +20,7 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
+      _state(state),
       _paychanKeysGenerator(paychanKeysGenerator),
       _receiveAddressesGenerator(receiveAddressesGenerator),
       _changeAddressesGenerator(changeAddressesGenerator)
@@ -27,16 +29,17 @@ TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet
 }
 
 std::shared_ptr<WorkerResult> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
-                                                      libtorrent::sha1_hash infoHash,
-                                                      const protocol_session::BuyingPolicy& policy,
-                                                      const protocol_wire::BuyerTerms& terms,
-                                                      protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
-                                                      protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
-                                                      protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator) {
+                                                libtorrent::sha1_hash infoHash,
+                                                const protocol_session::BuyingPolicy& policy,
+                                                const protocol_wire::BuyerTerms& terms,
+                                                protocol_session::SessionState state,
+                                                protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
+                                                protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
+                                                protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator) {
 
     auto result = std::make_shared<WorkerResult>(infoHash);
 
-    new TorrentBuyer(parent, node, wallet, result, infoHash, policy, terms, paychanKeysGenerator, receiveAddressesGenerator, changeAddressesGenerator);
+    new TorrentBuyer(parent, node, wallet, result, infoHash, policy, terms, state, paychanKeysGenerator, receiveAddressesGenerator, changeAddressesGenerator);
 
     return result;
 
@@ -132,7 +135,11 @@ void TorrentBuyer::startBuying() {
                 _wallet->unlockOutputs(outputs);
                 finished(e);
             } else {
-                startPlugin();
+                if(_state == protocol_session::SessionState::started) {
+                    startPlugin();
+                } else {
+                    finished();
+                }
             }
         });
 }

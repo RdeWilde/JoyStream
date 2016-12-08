@@ -12,12 +12,14 @@ TorrentSeller::TorrentSeller(QObject* parent, core::Node* node, bitcoin::SPVWall
                            libtorrent::sha1_hash infoHash,
                            const protocol_session::SellingPolicy& policy,
                            const protocol_wire::SellerTerms& terms,
+                           protocol_session::SessionState state,
                            protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                            protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator)
     : Worker(parent, infoHash, result, node),
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
+      _state(state),
       _paychanKeysGenerator(paychanKeysGenerator),
       _receiveAddressesGenerator(receiveAddressesGenerator)
 {
@@ -28,12 +30,13 @@ std::shared_ptr<WorkerResult> TorrentSeller::sell(QObject* parent, core::Node* n
                                                   libtorrent::sha1_hash infoHash,
                                                   const protocol_session::SellingPolicy& policy,
                                                   const protocol_wire::SellerTerms& terms,
+                                                  protocol_session::SessionState state,
                                                   protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                                                   protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator) {
 
     auto result = std::make_shared<WorkerResult>(infoHash);
 
-    new TorrentSeller(parent, node, wallet, result, infoHash, policy, terms, paychanKeysGenerator, receiveAddressesGenerator);
+    new TorrentSeller(parent, node, wallet, result, infoHash, policy, terms, state, paychanKeysGenerator, receiveAddressesGenerator);
 
     return result;
 
@@ -112,7 +115,11 @@ void TorrentSeller::startSelling() {
             if(e) {
                 finished(e);
             } else {
-                startPlugin();
+                if(_state == protocol_session::SessionState::started) {
+                    startPlugin();
+                } else {
+                    finished();
+                }
             }
         });
 }

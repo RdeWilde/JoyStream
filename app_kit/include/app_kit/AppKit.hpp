@@ -78,16 +78,25 @@ public:
 
     SavedTorrents generateSavedTorrents() const;
 
-    // Add torrent from TorrentState
+    std::shared_ptr<WorkerResult> addTorrent(AddTorrentRequest &);
+
+    // Add torrent from saved parameters
     std::shared_ptr<WorkerResult> addTorrent(const joystream::appkit::SavedTorrentParameters&);
 
     std::shared_ptr<WorkerResult> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
 
-    std::shared_ptr<WorkerResult> addTorrent(const AddTorrentRequest&);
+    std::shared_ptr<WorkerResult> buyTorrent(libtorrent::sha1_hash,
+                                             const protocol_session::BuyingPolicy& policy,
+                                             const protocol_wire::BuyerTerms& terms,
+                                             protocol_session::SessionState = protocol_session::SessionState::stopped);
 
-    std::shared_ptr<WorkerResult> buyTorrent(libtorrent::sha1_hash, const protocol_session::BuyingPolicy& policy, const protocol_wire::BuyerTerms& terms);
+    std::shared_ptr<WorkerResult> sellTorrent(libtorrent::sha1_hash,
+                                              const protocol_session::SellingPolicy& policy,
+                                              const protocol_wire::SellerTerms& terms,
+                                              protocol_session::SessionState = protocol_session::SessionState::stopped);
 
-    std::shared_ptr<WorkerResult> sellTorrent(libtorrent::sha1_hash, const protocol_session::SellingPolicy& policy, const protocol_wire::SellerTerms& terms);
+    std::shared_ptr<WorkerResult> observeTorrent(libtorrent::sha1_hash,
+                                                 protocol_session::SessionState = protocol_session::SessionState::stopped);
 
     void broadcastTransaction(Coin::Transaction &) const;
 

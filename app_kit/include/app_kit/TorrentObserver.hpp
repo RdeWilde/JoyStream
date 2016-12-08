@@ -12,13 +12,15 @@ namespace appkit {
 class TorrentObserver : Worker
 {
 public:
-    static std::shared_ptr<WorkerResult> observe(QObject* parent, core::Node*, libtorrent::sha1_hash);
+    static std::shared_ptr<WorkerResult> observe(QObject* parent, core::Node*, libtorrent::sha1_hash, protocol_session::SessionState);
 
 protected slots:
     void start();
 
 private:
-    TorrentObserver(QObject* parent, core::Node*, libtorrent::sha1_hash, std::shared_ptr<WorkerResult> result);
+    TorrentObserver(QObject* parent, core::Node*, libtorrent::sha1_hash, protocol_session::SessionState, std::shared_ptr<WorkerResult> result);
+
+    const protocol_session::SessionState _state;
 };
 
 }

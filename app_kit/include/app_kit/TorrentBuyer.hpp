@@ -20,6 +20,7 @@ public:
                                              libtorrent::sha1_hash,
                                              const protocol_session::BuyingPolicy&,
                                              const protocol_wire::BuyerTerms&,
+                                             protocol_session::SessionState,
                                              protocol_session::GenerateP2SHKeyPairCallbackHandler,
                                              protocol_session::GenerateReceiveAddressesCallbackHandler,
                                              protocol_session::GenerateChangeAddressesCallbackHandler);
@@ -33,6 +34,7 @@ private:
                  libtorrent::sha1_hash,
                  const protocol_session::BuyingPolicy&,
                  const protocol_wire::BuyerTerms&,
+                 protocol_session::SessionState state,
                  protocol_session::GenerateP2SHKeyPairCallbackHandler,
                  protocol_session::GenerateReceiveAddressesCallbackHandler,
                  protocol_session::GenerateChangeAddressesCallbackHandler);
@@ -40,6 +42,7 @@ private:
     bitcoin::SPVWallet* const _wallet;
     const protocol_session::BuyingPolicy _policy;
     const protocol_wire::BuyerTerms _terms;
+    const protocol_session::SessionState _state;
 
     const protocol_session::GenerateP2SHKeyPairCallbackHandler _paychanKeysGenerator;
     const protocol_session::GenerateReceiveAddressesCallbackHandler _receiveAddressesGenerator;

@@ -14,6 +14,7 @@
 #include <app_kit/TorrentAdder.hpp>
 #include <app_kit/TorrentBuyer.hpp>
 #include <app_kit/TorrentSeller.hpp>
+#include <app_kit/TorrentObserver.hpp>
 
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
@@ -133,38 +134,41 @@ std::shared_ptr<WorkerResult> AppKit::addTorrent(const SavedTorrentParameters &t
 
     request.uploadLimit = torrent.uploadLimit();
     request.downloadLimit = torrent.downloadLimit();
-    request.name = torrent.name() == "" ? libtorrent::to_hex(request.torrentIdentifier.infoHash().to_string()) : torrent.name();
+    request.name = torrent.name();
     request.resumeData = torrent.resumeData();
     request.paused = torrent.paused();
 
-    return TorrentAdder::add(this, node(), request);
+    return addTorrent(request);
 }
 
 std::shared_ptr<WorkerResult> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
 
     AddTorrentRequest request(ti, savePath);
 
-    if(request.name == "")
-        request.name = libtorrent::to_hex(request.torrentIdentifier.infoHash().to_string());
-
-    return TorrentAdder::add(this, node(), request);
+    return addTorrent(request);
 }
 
-std::shared_ptr<WorkerResult> AppKit::addTorrent(const AddTorrentRequest& request) {
+std::shared_ptr<WorkerResult> AppKit::addTorrent(AddTorrentRequest& request) {
 
     return TorrentAdder::add(this, node(), request);
 }
 
 std::shared_ptr<WorkerResult> AppKit::buyTorrent(libtorrent::sha1_hash infoHash,
-                                                       const protocol_session::BuyingPolicy& policy,
-                                                       const protocol_wire::BuyerTerms& terms) {
-    return TorrentBuyer::buy(this, node(), wallet(), infoHash, policy, terms, paychanKeysGenerator(), receiveAddressesGenerator(), changeAddressesGenerator());
+                                                 const protocol_session::BuyingPolicy& policy,
+                                                 const protocol_wire::BuyerTerms& terms,
+                                                 protocol_session::SessionState state) {
+    return TorrentBuyer::buy(this, node(), wallet(), infoHash, policy, terms, state, paychanKeysGenerator(), receiveAddressesGenerator(), changeAddressesGenerator());
 }
 
 std::shared_ptr<WorkerResult> AppKit::sellTorrent(libtorrent::sha1_hash infoHash,
-                                                         const protocol_session::SellingPolicy& policy,
-                                                         const protocol_wire::SellerTerms& terms) {
-    return TorrentSeller::sell(this, node(), wallet(), infoHash, policy, terms, paychanKeysGenerator(), receiveAddressesGenerator());
+                                                  const protocol_session::SellingPolicy& policy,
+                                                  const protocol_wire::SellerTerms& terms,
+                                                  protocol_session::SessionState state) {
+    return TorrentSeller::sell(this, node(), wallet(), infoHash, policy, terms, state, paychanKeysGenerator(), receiveAddressesGenerator());
+}
+
+std::shared_ptr<WorkerResult> AppKit::observeTorrent(libtorrent::sha1_hash infoHash, protocol_session::SessionState state) {
+    return TorrentObserver::observe(this, node(), infoHash, state);
 }
 
 void AppKit::broadcastTransaction(Coin::Transaction &tx) const {

@@ -35,7 +35,7 @@ void TorrentAdder::start() {
     try {
         node()->addTorrent(_request.uploadLimit,
                          _request.downloadLimit,
-                         _request.name,
+                         _request.name == "" ? libtorrent::to_hex(_request.torrentIdentifier.infoHash().to_string()) : _request.name,
                          _request.resumeData,
                          _request.savePath, _request.paused, _request.torrentIdentifier,
                          [this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
