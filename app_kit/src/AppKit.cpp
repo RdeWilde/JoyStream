@@ -144,6 +144,14 @@ std::shared_ptr<WorkerResult> AppKit::addTorrent(const core::TorrentIdentifier &
 
     AddTorrentRequest request(ti, savePath);
 
+    if(request.name == "")
+        request.name = libtorrent::to_hex(request.torrentIdentifier.infoHash().to_string());
+
+    return TorrentAdder::add(this, node(), request);
+}
+
+std::shared_ptr<WorkerResult> AppKit::addTorrent(const AddTorrentRequest& request) {
+
     return TorrentAdder::add(this, node(), request);
 }
 

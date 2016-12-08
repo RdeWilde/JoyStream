@@ -15,6 +15,7 @@
 #include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
 #include <app_kit/WorkerResult.hpp>
+#include <app_kit/AddTorrentRequest.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
 
@@ -81,6 +82,8 @@ public:
     std::shared_ptr<WorkerResult> addTorrent(const joystream::appkit::SavedTorrentParameters&);
 
     std::shared_ptr<WorkerResult> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
+
+    std::shared_ptr<WorkerResult> addTorrent(const AddTorrentRequest&);
 
     std::shared_ptr<WorkerResult> buyTorrent(libtorrent::sha1_hash, const protocol_session::BuyingPolicy& policy, const protocol_wire::BuyerTerms& terms);
 
