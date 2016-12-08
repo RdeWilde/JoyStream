@@ -73,9 +73,19 @@ void TorrentSeller::start() {
     // Ready to seed ?
     if (libtorrent::torrent_status::state_t::seeding == state) {
         startSelling();
-    }
+    } else {
+        // We always resume the torrent otherwise the torrent will not go to seeding state
+        // if the torrent is fully available
+        torrent->resume([this](const std::exception_ptr &e) {
+            if(e) {
+                finished(WorkerResult::Error::ResumeFailed);
+            } else {
+                finished();
+            }
+        });
 
-    QObject::connect(torrent, &joystream::core::Torrent::stateChanged, this, &TorrentSeller::onTorrentStateChanged);
+        QObject::connect(torrent, &joystream::core::Torrent::stateChanged, this, &TorrentSeller::onTorrentStateChanged);
+    }
 }
 
 void TorrentSeller::onTorrentStateChanged(libtorrent::torrent_status::state_t state, float progress) {

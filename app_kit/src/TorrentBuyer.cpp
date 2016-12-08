@@ -76,9 +76,9 @@ void TorrentBuyer::start() {
     // Ready to download ?
     if (libtorrent::torrent_status::state_t::downloading == state) {
         startBuying();
+    } else {
+        QObject::connect(torrent, &joystream::core::Torrent::stateChanged, this, &TorrentBuyer::onTorrentStateChanged);
     }
-
-    QObject::connect(torrent, &joystream::core::Torrent::stateChanged, this, &TorrentBuyer::onTorrentStateChanged);
 }
 
 void TorrentBuyer::onTorrentStateChanged(libtorrent::torrent_status::state_t state, float progress) {
