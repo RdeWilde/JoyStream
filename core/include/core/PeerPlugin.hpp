@@ -31,25 +31,19 @@ public:
      */
     static void registerMetaTypes();
 
-    PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
-               const extension::BEPSupportStatus & peerBEP10SupportStatus,
-               const extension::BEPSupportStatus & peerBitSwaprBEPSupportStatus);
+    PeerPlugin(const extension::status::PeerPlugin & status);
 
-    static PeerPlugin * create(const extension::status::PeerPlugin & status);
+    ~PeerPlugin();
 
-    libtorrent::tcp::endpoint endPoint() const noexcept;
-
-    // Indicates whether peer supports BEP10
-    extension::BEPSupportStatus peerBEP10SupportStatus() const noexcept;
-
-    // Indicates whether peer supports BEP43 .. BitSwapr
-    extension::BEPSupportStatus peerBitSwaprBEPSupportStatus() const noexcept;
+    extension::status::PeerPlugin status() const noexcept;
 
 signals:
 
-    void peerBEP10SupportStatusChanged(const extension::BEPSupportStatus &);
+    void statusUpdated(const extension::status::PeerPlugin &);
 
-    void peerBitSwaprBEPSupportStatusChanged(const extension::BEPSupportStatus &);
+    void connectionAdded(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status);
+
+    void connectionRemoved();
 
 private:
 
@@ -57,15 +51,7 @@ private:
 
     void update(const extension::status::PeerPlugin &);
 
-    // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
-    libtorrent::tcp::endpoint _endPoint;
-
-    // Indicates whether peer supports BEP10
-    extension::BEPSupportStatus _peerBEP10SupportStatus;
-
-    // Indicates whether peer supports BEP43 .. BitSwapr
-    extension::BEPSupportStatus _peerBitSwaprBEPSupportStatus;
-
+    extension::status::PeerPlugin _status;
 };
 
 }

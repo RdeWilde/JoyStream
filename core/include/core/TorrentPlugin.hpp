@@ -19,7 +19,6 @@ namespace detail {
 }
 
 class PeerPlugin;
-class Session;
 
 /**
  * @brief The TorrentPlugin class
@@ -38,7 +37,7 @@ public:
     static void registerMetaTypes();
 
     TorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                  Session * session,
+                  const extension::status::TorrentPlugin & status,
                   const boost::shared_ptr<extension::Plugin> & plugin);
 
     static TorrentPlugin * create(const extension::status::TorrentPlugin & status,
@@ -76,23 +75,16 @@ public:
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
-    /**
-     * @brief Returns peer plugin object mapping
-     * @return mapping of endpoint to peer plugin object
-     */
-    std::map<libtorrent::tcp::endpoint, PeerPlugin *> peers() const noexcept;
+    extension::status::TorrentPlugin status() const noexcept;
 
     /**
-     * @brief Returns session handle for session in plugin.
-     * @return Session handle
+     * @brief Requests an update of status of all corresponding peer plugins
+     * on this torrent. Result is emitted on core::PeerPlugin::statusUpdated
+     * signal for all known peer plugin objects know by this.
      */
-    Session * session() const;
+    void postPeerPluginStatusUpdates() const noexcept;
 
 signals:
-
-    void peerPluginAdded(PeerPlugin *);
-
-    void peerPluginRemoved(const libtorrent::tcp::endpoint &);
 
     void statusUpdated(const extension::status::TorrentPlugin &);
 
@@ -100,21 +92,13 @@ private:
 
     friend struct detail::NodeImpl;
 
-    void addPeerPlugin(const extension::status::PeerPlugin &);
-
-    void removePeerPlugin(const libtorrent::tcp::endpoint &);
-
-    void removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::const_iterator it);
-
     void update(const extension::status::TorrentPlugin &);
 
     /// Member fields
 
     libtorrent::sha1_hash _infoHash;
 
-    std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>> _peers;
-
-    std::unique_ptr<Session> _session;
+    extension::status::TorrentPlugin _status;
 
     boost::shared_ptr<extension::Plugin> _plugin;
 };

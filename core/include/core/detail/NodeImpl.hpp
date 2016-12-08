@@ -88,9 +88,6 @@ struct NodeImpl {
     // Updates torrent plugin statuses
     void postTorrentPluginStatusUpdates() const;
 
-    // Updates peer statuses
-    void updatePeerStatus() const;
-
     // Port on which BitTorrent daemon listens
     unsigned short port() const;
 
@@ -123,6 +120,7 @@ struct NodeImpl {
     // Processing (plugin) alerts
     void process(const extension::alert::RequestResult * p);
     void process(const extension::alert::TorrentPluginStatusUpdateAlert * p);
+    void process(const extension::alert::PeerPluginStatusUpdateAlert * p);
 
     // Underlying libtorrent session
     std::unique_ptr<libtorrent::session> _session;

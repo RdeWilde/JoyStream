@@ -51,12 +51,6 @@ public:
     protocol_session::SessionState state() const noexcept;
 
     /**
-     * @brief Returns mapping of endpoints to Connections in the session
-     * @return mapping of endpoint to Connection object
-     */
-    std::map<libtorrent::tcp::endpoint, Connection *> connections() const noexcept;
-
-    /**
      * @brief Checks existence of selling handle
      * @return Whether selling handle is set
      */
@@ -88,19 +82,9 @@ signals:
 
     void stateChanged(protocol_session::SessionState);
 
-    void connectionAdded(Connection *);
-
-    void connectionRemoved(const libtorrent::tcp::endpoint &);
-
 private:
 
     friend class TorrentPlugin;
-
-    void addConnection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status);
-
-    void removeConnection(const libtorrent::tcp::endpoint &);
-
-    void removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::const_iterator it);
 
     void update(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
 
@@ -109,9 +93,6 @@ private:
 
     // Current state of session
     protocol_session::SessionState _state;
-
-    // Connections
-    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> > _connections;
 
     /// Substates
 

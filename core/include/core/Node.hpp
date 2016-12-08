@@ -103,11 +103,16 @@ public:
     void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler);
 
     /**
-     * @brief Triggers an update of the status of all torrents,
-     * torrent plugins and peers, and any changes in state will
-     * be emitted as signals.
+     * @brief Requests updates on status of all known torrents on the libtorrent session,
+     * result appears as signal on core::
      */
-    void postStatusUpdate();
+    void postTorrentStatusUpdates() const noexcept;
+
+    /**
+     * @brief Requests updates on status of all known torrent plugins, result
+     * appears as signal core::TorrentPlugin::statusUpdated on corresponding objects.
+     */
+    void postTorrentPluginStatusUpdates() const noexcept;
 
     /**
      * @brief Port on which node is currently listening for BitTorrent

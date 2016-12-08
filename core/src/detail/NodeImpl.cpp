@@ -74,32 +74,6 @@ void NodeImpl::postTorrentPluginStatusUpdates() const {
     _plugin->submit(extension::request::PostTorrentPluginStatusUpdates());
 }
 
-void NodeImpl::updatePeerStatus() const {
-
-    for(auto & mapping : _torrents) {
-
-        // Get handle for torrent
-        //libtorrent::sha1_hash infoHash = mapping.second->infoHash();
-        //libtorrent::torrent_handle h = _session->find_torrent(infoHash);
-
-        // Get peer_info for peer, which unfortunately requires
-        // getting it for all peers
-        std::vector<libtorrent::peer_info> v;
-
-        try {
-            mapping.second->_handle.get_peer_info(v);
-        } catch (const libtorrent::libtorrent_exception &) {
-            // Handle was invalidated, drop torrent,
-            // torrent-removed_alert will come in due time.
-            continue;
-        }
-
-        // Update peer statuses on torrent
-        mapping.second->updatePeerStatuses(v);
-    }
-
-}
-
 unsigned short NodeImpl::port() const{
     return _session->listen_port();
 }
@@ -157,6 +131,8 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::TorrentPluginStatusUpdateAlert const * p = libtorrent::alert_cast<extension::alert::TorrentPluginStatusUpdateAlert>(a))
         process(p);
+    else if(extension::alert::PeerPluginStatusUpdateAlert const * p = libtorrent::alert_cast<extension::alert::PeerPluginStatusUpdateAlert>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
@@ -213,7 +189,7 @@ void NodeImpl::process(const libtorrent::torrent_paused_alert * p) {
         auto it = _torrents.find(infoHash);
         assert(it != _torrents.cend());
 
-        it->second->updatePaused(true);
+        emit (it->second)->pausedChanged(true);
     }
 }
 
@@ -242,8 +218,8 @@ void NodeImpl::process(const libtorrent::torrent_resumed_alert * p) {
         auto it = _torrents.find(infoHash);
         assert(it != _torrents.cend());
 
-        // then mark as resmed
-        it->second->updatePaused(false);
+        // send signal
+        emit it->second->pausedChanged(false);
     }
 
 }
@@ -263,7 +239,7 @@ void NodeImpl::process(const libtorrent::metadata_received_alert * p) {
         assert(it != _torrents.cend());
 
         // then set metadata
-        it->second->setMetadata(torrent_info);
+        emit (it->second)->metadataReceived(torrent_info);
 
     } else
         std::clog << "Invalid handle for received metadata." << std::endl;
@@ -292,20 +268,9 @@ void NodeImpl::process(const libtorrent::add_torrent_alert * p) {
         // add_torrent_async call will have its add_torrent_alert::error value set.
         assert(_torrents.count(infoHash) == 0);
 
-        // Get current status
-        libtorrent::torrent_status status;
-
-        try {
-            status = h.status();
-        } catch (const libtorrent::libtorrent_exception &) {
-            std::clog << "Handle has already expired." << std::endl;
-        }
-
-        int uploadLimit = h.upload_limit();
-        int downloadLimit = h.download_limit();
 
         // Create torrent
-        auto t = new Torrent(h, status, p->params.resume_data, uploadLimit, downloadLimit, _plugin);
+        auto t = new Torrent(h, p->params.resume_data, _plugin);
 
         // add to map
         _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(t)));
@@ -332,7 +297,7 @@ void NodeImpl::process(const libtorrent::state_update_alert * p) {
 
         // and update status if possible
         if(it != _torrents.cend())
-            it->second->updateStatus(s);
+            emit (it->second)->stateChanged(s.state, s.progress);
         else
             std::clog << "Uknown torrent updated status." << std::endl;
     }
@@ -430,8 +395,12 @@ void NodeImpl::process(const libtorrent::peer_connect_alert * p) {
     if(it == _torrents.cend())
         return;
 
-    // Update peer statuses on torrent
-    it->second->updatePeerStatuses(v);
+    for(auto ep : v) {
+
+        // Should only happen once
+        if(ep.ip == p->ip)
+            (it->second)->addPeer(ep);
+    }
 }
 
 void NodeImpl::process(const libtorrent::peer_disconnected_alert * p) {
@@ -450,7 +419,7 @@ void NodeImpl::process(const libtorrent::peer_disconnected_alert * p) {
         return;
 
     // (try to) remove peer from torrent
-    it->second->removePeer(p->ip);
+    (it->second)->removePeer(p->ip);
 }
 
 void NodeImpl::process(const libtorrent::read_piece_alert *) {
@@ -510,15 +479,36 @@ void NodeImpl::process(const extension::alert::TorrentPluginStatusUpdateAlert * 
 
             if(t->torrentPluginSet())
                 t->torrentPlugin()->update(m.second);
-            //else
-                //t->addTorrentPlugin(status.second);
-
-            // NB: we could keep track of missing plugin statuses also, but
-            // introducing explicit alerts for these events
         }
     }
 
     // Do other stuff when plugin status is extended
+}
+
+void NodeImpl::process(const extension::alert::PeerPluginStatusUpdateAlert * p) {
+
+    /**
+    // Get info_hash, drop alert if the handle gave us invalid info hash
+    libtorrent::sha1_hash infoHash = p->handle.info_hash();
+
+    if(infoHash.is_all_zeros())
+        return;
+
+    // Find torrent
+    auto it = _torrents.find(infoHash);
+
+    // If its not registerd, then we ignore alert
+    if(it == _torrents.cend())
+        return;
+
+    it->second.
+
+    for(auto m : p->statuses) {
+
+
+
+    }
+    */
 }
 
 

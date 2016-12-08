@@ -131,10 +131,12 @@ void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedT
     _pimpl.removeTorrent(info_hash, handler);
 }
 
-void Node::postStatusUpdate() {
+void Node::postTorrentStatusUpdates() const noexcept {
     _pimpl.updateTorrentStatus();
+}
+
+void Node::postTorrentPluginStatusUpdates() const noexcept {
     _pimpl.postTorrentPluginStatusUpdates();
-    _pimpl.updatePeerStatus();
 }
 
 void Node::pimplStartedListeningHandler(const libtorrent::tcp::endpoint & endPoint) {

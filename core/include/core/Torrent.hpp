@@ -44,28 +44,23 @@ public:
     static void registerMetaTypes();
 
     Torrent(const libtorrent::torrent_handle & handle,
-            const libtorrent::torrent_status & status,
             const std::vector<char> & resumeData,
-            int uploadLimit,
-            int downloadLimit,
             const boost::shared_ptr<extension::Plugin> &);
 
     ~Torrent();
-
-    /// Actions
 
     /**
      * @brief All connections are ended, can only be called when Node is started.
      * @param graceful whether regular bittorrent, i.e. non-plugin, pieces in inbound transit will be completed before closing a connection.
      * @param handler callback handler when pause oeration has been completed
      */
-    void paused(bool graceful, const TorrentPaused & handler);
+    void pause(bool graceful, const TorrentPaused & handler);
 
     /**
      * @brief All connections from a previous pause are resumed, can only be called when Node is started.
      * @param handler callback handler when resume operation has been completed
      */
-    void resumed(const TorrentResumed & handler);
+    void resume(const TorrentResumed & handler);
 
     /**
      * @brief Starts asynchronous process of generating resume data, can be called at any time.
@@ -73,7 +68,18 @@ public:
      */
     void generateResumeData();
 
+    /**
+     * @brief Request (blocking) updates on status of all known peers, result
+     * is returned as emittion of signal core::Peer::statusUpdated
+     * on all corresponding objects.
+     */
+    void postPeerStatusUpdates() noexcept;
+
     /// Getters
+
+    libtorrent::torrent_handle handle() const noexcept;
+
+    std::vector<char> resumeData() const noexcept;
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
@@ -96,33 +102,13 @@ public:
      */
     TorrentPlugin * torrentPlugin() const;
 
-    libtorrent::torrent_status::state_t state() const noexcept;
-
-    std::string savePath() const noexcept;
-
-    std::string name() const noexcept;
-
-    std::vector<char> resumeData() const noexcept;
-
-    boost::weak_ptr<const libtorrent::torrent_info> metaData() const noexcept;
-
-    float progress() const noexcept;
-
-    int downloadRate() const noexcept;
-
-    int uploadRate() const noexcept;
-
-    bool isPaused() const noexcept;
-
-    int uploadLimit() const noexcept;
-
-    int downloadLimit() const noexcept;
-
 signals:
 
     void peerAdded(Peer *);
 
     void peerRemoved(const libtorrent::tcp::endpoint &);
+
+    void statusUpdated(const libtorrent::torrent_status & status);
 
     void torrentPluginAdded(TorrentPlugin *);
 
@@ -130,21 +116,13 @@ signals:
 
     void resumeDataGenerationCompleted(const std::vector<char> &);
 
-    // Triggered when torrent is added witout metadata, but later
-    // receives it from peers
-    void metadataReady();
+    void metadataReceived(const boost::shared_ptr<const libtorrent::torrent_info> & torrent_info);
+
+    void metadataFailed();
 
     void stateChanged(libtorrent::torrent_status::state_t state, float progress);
 
-    void downloadRateChanged(int);
-
-    void uploadRateChanged(int);
-
     void pausedChanged(bool);
-
-    void uploadLimitChanged(int);
-
-    void downloadLimitChanged(int);
 
 private:
 
@@ -162,37 +140,21 @@ private:
 
     void removeTorrentPlugin();
 
-    void updateStatus(const libtorrent::torrent_status &);
-
-    void updatePeerStatuses(const std::vector<libtorrent::peer_info> &);
-
-    void updateUploadLimit(int);
-
-    void updateDownloadLimit(int);
-
-    void updatePaused(bool);
-
-    void setResumeDataGenerationResult(const std::vector<char> &);
-
-    void setMetadata(const boost::shared_ptr<const libtorrent::torrent_info> &);
+    void setResumeDataGenerationResult(const std::vector<char> & resumeData);
 
     /// Members
 
-    // Plugin reference
-    boost::shared_ptr<extension::Plugin> _plugin;
+
+    libtorrent::sha1_hash _infoHash;
 
     // Handle for torrent
     libtorrent::torrent_handle _handle;
 
-    // Most recent libtorrent status
-    libtorrent::torrent_status _status;
-
     // Most up to fast resume data for torrent
     std::vector<char> _resumeData;
 
-    // Total (bytes/second across libtorrent+plugin) upload/download limit.
-    // If not set, then unlimited.
-    int _uploadLimit, _downloadLimit;
+    // Plugin reference
+    boost::shared_ptr<extension::Plugin> _plugin;
 
     // Peers
     std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>> _peers;
@@ -200,10 +162,6 @@ private:
     // TorrentPlugin
     std::unique_ptr<TorrentPlugin> _torrentPlugin;
 
-    // All streams for this torrent.
-    // Not quite sure if multiple separate streams for one torrent
-    // is necessary, if not, then remove this QSet later.
-    //QSet<Stream *> _streams;
 };
 
 }
