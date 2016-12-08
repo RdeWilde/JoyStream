@@ -26,6 +26,15 @@ private:
     void dumpWalletInfo();
     void claimRefunds(uint64_t txFee);
 
+    static QByteArray readDataFromFile(QString filePath);
+    static joystream::appkit::SavedTorrents deserializeSavedTorrents(QByteArray data);
+
+    void loadTorrents();
+
+    static QByteArray serializeSavedTorrents(joystream::appkit::SavedTorrents savedTorrents);
+    static void writeDataToFile(QString filePath, QByteArray data);
+    static void saveTorrentsToFile(joystream::appkit::SavedTorrents savedTorrents, QString savePath);
+
     QCoreApplication _app;
     std::string _command;
     std::string _argument;

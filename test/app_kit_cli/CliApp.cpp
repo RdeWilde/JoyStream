@@ -62,6 +62,17 @@ void CliApp::handleSignal(int signal)
 
         _shuttingDown = true;
 
+        joystream::appkit::SavedTorrents torrents = _kit->generateSavedTorrents();
+
+        auto savePath = _dataDir.savedTorrentsFilePath();
+
+        try {
+            saveTorrentsToFile(torrents, savePath);
+        } catch(std::exception &e) {
+            std::cout << "Error saving torrents:";
+            std::cout << e.what() << std::endl;
+        }
+
         _kit->shutdown([this](){
             _app.quit();
         });
@@ -141,6 +152,13 @@ int CliApp::run()
 
     claimRefunds(5000);
 
+    try {
+        loadTorrents();
+    } catch (std::exception &e) {
+        std::cout << "Error Loading Torrents: ";
+        std::cout << e.what() << std::endl;
+    }
+
     std::cout << "Starting Qt Application Event loop\n";
     int ret = _app.exec();
 
@@ -195,4 +213,84 @@ void CliApp::dumpWalletInfo() {
     std::cout << "Wallet potential unsettled funds in inbound payment channels: " << incomingLockedFunds << std::endl;
     std::cout << "Wallet spendable P2PKH balance: " << sumOfOutputs(wallet->getStandardStoreControlledOutputs()) << std::endl;
 
+}
+
+void CliApp::saveTorrentsToFile(joystream::appkit::SavedTorrents savedTorrents, QString savePath)
+{
+    auto data = serializeSavedTorrents(savedTorrents);
+
+    writeDataToFile(savePath, data);
+}
+
+QByteArray CliApp::serializeSavedTorrents(joystream::appkit::SavedTorrents savedTorrents) {
+    QJsonObject rootObj;
+
+    rootObj["torrents"] = savedTorrents.toJson();
+
+    QJsonDocument doc(rootObj);
+
+    return doc.toJson();
+}
+
+void CliApp::writeDataToFile(QString filePath, QByteArray data) {
+    QFile saveFile(filePath);
+
+    saveFile.open(QIODevice::WriteOnly);
+
+    saveFile.write(data);
+
+    saveFile.close();
+}
+
+QByteArray CliApp::readDataFromFile(QString filePath) {
+    QFile saveFile(filePath);
+
+    saveFile.open(QIODevice::ReadOnly);
+
+    auto data = saveFile.readAll();
+
+    saveFile.close();
+
+    return data;
+}
+
+joystream::appkit::SavedTorrents CliApp::deserializeSavedTorrents(QByteArray data) {
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+
+    auto savedTorrents = doc.object()["torrents"];
+
+    return joystream::appkit::SavedTorrents(savedTorrents);
+}
+
+void CliApp::loadTorrents()
+{
+    auto savePath = _dataDir.savedTorrentsFilePath();
+
+    if(!QFile::exists(savePath))
+        return;
+
+    auto serializedSavedTorrents = readDataFromFile(savePath);
+
+    auto savedTorrents = deserializeSavedTorrents(serializedSavedTorrents);
+
+    for(const auto &torrent : savedTorrents.torrents()) {
+        joystream::appkit::SavedTorrentParameters torrentParams = torrent.second;
+        joystream::appkit::SavedSessionParameters sessionParams = torrentParams.sessionParameters();
+
+        auto addResult = _kit->addTorrent(torrentParams);
+
+        QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, sessionParams, addResult]() {
+
+            if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError)
+                return;
+
+            if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
+                _kit->buyTorrent(addResult->infoHash(), sessionParams.buyingPolicy(), sessionParams.buyerTerms());
+
+            } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::selling) {
+
+                _kit->sellTorrent(addResult->infoHash(), sessionParams.sellingPolicy(), sessionParams.sellerTerms());
+            }
+        });
+    }
 }
