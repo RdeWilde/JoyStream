@@ -112,8 +112,9 @@ public:
     /**
      * @brief Port on which node is currently listening for BitTorrent
      * connections
+     * @return Port used by Node.
      */
-    void port() const noexcept;
+    unsigned short port() const noexcept;
 
     /**
      * @brief Returns if assisted peer discovery is enabled. Assisted peer discovery adds an additional

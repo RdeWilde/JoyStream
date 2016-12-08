@@ -20,4 +20,5 @@ SUBDIRS     = \
             protocol_wire \
             core \
             app_kit \
-            app_kit_cli
+            app_kit_cli \
+            extension

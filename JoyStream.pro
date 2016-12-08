@@ -16,12 +16,13 @@ SUBDIRS     = \
             bitcoin \
             mixpanel \
             core \
+            app_kit \
             views \
             app \
             runner \
             test \
             demo \
-            app_kit
+            libtorrent_interface
 
 # ensure that the subdirectories are built in the order in which they are specified
 CONFIG += ordered
