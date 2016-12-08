@@ -48,6 +48,9 @@ namespace alert {
 
 namespace core {
     class Torrent;
+    class TorrentPlugin;
+    class PeerPlugin;
+    class Peer;
 
 namespace detail {
 
@@ -57,6 +60,7 @@ struct NodeImpl {
     typedef std::function<void(const libtorrent::tcp::endpoint &)> StartedListening;
     typedef std::function<void(core::Torrent * torrent)> AddedTorrent;
     typedef std::function<void(const libtorrent::sha1_hash &)> RemovedTorrent;
+    typedef std::function<void(const std::map<libtorrent::sha1_hash, joystream::extension::status::TorrentPlugin>)> TorrentPluginStatusUpdate;
 
     /// Callbacks provided by user on operations
     typedef std::function<void()> Paused;
@@ -65,7 +69,8 @@ struct NodeImpl {
              const boost::shared_ptr<extension::Plugin> & plugin,
              const StartedListening & startedListening,
              const AddedTorrent & addedTorrent,
-             const RemovedTorrent & removedTorrent);
+             const RemovedTorrent & removedTorrent,
+             const TorrentPluginStatusUpdate & torrentPluginStatusUpdate);
 
     ~NodeImpl();
 
@@ -122,6 +127,8 @@ struct NodeImpl {
     void process(const extension::alert::TorrentPluginStatusUpdateAlert * p);
     void process(const extension::alert::PeerPluginStatusUpdateAlert * p);
 
+    void process(const extension::alert::AnchorAnnounced * p);
+
     // Underlying libtorrent session
     std::unique_ptr<libtorrent::session> _session;
 
@@ -135,8 +142,17 @@ struct NodeImpl {
     StartedListening _startedListening;
     AddedTorrent _addedTorrent;
     RemovedTorrent _removedTorrent;
+    TorrentPluginStatusUpdate _torrentPluginStatusUpdate;
 
     void removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it);
+
+    /// TEMPORARY
+    /// Tries to recover corresponding object
+
+    core::Torrent * getTorrent(const libtorrent::sha1_hash &);
+    core::Peer * getPeer(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep);
+    core::TorrentPlugin * getTorrentPlugin(const libtorrent::sha1_hash & infoHash);
+    core::PeerPlugin * getPeerPlugin(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep);
 };
 
 }

@@ -16,6 +16,9 @@
 Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
 
+typedef std::map<libtorrent::sha1_hash, joystream::extension::status::TorrentPlugin> TorrentPluginStatuses;
+Q_DECLARE_METATYPE(TorrentPluginStatuses)
+
 namespace joystream {
 namespace core {
 
@@ -32,7 +35,8 @@ Node::Node(libtorrent::session * session,
              plugin,
              std::bind(&Node::pimplStartedListeningHandler, this, std::placeholders::_1),
              std::bind(&Node::pimplTorrentAdded, this, std::placeholders::_1),
-             std::bind(&Node::pimplTorrentRemoved, this, std::placeholders::_1)) {
+             std::bind(&Node::pimplTorrentRemoved, this, std::placeholders::_1),
+             std::bind(&Node::pimplTorrentPluginStatusUpdate, this, std::placeholders::_1)) {
 }
 
 Node * Node::create() {
@@ -149,6 +153,10 @@ void Node::pimplTorrentAdded(core::Torrent * torrent) {
 
 void Node::pimplTorrentRemoved(const libtorrent::sha1_hash & info_hash) {
     emit removedTorrent(info_hash);
+}
+
+void Node::pimplTorrentPluginStatusUpdate(const std::map<libtorrent::sha1_hash, extension::status::TorrentPlugin> & status) {
+    emit torrentPluginStatusUpdate(status);
 }
 
 void Node::libtorrent_alert_notification_entry_point() {

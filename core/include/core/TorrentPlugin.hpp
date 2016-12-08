@@ -12,6 +12,9 @@
 
 #include <QObject>
 
+typedef std::map<libtorrent::tcp::endpoint, joystream::extension::status::PeerPlugin> PeerPluginStatuses;
+Q_DECLARE_METATYPE(PeerPluginStatuses)
+
 namespace joystream {
 namespace core {
 namespace detail {
@@ -87,6 +90,15 @@ public:
 signals:
 
     void statusUpdated(const extension::status::TorrentPlugin &);
+
+    // Sloppy signals where we ship alerts, rahter than
+    // decomposing them, not worth the effort of registering types
+    // with Qt, this is all temporary.
+
+    void anchorAnnounced(const extension::alert::AnchorAnnounced *);
+
+    void updatePeerPluginStatuses(const PeerPluginStatuses &);
+
 
 private:
 

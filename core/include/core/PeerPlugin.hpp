@@ -14,6 +14,9 @@
 
 namespace joystream {
 namespace core {
+namespace detail {
+    struct NodeImpl;
+}
 
 /**
  * @brief Handle for peer plugin on torrent plugin
@@ -47,7 +50,7 @@ signals:
 
 private:
 
-    friend class TorrentPlugin;
+    friend struct detail::NodeImpl;
 
     void update(const extension::status::PeerPlugin &);
 

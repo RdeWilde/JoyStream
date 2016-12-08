@@ -8,6 +8,8 @@
 #include <core/detail/NodeImpl.hpp>
 #include <core/Torrent.hpp>
 #include <core/TorrentPlugin.hpp>
+#include <core/Peer.hpp>
+#include <core/PeerPlugin.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
@@ -21,12 +23,14 @@ NodeImpl::NodeImpl(libtorrent::session * session,
                    const boost::shared_ptr<extension::Plugin> & plugin,
                    const StartedListening & startedListening,
                    const AddedTorrent & addedTorrent,
-                   const RemovedTorrent & removedTorrent)
+                   const RemovedTorrent & removedTorrent,
+                   const TorrentPluginStatusUpdate & torrentPluginStatusUpdate)
     : _session(session)
     , _plugin(plugin)
     , _startedListening(startedListening)
     , _addedTorrent(addedTorrent)
-    , _removedTorrent(removedTorrent){
+    , _removedTorrent(removedTorrent)
+    , _torrentPluginStatusUpdate(torrentPluginStatusUpdate) {
 }
 
 NodeImpl::~NodeImpl() {
@@ -470,45 +474,35 @@ void NodeImpl::process(const extension::alert::TorrentPluginStatusUpdateAlert * 
     // Update torrent plugin statuses
     for(auto m: p->statuses) {
 
-        // Get torrent for this plugin
-        auto it = _torrents.find(m.first);
-
-        if(it != _torrents.cend()) {
-
-            std::unique_ptr<Torrent> & t = it->second;
-
-            if(t->torrentPluginSet())
-                t->torrentPlugin()->update(m.second);
-        }
+        if(core::TorrentPlugin * plugin = getTorrentPlugin(m.first))
+            plugin->update(m.second);
     }
 
-    // Do other stuff when plugin status is extended
+    _torrentPluginStatusUpdate(p->statuses);
 }
 
 void NodeImpl::process(const extension::alert::PeerPluginStatusUpdateAlert * p) {
 
-    /**
-    // Get info_hash, drop alert if the handle gave us invalid info hash
-    libtorrent::sha1_hash infoHash = p->handle.info_hash();
+    core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash());
 
-    if(infoHash.is_all_zeros())
+    if(plugin == nullptr)
         return;
 
-    // Find torrent
-    auto it = _torrents.find(infoHash);
+    // Broadcast alert from torrent plugin
+    emit plugin->updatePeerPluginStatuses(p->statuses);
 
-    // If its not registerd, then we ignore alert
-    if(it == _torrents.cend())
-        return;
-
-    it->second.
-
+    // Update status for
     for(auto m : p->statuses) {
 
-
-
+        if(PeerPlugin * peerPlugin = getPeerPlugin(plugin->infoHash(), m.first))
+            emit peerPlugin->update(m.second);
     }
-    */
+}
+
+void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->anchorAnnounced(p);
 }
 
 
@@ -519,6 +513,65 @@ void NodeImpl::removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Tor
     _torrents.erase(it);
 
     _removedTorrent(info_hash);
+}
+
+core::Torrent * NodeImpl::getTorrent(const libtorrent::sha1_hash & infoHash) {
+
+    auto it = _torrents.find(infoHash);
+
+    if(it == _torrents.cend())
+        return nullptr;
+    else
+        return (it->second).get();
+
+}
+
+core::Peer * NodeImpl::getPeer(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep) {
+
+    core::Torrent * torrent = getTorrent(infoHash);
+
+    if(torrent == nullptr)
+        return nullptr;
+    else {
+
+        auto it = torrent->_peers.find(ep);
+
+        if(it == torrent->_peers.cend())
+            return nullptr;
+        else
+            return(it->second).get();
+    }
+
+}
+
+core::TorrentPlugin * NodeImpl::getTorrentPlugin(const libtorrent::sha1_hash & infoHash) {
+
+    core::Torrent * torrent = getTorrent(infoHash);
+
+    if(torrent == nullptr)
+        return nullptr;
+    else {
+
+        if(torrent->torrentPluginSet())
+            return torrent->torrentPlugin();
+        else
+            return nullptr;
+    }
+}
+
+core::PeerPlugin * NodeImpl::getPeerPlugin(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep) {
+
+    core::Peer * peer = getPeer(infoHash, ep);
+
+    if(peer == nullptr)
+        return nullptr;
+    else {
+
+        if(peer->peerPluginSet())
+            return peer->peerPlugin();
+        else
+            return nullptr;
+    }
 }
 
 }

@@ -42,7 +42,8 @@ Torrent::~Torrent() {
     for(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::const_iterator it = _peers.cbegin();it != _peers.cend();)
         removePeer(it++);
 
-    removeTorrentPlugin();
+    if(torrentPluginSet())
+        removeTorrentPlugin();
 }
 
 void Torrent::pause(bool graceful, const TorrentPaused & handler) {
