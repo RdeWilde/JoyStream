@@ -11,6 +11,7 @@
 #include <core/Exception.hpp>
 #include <core/detail/detail.hpp>
 #include <libtorrent/hasher.hpp>
+#include <cstring>
 
 Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
 Q_DECLARE_METATYPE(std::vector<char>)
@@ -67,10 +68,12 @@ libtorrent::sha1_hash Torrent::infoHash() const noexcept {
 }
 
 libtorrent::sha1_hash Torrent::secondaryInfoHash() const noexcept {
-    int length = _status.info_hash.size+3; // We will append 3 bytes: _JS
+    const int length = _status.info_hash.size+3; // We will append 3 bytes: _JS
     char newHash[length];
-    sprintf(newHash, "%s_JS", _status.info_hash.data());
-
+    std::memcpy(newHash, _status.info_hash.data(), _status.info_hash.size);
+    newHash[length-1] = 'S';
+    newHash[length-2] = 'J';
+    newHash[length-3] = '_';
     return libtorrent::hasher(newHash, length).final();
 }
 
