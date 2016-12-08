@@ -1,7 +1,7 @@
 #ifndef JOYSTREAM_EXTENSION_TORRENT_HPP
 #define JOYSTREAM_EXTENSION_TORRENT_HPP
 
-#include "TorrentInterface.hpp"
+#include "extension/interface/TorrentInterface.hpp"
 
 namespace libtorrent {
     class sha1_hash;

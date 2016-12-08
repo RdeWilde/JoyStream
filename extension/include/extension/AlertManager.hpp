@@ -6,7 +6,7 @@
 
 #include <libtorrent/torrent.hpp>
 
-#include "AlertManagerInterface.hpp"
+#include "extension/interface/AlertManagerInterface.hpp"
 
 namespace libtorrent {
     class torrent;
