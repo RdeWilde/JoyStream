@@ -283,8 +283,15 @@ void CliApp::buyTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResu
                         joystream::protocol_session::BuyingPolicy policy,
                         joystream::protocol_session::SessionState state) {
     QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, terms, policy, state, addResult]() {
+        auto error = addResult->getError();
 
-        if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError)
+        // If trying to go to buy already downloaded torrent, switch to onserve mode instead
+        if(error == joystream::appkit::WorkerResult::Error::TorrentAlreadyDownloaded) {
+            _kit->observeTorrent(addResult->infoHash(), state);
+            return;
+        }
+
+        if(error != joystream::appkit::WorkerResult::Error::NoError)
             return;
 
         _kit->buyTorrent(addResult->infoHash(), policy, terms, state);
