@@ -14,20 +14,19 @@ public:
     enum class Error {
         NoError,
         TorrentAlreadyExists,
-        TorrentAlreadyBeingAdded,
+        TorrentInAnotherWorker,
         TorrentDoesNotExist,
-        TorrentRemovedBeforePluginWasAdded,
+        TorrentRemoved,
         ResumeFailed,
         LibtorrentError,
-        AlreadyTryingToBuyTorrent,
         TorrentAlreadyInBuySession,
         TorrentPluginNotSet,
         WalletLocked,
         TorrentAlreadyDownloaded,
         UnableToLockFunds,
-        AlreadyTryingToSellTorrent,
         TorrentAlreadyInSellSession,
         TorrentNotFullyDownloadedYet,
+        TorrentAlreadyInObservingMode,
         Exception
     };
 

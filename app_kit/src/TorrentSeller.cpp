@@ -8,74 +8,43 @@ namespace joystream {
 namespace appkit {
 
 TorrentSeller::TorrentSeller(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
-                           std::shared_ptr<WorkerResult> response,
+                           std::shared_ptr<WorkerResult> result,
                            libtorrent::sha1_hash infoHash,
                            const protocol_session::SellingPolicy& policy,
                            const protocol_wire::SellerTerms& terms,
+                           protocol_session::SessionState state,
                            protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                            protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator)
-    : Worker(parent, infoHash),
-      _node(node),
+    : Worker(parent, infoHash, result, node),
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
-      _response(response),
+      _state(state),
       _paychanKeysGenerator(paychanKeysGenerator),
       _receiveAddressesGenerator(receiveAddressesGenerator)
 {
-    QObject::connect(this, &TorrentSeller::destroyed, _response.get(), &WorkerResult::finishedProcessing);
+
 }
 
 std::shared_ptr<WorkerResult> TorrentSeller::sell(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
                                                   libtorrent::sha1_hash infoHash,
                                                   const protocol_session::SellingPolicy& policy,
                                                   const protocol_wire::SellerTerms& terms,
+                                                  protocol_session::SessionState state,
                                                   protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                                                   protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator) {
 
-    auto response = std::make_shared<WorkerResult>(infoHash);
+    auto result = std::make_shared<WorkerResult>(infoHash);
 
-    new TorrentSeller(parent, node, wallet, response, infoHash, policy, terms, paychanKeysGenerator, receiveAddressesGenerator);
+    new TorrentSeller(parent, node, wallet, result, infoHash, policy, terms, state, paychanKeysGenerator, receiveAddressesGenerator);
 
-    return response;
+    return result;
 
-}
-
-void TorrentSeller::abort() {
-    _response->setError(WorkerResult::Error::AlreadyTryingToSellTorrent);
-    delete this;
-}
-
-void TorrentSeller::finished() {
-    delete this;
-}
-
-void TorrentSeller::finished(WorkerResult::Error e) {
-    _response->setError(e);
-    finished();
-}
-
-void TorrentSeller::finished(std::exception_ptr e) {
-    _response->setError(e);
-    finished();
-}
-
-core::Torrent* TorrentSeller::getTorrentPointerOrFail() {
-    auto torrents = _node->torrents();
-
-    if(torrents.find(infoHash()) == torrents.end()) {
-        finished(WorkerResult::Error::TorrentDoesNotExist);
-        return nullptr;
-    }
-
-    return torrents[infoHash()];
 }
 
 void TorrentSeller::start() {
 
-    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentSeller::onTorrentRemoved);
-
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
     if(!torrent) {
         finished(WorkerResult::Error::TorrentDoesNotExist);
@@ -120,19 +89,14 @@ void TorrentSeller::onTorrentStateChanged(libtorrent::torrent_status::state_t st
     }
 }
 
-void TorrentSeller::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
-    if(infoHash() != info_hash)
-        return;
-
-    finished(WorkerResult::Error::TorrentDoesNotExist);
-}
-
 void TorrentSeller::startSelling() {
 
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
-    if(!torrent)
+    if(!torrent) {
+        finished(WorkerResult::Error::TorrentDoesNotExist);
         return;
+    }
 
     if(!torrent->torrentPluginSet()) {
         finished(WorkerResult::Error::TorrentPluginNotSet);
@@ -151,27 +115,13 @@ void TorrentSeller::startSelling() {
             if(e) {
                 finished(e);
             } else {
-                startPlugin();
+                if(_state == protocol_session::SessionState::started) {
+                    startPlugin();
+                } else {
+                    finished();
+                }
             }
         });
-}
-
-void TorrentSeller::startPlugin() {
-
-    auto torrent = getTorrentPointerOrFail();
-
-    if(!torrent) {
-        finished(WorkerResult::Error::TorrentDoesNotExist);
-        return;
-    }
-
-    torrent->torrentPlugin()->start([this](const std::exception_ptr &eptr){
-        if(eptr){
-            finished(eptr);
-        } else {
-            finished();
-        }
-    });
 }
 
 }

@@ -62,6 +62,17 @@ void CliApp::handleSignal(int signal)
 
         _shuttingDown = true;
 
+        joystream::appkit::SavedTorrents torrents = _kit->generateSavedTorrents();
+
+        auto savePath = _dataDir.savedTorrentsFilePath();
+
+        try {
+            saveTorrentsToFile(torrents, savePath);
+        } catch(std::exception &e) {
+            std::cout << "Error saving torrents:";
+            std::cout << e.what() << std::endl;
+        }
+
         _kit->shutdown([this](){
             _app.quit();
         });
@@ -97,33 +108,21 @@ void CliApp::processTorrent() {
 
         delete torrentIdentifier;
 
-        // Wait for torrent to be added
-        QObject::connect(torrent.get(), &joystream::appkit::WorkerResult::finished, [this, torrent](){
-            if(torrent->getError() != joystream::appkit::WorkerResult::Error::NoError)
-                return;
+       if(_command == "buy") {
+            joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
+            joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
-            if(_command == "buy") {
-                joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
-                joystream::protocol_session::BuyingPolicy buyingPolicy(3, 25, joystream::protocol_wire::SellerTerms::OrderingPolicy::min_price);
+            buyTorrent(torrent, buyerTerms, buyingPolicy, joystream::protocol_session::SessionState::started);
 
-                auto buyer = _kit->buyTorrent(torrent->infoHash(), buyingPolicy, buyerTerms);
+        } else if(_command == "sell") {
+            joystream::protocol_wire::SellerTerms sellerTerms(50, 1, 10, 15000, 5000);
+            joystream::protocol_session::SellingPolicy sellingPolicy;
 
-                QObject::connect(buyer.get(), &joystream::appkit::WorkerResult::finished, [this, buyer](){
-                   std::cout << "Buyer Finished:" << std::endl;
-                });
+            sellTorrent(torrent, sellerTerms, sellingPolicy, joystream::protocol_session::SessionState::started);
 
-            } else if(_command == "sell") {
-                joystream::protocol_wire::SellerTerms sellerTerms(100, 5, 1, 20000, 5000);
-                joystream::protocol_session::SellingPolicy sellingPolicy;
-
-                auto seller = _kit->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms);
-
-                QObject::connect(seller.get(), &joystream::appkit::WorkerResult::finished, [this, seller](){
-                   std::cout << "Seller Finished:" << std::endl;
-                });
-            }
-        });
-
+        } else {
+            observeTorrent(torrent, joystream::protocol_session::SessionState::started);
+        }
     }
 }
 
@@ -137,9 +136,16 @@ int CliApp::run()
     if(_command == "info")
         return 0;
 
+    claimRefunds(5000);
+
     processTorrent();
 
-    claimRefunds(5000);
+    try {
+        loadTorrents();
+    } catch (std::exception &e) {
+        std::cout << "Error Loading Torrents: ";
+        std::cout << e.what() << std::endl;
+    }
 
     std::cout << "Starting Qt Application Event loop\n";
     int ret = _app.exec();
@@ -195,4 +201,123 @@ void CliApp::dumpWalletInfo() {
     std::cout << "Wallet potential unsettled funds in inbound payment channels: " << incomingLockedFunds << std::endl;
     std::cout << "Wallet spendable P2PKH balance: " << sumOfOutputs(wallet->getStandardStoreControlledOutputs()) << std::endl;
 
+}
+
+void CliApp::saveTorrentsToFile(joystream::appkit::SavedTorrents savedTorrents, QString savePath)
+{
+    auto data = serializeSavedTorrents(savedTorrents);
+
+    writeDataToFile(savePath, data);
+}
+
+QByteArray CliApp::serializeSavedTorrents(joystream::appkit::SavedTorrents savedTorrents) {
+    QJsonObject rootObj;
+
+    rootObj["torrents"] = savedTorrents.toJson();
+
+    QJsonDocument doc(rootObj);
+
+    return doc.toJson();
+}
+
+void CliApp::writeDataToFile(QString filePath, QByteArray data) {
+    QFile saveFile(filePath);
+
+    saveFile.open(QIODevice::WriteOnly);
+
+    saveFile.write(data);
+
+    saveFile.close();
+}
+
+QByteArray CliApp::readDataFromFile(QString filePath) {
+    QFile saveFile(filePath);
+
+    saveFile.open(QIODevice::ReadOnly);
+
+    auto data = saveFile.readAll();
+
+    saveFile.close();
+
+    return data;
+}
+
+joystream::appkit::SavedTorrents CliApp::deserializeSavedTorrents(QByteArray data) {
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+
+    auto savedTorrents = doc.object()["torrents"];
+
+    return joystream::appkit::SavedTorrents(savedTorrents);
+}
+
+void CliApp::loadTorrents()
+{
+    auto savePath = _dataDir.savedTorrentsFilePath();
+
+    if(!QFile::exists(savePath))
+        return;
+
+    auto serializedSavedTorrents = readDataFromFile(savePath);
+
+    auto savedTorrents = deserializeSavedTorrents(serializedSavedTorrents);
+
+    for(const auto &torrent : savedTorrents.torrents()) {
+        joystream::appkit::SavedTorrentParameters torrentParams = torrent.second;
+        joystream::appkit::SavedSessionParameters sessionParams = torrentParams.sessionParameters();
+
+        auto result = _kit->addTorrent(torrentParams);
+
+        if(sessionParams.mode() == joystream::protocol_session::SessionMode::buying) {
+            buyTorrent(result, sessionParams.buyerTerms(), sessionParams.buyingPolicy(), sessionParams.state());
+        } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::selling) {
+            sellTorrent(result, sessionParams.sellerTerms(), sessionParams.sellingPolicy(), sessionParams.state());
+        } else if(sessionParams.mode() == joystream::protocol_session::SessionMode::observing) {
+            observeTorrent(result, sessionParams.state());
+        }
+
+    }
+}
+
+void CliApp::buyTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult,
+                        joystream::protocol_wire::BuyerTerms terms,
+                        joystream::protocol_session::BuyingPolicy policy,
+                        joystream::protocol_session::SessionState state) {
+    QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, terms, policy, state, addResult]() {
+        auto error = addResult->getError();
+
+        // If trying to go to buy already downloaded torrent, switch to onserve mode instead
+        if(error == joystream::appkit::WorkerResult::Error::TorrentAlreadyDownloaded) {
+            _kit->observeTorrent(addResult->infoHash(), state);
+            return;
+        }
+
+        if(error != joystream::appkit::WorkerResult::Error::NoError)
+            return;
+
+        _kit->buyTorrent(addResult->infoHash(), policy, terms, state);
+    });
+}
+
+void CliApp::sellTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult,
+                         joystream::protocol_wire::SellerTerms terms,
+                         joystream::protocol_session::SellingPolicy policy,
+                         joystream::protocol_session::SessionState state) {
+    QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, terms, policy, state, addResult]() {
+
+        if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError)
+            return;
+
+        _kit->sellTorrent(addResult->infoHash(), policy, terms, state);
+    });
+}
+
+void CliApp::observeTorrent(std::shared_ptr<joystream::appkit::WorkerResult> addResult,
+                            joystream::protocol_session::SessionState state) {
+    QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, state, addResult]() {
+
+        if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError)
+            return;
+
+        _kit->observeTorrent(addResult->infoHash(), state);
+    });
 }

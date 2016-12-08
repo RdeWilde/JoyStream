@@ -8,77 +8,46 @@ namespace joystream {
 namespace appkit {
 
 TorrentBuyer::TorrentBuyer(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
-                           std::shared_ptr<WorkerResult> response,
+                           std::shared_ptr<WorkerResult> result,
                            libtorrent::sha1_hash infoHash,
                            const protocol_session::BuyingPolicy& policy,
                            const protocol_wire::BuyerTerms& terms,
+                           protocol_session::SessionState state,
                            protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
                            protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
                            protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator)
-    : Worker(parent, infoHash),
-      _node(node),
+    : Worker(parent, infoHash, result, node),
       _wallet(wallet),
       _policy(policy),
       _terms(terms),
-      _response(response),
+      _state(state),
       _paychanKeysGenerator(paychanKeysGenerator),
       _receiveAddressesGenerator(receiveAddressesGenerator),
       _changeAddressesGenerator(changeAddressesGenerator)
 {
-    QObject::connect(this, &TorrentBuyer::destroyed, _response.get(), &WorkerResult::finishedProcessing);
+
 }
 
 std::shared_ptr<WorkerResult> TorrentBuyer::buy(QObject* parent, core::Node* node, bitcoin::SPVWallet* wallet,
-                                                      libtorrent::sha1_hash infoHash,
-                                                      const protocol_session::BuyingPolicy& policy,
-                                                      const protocol_wire::BuyerTerms& terms,
-                                                      protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
-                                                      protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
-                                                      protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator) {
+                                                libtorrent::sha1_hash infoHash,
+                                                const protocol_session::BuyingPolicy& policy,
+                                                const protocol_wire::BuyerTerms& terms,
+                                                protocol_session::SessionState state,
+                                                protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator,
+                                                protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator,
+                                                protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator) {
 
-    auto response = std::make_shared<WorkerResult>(infoHash);
+    auto result = std::make_shared<WorkerResult>(infoHash);
 
-    new TorrentBuyer(parent, node, wallet, response, infoHash, policy, terms, paychanKeysGenerator, receiveAddressesGenerator, changeAddressesGenerator);
+    new TorrentBuyer(parent, node, wallet, result, infoHash, policy, terms, state, paychanKeysGenerator, receiveAddressesGenerator, changeAddressesGenerator);
 
-    return response;
+    return result;
 
-}
-
-void TorrentBuyer::abort() {
-    _response->setError(WorkerResult::Error::AlreadyTryingToBuyTorrent);
-    delete this;
-}
-
-void TorrentBuyer::finished() {
-    delete this;
-}
-
-void TorrentBuyer::finished(WorkerResult::Error e) {
-    _response->setError(e);
-    finished();
-}
-
-void TorrentBuyer::finished(std::exception_ptr e) {
-    _response->setError(e);
-    finished();
-}
-
-core::Torrent* TorrentBuyer::getTorrentPointerOrFail() {
-    auto torrents = _node->torrents();
-
-    if(torrents.find(infoHash()) == torrents.end()) {
-        finished(WorkerResult::Error::TorrentDoesNotExist);
-        return nullptr;
-    }
-
-    return torrents[infoHash()];
 }
 
 void TorrentBuyer::start() {
 
-    QObject::connect(_node, &core::Node::removedTorrent, this, &TorrentBuyer::onTorrentRemoved);
-
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
     if(!torrent) {
         finished(WorkerResult::Error::TorrentDoesNotExist);
@@ -123,19 +92,14 @@ void TorrentBuyer::onTorrentStateChanged(libtorrent::torrent_status::state_t sta
     }
 }
 
-void TorrentBuyer::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
-    if(infoHash() != info_hash)
-        return;
-
-    finished(WorkerResult::Error::TorrentDoesNotExist);
-}
-
 void TorrentBuyer::startBuying() {
 
-    auto torrent = getTorrentPointerOrFail();
+    auto torrent = getTorrent();
 
-    if(!torrent)
+    if(!torrent) {
+        finished(WorkerResult::Error::TorrentDoesNotExist);
         return;
+    }
 
     if(!torrent->torrentPluginSet()) {
         finished(WorkerResult::Error::TorrentPluginNotSet);
@@ -171,27 +135,13 @@ void TorrentBuyer::startBuying() {
                 _wallet->unlockOutputs(outputs);
                 finished(e);
             } else {
-                startPlugin();
+                if(_state == protocol_session::SessionState::started) {
+                    startPlugin();
+                } else {
+                    finished();
+                }
             }
         });
-}
-
-void TorrentBuyer::startPlugin() {
-
-    auto torrent = getTorrentPointerOrFail();
-
-    if(!torrent) {
-        finished(WorkerResult::Error::TorrentDoesNotExist);
-        return;
-    }
-
-    torrent->torrentPlugin()->start([this](const std::exception_ptr &eptr){
-        if(eptr){
-            finished(eptr);
-        } else {
-            finished();
-        }
-    });
 }
 
 }

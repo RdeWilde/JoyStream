@@ -9,19 +9,11 @@ namespace appkit {
 TorrentAdder::TorrentAdder(QObject* parent,
                            core::Node* node,
                            AddTorrentRequest request,
-                           std::shared_ptr<WorkerResult> response)
-    :  Worker(parent, request.torrentIdentifier.infoHash()),
-       _node(node),
-       _request(request),
-       _response(response)
+                           std::shared_ptr<WorkerResult> result)
+    :  Worker(parent, request.torrentIdentifier.infoHash(), result, node),
+       _request(request)
 {
-    QObject::connect(this, &TorrentAdder::destroyed, _response.get(), &WorkerResult::finishedProcessing);
-}
 
-void TorrentAdder::abort()
-{
-    _response->setError(WorkerResult::Error::TorrentAlreadyBeingAdded);
-    delete this;
 }
 
 std::shared_ptr<WorkerResult> TorrentAdder::add(QObject* parent,
@@ -38,14 +30,12 @@ std::shared_ptr<WorkerResult> TorrentAdder::add(QObject* parent,
 
 void TorrentAdder::start() {
 
-    QObject::connect(_node, &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
-
-    QObject::connect(_node, &joystream::core::Node::removedTorrent, this, &TorrentAdder::onTorrentRemoved);
+    QObject::connect(node(), &joystream::core::Node::addedTorrent, this, &TorrentAdder::onTorrentAdded);
 
     try {
-        _node->addTorrent(_request.uploadLimit,
+        node()->addTorrent(_request.uploadLimit,
                          _request.downloadLimit,
-                         _request.name,
+                         _request.name == "" ? libtorrent::to_hex(_request.torrentIdentifier.infoHash().to_string()) : _request.name,
                          _request.resumeData,
                          _request.savePath, _request.paused, _request.torrentIdentifier,
                          [this](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
@@ -57,25 +47,6 @@ void TorrentAdder::start() {
     }
 }
 
-void TorrentAdder::finished()
-{
-    delete this;
-}
-
-void TorrentAdder::finished(libtorrent::error_code ec)
-{
-    _response->setError(ec);
-
-    finished();
-}
-
-void TorrentAdder::finished(WorkerResult::Error err)
-{
-    _response->setError(err);
-
-    finished();
-}
-
 void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
 
     if (torrent->infoHash() != infoHash())
@@ -85,16 +56,9 @@ void TorrentAdder::onTorrentAdded(core::Torrent *torrent) {
     QObject::connect(torrent, &joystream::core::Torrent::torrentPluginAdded, this, &TorrentAdder::onTorrentPluginAdded);
 }
 
-void TorrentAdder::onTorrentRemoved(const libtorrent::sha1_hash &info_hash) {
-    if(info_hash != infoHash())
-        return;
-
-    finished(WorkerResult::Error::TorrentRemovedBeforePluginWasAdded);
-}
-
 void TorrentAdder::onTorrentPluginAdded(core::TorrentPlugin *plugin) {
 
-    auto torrents = _node->torrents();
+    auto torrents = node()->torrents();
 
     if(torrents.find(infoHash()) == torrents.end()) {
         finished(WorkerResult::Error::TorrentDoesNotExist);
