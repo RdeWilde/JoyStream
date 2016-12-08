@@ -11,18 +11,6 @@ class RPCBuyTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joys
         RPCBuyTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::appkit::AppKit* appKit);
         void process();
 
-    public slots:
-        /**
-         * @brief Verify if torrent status is `downloading` so
-         * it can start buying torrent.
-         * */
-        void checkStatus(libtorrent::torrent_status::state_t state, float progress);
-        /**
-         * @brief Get called once a plugin is added to
-         * the torrent
-         * */
-        void pluginAdded(joystream::core::TorrentPlugin* torrentPlugin);
-
     private:
         joystream::appkit::AppKit* appKit_;
 };

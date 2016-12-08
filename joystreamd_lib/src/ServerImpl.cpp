@@ -47,7 +47,7 @@ void ServerImpl::Run(std::string port, std::string defaultPath)
 
     // Initiate Daemon Service methods
     new RPCPause(&daemonService_, cq_.get(), kit_->node());
-    new RPCAddTorrent(&daemonService_, cq_.get(), kit_->node(), defaultPath);
+    new RPCAddTorrent(&daemonService_, cq_.get(), kit_, defaultPath);
     new RPCRemoveTorrent(&daemonService_, cq_.get(), kit_->node());
     new RPCListTorrents(&daemonService_, cq_.get(), kit_->node());
     new RPCPauseTorrent(&daemonService_, cq_.get(), kit_->node());

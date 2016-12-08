@@ -1,7 +1,7 @@
 #include <joystreamd_lib/RPCAddTorrent.hpp>
 
-RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::core::Node* node, std::string defaultSavePath)
-    : RPCRequestNormal(service, cq), node_(node), defaultSavePath_(defaultSavePath)
+RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq,  joystream::appkit::AppKit *appKit, std::string defaultSavePath)
+    : RPCRequestNormal(service, cq), appKit_(appKit), defaultSavePath_(defaultSavePath)
 {
     service_->RequestAddTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
@@ -9,9 +9,10 @@ RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
 void RPCAddTorrent::process()
 {
     // Pop up a new instance for concurency
-    new RPCAddTorrent(service_, cq_, node_, defaultSavePath_);
+    new RPCAddTorrent(service_, cq_, appKit_, defaultSavePath_);
 
     joystream::daemon::rpc::Void response;
+    std::shared_ptr<joystream::appkit::WorkerResult> workerResult;
 
     std::string save_path = defaultSavePath_;
     std::vector<char> resume_data = std::vector<char>();
@@ -38,20 +39,12 @@ void RPCAddTorrent::process()
 
     // if torrent_identifier not nullptr it means that hash was correct
     if (torrent_identifier != nullptr) {
-        try {
-            node_->addTorrent(upload_limit,download_limit,name,resume_data,save_path,paused,torrent_identifier,[this, response](libtorrent::error_code &ecode, libtorrent::torrent_handle &th) {
-                if (ecode) {
-                    std::cout << "We have an error" << std::endl;
-                    this->finish(response, false);
-                } else {
-                    std::cout << "New torrent added" << std::endl;
-                    this->finish(response, true);
-                }
-            });
-        } catch (joystream::core::exception::TorrentAlreadyExists error) {
-            std::cout << "Torrent already in Node" << std::endl;
-            this->finish(response, false);
-        }
+        workerResult = appKit_->addTorrent(torrent_identifier, save_path);
+        QObject::connect(workerResult.get(), &joystream::appkit::WorkerResult::finished, this, [this](){
+            joystream::daemon::rpc::Void response;
+            std::cout << "Torrent Added" << std::endl;
+            this->finish(response, true);
+        });
     } else {
         this->finish(response, false);
     }

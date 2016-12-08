@@ -68,7 +68,12 @@ message BuyTorrentRequest {
 
 message SellTorrentRequest {
   string infohash = 1;
-  
+  uint64 minPrice = 2;
+  uint64 minLock = 3;
+  int32 maxSellers = 4;
+  uint64 minContractFeePerKb = 5;
+  uint64 settlementFee = 6;
+
 }
 
 message TorrentIdentifierRequest {
