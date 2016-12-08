@@ -29,10 +29,6 @@ public:
 
     enum class wallet_status_t
     {
-        UNINITIALIZED,      // wallet database file not yet opened, netsync stopped
-                            // this is the starting state of the wallet, it will never go back
-                            // to this state after successful opening/creating of the wallet database
-
         OFFLINE,            // wallet database ready, netsync stopped
 
         CONNECTING,         // netsync connecting, starting background threads
@@ -45,18 +41,10 @@ public:
         SYNCHED             // receiving mempool (unconfirmed transactions) and waiting for next block
     };
 
-    explicit SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network = Coin::Network::testnet3);
-
-    // Create a new wallet (auto generated bip39 seed)
-    void create();
-
-    // Create a new wallet bip39 seed generated from provided entropy
-    // Important - Creating a wallet with a predefined entropy does not by itself restore
-    // a wallet.
-    void create(const Coin::Entropy &entropy, uint32_t timestamp = 0);
-
-    // Open the wallet. Will throw exception on failure
-    void open(std::string passphrase = "");
+    SPVWallet(std::string storePath, std::string blockTreeFile,
+              Coin::Network network = Coin::Network::testnet3,
+              const Coin::Entropy* entropy = nullptr,
+              uint32_t timestamp = std::time(nullptr));
 
     bool encrypted() const;
     bool locked() const;
@@ -75,7 +63,6 @@ public:
 
     wallet_status_t status() const { return _walletStatus; }
 
-    bool isInitialized() const { return _walletStatus != wallet_status_t::UNINITIALIZED; }
     bool isOffline() const { return _walletStatus == wallet_status_t::OFFLINE; }
     bool isConnecting() const { return _walletStatus == wallet_status_t::CONNECTING; }
     bool isSynchingHeaders() const { return _walletStatus == wallet_status_t::SYNCHING_HEADERS;}
@@ -163,22 +150,22 @@ public slots:
 private:
     friend class ::Test;
 
-    std::string _storePath;
+    // Do not allow copying
+    SPVWallet(const Store &);
+    SPVWallet& operator=(const SPVWallet&);
 
-    Store _store;
-
-    Coin::Network _network;
-
-    CoinQ::Network::NetworkSync _networkSync;
+    mutable std::mutex _utxoMutex;
+    const Coin::Network _network;
     wallet_status_t _walletStatus;
-
-    void updateStatus(wallet_status_t status);
-
     bool _blockTreeLoaded;
     std::string _blockTreeFile;
-
     uint64_t _confirmedBalance;
     uint64_t _unconfirmedBalance;
+    std::set<Coin::typesafeOutPoint> _lockedOutpoints;
+    Store _store;
+    CoinQ::Network::NetworkSync _networkSync;
+
+    void updateStatus(wallet_status_t status);
 
     // NetSync event handlers
     void onBlockTreeError(const std::string &error, int code);
@@ -203,9 +190,6 @@ private:
     bool createsWalletOutput(const Coin::TxOut &) const;
 
     void recalculateBalance();
-
-    mutable std::mutex _utxoMutex;
-    std::set<Coin::typesafeOutPoint> _lockedOutpoints;
     
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);

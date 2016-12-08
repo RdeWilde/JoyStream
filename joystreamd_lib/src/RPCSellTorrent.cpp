@@ -23,12 +23,18 @@ void RPCSellTorrent::checkStatus(libtorrent::torrent_status::state_t state, floa
         if (hasPlugin)
         {
             try {
-                appKit_->sellTorrent(torrent, sellingPolicy, sellerTerms, [this, response, torrent](const std::exception_ptr &e){
+                /*appKit_->sellTorrent(torrent, sellingPolicy, sellerTerms, [this, response, torrent](const std::exception_ptr &e){
                     std::cout << "We are selling the torrent" << std::endl;
                     torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
                         std::cout << "We started pluggin" << std::endl;
                         this->finish(response, true);
                     });
+                });*/
+                appKit_->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms);
+                std::cout << "We are selling the torrent" << std::endl;
+                torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
+                    std::cout << "We started pluggin" << std::endl;
+                    this->finish(response, true);
                 });
             } catch(const std::runtime_error& error) {
                 std::cout << error.what() << std::endl;
@@ -47,7 +53,7 @@ void RPCSellTorrent::pluginAdded(joystream::core::TorrentPlugin* torrentPlugin) 
 
     joystream::protocol_session::SellingPolicy sellingPolicy;
 
-    joystream::protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
+    joystream::protocol_wire::SellerTerms sellerTerms(100, 5, 1, 20000, 5000);
 
     joystream::core::Torrent* torrent;
 
@@ -62,12 +68,18 @@ void RPCSellTorrent::pluginAdded(joystream::core::TorrentPlugin* torrentPlugin) 
         if (hasPlugin)
         {
             try {
-                appKit_->sellTorrent(torrent, sellingPolicy, sellerTerms, [this, response, torrent](const std::exception_ptr &e){
+                /*appKit_->sellTorrent(torrent, sellingPolicy, sellerTerms, [this, response, torrent](const std::exception_ptr &e){
                     std::cout << "We are selling the torrent" << std::endl;
                     torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
                         std::cout << "We started pluggin" << std::endl;
                         this->finish(response, true);
                     });
+                });*/
+                appKit_->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms);
+                std::cout << "We are selling the torrent" << std::endl;
+                torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
+                    std::cout << "We started pluggin" << std::endl;
+                    this->finish(response, true);
                 });
             } catch(const std::runtime_error& error) {
                 std::cout << error.what() << std::endl;
@@ -91,7 +103,7 @@ void RPCSellTorrent::process()
 
     joystream::protocol_session::SellingPolicy sellingPolicy;
 
-    joystream::protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
+    joystream::protocol_wire::SellerTerms sellerTerms(100, 5, 1, 20000, 5000);
 
     joystream::core::Torrent* torrent;
 
@@ -108,12 +120,18 @@ void RPCSellTorrent::process()
             if (hasPlugin)
             {
                 try {
-                    appKit_->sellTorrent(torrent, sellingPolicy, sellerTerms, [this, response, torrent](const std::exception_ptr &e){
+                    /*appKit_->sellTorrent(torrent, sellingPolicy, sellerTerms, [this, response, torrent](const std::exception_ptr &e){
                         std::cout << "We are selling the torrent" << std::endl;
                         torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
                             std::cout << "We started pluggin" << std::endl;
                             this->finish(response, true);
                         });
+                    });*/
+                    appKit_->sellTorrent(torrent->infoHash(), sellingPolicy, sellerTerms);
+                    std::cout << "We are selling the torrent" << std::endl;
+                    torrent->torrentPlugin()->start([this, response](const std::exception_ptr &e){
+                        std::cout << "We started pluggin" << std::endl;
+                        this->finish(response, true);
                     });
                 } catch(const std::runtime_error& error) {
                     std::cout << error.what() << std::endl;

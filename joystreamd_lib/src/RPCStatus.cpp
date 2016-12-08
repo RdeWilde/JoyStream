@@ -9,8 +9,6 @@ RPCStatus::RPCStatus(joystream::daemon::rpc::Wallet::AsyncService* service, grpc
 joystream::daemon::rpc::WalletStatus_Status RPCStatus::getStatus(const joystream::bitcoin::SPVWallet::wallet_status_t status)
 {
     switch(status) {
-        case joystream::bitcoin::SPVWallet::wallet_status_t::UNINITIALIZED:
-            return joystream::daemon::rpc::WalletStatus_Status_UNINITIALIZED;
         case joystream::bitcoin::SPVWallet::wallet_status_t::OFFLINE:
             return joystream::daemon::rpc::WalletStatus_Status_OFFLINE;
         case joystream::bitcoin::SPVWallet::wallet_status_t::CONNECTING:

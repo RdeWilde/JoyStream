@@ -11,11 +11,12 @@
 #include <functional>
 #include <QString>
 #include <QTimer>
-#include <QLockFile>
 
-#include <app_kit/DataDirectory.hpp>
 #include <app_kit/TransactionSendBuffer.hpp>
 #include <app_kit/Settings.hpp>
+#include <app_kit/WorkerResult.hpp>
+
+#include <bitcoin/SPVWallet.hpp>
 
 #include <core/core.hpp>
 
@@ -52,8 +53,9 @@ struct Settings;
 class SavedTorrents;
 class SavedTorrentParameters;
 
-class AppKit
+class AppKit : public QObject
 {
+    Q_OBJECT
 
 public:
     typedef std::function<void()> Callback;
@@ -64,6 +66,7 @@ public:
                           Coin::Network, const Settings &settings = Settings());
 
     bitcoin::SPVWallet* wallet();
+
     core::Node* node();
 
     void syncWallet();
@@ -75,48 +78,47 @@ public:
     SavedTorrents generateSavedTorrents() const;
 
     // Add torrent from TorrentState
-    void addTorrent(const joystream::appkit::SavedTorrentParameters &torrent, const core::Node::AddedTorrent &);
+    std::shared_ptr<WorkerResult> addTorrent(const joystream::appkit::SavedTorrentParameters&);
 
-    void buyTorrent(int64_t contractFundingAmount,
-                    const core::Torrent*,
-                    const protocol_session::BuyingPolicy &,
-                    const protocol_wire::BuyerTerms &,
-                    const SubroutineHandler &);
+    std::shared_ptr<WorkerResult> addTorrent(const core::TorrentIdentifier&, const std::string& savePath);
 
-    void sellTorrent(const core::Torrent *,
-                     const protocol_session::SellingPolicy &,
-                     const protocol_wire::SellerTerms &,
-                     const SubroutineHandler &);
+    std::shared_ptr<WorkerResult> buyTorrent(libtorrent::sha1_hash, const protocol_session::BuyingPolicy& policy, const protocol_wire::BuyerTerms& terms);
+
+    std::shared_ptr<WorkerResult> sellTorrent(libtorrent::sha1_hash, const protocol_session::SellingPolicy& policy, const protocol_wire::SellerTerms& terms);
 
     void broadcastTransaction(Coin::Transaction &) const;
 
 private:
 
-    static bitcoin::SPVWallet* getWallet(const std::string &storeFile, const std::string blockTreeFile, Coin::Network network);
+    // Do not allow copying
+    AppKit(const AppKit &);
+    AppKit& operator=(const AppKit&);
 
-    AppKit(core::Node *node, bitcoin::SPVWallet *wallet, TransactionSendBuffer*, const Settings &settings);
-
-    std::unique_ptr<core::Node> _node;
-
-    std::unique_ptr<bitcoin::SPVWallet> _wallet;
-
-    QTimer _timer;
-
-    std::unique_ptr<TransactionSendBuffer> _transactionSendBuffer;
+    AppKit(const Settings&,
+           std::unique_ptr<bitcoin::SPVWallet>&,
+           std::unique_ptr<TransactionSendBuffer>&,
+           std::unique_ptr<core::Node>&);
 
     Settings _settings;
 
     bool _trySyncWallet;
 
-    void buyTorrent(core::TorrentPlugin *,
-                    const protocol_session::BuyingPolicy &,
-                    const protocol_wire::BuyerTerms &,
-                    const SubroutineHandler &, Coin::UnspentOutputSet outputs);
+    std::unique_ptr<bitcoin::SPVWallet> _wallet;
 
-    void sellTorrent(core::TorrentPlugin *,
-                     const protocol_session::SellingPolicy &,
-                     const protocol_wire::SellerTerms &,
-                     const SubroutineHandler &);
+    std::unique_ptr<TransactionSendBuffer> _transactionSendBuffer;
+
+    std::unique_ptr<core::Node> _node;
+
+    QTimer _timer;
+
+    protocol_session::GenerateP2SHKeyPairCallbackHandler paychanKeysGenerator();
+    Coin::KeyPair paychanKeysGeneratorFunction(const protocol_session::P2SHScriptGeneratorFromPubKey&, const uchar_vector&);
+
+    protocol_session::GenerateReceiveAddressesCallbackHandler receiveAddressesGenerator();
+    std::vector<Coin::P2PKHAddress> receiveAddressesGeneratorFunction(int npairs);
+
+    protocol_session::GenerateChangeAddressesCallbackHandler changeAddressesGenerator();
+    std::vector<Coin::P2PKHAddress> changeAddressesGeneratorFunction(int npairs);
 
 };
 

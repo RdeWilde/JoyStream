@@ -10,6 +10,10 @@
 #include <app_kit/Settings.hpp>
 #include <app_kit/SavedTorrents.hpp>
 #include <app_kit/SavedTorrentParameters.hpp>
+#include <app_kit/AddTorrentRequest.hpp>
+#include <app_kit/TorrentAdder.hpp>
+#include <app_kit/TorrentBuyer.hpp>
+#include <app_kit/TorrentSeller.hpp>
 
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
@@ -21,59 +25,39 @@
 #include <QJsonArray>
 
 #include <QDir>
+#include <memory>
 
 namespace joystream {
 namespace appkit {
-
-bitcoin::SPVWallet * AppKit::getWallet(const std::string &storeFile, const std::string blockTreeFile, Coin::Network network) {
-
-    auto wallet = new bitcoin::SPVWallet(storeFile, blockTreeFile, network);
-
-    std::cout << "Looking for wallet file " << storeFile << std::endl;
-
-    if(!QFile::exists(QString::fromStdString(storeFile))){
-        std::cout << "Wallet not found.\nCreating a new wallet..." << std::endl;
-        wallet->create();
-    } else {
-        std::cout << "Wallet found, opening..." << std::endl;
-        wallet->open();
-    }
-
-    return wallet;
-}
 
 AppKit* AppKit::create(const std::string &walletFilePath,
                        const std::string &walletBlockTreeFilePath,
                        Coin::Network network, const Settings &settings)
 {
-
-    bitcoin::SPVWallet* wallet = nullptr;
-    core::Node* node = nullptr;
-    TransactionSendBuffer *txSendBuffer = nullptr;
-
-    wallet = getWallet(walletFilePath, walletBlockTreeFilePath, network);
+    std::unique_ptr<bitcoin::SPVWallet> wallet(new bitcoin::SPVWallet(walletFilePath, walletBlockTreeFilePath, network));
 
     if(settings.autoStartWalletSync)
         wallet->loadBlockTree();
 
-    txSendBuffer = new TransactionSendBuffer(wallet);
+    std::unique_ptr<TransactionSendBuffer> txSendBuffer(new TransactionSendBuffer(wallet.get()));
 
-    node = core::Node::create([txSendBuffer](const Coin::Transaction &tx){
-        txSendBuffer->insert(tx);
-    });
+    auto txSendBufferPtr = txSendBuffer.get();
+    std::unique_ptr<core::Node> node(core::Node::create([txSendBufferPtr](const Coin::Transaction &tx){
+        txSendBufferPtr->insert(tx);
+    }));
 
-    return new AppKit(node, wallet, txSendBuffer, settings);
+    return new AppKit(settings, wallet, txSendBuffer, node);
 }
 
-AppKit::AppKit(core::Node* node,
-               bitcoin::SPVWallet* wallet,
-               TransactionSendBuffer *txSendBuffer,
-               const Settings &settings)
-    : _node(node),
-      _wallet(wallet),
-      _transactionSendBuffer(txSendBuffer),
-      _settings(settings),
-      _trySyncWallet(settings.autoStartWalletSync) {
+AppKit::AppKit(const Settings &settings,
+               std::unique_ptr<bitcoin::SPVWallet>& wallet,
+               std::unique_ptr<TransactionSendBuffer>& txSendBuffer,
+               std::unique_ptr<core::Node>& node)
+    : _settings(settings),
+      _trySyncWallet(settings.autoStartWalletSync),
+      _wallet(std::move(wallet)),
+      _transactionSendBuffer(std::move(txSendBuffer)),
+      _node(std::move(node)) {
 
     QObject::connect(&_timer, &QTimer::timeout, [this](){
         _node->updateStatus();
@@ -140,134 +124,90 @@ SavedTorrents AppKit::generateSavedTorrents() const {
     return SavedTorrents(_node->torrents());
 }
 
-void AppKit::addTorrent(const SavedTorrentParameters &torrent, const core::Node::AddedTorrent &addedTorrent) {
+std::shared_ptr<WorkerResult> AppKit::addTorrent(const SavedTorrentParameters &torrent) {
+
     auto metadata = torrent.metaData();
 
-    _node->addTorrent(torrent.uploadLimit(),
-                      torrent.downloadLimit(),
-                      torrent.name(),
-                      torrent.resumeData(),
-                      torrent.savePath(),
-                      torrent.paused(),
-                      metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
-                      addedTorrent);
+    AddTorrentRequest request(metadata && metadata->is_valid() ? metadata : core::TorrentIdentifier(torrent.infoHash()),
+                              torrent.savePath());
+
+    request.uploadLimit = torrent.uploadLimit();
+    request.downloadLimit = torrent.downloadLimit();
+    request.name = torrent.name() == "" ? libtorrent::to_hex(request.torrentIdentifier.infoHash().to_string()) : torrent.name();
+    request.resumeData = torrent.resumeData();
+    request.paused = torrent.paused();
+
+    return TorrentAdder::add(this, node(), request);
 }
 
-void AppKit::buyTorrent(int64_t contractFundingAmount,
-                        const core::Torrent *torrent,
-                        const protocol_session::BuyingPolicy& policy,
-                        const protocol_wire::BuyerTerms& terms,
-                        const extension::request::SubroutineHandler& handler){
+std::shared_ptr<WorkerResult> AppKit::addTorrent(const core::TorrentIdentifier & ti, const std::string& savePath) {
 
-    if(libtorrent::torrent_status::state_t::downloading != torrent->state()) {
-        throw std::runtime_error("torrent must be in downloading state to buy");
-    }
+    AddTorrentRequest request(ti, savePath);
 
-    auto outputs = _wallet->lockOutputs(contractFundingAmount, 0);
-
-    if(outputs.size() == 0) {
-        // Not enough funds
-        throw std::runtime_error("unable to lock required funds");
-    }
-
-    core::TorrentPlugin* plugin = torrent->torrentPlugin();
-
-    buyTorrent(plugin, policy, terms, handler, outputs);
+    return TorrentAdder::add(this, node(), request);
 }
 
-void AppKit::buyTorrent(core::TorrentPlugin *plugin,
-                        const protocol_session::BuyingPolicy& policy,
-                        const protocol_wire::BuyerTerms& terms,
-                        const extension::request::SubroutineHandler& handler,
-                        Coin::UnspentOutputSet outputs){
-
-    plugin->toBuyMode(
-        // protocol_session::GenerateP2SHKeyPairCallbackHandler
-        [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
-
-            Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
-                return bitcoin::RedeemScriptInfo(generateScript(pk), data);
-            });
-
-            return Coin::KeyPair(sk);
-        },
-        // protocol_session::GenerateReceiveAddressesCallbackHandler
-        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
-            std::vector<Coin::P2PKHAddress> addresses;
-
-            for(int n = 0; n < npairs; n++) {
-                addresses.push_back(_wallet->generateReceiveAddress());
-            }
-
-            return addresses;
-        },
-        // protocol_session::GenerateChangeAddressesCallbackHandler
-        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
-            std::vector<Coin::P2PKHAddress> addresses;
-
-            for(int n = 0; n < npairs; n++) {
-                addresses.push_back(_wallet->generateChangeAddress());
-            }
-
-            return addresses;
-        },
-        // Coin::UnspentOutputSet
-        outputs,
-        policy,
-        terms,
-        [this, outputs, handler](const std::exception_ptr & e) {
-            if(e)
-                _wallet->unlockOutputs(outputs);
-            handler(e);
-        });
+std::shared_ptr<WorkerResult> AppKit::buyTorrent(libtorrent::sha1_hash infoHash,
+                                                       const protocol_session::BuyingPolicy& policy,
+                                                       const protocol_wire::BuyerTerms& terms) {
+    return TorrentBuyer::buy(this, node(), wallet(), infoHash, policy, terms, paychanKeysGenerator(), receiveAddressesGenerator(), changeAddressesGenerator());
 }
 
-void AppKit::sellTorrent(core::TorrentPlugin *plugin,
-                         const protocol_session::SellingPolicy &policy,
-                         const protocol_wire::SellerTerms &terms,
-                         const SubroutineHandler& handler){
-
-    plugin->toSellMode(
-        // protocol_session::GenerateP2SHKeyPairCallbackHandler
-        [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
-
-            Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
-                return bitcoin::RedeemScriptInfo(generateScript(pk), data);
-            });
-
-            return Coin::KeyPair(sk);
-        },
-        // protocol_session::GenerateReceiveAddressesCallbackHandler
-        [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
-            std::vector<Coin::P2PKHAddress> addresses;
-
-            for(int n = 0; n < npairs; n++) {
-                addresses.push_back(_wallet->generateReceiveAddress());
-            }
-
-            return addresses;
-        },
-        policy,
-        terms,
-        handler);
-}
-
-void AppKit::sellTorrent(const core::Torrent *torrent,
-                         const protocol_session::SellingPolicy &policy,
-                         const protocol_wire::SellerTerms &terms,
-                         const SubroutineHandler& handler){
-
-    if(libtorrent::torrent_status::state_t::seeding != torrent->state()) {
-        throw std::runtime_error("torrent must be in seeding state to sell");
-    }
-
-    core::TorrentPlugin* plugin = torrent->torrentPlugin();
-
-    sellTorrent(plugin, policy, terms, handler);
+std::shared_ptr<WorkerResult> AppKit::sellTorrent(libtorrent::sha1_hash infoHash,
+                                                         const protocol_session::SellingPolicy& policy,
+                                                         const protocol_wire::SellerTerms& terms) {
+    return TorrentSeller::sell(this, node(), wallet(), infoHash, policy, terms, paychanKeysGenerator(), receiveAddressesGenerator());
 }
 
 void AppKit::broadcastTransaction(Coin::Transaction &tx) const {
     _transactionSendBuffer->insert(tx);
+}
+
+protocol_session::GenerateP2SHKeyPairCallbackHandler AppKit::paychanKeysGenerator() {
+    return [this](const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data) -> Coin::KeyPair {
+        return paychanKeysGeneratorFunction(generateScript, data);
+    };
+}
+
+Coin::KeyPair AppKit::paychanKeysGeneratorFunction(const protocol_session::P2SHScriptGeneratorFromPubKey& generateScript, const uchar_vector& data)
+{
+    Coin::PrivateKey sk = _wallet->generateKey([&generateScript, &data](const Coin::PublicKey & pk){
+        return bitcoin::RedeemScriptInfo(generateScript(pk), data);
+    });
+
+    return Coin::KeyPair(sk);
+}
+
+protocol_session::GenerateReceiveAddressesCallbackHandler AppKit::receiveAddressesGenerator() {
+    return [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
+        return receiveAddressesGeneratorFunction(npairs);
+    };
+}
+
+std::vector<Coin::P2PKHAddress> AppKit::receiveAddressesGeneratorFunction(int npairs) {
+    std::vector<Coin::P2PKHAddress> addresses;
+
+    for(int n = 0; n < npairs; n++) {
+        addresses.push_back(_wallet->generateReceiveAddress());
+    }
+
+    return addresses;
+}
+
+protocol_session::GenerateChangeAddressesCallbackHandler AppKit::changeAddressesGenerator() {
+    return [this](int npairs) -> std::vector<Coin::P2PKHAddress> {
+        return changeAddressesGeneratorFunction(npairs);
+    };
+}
+
+std::vector<Coin::P2PKHAddress> AppKit::changeAddressesGeneratorFunction(int npairs) {
+    std::vector<Coin::P2PKHAddress> addresses;
+
+    for(int n = 0; n < npairs; n++) {
+        addresses.push_back(_wallet->generateChangeAddress());
+    }
+
+    return addresses;
 }
 
 } // appkit namespace
