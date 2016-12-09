@@ -567,6 +567,24 @@ void NodeImpl::process(const extension::alert::ConnectionRemovedFromSession * p)
         emit plugin->connectionRemoved();
 }
 
+void NodeImpl::process(const extension::alert::SessionStarted * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionStarted();
+}
+
+void NodeImpl::process(const extension::alert::SessionPaused * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionPaused();
+}
+
+void NodeImpl::process(const extension::alert::SessionStopped * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionStopped();
+}
+
 void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {
 
     if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))

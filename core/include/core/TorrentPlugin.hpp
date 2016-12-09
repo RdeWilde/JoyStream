@@ -99,6 +99,13 @@ signals:
 
     void updatePeerPluginStatuses(const PeerPluginStatuses &);
 
+    void sessionStarted();
+
+    void sessionPaused();
+
+    void sessionStopped();
+
+
 
 private:
 
