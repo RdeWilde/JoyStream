@@ -125,6 +125,8 @@ signals:
 
     void lastPaymentReceived(const extension::alert::LastPaymentReceived *);
 
+    void validPieceArrived(const extension::alert::ValidPieceArrived * p);
+
     void invalidPieceArrived(const extension::alert::InvalidPieceArrived * p);
 
 private:
