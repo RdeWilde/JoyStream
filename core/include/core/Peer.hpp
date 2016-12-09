@@ -69,6 +69,7 @@ signals:
 
 private:
 
+    friend struct detail::NodeImpl;
     friend class Torrent;
 
     void update(const libtorrent::peer_info & peerInformation);
