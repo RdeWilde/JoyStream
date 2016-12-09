@@ -125,6 +125,8 @@ signals:
 
     void lastPaymentReceived(const extension::alert::LastPaymentReceived *);
 
+    void invalidPieceArrived(const extension::alert::InvalidPieceArrived * p);
+
 private:
 
     friend struct detail::NodeImpl;

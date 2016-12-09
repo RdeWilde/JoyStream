@@ -141,7 +141,14 @@ void TorrentPlugin::on_piece_failed(int index) {
 
         } else {
 
-            // if its due to us, then tell session about endpoint and piece
+            // if its due to us, then
+
+            // For now, just use defaut peer id
+            libtorrent::peer_id peer_id;
+
+            _alertManager->emplace_alert<alert::InvalidPieceArrived>(_torrent, it->second, peer_id, index);
+
+            // tell session about endpoint and piece
             _session.invalidPieceReceivedOnConnection(it->second, index);
 
             // and remove call
