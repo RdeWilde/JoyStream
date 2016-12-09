@@ -6,14 +6,10 @@ RPCBuyTorrent::RPCBuyTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
     service_->RequestBuyTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-RPCBuyTorrent::buyingModeActivated()
+void RPCBuyTorrent::buyingModeActivated()
 {
     joystream::daemon::rpc::Void response;
 
-    /*if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
-        this->finish(response, false);
-        return;
-    }*/
     std::cout << "Buying Torrent" << std::endl;
     this->finish(response, true);
 }
@@ -30,6 +26,16 @@ void RPCBuyTorrent::process()
     joystream::protocol_wire::BuyerTerms buyerTerms(request_.price(), request_.locktime(), request_.nsellers(), request_.contractfeerate());
 
     auto buyResult = appKit_->buyTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), buyingPolicy, buyerTerms);
-    std::cout << "We are buying the torrent" << std::endl;
-    QObject::connect(buyResult.get(), &joystream::appkit::WorkerResult::finished, this, &RPCBuyTorrent::buyingModeActivated);
+    QObject::connect(buyResult.get(), &joystream::appkit::WorkerResult::finished, [this, buyResult](){
+        joystream::daemon::rpc::Void response;
+
+        if(buyResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
+            this->finish(response, false);
+            return;
+        }
+        this->finish(response, true);
+    });
+    /* Not Working
+    QObject::connect(buyResult.get(), &joystream::appkit::WorkerResult::finished,
+                     this, &RPCBuyTorrent::buyingModeActivated);*/
 }

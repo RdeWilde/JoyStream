@@ -15,10 +15,6 @@ class RPCAddTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joys
         void process();
 
     public slots:
-        /**
-         * @brief torrentAdded slot. Will
-         * send the final message to the client.
-         */
         void torrentAdded();
 
 

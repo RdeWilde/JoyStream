@@ -13,7 +13,7 @@ var torrent = {
 
 var buyTorrentRequest = {
 	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1',
-	'nsellers': 0,
+	'nsellers': 1,
 	'price': 100,
 	'locktime': 5,
 	'settlement_fee': 5000,

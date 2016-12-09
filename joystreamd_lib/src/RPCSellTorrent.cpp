@@ -6,14 +6,10 @@ RPCSellTorrent::RPCSellTorrent(joystream::daemon::rpc::Daemon::AsyncService* ser
     service_->RequestSellTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-RPCSellTorrent::sellingModeActivated()
+void RPCSellTorrent::sellingModeActivated()
 {
     joystream::daemon::rpc::Void response;
 
-    /*if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
-        this->finish(response, false);
-        return;
-    }*/
     std::cout << "Selling Torrent" << std::endl;
     this->finish(response, true);
 }
@@ -27,6 +23,17 @@ void RPCSellTorrent::process()
     joystream::protocol_wire::SellerTerms sellerTerms(request_.minprice(), request_.minlock(), request_.maxsellers(), request_.mincontractfeeperkb(), request_.settlementfee());
 
     auto sellResult = appKit_->sellTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), sellingPolicy, sellerTerms);
-    QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, this, &RPCSellTorrent::sellingModeActivated);
+    QObject::connect(sellResult.get(), &joystream::appkit::WorkerResult::finished, [this, sellResult](){
+        joystream::daemon::rpc::Void response;
+
+        if(sellResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
+            this->finish(response, false);
+            return;
+        }
+        this->finish(response, true);
+    });
+    /* Not working
+    QObject::connect(sellResult.get(), &joystream::appkit::WorkerResult::finished,
+                    this, &RPCSellTorrent::sellingModeActivated);*/
 
 }

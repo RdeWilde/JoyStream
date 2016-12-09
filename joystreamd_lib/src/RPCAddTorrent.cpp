@@ -6,14 +6,10 @@ RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
     service_->RequestAddTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
-RPCAddTorrent::torrentAdded()
+void RPCAddTorrent::torrentAdded()
 {
     joystream::daemon::rpc::Void response;
 
-    /*if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
-        this->finish(response, false);
-        return;
-    }*/
     std::cout << "Torrent Added" << std::endl;
     this->finish(response, true);
 }
@@ -49,7 +45,19 @@ void RPCAddTorrent::process()
 
         auto addResult = appKit_->addTorrent(*torrent_identifier, save_path);
         delete torrent_identifier;
-        QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, this, &RPCAddTorrent::torrentAdded);
+        QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, [this, addResult](){
+            joystream::daemon::rpc::Void response;
+
+            if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
+                this->finish(response, false);
+                return;
+            }
+            std::cout << "Torrent Added" << std::endl;
+            this->finish(response, true);
+        });
+        /* Not connecting...
+        QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished,
+                         this, &RPCAddTorrent::torrentAdded);*/
     } else {
         this->finish(response, false);
     }
