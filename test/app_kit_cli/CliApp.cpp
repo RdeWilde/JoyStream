@@ -80,33 +80,18 @@ void CliApp::handleSignal(int signal)
 }
 
 void CliApp::processTorrent() {
-    joystream::core::TorrentIdentifier* torrentIdentifier;
+
+    if(!(_command == "buy" || _command == "sell"))
+        return;
+
+    assert(_argument != "");
 
     try {
-        if(_command == "buy" || _command == "sell") {
+        auto torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
 
-            assert(_argument != "");
+        std::cout << "Torrent InfoHash: " << torrentIdentifier.infoHash() << std::endl;
 
-            torrentIdentifier = joystream::appkit::util::makeTorrentIdentifier(_argument);
-
-            if(torrentIdentifier == nullptr) {
-                std::cout << "Warning: Invalid torrent argument" << std::endl;
-                return;
-            }
-        } else {
-            return;
-        }
-    } catch(std::exception &e) {
-        std::cout << "Error: Parsing torrent argument" << e.what() << std::endl;
-        return;
-    }
-
-    if(torrentIdentifier) {
-        std::cout << "Torrent InfoHash: " << torrentIdentifier->infoHash() << std::endl;
-
-        auto torrent = _kit->addTorrent(*torrentIdentifier, _dataDir.defaultSavePath().toStdString());
-
-        delete torrentIdentifier;
+        auto torrent = _kit->addTorrent(torrentIdentifier, _dataDir.defaultSavePath().toStdString());
 
        if(_command == "buy") {
             joystream::protocol_wire::BuyerTerms buyerTerms(100, 5, 1, 20000);
@@ -123,7 +108,11 @@ void CliApp::processTorrent() {
         } else {
             observeTorrent(torrent, joystream::protocol_session::SessionState::started);
         }
+
+    } catch(std::exception &e) {
+        std::cout << "Error: Processing torrent argument" << e.what() << std::endl;
     }
+
 }
 
 int CliApp::run()

@@ -30,7 +30,7 @@ libtorrent::sha1_hash sha1_hash_from_hex_string(const char *);
 libtorrent::sha1_hash jsonToSha1Hash(QJsonValue);
 QJsonValue sha1HashToJson(libtorrent::sha1_hash);
 
-core::TorrentIdentifier* makeTorrentIdentifier(const std::string arg);
+core::TorrentIdentifier makeTorrentIdentifier(const std::string arg);
 
 QJsonValue sessionStateToJson(const protocol_session::SessionState&);
 protocol_session::SessionState jsonToSessionState(const QJsonValue&);

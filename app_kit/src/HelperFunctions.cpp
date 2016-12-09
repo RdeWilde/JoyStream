@@ -39,24 +39,28 @@ QJsonValue sha1HashToJson(libtorrent::sha1_hash infoHash) {
     return QJsonValue(QString::fromStdString(infoHashHex));
 }
 
-core::TorrentIdentifier* makeTorrentIdentifier(const std::string torrentId)
+core::TorrentIdentifier makeTorrentIdentifier(const std::string torrentId)
 {
-    core::TorrentIdentifier* ti;
 
     // Test if the identifier is path to a torrent file
-    ti = core::TorrentIdentifier::fromTorrentFilePath(torrentId);
-
-    if(ti)
+    try {
+        auto ti = core::TorrentIdentifier::fromTorrentFilePath(torrentId);
         return ti;
+    } catch(...) {}
 
     // Test if the identifier is a plain info hash string
-    ti = core::TorrentIdentifier::fromHashString(torrentId);
-
-    if(ti)
+    try {
+        auto ti = core::TorrentIdentifier::fromHashString(torrentId);
         return ti;
+    } catch(...) {}
 
     // Test if the identifier is a magner link
-    return core::TorrentIdentifier::fromMagnetLinkString(torrentId);
+    try {
+        auto ti = core::TorrentIdentifier::fromMagnetLinkString(torrentId);
+        return ti;
+    } catch(...) {}
+
+    throw std::runtime_error("unable to make a torrent identifier from argument");
 }
 
 QJsonValue sessionStateToJson(const protocol_session::SessionState &state) {
