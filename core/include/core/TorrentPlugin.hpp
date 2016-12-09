@@ -117,6 +117,8 @@ signals:
 
     void buyerTermsUpdated(const extension::alert::BuyerTermsUpdated *);
 
+    void sellerTermsUpdated(const extension::alert::SellerTermsUpdated *);
+
 private:
 
     friend struct detail::NodeImpl;

@@ -658,6 +658,12 @@ void NodeImpl::process(const extension::alert::BuyerTermsUpdated * p) {
         emit plugin->buyerTermsUpdated(p);
 }
 
+void NodeImpl::process(const extension::alert::SellerTermsUpdated * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sellerTermsUpdated(p);
+}
+
 void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {
 
     if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
