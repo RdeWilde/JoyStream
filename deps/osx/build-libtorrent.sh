@@ -8,7 +8,7 @@
 export BOOST_ROOT=$PWD/src/boost/
 PREFIX_PATH=$PWD/dist/release/
 
-cd src/libtorrent
+cd src/libtorrent-joystream
 
 $BOOST_ROOT/b2 install toolset=clang address-model=64 boost-link=static link=static deprecated-functions=off logging=off asserts=off \
 cflags="-mmacosx-version-min=10.7" \

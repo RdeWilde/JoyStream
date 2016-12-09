@@ -197,10 +197,15 @@ void RequestVariantVisitor::operator()(const request::RemoveTorrent & r) {
 
     alert::LoadedCallback callback;
 
-    if(!h.is_valid())
-        callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
-    else
+    if(h.is_valid()) {
+
+        // Remove torrent
         _session->remove_torrent(h, 0);
+
+        callback = std::bind(r.handler, std::exception_ptr());
+
+    } else
+        callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
 
     // Send back to user
     sendRequestResult(callback);
@@ -214,9 +219,14 @@ void RequestVariantVisitor::operator()(const request::PauseTorrent & r) {
     alert::LoadedCallback callback;
 
     // Pause if torrent was available, otherwise attach exception
-    if(auto torrent = w.lock())
+    if(auto torrent = w.lock()) {
+
+        // Pause torrent
         torrent->pause(r.graceful);
-    else
+
+        callback = std::bind(r.handler, std::exception_ptr());
+
+    } else
         callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
 
     // Send back to user
@@ -231,14 +241,14 @@ void RequestVariantVisitor::operator()(const request::ResumeTorrent & r) {
     alert::LoadedCallback callback;
 
     // Resume if torrent was available, otherwise attach exception
-    if(auto torrent = w.lock())
+    if(auto torrent = w.lock()) {
 
-        //if(torrent->is_paused())
-        //    callback = std::bind(r.handler, exception::MissingTorrent());
-        //else
-            torrent->resume();
+        // Resume torrent
+        torrent->resume();
 
-    else
+        callback = std::bind(r.handler, std::exception_ptr());
+
+    } else
         callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
 
     // Send back to user

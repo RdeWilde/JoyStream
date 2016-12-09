@@ -19,7 +19,7 @@ void Payee::registerMetaTypes() {
 }
 
 Payee::Payee(quint64 numberOfPaymentsMade,
-             quint32 lockTime,
+             Coin::RelativeLockTime lockTime,
              quint64 price,
              quint64 funds,
              quint64 settlementFee,
@@ -45,7 +45,7 @@ quint64 Payee::numberOfPaymentsMade() const noexcept {
     return _numberOfPaymentsMade;
 }
 
-quint32 Payee::lockTime() const noexcept {
+Coin::RelativeLockTime Payee::lockTime() const noexcept {
     return _lockTime;
 }
 

@@ -19,9 +19,9 @@ namespace protocol_wire {
         : SellerTerms(0,0,0,0,0) {
     }
 
-    SellerTerms::SellerTerms(quint64 price, quint32 lock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee)
+    SellerTerms::SellerTerms(quint64 price, uint16_t minLock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee)
         : _minPrice(price)
-        , _minLock(lock)
+        , _minLock(minLock)
         , _maxSellers(maxSellers)
         , _minContractFeePerKb(minContractFeePerKb)
         , _settlementFee(settlementFee) {
@@ -73,7 +73,7 @@ namespace protocol_wire {
 
     // Lenght of wire encoding
     quint32 SellerTerms::length() {
-        return sizeof(_minPrice) + sizeof(_minLock) + sizeof(_maxSellers) + sizeof(_minContractFeePerKb) + sizeof(_settlementFee);
+        return sizeof(_minPrice) + sizeof(_minLock)+ sizeof(_maxSellers) + sizeof(_minContractFeePerKb) + sizeof(_settlementFee);
     }
 
     quint64 SellerTerms::minPrice() const {
@@ -84,11 +84,11 @@ namespace protocol_wire {
         _minPrice = price;
     }
 
-    quint32 SellerTerms::minLock() const {
+    uint16_t SellerTerms::minLock() const {
         return _minLock;
     }
 
-    void SellerTerms::setMinLock(quint32 minLock) {
+    void SellerTerms::setMinLock(const uint16_t &minLock) {
         _minLock = minLock;
     }
 

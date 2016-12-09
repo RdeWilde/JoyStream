@@ -95,7 +95,7 @@ uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange,
         funding.insert(utxo);
     }
 
-    Contract c(Coin::UnspentOutputSet({funding}));
+    Contract c(funding);
 
     for(uint32_t i = 0;i < numberOfCommitments; i++)
         c.addCommitment(Commitment());

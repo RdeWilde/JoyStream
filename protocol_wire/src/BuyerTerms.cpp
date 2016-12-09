@@ -13,23 +13,21 @@ namespace joystream {
 namespace protocol_wire {
 
     BuyerTerms::BuyerTerms()
-        : BuyerTerms(0,0,0,0,0) {
+        : BuyerTerms(0,0,0,0) {
     }
 
-    BuyerTerms::BuyerTerms(quint64 maxPrice, quint32 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee)
+    BuyerTerms::BuyerTerms(quint64 maxPrice, uint16_t maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb)
         : _maxPrice(maxPrice)
         , _maxLock(maxLock)
         , _minNumberOfSellers(minNumberOfSellers)
-        , _maxContractFeePerKb(maxContractFeePerKb)
-        , _refundFee(refundFee) {
+        , _maxContractFeePerKb(maxContractFeePerKb) {
     }
 
     bool BuyerTerms::operator==(const BuyerTerms & rhs) const {
         return _maxPrice == rhs.maxPrice() &&
                _maxLock == rhs.maxLock() &&
                _minNumberOfSellers == rhs.minNumberOfSellers() &&
-               _maxContractFeePerKb == rhs.maxContractFeePerKb() &&
-               _refundFee == rhs.refundFee();
+               _maxContractFeePerKb == rhs.maxContractFeePerKb();
     }
 
     bool BuyerTerms::operator!=(const BuyerTerms & rhs) const {
@@ -38,7 +36,7 @@ namespace protocol_wire {
 
     QDataStream & operator >>(QDataStream & stream, BuyerTerms & rhs) {
 
-        stream >> rhs._maxPrice >> rhs._maxLock >> rhs._minNumberOfSellers >> rhs._maxContractFeePerKb >> rhs._refundFee;
+        stream >> rhs._maxPrice >> rhs._maxLock >> rhs._minNumberOfSellers >> rhs._maxContractFeePerKb;
 
         return stream;
     }
@@ -48,7 +46,7 @@ namespace protocol_wire {
     }
 
     quint32 BuyerTerms::length() {
-        return sizeof(_maxPrice) + sizeof(_maxLock) + sizeof(_minNumberOfSellers) + sizeof(_maxContractFeePerKb) + sizeof(_refundFee);
+        return sizeof(_maxPrice) + sizeof(_maxLock) + sizeof(_minNumberOfSellers) + sizeof(_maxContractFeePerKb);
     }
 
     quint64 BuyerTerms::maxPrice() const {
@@ -59,11 +57,11 @@ namespace protocol_wire {
         _maxPrice = maxPrice;
     }
 
-    quint32 BuyerTerms::maxLock() const {
+    uint16_t BuyerTerms::maxLock() const {
         return _maxLock;
     }
 
-    void BuyerTerms::setMaxLock(quint32 maxLock) {
+    void BuyerTerms::setMaxLock(const uint16_t &maxLock) {
         _maxLock = maxLock;
     }
 
@@ -83,17 +81,9 @@ namespace protocol_wire {
         _maxContractFeePerKb = maxContractFeePerKb;
     }
 
-    quint64 BuyerTerms::refundFee() const {
-        return _refundFee;
-    }
-
-    void BuyerTerms::setRefundFee(quint64 refundFee) {
-        _refundFee = refundFee;
-    }
-
     QDataStream & operator <<(QDataStream & stream, const BuyerTerms & rhs) {
 
-        stream << rhs.maxPrice() << rhs.maxLock() << rhs.minNumberOfSellers() << rhs.maxContractFeePerKb() << rhs.refundFee();
+        stream << rhs.maxPrice() << rhs.maxLock() << rhs.minNumberOfSellers() << rhs.maxContractFeePerKb();
         return stream;
     }
 }

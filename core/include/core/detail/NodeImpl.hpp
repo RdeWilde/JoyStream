@@ -7,7 +7,7 @@
 
 #ifndef JOYSTREAM_CORE_DETAIL_LIBTORRENTALERTPROCESSOR_HPP
 #define JOYSTREAM_CORE_DETAIL_LIBTORRENTALERTPROCESSOR_HPP
-
+#include <QTimer>
 #include <extension/extension.hpp>
 #include <libtorrent/socket.hpp>
 #include <boost/shared_ptr.hpp>
@@ -18,6 +18,7 @@ namespace libtorrent {
     class session;
     class sha1_hash;
     class alert;
+    struct dht_get_peers_reply_alert;
     struct listen_succeeded_alert;
     struct metadata_received_alert;
     struct metadata_failed_alert;
@@ -107,6 +108,7 @@ struct NodeImpl {
     void processAlert(const libtorrent::alert * a);
 
     // Processing (standard) libtorrent alerts of given type
+    void process(const libtorrent::dht_get_peers_reply_alert *);
     void process(const libtorrent::listen_succeeded_alert *);
     void process(const libtorrent::metadata_received_alert *);
     void process(const libtorrent::metadata_failed_alert *);
@@ -161,6 +163,14 @@ struct NodeImpl {
     // Torrents in session
     std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrents;
 
+    // Secondary hash for faster JS peer discovery
+    std::map<libtorrent::sha1_hash, libtorrent::sha1_hash> _torrentsBySecondaryHash;
+    Torrent *getTorrentBySecondaryHash(const libtorrent::sha1_hash &hash);
+
+    bool _assistedPeerDiscovery;
+    QTimer _announceTimer;
+    QTimer _getPeersTimer;
+
     /// Callbacks called in response to inbound alerts
     StartedListening _startedListening;
     AddedTorrent _addedTorrent;
@@ -170,6 +180,7 @@ struct NodeImpl {
 
     void removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it);
 
+
     /// TEMPORARY
     /// Tries to recover corresponding object
 
@@ -177,6 +188,12 @@ struct NodeImpl {
     core::Peer * getPeer(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep);
     core::TorrentPlugin * getTorrentPlugin(const libtorrent::sha1_hash & infoHash);
     core::PeerPlugin * getPeerPlugin(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep);
+
+public slots:
+    // Secondary hash for faster JS peer discovery
+    void getPeersAllTorrentsSecondaryHash();
+    void announceAllTorrentsSecondaryHash();
+
 };
 
 }

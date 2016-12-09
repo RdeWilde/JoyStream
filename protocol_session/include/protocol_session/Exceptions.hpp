@@ -10,9 +10,7 @@
 
 #include <stdexcept>
 #include <string>
-
-template <class ConnectionIdType>
-std::string IdToString(const ConnectionIdType &);
+#include <protocol_session/common.hpp>
 
 namespace joystream {
 namespace protocol_session {

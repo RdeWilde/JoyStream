@@ -14,6 +14,9 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <extension/extension.hpp>
+#include <QObject>
+#include <boost/asio/ip/detail/endpoint.hpp>
+#include <ctime>
 
 namespace joystream {
 namespace core {
@@ -28,11 +31,18 @@ NodeImpl::NodeImpl(libtorrent::session * session,
                    const AlertArrived & alertArrived)
     : _session(session)
     , _plugin(plugin)
+    , _assistedPeerDiscovery(false)
     , _startedListening(startedListening)
     , _addedTorrent(addedTorrent)
     , _removedTorrent(removedTorrent)
     , _torrentPluginStatusUpdate(torrentPluginStatusUpdate)
     , _alertArrived(alertArrived) {
+
+    _announceTimer.setInterval(2*3600*1000); // Every 2 hours
+    _getPeersTimer.setInterval(5*60*1000); // Every 5 minutes
+
+    _announceTimer.connect(&_announceTimer, &QTimer::timeout, [&](){ announceAllTorrentsSecondaryHash(); });
+    _getPeersTimer.connect(&_announceTimer, &QTimer::timeout, [&](){ getPeersAllTorrentsSecondaryHash(); });
 }
 
 NodeImpl::~NodeImpl() {
@@ -181,10 +191,24 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::ValidPieceArrived const * p = libtorrent::alert_cast<extension::alert::ValidPieceArrived>(a))
         process(p);
+    else if(libtorrent::dht_get_peers_reply_alert const * p = libtorrent::alert_cast<libtorrent::dht_get_peers_reply_alert>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
     _alertArrived(a);
+}
+
+void NodeImpl::process(const libtorrent::dht_get_peers_reply_alert *p) {
+    if(!getTorrentBySecondaryHash(p->info_hash)) return; // Didn't find the torrent corresponding to this hash
+    Torrent &t = *getTorrentBySecondaryHash(p->info_hash);
+
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+
+    for(const libtorrent::tcp::endpoint &ep : p->peers()) {
+        t.addJSPeerAtTimestamp(ep, now); // Add to list of JS peers
+        t.handle().connect_peer(ep); // Ask libtorrent to connect to peer
+    }
 }
 
 void NodeImpl::process(const libtorrent::listen_succeeded_alert * p) {
@@ -318,6 +342,13 @@ void NodeImpl::process(const libtorrent::add_torrent_alert * p) {
 
             // send notification signal
             _addedTorrent(torrent);
+
+// Do DHT peer discovery stuff
+_torrentsBySecondaryHash.insert(std::make_pair(torrent->secondaryInfoHash(), infoHash));
+
+// announce the new torrent with secondary info hash
+_session->dht_announce(torrent->secondaryInfoHash(), _session->listen_port());
+_session->dht_get_peers(torrent->secondaryInfoHash());
 
         } else
             torrent->_resumeData = p->params.resume_data;
@@ -710,11 +741,38 @@ void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {
         emit plugin->anchorAnnounced(p);
 }
 
+Torrent *NodeImpl::getTorrentBySecondaryHash(const libtorrent::sha1_hash &hash)
+{
+    if(_torrentsBySecondaryHash.count(hash) == 0) return nullptr;
+    const libtorrent::sha1_hash &primaryHash = _torrentsBySecondaryHash[hash];
+    assert(_torrents.count(primaryHash)>0);
+
+    return _torrents[primaryHash].get();
+}
+
+void NodeImpl::announceAllTorrentsSecondaryHash()
+{
+    for(auto &pair : _torrents) {
+        Torrent &t = *pair.second;
+        _session->dht_announce(t.secondaryInfoHash(), _session->listen_port());
+    }
+}
+
+void NodeImpl::getPeersAllTorrentsSecondaryHash()
+{
+    for(auto &pair : _torrents) {
+        Torrent &t = *pair.second;
+        t.invalidateOldJSPeers();
+        _session->dht_get_peers(t.secondaryInfoHash());
+    }
+}
+
 
 void NodeImpl::removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it) {
+    Torrent &t = *it->second;
+    _torrentsBySecondaryHash.erase(t.secondaryInfoHash());
 
     libtorrent::sha1_hash info_hash = it->first;
-
     _torrents.erase(it);
 
     _removedTorrent(info_hash);

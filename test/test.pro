@@ -7,13 +7,16 @@ TEMPLATE    = subdirs
 
 SUBDIRS     = \
             common \
+            bitcoin_regtest_framework \
             blockcypher \
             blockcypher-websocket \
             spv-wallet \
             spv-wallet-client \
             paymentchannel \
+            paymentchannel_regtest \
             mixpanel \
             protocol_statemachine \
             protocol_session \
             protocol_wire \
-            core
+            core \
+            extension

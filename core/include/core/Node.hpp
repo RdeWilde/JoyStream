@@ -117,14 +117,59 @@ public:
     /**
      * @brief Port on which node is currently listening for BitTorrent
      * connections
+     * @return Port used by Node.
      */
-    void port() const noexcept;
+    unsigned short port() const noexcept;
+
+    /**
+     * @brief Returns if assisted peer discovery is enabled. Assisted peer discovery adds an additional
+     * DHT announce and peer search for all torrents with <INFOHASH>_JS to find JoyStream nodes.
+     * connections
+     * @return Assisted peer discovery enabled.
+     */
+    bool assistedPeerDiscovery() const noexcept;
+
+    /**
+     * @brief Enable/disable assisted peer discovery.
+     */
+    void setAssistedPeerDiscovery(bool assistedPeerDiscovery) noexcept;
+
+    /**
+     * @brief Returns how often (in seconds) we announce all torrents to the
+     * assisted peer discovery network. Default: every 2 hours.
+     * @return Assisted peer discovery announce interval.
+     */
+    int announceTimerIntervalSeconds() const noexcept;
+    /**
+     * @brief Sets how often (in seconds) we announce all torrents to the
+     * assisted peer discovery network.
+     */
+    void setAnnounceTimerIntervalSeconds(int seconds) noexcept;
+
+    /**
+     * @brief Returns how often (in seconds) we search for JoyStream peers for
+     * all torrents. Default: every 5 minutes.
+     * @return Assisted peer discovery refresh interval.
+     */
+    int getPeersTimerIntervalSeconds() const noexcept;
+    /**
+     * @brief Sets how often (in seconds) we search for JoyStream peers for
+     * all torrents.
+     */
+    void setGetPeersTimerIntervalSeconds(int seconds) noexcept;
 
     /**
      * @brief Returns map with all torrent handles, indexed by their info hashes
      * @return Map of all torrent handles, indexed by their info hashes
      */
     std::map<libtorrent::sha1_hash, Torrent *> torrents() const noexcept;
+
+    /**
+     * @brief Lookup for a torrent in Node from sha1_hash
+     * @param The sha1_hash of the torrent we are looking for
+     * @return Torrent object or nullptr if not found
+     */
+    Torrent* torrent(const libtorrent::sha1_hash & info_hash);
 
 signals:
 
@@ -150,6 +195,11 @@ signals:
 
     // A status arrived from libtorrent
     void alertArrived(const libtorrent::alert *);
+
+    /**
+     * @brief Assisted peer discovery is enabled/disabled
+     */
+    void assistedPeerDiscoveryChanged(bool assistedPeerDiscovery);
 
 private:
 

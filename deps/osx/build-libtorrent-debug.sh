@@ -8,7 +8,7 @@
 export BOOST_ROOT=$PWD/src/boost/
 PREFIX_PATH=$PWD/dist/debug/
 
-cd src/libtorrent
+cd src/libtorrent-joystream
 
 $BOOST_ROOT/b2 install toolset=clang address-model=64 boost-link=static link=static \
 deprecated-functions=off logging=on \

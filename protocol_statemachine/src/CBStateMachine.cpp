@@ -125,7 +125,7 @@ namespace protocol_statemachine {
 
         // Update payor: even though machine need not be in Buying state!
         _payor.setPrice(t.minPrice());
-        _payor.setRefundLockTime(t.minLock());
+        _payor.setRefundLockTime(Coin::RelativeLockTime::fromTimeUnits(t.minLock()));
         _payor.setSettlementFee(t.settlementFee());
     }
 
@@ -142,7 +142,7 @@ namespace protocol_statemachine {
         _index = index;
 
         // Update payee based on client terms
-        _payee.setLockTime(t.minLock());
+        _payee.setLockTime(Coin::RelativeLockTime::fromTimeUnits(t.minLock()));
         _payee.setPrice(t.minPrice());
         _payee.setSettlementFee(t.settlementFee());
 

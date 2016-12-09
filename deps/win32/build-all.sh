@@ -14,7 +14,10 @@ TARGET_ARCH=$WINDOWS_32BIT
 . ../thirdparty-libs/versions.sh
 THIRDPARTY=`pwd`/../thirdparty-libs/
 
-rm -fr dist/
+#If we remove the dist folder then everytime we run this script, it will
+#cause all libraries that depend on libtorrent to be recompiled which is not necessary
+#if the libtorrent headers and source haven't changed
+#rm -fr dist/
 
 mkdir -p src/
 mkdir -p dist/
@@ -81,32 +84,14 @@ fi
 # libtorrent
 #
 pushd src
-if [ ! -e "${LIBTORRENT_TARBALL}" ]
+mkdir -p libtorrent-joystream/
+if rsync -rvuc ${THIRDPARTY}/libtorrent/ libtorrent-joystream/
 then
-    rm -fr libtorrent/
-
-    cp ${THIRDPARTY}/${LIBTORRENT_TARBALL} ./
-fi
-
-if [ ! -e "libtorrent" ]
-then
-  if tar -xzvf ${LIBTORRENT_TARBALL}
-  then
-      mv libtorrent-${LIBTORRENT_VERSION}/ libtorrent
-      cp "../user-config-${TARGET_ARCH}.jam" libtorrent/user-config.jam
-      cd libtorrent/
-      #patch 1 MB packet limit
-      patch src/bt_peer_connection.cpp ../../libtorrent-patch.diff
-
-      #patch case sensitive include files
-      sed -ie "s/^#include <Windows.h>/#include <windows.h>/" ed25519/src/seed.cpp
-      sed -ie "s/^#include <Wincrypt.h>/#include <wincrypt.h>/" ed25519/src/seed.cpp
-  else
-      echo "Failed Extracting Libtorrent"
-      rm ${LIBTORRENT_TARBALL}
-      rm -fr libtorrent-${LIBTORRENT_VERSION}/
-      exit 1
-  fi
+    cp "../user-config-${TARGET_ARCH}.jam" libtorrent-joystream/user-config.jam
+    echo "Copied joystream libtorrent repo Successfuly"
+else
+    echo "Failed to copy joystream libtorrent repo"
+    exit 1
 fi
 popd
 
@@ -230,70 +215,20 @@ sudo ln -s ../../include/sqlite3.h sqlite3.h
 sudo ln -s ../../include/sqlite3ext.h sqlite3ext.h
 popd
 
-pushd src
-if [ ! -e "${LIBPNG_TARBALL}" ]
-then
-    rm -fr ${LIBPNG_VERSION}
-
-    cp ${THIRDPARTY}/${LIBPNG_TARBALL} ./
-fi
-
-if [ ! -e "${LIBPNG_VERSION}" ]
-then
-    if tar -xzvf "${LIBPNG_TARBALL}"
-    then
-        cd "${LIBPNG_VERSION}"/
-        ./configure --host=${TARGET_ARCH} --target=windows --prefix=/usr/${TARGET_ARCH} \
-            CPPFLAGS=-I/usr/${TARGET_ARCH}/include LDFLAGS=-L/usr/${TARGET_ARCH}/lib --enable-static --disable-shared
-        make
-        if [ $? -ne 0 ]; then
-          echo "Failed to build libpng"
-          cd ../
-          rm -fr ${LIBPNG_VERSION}
-          exit 1
-        fi
-        sudo make install
-    else
-        echo "Failed to extract libpng"
-        rm ${LIBPNG_TARBALL}
-        rm -fr ${LIBPNG_VERSION}
-        exit 1
-    fi
-fi
-popd
-
 #mSIGNA (bulding only required libraries for JoyStream)
 pushd src
-if [ ! -e "mSIGNA" ]
+mkdir -p mSIGNA-joystream/
+if rsync -rvuc ${THIRDPARTY}/mSIGNA/ mSIGNA-joystream/
 then
-    if git clone https://github.com/JoyStream/mSIGNA
-    then
-        echo "Cloned mSIGNA Successfuly"
-    else
-        echo "Failed to clone mSIGNA repo"
-        rm -fr mSIGNA
-        exit 1
-    fi
-fi
-
-cd mSIGNA/
-git checkout joystream-master
-if [ $? -ne 0 ]; then
-    echo "Local modification of mSIGNA branch, please resolve and try again"
-fi
-git pull origin joystream-master
-if [ $? -ne 0 ]; then
-    echo "Problem getting latest mSIGNA commits, please resolve and try again"
-fi
-cd deps/qrencode-3.4.3
-./configure --host=${TARGET_ARCH} --prefix=/usr/${TARGET_ARCH} --without-tools --enable-static --disable-shared
-make
-if [ $? -ne 0 ]; then
-    echo "Failed to build mSIGNA qrencode"
+    echo "Copied joystream mSGINA repo Successfuly"
+else
+    echo "Failed to copy joystream mSIGNA repo"
     exit 1
 fi
-sudo make install
-cd ../stdutils
+
+cd mSIGNA-joystream/
+
+cd deps/stdutils
 OS=mingw32 SYSROOT=../../sysroot make install
 if [ $? -ne 0 ]; then
     echo "Failed to build mSIGNA stdutils"
@@ -326,7 +261,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 SYSROOT=../../sysroot make install
-
+popd
 #optionally build full mSIGNA app
 #cd ../../
 #./build-all.sh mingw32

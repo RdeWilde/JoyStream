@@ -3,6 +3,9 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, August 6 2015
 
+#gcc 6.1 fix
+INCLUDEPATH += $$QMAKE_DEFAULT_INCDIRS
+
 DEFINES += TORRENT_DISABLE_GEO_IP
 DEFINES += TORRENT_NO_DEPRECATE
 DEFINES += TORRENT_LINKING_STATIC

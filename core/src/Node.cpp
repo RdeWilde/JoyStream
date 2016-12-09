@@ -174,12 +174,68 @@ void Node::processAlertQueue() {
     _pimpl.processAlertQueue();
 }
 
-void Node::port() const noexcept {
-    _pimpl.port();
+unsigned short Node::port() const noexcept {
+    return _pimpl.port();
 }
+
+bool Node::assistedPeerDiscovery() const noexcept {
+    return _pimpl._assistedPeerDiscovery;
+}
+
+void Node::setAssistedPeerDiscovery(bool assistedPeerDiscovery) noexcept {
+    if(assistedPeerDiscovery == _pimpl._assistedPeerDiscovery) {
+        return;
+    }
+
+    _pimpl._assistedPeerDiscovery = assistedPeerDiscovery;
+    emit assistedPeerDiscoveryChanged(assistedPeerDiscovery);
+    // If this is enabled, start timers and execute a single announce and getPeers for all torrents
+    if(assistedPeerDiscovery) {
+        _pimpl._getPeersTimer.start();
+        _pimpl._announceTimer.start();
+        _pimpl.announceAllTorrentsSecondaryHash();
+        _pimpl.getPeersAllTorrentsSecondaryHash();
+    } else {
+        _pimpl._getPeersTimer.stop();
+        _pimpl._announceTimer.stop();
+    }
+}
+
+int Node::announceTimerIntervalSeconds() const noexcept
+{
+    return _pimpl._announceTimer.interval()/1000; // convert from ms to seconds
+}
+
+void Node::setAnnounceTimerIntervalSeconds(int seconds) noexcept
+{
+    _pimpl._announceTimer.setInterval(1000*seconds); // convert from seconds to ms
+}
+
+int Node::getPeersTimerIntervalSeconds() const noexcept
+{
+    return _pimpl._getPeersTimer.interval()/1000; // convert from ms to seconds
+}
+
+void Node::setGetPeersTimerIntervalSeconds(int seconds) noexcept
+{
+    _pimpl._getPeersTimer.setInterval(seconds*1000); // convert from seconds to ms
+}
+
 
 std::map<libtorrent::sha1_hash, Torrent *> Node::torrents() const noexcept {
     return detail::getRawMap<libtorrent::sha1_hash, Torrent>(_pimpl._torrents);
+}
+
+Torrent* Node::torrent(const libtorrent::sha1_hash & info_hash) {
+
+    std::map<libtorrent::sha1_hash, Torrent *> torrents = Node::torrents();
+    std::map<libtorrent::sha1_hash, Torrent *>::iterator it;
+
+    it = torrents.find(info_hash);
+    if (it != torrents.end())
+        return it->second;
+    else
+        return nullptr;
 }
 
 libtorrent::settings_pack Node::session_settings(bool enableDHT) noexcept {
@@ -299,6 +355,12 @@ libtorrent::add_torrent_params Node::toAddTorrentParams(const boost::optional<ui
 
     // Remove auto-managing
     params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_auto_managed;
+
+    // When this flag is set, attempting add a duplicate torrent to the session
+    // with add_torrent method will result in the error code `duplicate_torrent` being set in the
+    // add_torrent_alert - we do this to avoid creating multiple instances of
+    // core::Torrent for the the same torrent
+    params.flags |= libtorrent::add_torrent_params::flag_duplicate_is_error;
 
     // Torrent refernce (usual, and safer, visitor pattern is a bit too heavy)
     switch(torrentIdentifier.type()) {

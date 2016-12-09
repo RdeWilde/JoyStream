@@ -15,19 +15,19 @@ INCLUDES=-I./qt_headers/
 #OSX
 ifeq ($(SPEC), macx-clang)
   INCLUDES+=-I$(shell qmake -query QT_INSTALL_LIBS)/QtCore.framework/Headers/
-  INCLUDES+=-I../../../../deps/osx/src/mSIGNA/sysroot/include
+  INCLUDES+=-I../../../../deps/osx/src/mSIGNA-joystream/sysroot/include
 endif
 
 #linux
 ifeq ($(SPEC), linux-g++)
   INCLUDES+=-I$(shell qmake -query QT_INSTALL_HEADERS)/QtCore
-  INCLUDES+=-I../../../../deps/linux/src/mSIGNA/sysroot/include
+  INCLUDES+=-I../../../../deps/linux/src/mSIGNA-joystream/sysroot/include
 endif
 
 #win32
 ifeq ($(SPEC), win32-g++)
   INCLUDES+=-I$(shell qmake -query QT_INSTALL_HEADERS)/QtCore
-  INCLUDES+=-I../../../../deps/win32/src/mSIGNA/sysroot/include
+  INCLUDES+=-I../../../../deps/win32/src/mSIGNA-joystream/sysroot/include
 endif
 
 

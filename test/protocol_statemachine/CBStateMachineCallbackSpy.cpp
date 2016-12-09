@@ -414,18 +414,10 @@ protocol_wire::Ready CBStateMachineCallbackSpy::readyMessage() const {
     return *dynamic_cast<const protocol_wire::Ready *>(_message);
 }
 
-protocol_wire::RefundSigned CBStateMachineCallbackSpy::refundSignedMessage() const {
-    return *dynamic_cast<const protocol_wire::RefundSigned *>(_message);
-}
-
 protocol_wire::RequestFullPiece CBStateMachineCallbackSpy::requestFullPieceMessage() const {
     return *dynamic_cast<const protocol_wire::RequestFullPiece *>(_message);
 }
 
 protocol_wire::Sell CBStateMachineCallbackSpy::sellMessage() const {
     return *dynamic_cast<const protocol_wire::Sell *>(_message);
-}
-
-protocol_wire::SignRefund CBStateMachineCallbackSpy::signRefundMessage() const {
-    return *dynamic_cast<const protocol_wire::SignRefund *>(_message);
 }

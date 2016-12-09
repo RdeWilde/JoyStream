@@ -5,6 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, April 9 2016
  */
 
+#include <protocol_session/common.hpp>
 #include <protocol_session/Session.hpp>
 #include <protocol_session/TorrentPieceInformation.hpp>
 #include <protocol_session/Exceptions.hpp>
@@ -585,7 +586,7 @@ namespace detail {
 
             auto value = funds[i];
             auto payeeContractPk = selected[i]->payor().payeeContractPk();
-            auto lockTime = terms[i].minLock();
+            auto lockTime = Coin::RelativeLockTime::fromTimeUnits(terms[i].minLock());
 
             // Generate new buyer keypair for commitment
             Coin::KeyPair payorCommitmentKeyPair = _generateP2SHKeyPair([payeeContractPk, lockTime](const Coin::PublicKey & payorCommitmentPk){

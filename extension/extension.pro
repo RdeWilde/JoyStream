@@ -28,14 +28,26 @@ HEADERS += \
     include/extension/Alert.hpp \
     include/extension/Exception.hpp \
     include/extension/detail.hpp \
-    include/extension/Callbacks.hpp
+    include/extension/Callbacks.hpp \
+    include/extension/AlertManager.hpp \
+    include/extension/Session.hpp \
+    include/extension/Torrent.hpp \
+    include/extension/Peer.hpp \
+    include/extension/interface/AlertManagerInterface.hpp \
+    include/extension/interface/PeerInterface.hpp \
+    include/extension/interface/SessionInterface.hpp \
+    include/extension/interface/TorrentInterface.hpp \
 
 SOURCES += \
     src/TorrentPlugin.cpp \
     src/Plugin.cpp \
     src/PeerPlugin.cpp \
     src/ExtendedMessageIdMapping.cpp \
-    src/detail.cpp
+    src/detail.cpp \
+    src/Peer.cpp \
+    src/Torrent.cpp \
+    src/Session.cpp \
+    src/AlertManager.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

@@ -10,6 +10,8 @@
 #include <core/TorrentPlugin.hpp>
 #include <core/Exception.hpp>
 #include <core/detail/detail.hpp>
+#include <libtorrent/hasher.hpp>
+#include <cstring>
 
 Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
 Q_DECLARE_METATYPE(std::vector<char>)
@@ -87,6 +89,16 @@ libtorrent::sha1_hash Torrent::infoHash() const noexcept {
     return _infoHash;
 }
 
+libtorrent::sha1_hash Torrent::secondaryInfoHash() const noexcept {
+    const int length = _status.info_hash.size+3; // We will append 3 bytes: _JS
+    char newHash[length];
+    std::memcpy(newHash, _status.info_hash.data(), _status.info_hash.size);
+    newHash[length-1] = 'S';
+    newHash[length-2] = 'J';
+    newHash[length-3] = '_';
+    return libtorrent::hasher(newHash, length).final();
+}
+
 std::map<libtorrent::tcp::endpoint, Peer *> Torrent::peers() const noexcept {
     return detail::getRawMap<libtorrent::tcp::endpoint, Peer>(_peers);
 }
@@ -101,6 +113,28 @@ TorrentPlugin * Torrent::torrentPlugin() const {
         return _torrentPlugin.get();
     else
         throw exception::HandleNotSet();
+}
+
+std::map<libtorrent::tcp::endpoint, Torrent::Timestamp> Torrent::announcedJSPeersAtTimestamp() const noexcept {
+    return _announcedJSPeersAtTimestamp;
+}
+
+void Torrent::invalidateOldJSPeers() noexcept {
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    for (auto it = _announcedJSPeersAtTimestamp.cbegin(); it != _announcedJSPeersAtTimestamp.cend() /* not hoisted */; /* no increment */)
+    {
+        Timestamp timestamp = it->second;
+
+        if(std::chrono::duration_cast<std::chrono::hours>(now - timestamp).count() > 10) {
+            _announcedJSPeersAtTimestamp.erase(it++);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void Torrent::addJSPeerAtTimestamp(libtorrent::tcp::endpoint peer, Timestamp timestamp) noexcept {
+    _announcedJSPeersAtTimestamp[peer] = timestamp; // Replace if exists
 }
 
 void Torrent::addPeer(const libtorrent::peer_info & info) {
@@ -149,7 +183,7 @@ void Torrent::removeTorrentPlugin() {
 
     _torrentPlugin.release();
 
-    emit removeTorrentPlugin();
+    emit torrentPluginRemoved();
 }
 
 void Torrent::setResumeDataGenerationResult(const std::vector<char> & resumeData) {

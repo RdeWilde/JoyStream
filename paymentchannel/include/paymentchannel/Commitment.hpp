@@ -15,6 +15,7 @@ namespace Coin {
     class P2SHScriptPubKey;
     class MultisigScriptPubKey;
     class TxOut;
+    class RelativeLockTime;
 }
 
 namespace joystream {
@@ -28,7 +29,10 @@ namespace paymentchannel {
         Commitment();
 
         // Constructor based on members
-        Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime);
+        Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, Coin::RelativeLockTime lockTime);
+
+        // Constructor from raw p2sh redeem script
+        Commitment(int64_t value, const uchar_vector redeemScript);
 
         // Copy constructor
         Commitment(const Commitment& o);
@@ -55,8 +59,8 @@ namespace paymentchannel {
         Coin::PublicKey payeePk() const;
         void setPayeePk(const Coin::PublicKey & payeePk);
 
-        void setLockTime(uint32_t lockTime);
-        uint32_t lockTime() const;
+        void setLockTime(Coin::RelativeLockTime lockTime);
+        Coin::RelativeLockTime lockTime() const;
 
     private:
 
@@ -70,7 +74,7 @@ namespace paymentchannel {
         Coin::PublicKey _payeePk;
 
         // How long the output is locked before payor can spend it
-        uint32_t _lockTime;
+        Coin::RelativeLockTime _lockTime;
     };
 
 }
