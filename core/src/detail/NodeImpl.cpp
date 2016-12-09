@@ -155,6 +155,12 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::SessionStopped const * p = libtorrent::alert_cast<extension::alert::SessionStopped>(a))
         process(p);
+    else if(extension::alert::SessionToObserveMode const * p = libtorrent::alert_cast<extension::alert::SessionToObserveMode>(a))
+        process(p);
+    else if(extension::alert::SessionToSellMode const * p = libtorrent::alert_cast<extension::alert::SessionToSellMode>(a))
+        process(p);
+    else if(extension::alert::SessionToBuyMode const * p = libtorrent::alert_cast<extension::alert::SessionToBuyMode>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
@@ -599,6 +605,27 @@ void NodeImpl::process(const extension::alert::SessionStopped * p) {
 
     if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
         emit plugin->sessionStopped();
+}
+
+void NodeImpl::process(const extension::alert::SessionToObserveMode * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionToObserveMode();
+
+}
+
+void NodeImpl::process(const extension::alert::SessionToSellMode * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionToSellMode(p);
+
+}
+
+void NodeImpl::process(const extension::alert::SessionToBuyMode * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionToBuyMode(p);
+
 }
 
 void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {

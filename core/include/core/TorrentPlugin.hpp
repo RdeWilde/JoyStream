@@ -105,7 +105,11 @@ signals:
 
     void sessionStopped();
 
+    void sessionToObserveMode();
 
+    void sessionToSellMode(const extension::alert::SessionToSellMode *);
+
+    void sessionToBuyMode(const extension::alert::SessionToBuyMode *);
 
 private:
 
