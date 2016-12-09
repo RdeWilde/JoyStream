@@ -121,6 +121,8 @@ signals:
 
     void contractConstructed(const extension::alert::ContractConstructed *);
 
+    void sentPayment(const extension::alert::SentPayment * p);
+
 private:
 
     friend struct detail::NodeImpl;
