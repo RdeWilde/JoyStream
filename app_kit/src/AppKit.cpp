@@ -60,18 +60,20 @@ AppKit::AppKit(const Settings &settings,
       _transactionSendBuffer(std::move(txSendBuffer)),
       _node(std::move(node)) {
 
-    QObject::connect(&_timer, &QTimer::timeout, [this](){
-        _node->updateStatus();
-
-        // Try to reconnect to bitcoin network if wallet went offline
-        if(_trySyncWallet)
-            syncWallet();
-
-        // Sendout queued transactions
-        _transactionSendBuffer->flush();
-    });
+    QObject::connect(&_timer, &QTimer::timeout, this, &AppKit::onTimerInterval);
 
     _timer.start(5000);
+}
+
+void AppKit::onTimerInterval() {
+    _node->updateStatus();
+
+    // Try to reconnect to bitcoin network if wallet went offline
+    if(_trySyncWallet)
+        syncWallet();
+
+    // Sendout queued transactions
+    _transactionSendBuffer->flush();
 }
 
 core::Node *AppKit::node() {

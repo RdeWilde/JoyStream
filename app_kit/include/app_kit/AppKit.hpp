@@ -100,6 +100,9 @@ public:
 
     void broadcastTransaction(Coin::Transaction &) const;
 
+protected slots:
+    void onTimerInterval();
+
 private:
 
     // Do not allow copying
