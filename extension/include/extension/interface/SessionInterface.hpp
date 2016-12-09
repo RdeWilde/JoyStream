@@ -1,8 +1,6 @@
 #ifndef JOYSTREAM_EXTENSION_INTERFACE_SESSION_INTERFACE_HPP
 #define JOYSTREAM_EXTENSION_INTERFACE_SESSION_INTERFACE_HPP
 
-#include "TorrentInterface.hpp"
-
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/session_handle.hpp>
@@ -19,6 +17,8 @@ namespace libtorrent {
 namespace joystream {
 namespace extension {
 namespace interface {
+
+class TorrentInterface;
 
 class SessionInterface {
 public:

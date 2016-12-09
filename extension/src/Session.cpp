@@ -1,4 +1,4 @@
-#include "extension/Session.hpp"
+#include <extension/Session.hpp>
 
 namespace joystream {
 namespace extension {

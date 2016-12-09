@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 
-#include "extension/interface/SessionInterface.hpp"
+#include <extension/interface/SessionInterface.hpp>
 
 namespace joystream {
 namespace test {

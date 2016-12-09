@@ -6,8 +6,8 @@
 #include <libtorrent/alert_manager.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
-#include "extension/Alert.hpp"
-#include "extension/Plugin.hpp"
+#include <extension/Alert.hpp>
+#include <extension/Plugin.hpp>
 
 namespace libtorrent {
     class alert;

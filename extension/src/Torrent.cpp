@@ -1,4 +1,4 @@
-#include "extension/Torrent.hpp"
+#include <extension/Torrent.hpp>
 
 namespace joystream {
 namespace extension {

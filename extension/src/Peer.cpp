@@ -1,4 +1,4 @@
-#include "extension/Peer.hpp"
+#include <extension/Peer.hpp>
 
 namespace joystream {
 namespace extension {

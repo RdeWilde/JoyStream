@@ -1,8 +1,8 @@
 #ifndef JOYSTREAM_EXTENSION_SESSION_HPP
 #define JOYSTREAM_EXTENSION_SESSION_HPP
 
-#include "Torrent.hpp"
-#include "extension/interface/SessionInterface.hpp"
+#include <extension/Torrent.hpp>
+#include <extension/interface/SessionInterface.hpp>
 
 namespace libtorrent {
     class sha1_hash;
