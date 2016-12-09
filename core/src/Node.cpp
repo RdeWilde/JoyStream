@@ -36,7 +36,8 @@ Node::Node(libtorrent::session * session,
              std::bind(&Node::pimplStartedListeningHandler, this, std::placeholders::_1),
              std::bind(&Node::pimplTorrentAdded, this, std::placeholders::_1),
              std::bind(&Node::pimplTorrentRemoved, this, std::placeholders::_1),
-             std::bind(&Node::pimplTorrentPluginStatusUpdate, this, std::placeholders::_1)) {
+             std::bind(&Node::pimplTorrentPluginStatusUpdate, this, std::placeholders::_1),
+             std::bind(&Node::pimplAlertArrived, this, std::placeholders::_1)) {
 }
 
 Node * Node::create() {
@@ -157,6 +158,10 @@ void Node::pimplTorrentRemoved(const libtorrent::sha1_hash & info_hash) {
 
 void Node::pimplTorrentPluginStatusUpdate(const std::map<libtorrent::sha1_hash, extension::status::TorrentPlugin> & status) {
     emit torrentPluginStatusUpdate(status);
+}
+
+void Node::pimplAlertArrived(const libtorrent::alert * a) {
+    emit alertArrived(a);
 }
 
 void Node::libtorrent_alert_notification_entry_point() {

@@ -24,13 +24,15 @@ NodeImpl::NodeImpl(libtorrent::session * session,
                    const StartedListening & startedListening,
                    const AddedTorrent & addedTorrent,
                    const RemovedTorrent & removedTorrent,
-                   const TorrentPluginStatusUpdate & torrentPluginStatusUpdate)
+                   const TorrentPluginStatusUpdate & torrentPluginStatusUpdate,
+                   const AlertArrived & alertArrived)
     : _session(session)
     , _plugin(plugin)
     , _startedListening(startedListening)
     , _addedTorrent(addedTorrent)
     , _removedTorrent(removedTorrent)
-    , _torrentPluginStatusUpdate(torrentPluginStatusUpdate) {
+    , _torrentPluginStatusUpdate(torrentPluginStatusUpdate)
+    , _alertArrived(alertArrived) {
 }
 
 NodeImpl::~NodeImpl() {
@@ -167,9 +169,12 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::BuyerTermsUpdated const * p = libtorrent::alert_cast<extension::alert::BuyerTermsUpdated>(a))
         process(p);
+    else if(extension::alert::SellerTermsUpdated const * p = libtorrent::alert_cast<extension::alert::SellerTermsUpdated>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
+    _alertArrived(a);
 }
 
 void NodeImpl::process(const libtorrent::listen_succeeded_alert * p) {

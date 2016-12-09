@@ -61,6 +61,7 @@ struct NodeImpl {
     typedef std::function<void(core::Torrent * torrent)> AddedTorrent;
     typedef std::function<void(const libtorrent::sha1_hash &)> RemovedTorrent;
     typedef std::function<void(const std::map<libtorrent::sha1_hash, joystream::extension::status::TorrentPlugin>)> TorrentPluginStatusUpdate;
+    typedef std::function<void(const libtorrent::alert * )> AlertArrived;
 
     /// Callbacks provided by user on operations
     typedef std::function<void()> Paused;
@@ -70,7 +71,8 @@ struct NodeImpl {
              const StartedListening & startedListening,
              const AddedTorrent & addedTorrent,
              const RemovedTorrent & removedTorrent,
-             const TorrentPluginStatusUpdate & torrentPluginStatusUpdate);
+             const TorrentPluginStatusUpdate & torrentPluginStatusUpdate,
+             const AlertArrived & alertArrived);
 
     ~NodeImpl();
 
@@ -141,6 +143,7 @@ struct NodeImpl {
     void process(const extension::alert::ValidPaymentReceived * p);
     void process(const extension::alert::InvalidPaymentReceived * p);
     void process(const extension::alert::BuyerTermsUpdated * p);
+    void process(const extension::alert::SellerTermsUpdated * p);
 
     void process(const extension::alert::AnchorAnnounced * p);
 
@@ -158,6 +161,7 @@ struct NodeImpl {
     AddedTorrent _addedTorrent;
     RemovedTorrent _removedTorrent;
     TorrentPluginStatusUpdate _torrentPluginStatusUpdate;
+    AlertArrived _alertArrived;
 
     void removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it);
 

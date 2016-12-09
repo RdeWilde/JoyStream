@@ -148,6 +148,9 @@ signals:
     // Status update with all torrent plugins
     void torrentPluginStatusUpdate(const std::map<libtorrent::sha1_hash, extension::status::TorrentPlugin> &);
 
+    // A status arrived from libtorrent
+    void alertArrived(const libtorrent::alert *);
+
 private:
 
     // PIMPL
@@ -158,6 +161,7 @@ private:
     void pimplTorrentAdded(core::Torrent * torrent);
     void pimplTorrentRemoved(const libtorrent::sha1_hash & info_hash);
     void pimplTorrentPluginStatusUpdate(const std::map<libtorrent::sha1_hash, extension::status::TorrentPlugin> &);
+    void pimplAlertArrived(const libtorrent::alert *);
 
     // Entry point for callback from libtorrent, warning about 0->1 alert in queue.
     // NB: Do not under any circumstance have a call to libtorrent in this routine, since the network
