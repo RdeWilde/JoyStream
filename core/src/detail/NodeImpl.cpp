@@ -555,6 +555,12 @@ void NodeImpl::process(const extension::alert::PeerPluginRemoved * p) {
 
 }
 
+void NodeImpl::process(const extension::alert::ConnectionAddedToSession * p) {
+
+    if(core::PeerPlugin * plugin = getPeerPlugin(p->handle.info_hash(), p->ip))
+        emit plugin->connectionAdded(p->status);
+}
+
 void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {
 
     if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
