@@ -131,6 +131,7 @@ struct NodeImpl {
     void process(const extension::alert::PeerPluginAdded * p);
     void process(const extension::alert::PeerPluginRemoved * p);
     void process(const extension::alert::ConnectionAddedToSession * p);
+    void process(const extension::alert::ConnectionRemovedFromSession * p);
 
     void process(const extension::alert::AnchorAnnounced * p);
 
