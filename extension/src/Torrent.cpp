@@ -1,4 +1,6 @@
-#include "extension/Torrent.hpp"
+#include <libtorrent/sha1_hash.hpp>
+
+#include <extension/Torrent.hpp>
 
 namespace joystream {
 namespace extension {

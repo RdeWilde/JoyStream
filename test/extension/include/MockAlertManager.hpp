@@ -5,8 +5,8 @@
 
 #include <libtorrent/socket.hpp>
 
-#include "extension/alert.hpp"
-#include "extension/interface/AlertManagerInterface.hpp"
+#include <extension/alert.hpp>
+#include <extension/interface/AlertManagerInterface.hpp>
 
 namespace joystream {
 namespace test {
