@@ -175,6 +175,8 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::SentPayment const * p = libtorrent::alert_cast<extension::alert::SentPayment>(a))
         process(p);
+    else if(extension::alert::LastPaymentReceived const * p = libtorrent::alert_cast<extension::alert::LastPaymentReceived>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
@@ -678,6 +680,12 @@ void NodeImpl::process(const extension::alert::SentPayment * p) {
 
     if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
         emit plugin->sentPayment(p);
+}
+
+void NodeImpl::process(const extension::alert::LastPaymentReceived * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->lastPaymentReceived(p);
 }
 
 void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {

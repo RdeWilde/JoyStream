@@ -123,6 +123,8 @@ signals:
 
     void sentPayment(const extension::alert::SentPayment * p);
 
+    void lastPaymentReceived(const extension::alert::LastPaymentReceived *);
+
 private:
 
     friend struct detail::NodeImpl;

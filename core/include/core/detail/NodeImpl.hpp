@@ -146,6 +146,7 @@ struct NodeImpl {
     void process(const extension::alert::SellerTermsUpdated * p);
     void process(const extension::alert::ContractConstructed * p);
     void process(const extension::alert::SentPayment * p);
+    void process(const extension::alert::LastPaymentReceived * p);
 
     void process(const extension::alert::AnchorAnnounced * p);
 
