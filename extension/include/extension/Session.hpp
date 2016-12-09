@@ -1,7 +1,6 @@
 #ifndef JOYSTREAM_EXTENSION_SESSION_HPP
 #define JOYSTREAM_EXTENSION_SESSION_HPP
 
-#include <extension/Torrent.hpp>
 #include <extension/interface/SessionInterface.hpp>
 
 namespace libtorrent {
@@ -15,6 +14,8 @@ namespace libtorrent {
 namespace joystream {
 namespace extension {
 
+class Torrent;
+
 class Session : public interface::SessionInterface {
 public:
     Session(const libtorrent::session_handle& sh);
@@ -22,8 +23,8 @@ public:
 
     virtual void pause();
     virtual void resume();
-    virtual Torrent* add(libtorrent::add_torrent_params const &params);
     virtual Torrent* find(libtorrent::sha1_hash const &info_hash) const;
+    virtual Torrent* add(libtorrent::add_torrent_params const &params);
 
     virtual libtorrent::session_handle native_handle() const;
 

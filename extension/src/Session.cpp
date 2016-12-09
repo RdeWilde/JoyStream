@@ -1,4 +1,5 @@
 #include <extension/Session.hpp>
+#include <extension/Torrent.hpp>
 
 namespace joystream {
 namespace extension {
@@ -18,16 +19,16 @@ void Session::resume()
     _sessionHandle.resume();
 }
 
-Torrent* Session::add(libtorrent::add_torrent_params const &p)
+Torrent* Session::find(libtorrent::sha1_hash const &info_hash) const
 {
-    const libtorrent::torrent_handle tor = _sessionHandle.add_torrent(p);
+    const libtorrent::torrent_handle tor = _sessionHandle.find_torrent(info_hash);
     Torrent *t = new Torrent(tor);
     return t;
 }
 
-Torrent* Session::find(libtorrent::sha1_hash const &info_hash) const
+Torrent* Session::add(libtorrent::add_torrent_params const &p)
 {
-    const libtorrent::torrent_handle tor = _sessionHandle.find_torrent(info_hash);
+    const libtorrent::torrent_handle tor = _sessionHandle.add_torrent(p);
     Torrent *t = new Torrent(tor);
     return t;
 }
