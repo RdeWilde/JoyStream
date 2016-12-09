@@ -499,6 +499,42 @@ void NodeImpl::process(const extension::alert::PeerPluginStatusUpdateAlert * p) 
     }
 }
 
+void NodeImpl::process(const extension::alert::TorrentPluginAdded * p) {
+
+    /// Add the corresponding torrent.
+    // We ignore the libtorrent::add_torrent_alert.
+
+    libtorrent::sha1_hash infoHash = p->handle.info_hash();
+
+    assert(getTorrent(infoHash) == nullptr);
+
+    // Create torrent
+    auto t = new Torrent(p->handle, std::vector<char>(), _plugin);
+
+    // add to map
+    _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(t)));
+
+    // send notification signal
+    _addedTorrent(t);
+
+    /// Add torrent plugin
+    t->addTorrentPlugin(p->status);
+}
+
+void NodeImpl::process(const extension::alert::TorrentPluginRemoved * p) {
+
+    libtorrent::sha1_hash infoHash = p->handle.info_hash();
+
+    /// We remain agnostic
+
+    if(core::Torrent * t = getTorrent(infoHash)) {
+
+        if(t->torrentPluginSet())
+            t->removeTorrentPlugin();
+    }
+
+}
+
 void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {
 
     if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))

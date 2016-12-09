@@ -126,6 +126,7 @@ struct NodeImpl {
     void process(const extension::alert::RequestResult * p);
     void process(const extension::alert::TorrentPluginStatusUpdateAlert * p);
     void process(const extension::alert::PeerPluginStatusUpdateAlert * p);
+    void process(const extension::alert::TorrentPluginAdded * p);
 
     void process(const extension::alert::AnchorAnnounced * p);
 
