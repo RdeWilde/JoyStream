@@ -1,6 +1,8 @@
 #ifndef JOYSTREAM_EXTENSION_PEER_HPP
 #define JOYSTREAM_EXTENSION_PEER_HPP
 
+#include <libtorrent/peer_connection_handle.hpp>
+
 #include <extension/interface/PeerInterface.hpp>
 
 namespace libtorrent {

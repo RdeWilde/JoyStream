@@ -1,14 +1,6 @@
 #ifndef JOYSTREAM_EXTENSION_INTERFACE_ALERT_MANAGER_INTERFACE_HPP
 #define JOYSTREAM_EXTENSION_INTERFACE_ALERT_MANAGER_INTERFACE_HPP
 
-#include <libtorrent/socket.hpp>
-#include <libtorrent/alert.hpp>
-#include <libtorrent/alert_manager.hpp>
-#include <libtorrent/torrent_handle.hpp>
-
-#include <extension/Alert.hpp>
-#include <extension/Plugin.hpp>
-
 namespace libtorrent {
     class alert;
     class alert_manager;

@@ -1,6 +1,9 @@
 #ifndef JOYSTREAM_EXTENSION_SESSION_HPP
 #define JOYSTREAM_EXTENSION_SESSION_HPP
 
+// NOTE: Covariant return types are incompatible with forward declarations.
+//       Hence, we include Torrent.hpp instead of forward declaring the same.
+#include <extension/Torrent.hpp>
 #include <extension/interface/SessionInterface.hpp>
 
 namespace libtorrent {
@@ -13,8 +16,6 @@ namespace libtorrent {
 
 namespace joystream {
 namespace extension {
-
-class Torrent;
 
 class Session : public interface::SessionInterface {
 public:

@@ -1,3 +1,8 @@
+#include <libtorrent/peer_id.hpp>
+#include <libtorrent/peer_info.hpp>
+#include <libtorrent/error_code.hpp>
+#include <libtorrent/operations.hpp>
+
 #include <extension/Peer.hpp>
 
 namespace joystream {

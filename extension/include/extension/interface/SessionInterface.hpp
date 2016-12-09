@@ -1,11 +1,6 @@
 #ifndef JOYSTREAM_EXTENSION_INTERFACE_SESSION_INTERFACE_HPP
 #define JOYSTREAM_EXTENSION_INTERFACE_SESSION_INTERFACE_HPP
 
-#include <libtorrent/sha1_hash.hpp>
-#include <libtorrent/torrent_handle.hpp>
-#include <libtorrent/session_handle.hpp>
-#include <libtorrent/add_torrent_params.hpp>
-
 namespace libtorrent {
     class sha1_hash;
 
@@ -26,7 +21,7 @@ public:
     virtual void resume() = 0;
 
     virtual libtorrent::session_handle native_handle() = 0;
-    virtual TorrentInterface* find(libtorrent::sha1_hash const &info_hash) = 0;
+    virtual TorrentInterface* find(libtorrent::sha1_hash const &info_hash) const = 0;
     virtual TorrentInterface* add(libtorrent::add_torrent_params const &params) = 0;
 
     virtual ~SessionInterface() {}

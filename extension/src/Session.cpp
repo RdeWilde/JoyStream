@@ -1,5 +1,9 @@
+#include <libtorrent/sha1_hash.hpp>
+#include <libtorrent/session_handle.hpp>
+#include <libtorrent/torrent_handle.hpp>
+#include <libtorrent/add_torrent_params.hpp>
+
 #include <extension/Session.hpp>
-#include <extension/Torrent.hpp>
 
 namespace joystream {
 namespace extension {

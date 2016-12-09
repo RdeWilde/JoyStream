@@ -1,6 +1,8 @@
 #ifndef JOYSTREAM_EXTENSION_TORRENT_HPP
 #define JOYSTREAM_EXTENSION_TORRENT_HPP
 
+#include <libtorrent/torrent_handle.hpp>
+
 #include <extension/interface/TorrentInterface.hpp>
 
 namespace libtorrent {

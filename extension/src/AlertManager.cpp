@@ -1,3 +1,10 @@
+#include <libtorrent/socket.hpp>
+#include <libtorrent/alert.hpp>
+#include <libtorrent/alert_manager.hpp>
+#include <libtorrent/torrent_handle.hpp>
+
+#include <extension/Alert.hpp>
+#include <extension/Plugin.hpp>
 #include <extension/AlertManager.hpp>
 
 namespace joystream {
