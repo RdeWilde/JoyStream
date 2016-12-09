@@ -543,6 +543,18 @@ void NodeImpl::process(const extension::alert::PeerPluginAdded * p) {
     }
 
 }
+
+void NodeImpl::process(const extension::alert::PeerPluginRemoved * p) {
+
+    if(core::Peer * peer = getPeer(p->handle.info_hash(), p->ip)) {
+
+        assert(peer->peerPluginSet());
+
+        peer->removePeerPlugin();
+    }
+
+}
+
 void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {
 
     if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
