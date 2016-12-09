@@ -137,6 +137,8 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::PeerPluginStatusUpdateAlert const * p = libtorrent::alert_cast<extension::alert::PeerPluginStatusUpdateAlert>(a))
         process(p);
+    else if(extension::alert::TorrentPluginAdded const * p = libtorrent::alert_cast<extension::alert::TorrentPluginAdded>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
