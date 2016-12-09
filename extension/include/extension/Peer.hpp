@@ -1,7 +1,9 @@
 #ifndef JOYSTREAM_EXTENSION_PEER_HPP
 #define JOYSTREAM_EXTENSION_PEER_HPP
 
-#include "PeerInterface.hpp"
+#include <libtorrent/peer_connection_handle.hpp>
+
+#include <extension/interface/PeerInterface.hpp>
 
 namespace libtorrent {
     enum operation_t;

@@ -1,8 +1,10 @@
 #ifndef JOYSTREAM_EXTENSION_SESSION_HPP
 #define JOYSTREAM_EXTENSION_SESSION_HPP
 
-#include "SessionInterface.hpp"
-#include "Torrent.hpp"
+// NOTE: Covariant return types are incompatible with forward declarations.
+//       Hence, we include Torrent.hpp instead of forward declaring the same.
+#include <extension/Torrent.hpp>
+#include <extension/interface/SessionInterface.hpp>
 
 namespace libtorrent {
     class sha1_hash;
@@ -22,8 +24,8 @@ public:
 
     virtual void pause();
     virtual void resume();
-    virtual Torrent* add(libtorrent::add_torrent_params const &params);
     virtual Torrent* find(libtorrent::sha1_hash const &info_hash) const;
+    virtual Torrent* add(libtorrent::add_torrent_params const &params);
 
     virtual libtorrent::session_handle native_handle() const;
 
