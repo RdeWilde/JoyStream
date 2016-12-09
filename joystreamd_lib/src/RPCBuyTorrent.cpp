@@ -18,6 +18,7 @@ void RPCBuyTorrent::process()
 {
     new RPCBuyTorrent(service_, cq_, appKit_);
 
+    libtorrent::sha1_hash infohash = joystream::appkit::util::sha1_hash_from_hex_string(request_.infohash().c_str());
 
     joystream::protocol_session::BuyingPolicy buyingPolicy(request_.secondsbeforecreatingcontract(),
                                                            request_.secondsbeforepiecetimeout(),
@@ -25,7 +26,7 @@ void RPCBuyTorrent::process()
 
     joystream::protocol_wire::BuyerTerms buyerTerms(request_.price(), request_.locktime(), request_.nsellers(), request_.contractfeerate());
 
-    auto buyResult = appKit_->buyTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), buyingPolicy, buyerTerms);
+    auto buyResult = appKit_->buyTorrent(infohash, buyingPolicy, buyerTerms, joystream::protocol_session::SessionState::started);
     QObject::connect(buyResult.get(), &joystream::appkit::WorkerResult::finished, [this, buyResult](){
         joystream::daemon::rpc::Void response;
 

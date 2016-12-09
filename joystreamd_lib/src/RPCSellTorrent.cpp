@@ -19,10 +19,12 @@ void RPCSellTorrent::process()
     new RPCSellTorrent(service_, cq_, appKit_);
 
     joystream::protocol_session::SellingPolicy sellingPolicy;
+    libtorrent::sha1_hash infohash = joystream::appkit::util::sha1_hash_from_hex_string(request_.infohash().c_str());
 
     joystream::protocol_wire::SellerTerms sellerTerms(request_.minprice(), request_.minlock(), request_.maxsellers(), request_.mincontractfeeperkb(), request_.settlementfee());
+    //joystream::protocol_wire::SellerTerms sellerTerms(100,5,1,20000,5000);
 
-    auto sellResult = appKit_->sellTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), sellingPolicy, sellerTerms);
+    auto sellResult = appKit_->sellTorrent(infohash, sellingPolicy, sellerTerms, joystream::protocol_session::SessionState::started);
     QObject::connect(sellResult.get(), &joystream::appkit::WorkerResult::finished, [this, sellResult](){
         joystream::daemon::rpc::Void response;
 
