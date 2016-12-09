@@ -259,28 +259,23 @@ void NodeImpl::process(const libtorrent::add_torrent_alert * p) {
     // Did adding succeed?
     if(!p->error) {
 
-        // Get torrent info_hash
-        libtorrent::torrent_handle h = p->handle;
-        libtorrent::sha1_hash infoHash = h.info_hash();
+        libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
-        if(infoHash.is_all_zeros()) {
-            std::clog << "Added torrent has already expired." << std::endl;
-            return;
-        }
+        core::Torrent * torrent = getTorrent(p->handle.info_hash());
 
-        // This should always hold, as the latter of two outstanding
-        // add_torrent_async call will have its add_torrent_alert::error value set.
-        assert(_torrents.count(infoHash) == 0);
+        if(torrent == nullptr) {
 
+            // Create torrent
+            torrent = new Torrent(p->handle, p->params.resume_data, _plugin);
 
-        // Create torrent
-        auto t = new Torrent(h, p->params.resume_data, _plugin);
+            // add to map
+            _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(torrent)));
 
-        // add to map
-        _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(t)));
+            // send notification signal
+            _addedTorrent(torrent);
 
-        // send notification signal
-        _addedTorrent(t);
+        } else
+            torrent->_resumeData = p->params.resume_data;
 
         std::clog << "Adding torrent succeeded." << std::endl;
     } else
