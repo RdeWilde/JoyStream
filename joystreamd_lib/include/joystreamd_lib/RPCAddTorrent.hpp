@@ -14,6 +14,14 @@ class RPCAddTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joys
         RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::appkit::AppKit* appKit, std::string defaultSavePath);
         void process();
 
+    public slots:
+        /**
+         * @brief torrentAdded slot. Will
+         * send the final message to the client.
+         */
+        void torrentAdded();
+
+
     private:
         joystream::appkit::AppKit* appKit_;
         std::string defaultSavePath_;

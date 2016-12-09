@@ -6,23 +6,27 @@ RPCSellTorrent::RPCSellTorrent(joystream::daemon::rpc::Daemon::AsyncService* ser
     service_->RequestSellTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
+RPCSellTorrent::sellingModeActivated()
+{
+    joystream::daemon::rpc::Void response;
+
+    /*if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
+        this->finish(response, false);
+        return;
+    }*/
+    std::cout << "Selling Torrent" << std::endl;
+    this->finish(response, true);
+}
+
 void RPCSellTorrent::process()
 {
-    // Pop up a new instance for concurency
     new RPCSellTorrent(service_, cq_, appKit_);
-
-    std::shared_ptr<joystream::appkit::WorkerResult> workerResult;
 
     joystream::protocol_session::SellingPolicy sellingPolicy;
 
     joystream::protocol_wire::SellerTerms sellerTerms(request_.minprice(), request_.minlock(), request_.maxsellers(), request_.mincontractfeeperkb(), request_.settlementfee());
 
-    workerResult = appKit_->sellTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), sellingPolicy, sellerTerms);
-    std::cout << "We are selling the torrent" << std::endl;
-    QObject::connect(workerResult.get(), &joystream::appkit::WorkerResult::finished, this, [this](){
-        joystream::daemon::rpc::Void response;
-
-        this->finish(response, true);
-    });
+    auto sellResult = appKit_->sellTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), sellingPolicy, sellerTerms);
+    QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, this, &RPCSellTorrent::sellingModeActivated);
 
 }

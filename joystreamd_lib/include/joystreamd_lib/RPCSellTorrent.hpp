@@ -11,6 +11,13 @@ class RPCSellTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joy
         RPCSellTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::appkit::AppKit* appKit);
         void process();
 
+    public slots:
+        /**
+         * @brief sellingModeActivated slot. Will
+         * send the final message to the client.
+         */
+        void sellingModeActivated();
+
     private:
         joystream::appkit::AppKit* appKit_;
 };

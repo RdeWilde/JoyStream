@@ -11,6 +11,13 @@ class RPCBuyTorrent : public RPCRequestNormal<joystream::daemon::rpc::Void, joys
         RPCBuyTorrent(joystream::daemon::rpc::Daemon::AsyncService* service, grpc::ServerCompletionQueue* cq, joystream::appkit::AppKit* appKit);
         void process();
 
+    public slots:
+        /**
+         * @brief buyingModeActivated slot. Will
+         * send the final message to the client.
+         */
+        void buyingModeActivated();
+
     private:
         joystream::appkit::AppKit* appKit_;
 };

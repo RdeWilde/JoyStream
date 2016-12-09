@@ -6,12 +6,21 @@ RPCBuyTorrent::RPCBuyTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
     service_->RequestBuyTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
+RPCBuyTorrent::buyingModeActivated()
+{
+    joystream::daemon::rpc::Void response;
+
+    /*if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
+        this->finish(response, false);
+        return;
+    }*/
+    std::cout << "Buying Torrent" << std::endl;
+    this->finish(response, true);
+}
+
 void RPCBuyTorrent::process()
 {
-    // Pop up a new instance for concurency
     new RPCBuyTorrent(service_, cq_, appKit_);
-
-    std::shared_ptr<joystream::appkit::WorkerResult> workerResult;
 
 
     joystream::protocol_session::BuyingPolicy buyingPolicy(request_.secondsbeforecreatingcontract(),
@@ -20,11 +29,7 @@ void RPCBuyTorrent::process()
 
     joystream::protocol_wire::BuyerTerms buyerTerms(request_.price(), request_.locktime(), request_.nsellers(), request_.contractfeerate());
 
-    workerResult = appKit_->buyTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), buyingPolicy, buyerTerms);
-        std::cout << "We are buying the torrent" << std::endl;
-        QObject::connect(workerResult.get(), &joystream::appkit::WorkerResult::finished, this, [this](){
-            joystream::daemon::rpc::Void response;
-
-            this->finish(response, true);
-        });
+    auto buyResult = appKit_->buyTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), buyingPolicy, buyerTerms);
+    std::cout << "We are buying the torrent" << std::endl;
+    QObject::connect(buyResult.get(), &joystream::appkit::WorkerResult::finished, this, &RPCBuyTorrent::buyingModeActivated);
 }

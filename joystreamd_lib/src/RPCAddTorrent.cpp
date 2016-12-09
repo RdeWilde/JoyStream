@@ -6,20 +6,26 @@ RPCAddTorrent::RPCAddTorrent(joystream::daemon::rpc::Daemon::AsyncService* servi
     service_->RequestAddTorrent(&ctx_, &request_, &responder_, cq_, cq_, this);
 }
 
+RPCAddTorrent::torrentAdded()
+{
+    joystream::daemon::rpc::Void response;
+
+    /*if(addResult->getError() != joystream::appkit::WorkerResult::Error::NoError) {
+        this->finish(response, false);
+        return;
+    }*/
+    std::cout << "Torrent Added" << std::endl;
+    this->finish(response, true);
+}
+
 void RPCAddTorrent::process()
 {
-    // Pop up a new instance for concurency
+
     new RPCAddTorrent(service_, cq_, appKit_, defaultSavePath_);
 
     joystream::daemon::rpc::Void response;
-    std::shared_ptr<joystream::appkit::WorkerResult> workerResult;
 
     std::string save_path = defaultSavePath_;
-    std::vector<char> resume_data = std::vector<char>();
-    std::string name;
-    boost::optional<uint> upload_limit = -1;
-    boost::optional<uint> download_limit = -1;
-    bool paused = 0;
     joystream::core::TorrentIdentifier* torrent_identifier;
 
     switch (request_.type()) {
@@ -38,13 +44,12 @@ void RPCAddTorrent::process()
     std::cout << "We are adding the torrent" << std::endl;
 
     // if torrent_identifier not nullptr it means that hash was correct
-    if (torrent_identifier != nullptr) {
-        workerResult = appKit_->addTorrent(torrent_identifier, save_path);
-        QObject::connect(workerResult.get(), &joystream::appkit::WorkerResult::finished, this, [this](){
-            joystream::daemon::rpc::Void response;
-            std::cout << "Torrent Added" << std::endl;
-            this->finish(response, true);
-        });
+    if (torrent_identifier) {
+        std::cout << "Torrent InfoHash: " << torrent_identifier->infoHash() << std::endl;
+
+        auto addResult = appKit_->addTorrent(*torrent_identifier, save_path);
+        delete torrent_identifier;
+        QObject::connect(addResult.get(), &joystream::appkit::WorkerResult::finished, this, &RPCAddTorrent::torrentAdded);
     } else {
         this->finish(response, false);
     }
