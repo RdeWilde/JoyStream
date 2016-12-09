@@ -42,7 +42,8 @@ SOURCES += \
     src/RPCBuyTorrent.cpp \
     src/RPCSuscribeEvents.cpp \
     src/RPCGetTorrentState.cpp \
-    src/RPCSellTorrent.cpp
+    src/RPCSellTorrent.cpp \
+    src/RPCSyncWallet.cpp
 
 HEADERS += \
     include/joystreamd_lib/RPCRequestNormal.hpp \
@@ -66,7 +67,8 @@ HEADERS += \
     include/joystreamd_lib/RPCBuyTorrent.hpp \
     include/joystreamd_lib/RPCSuscribeEvents.hpp \
     include/joystreamd_lib/RPCGetTorrentState.hpp \
-    include/joystreamd_lib/RPCSellTorrent.hpp
+    include/joystreamd_lib/RPCSellTorrent.hpp \
+    include/joystreamd_lib/RPCSyncWallet.hpp
 
 # gRPC and protocol buffers libs
 LIBS += -lgrpc++ -lgrpc -lgpr -lgrpc++_reflection -lprotobuf

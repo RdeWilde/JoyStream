@@ -7,6 +7,7 @@ service Wallet {
   rpc Balance(Void) returns (BTCAmount) {}
   rpc UnconfirmedBalance(Void) returns (BTCAmount) {}
   rpc Status(Void) returns (WalletStatus) {}
+  rpc SyncWallet(Void) returns (Void) {}
   rpc SuscribeStatus(Void) returns (stream WalletStatus) {}
 }
 

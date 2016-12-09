@@ -22,6 +22,7 @@
 #include <joystreamd_lib/RPCGetTorrentState.hpp>
 #include <joystreamd_lib/RPCBuyTorrent.hpp>
 #include <joystreamd_lib/RPCSellTorrent.hpp>
+#include <joystreamd_lib/RPCSyncWallet.hpp>
 
 class ServerImpl final
 {

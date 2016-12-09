@@ -15,7 +15,7 @@ void RPCSellTorrent::process()
 
     joystream::protocol_session::SellingPolicy sellingPolicy;
 
-    joystream::protocol_wire::SellerTerms sellerTerms(100, 5, 1, 20000, 5000);
+    joystream::protocol_wire::SellerTerms sellerTerms(request_.minprice(), request_.minlock(), request_.maxsellers(), request_.mincontractfeeperkb(), request_.settlementfee());
 
     workerResult = appKit_->sellTorrent(libtorrent::sha1_hash(request_.infohash().c_str()), sellingPolicy, sellerTerms);
     std::cout << "We are selling the torrent" << std::endl;

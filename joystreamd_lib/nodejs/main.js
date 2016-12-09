@@ -12,7 +12,12 @@ var torrent = {
 }
 
 var sellTorrentRequest = {
-	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1'
+	'infohash': 'd59e6da0de8f5382f067e07375c262f15570a8f1',
+	'minPrice': 100,
+	'minLock': 5,
+	'maxSellers': 1,
+	'minContractFeePerKb': 20000,
+	'settlementFee': 5000
 }
 
 app.listen(3000, function () {

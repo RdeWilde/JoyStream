@@ -56,6 +56,7 @@ void ServerImpl::Run(std::string port, std::string defaultPath)
     new RPCGetTorrentState(&daemonService_, cq_.get(), kit_->node());
     new RPCBuyTorrent(&daemonService_, cq_.get(), kit_);
     new RPCSellTorrent(&daemonService_, cq_.get(), kit_);
+    new RPCSyncWallet(&walletService_, cq_.get(), kit_);
 
     // Initiate Wallet Service methods
     new RPCReceivedAddress(&walletService_, cq_.get(), kit_->wallet());
