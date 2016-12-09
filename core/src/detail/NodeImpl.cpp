@@ -139,6 +139,22 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::TorrentPluginAdded const * p = libtorrent::alert_cast<extension::alert::TorrentPluginAdded>(a))
         process(p);
+    else if(extension::alert::TorrentPluginRemoved const * p = libtorrent::alert_cast<extension::alert::TorrentPluginRemoved>(a))
+        process(p);
+    else if(extension::alert::PeerPluginAdded const * p = libtorrent::alert_cast<extension::alert::PeerPluginAdded>(a))
+        process(p);
+    else if(extension::alert::PeerPluginRemoved const * p = libtorrent::alert_cast<extension::alert::PeerPluginRemoved>(a))
+        process(p);
+    else if(extension::alert::ConnectionAddedToSession const * p = libtorrent::alert_cast<extension::alert::ConnectionAddedToSession>(a))
+        process(p);
+    else if(extension::alert::ConnectionRemovedFromSession const * p = libtorrent::alert_cast<extension::alert::ConnectionRemovedFromSession>(a))
+        process(p);
+    else if(extension::alert::SessionStarted const * p = libtorrent::alert_cast<extension::alert::SessionStarted>(a))
+        process(p);
+    else if(extension::alert::SessionPaused const * p = libtorrent::alert_cast<extension::alert::SessionPaused>(a))
+        process(p);
+    else if(extension::alert::SessionStopped const * p = libtorrent::alert_cast<extension::alert::SessionStopped>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
