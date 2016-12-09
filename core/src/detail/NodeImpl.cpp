@@ -161,6 +161,12 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::SessionToBuyMode const * p = libtorrent::alert_cast<extension::alert::SessionToBuyMode>(a))
         process(p);
+    else if(extension::alert::ValidPaymentReceived const * p = libtorrent::alert_cast<extension::alert::ValidPaymentReceived>(a))
+        process(p);
+    else if(extension::alert::InvalidPaymentReceived const * p = libtorrent::alert_cast<extension::alert::InvalidPaymentReceived>(a))
+        process(p);
+    else if(extension::alert::BuyerTermsUpdated const * p = libtorrent::alert_cast<extension::alert::BuyerTermsUpdated>(a))
+        process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
@@ -626,6 +632,25 @@ void NodeImpl::process(const extension::alert::SessionToBuyMode * p) {
     if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
         emit plugin->sessionToBuyMode(p);
 
+}
+
+void NodeImpl::process(const extension::alert::ValidPaymentReceived * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->validPaymentReceived(p);
+
+}
+
+void NodeImpl::process(const extension::alert::InvalidPaymentReceived * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->invalidPaymentReceived(p);
+}
+
+void NodeImpl::process(const extension::alert::BuyerTermsUpdated * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->buyerTermsUpdated(p);
 }
 
 void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {

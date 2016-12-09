@@ -111,6 +111,12 @@ signals:
 
     void sessionToBuyMode(const extension::alert::SessionToBuyMode *);
 
+    void validPaymentReceived(const extension::alert::ValidPaymentReceived *);
+
+    void invalidPaymentReceived(const extension::alert::InvalidPaymentReceived *);
+
+    void buyerTermsUpdated(const extension::alert::BuyerTermsUpdated *);
+
 private:
 
     friend struct detail::NodeImpl;

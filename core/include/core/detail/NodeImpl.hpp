@@ -138,6 +138,9 @@ struct NodeImpl {
     void process(const extension::alert::SessionToObserveMode * p);
     void process(const extension::alert::SessionToSellMode * p);
     void process(const extension::alert::SessionToBuyMode * p);
+    void process(const extension::alert::ValidPaymentReceived * p);
+    void process(const extension::alert::InvalidPaymentReceived * p);
+    void process(const extension::alert::BuyerTermsUpdated * p);
 
     void process(const extension::alert::AnchorAnnounced * p);
 
