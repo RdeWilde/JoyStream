@@ -90,13 +90,16 @@ libtorrent::sha1_hash Torrent::infoHash() const noexcept {
 }
 
 libtorrent::sha1_hash Torrent::secondaryInfoHash() const noexcept {
-    const int length = _status.info_hash.size+3; // We will append 3 bytes: _JS
-    char newHash[length];
-    std::memcpy(newHash, _status.info_hash.data(), _status.info_hash.size);
-    newHash[length-1] = 'S';
-    newHash[length-2] = 'J';
-    newHash[length-3] = '_';
-    return libtorrent::hasher(newHash, length).final();
+
+    char newHash[libtorrent::sha1_hash::size + 3]; // We will append 3 bytes: _JS
+
+    std::memcpy(newHash, _infoHash.data(), libtorrent::sha1_hash::size);
+
+    newHash[libtorrent::sha1_hash::size - 1] = 'S';
+    newHash[libtorrent::sha1_hash::size - 2] = 'J';
+    newHash[libtorrent::sha1_hash::size - 3] = '_';
+
+    return libtorrent::hasher(newHash, libtorrent::sha1_hash::size).final();
 }
 
 std::map<libtorrent::tcp::endpoint, Peer *> Torrent::peers() const noexcept {
