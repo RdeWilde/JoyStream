@@ -22,7 +22,6 @@ SUBDIRS     = \
             runner \
             test \
             demo \
-            libtorrent_interface
 
 # ensure that the subdirectories are built in the order in which they are specified
 CONFIG += ordered

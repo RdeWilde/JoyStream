@@ -6,7 +6,7 @@
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
-#include "extension/interface/TorrentInterface.hpp"
+#include <extension/interface/TorrentInterface.hpp>
 
 namespace joystream {
 namespace test {

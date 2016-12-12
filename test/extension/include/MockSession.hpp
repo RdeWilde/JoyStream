@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 
-#include "extension/interface/SessionInterface.hpp"
+#include <extension/interface/SessionInterface.hpp>
 
 namespace joystream {
 namespace test {
@@ -14,8 +14,8 @@ public:
     MOCK_METHOD0(pause, void());
     MOCK_METHOD0(resume, void());
     MOCK_METHOD0(native_handle, libtorrent::session_handle());
-    MOCK_METHOD1(find, libtorrent_interface::TorrentInterface*(libtorrent::sha1_hash const &));
-    MOCK_METHOD1(add, libtorrent_interface::TorrentInterface*(libtorrent::add_torrent_params const &));
+    MOCK_METHOD1(find, interface::TorrentInterface*(libtorrent::sha1_hash const &));
+    MOCK_METHOD1(add, interface::TorrentInterface*(libtorrent::add_torrent_params const &));
 };
 
 }

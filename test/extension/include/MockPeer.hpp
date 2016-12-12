@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 
-#include "extension/interface/PeerInterface.hpp"
+#include <extension/interface/PeerInterface.hpp>
 
 namespace joystream {
 namespace test {

@@ -1,14 +1,6 @@
 #ifndef JOYSTREAM_EXTENSION_INTERFACE_PEER_INTERFACE_HPP
 #define JOYSTREAM_EXTENSION_INTERFACE_PEER_INTERFACE_HPP
 
-#include <boost/shared_ptr.hpp>
-
-#include <libtorrent/peer_id.hpp>
-#include <libtorrent/peer_info.hpp>
-#include <libtorrent/error_code.hpp>
-#include <libtorrent/operations.hpp>
-#include <libtorrent/peer_connection_handle.hpp>
-
 namespace libtorrent {
     enum operation_t;
 
