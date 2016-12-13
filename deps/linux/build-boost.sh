@@ -21,6 +21,7 @@ cd src/boost
   --layout=tagged \
   variant=release \
   cxxflags="-std=gnu++11" \
+  cflags="-fPIC" \
   --prefix=$PREFIX_PATH
 
 # Install to system /usr/local
