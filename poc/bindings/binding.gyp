@@ -3,7 +3,7 @@
         {
             "target_name": "NativeExtension",
             "sources": [ "cpp/NativeExtension.cc", "cpp/functions.cc", "../src/Session.cpp" ],
-            "cflags": ["-Wall", "-std=c++11"],
+            "cflags": ["-Wall", "-std=c++11", "-fPIC"],
             'cflags!': [ '-fno-exceptions' ],
             'cflags_cc!': [ '-fno-exceptions' ],
             "include_dirs" : [
@@ -64,16 +64,18 @@
                 [ 'OS=="linux"', {
                     "link_settings": {
                         "libraries": [
-                            "-lQtCore"
+                            "-lQt5Core"
                         ]
                     },
                     'library_dirs': [
-                       '${PWD}/../../deps/linux/dist/release/lib/', '/usr/local/lib',
+                       '${PWD}/../../deps/linux/dist/release/lib/',
+                       '/usr/local/lib',
+                       '<!(qmake -query QT_INSTALL_LIBS)/'
                     ],
                     "include_dirs" : [
                         "../../deps/linux/dist/release/include/",
                         "/usr/local/include/",
-                        "<!(qmake -query QT_INSTALL_HEADERS/QtCore/",
+                        "<!(qmake -query QT_INSTALL_HEADERS)/QtCore/",
                     ],
                 }]
             ],
