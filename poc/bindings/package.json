@@ -2,10 +2,10 @@
   "main": "index.js",
   "scripts": {
 
-    "configure-node": "node-gyp configure",
+    "configure-node": "node-gyp configure; sh config-qt-headers.sh",
     "build-node": "node-gyp rebuild",
 
-    "configure-electron": "HOME=~/.electron-gyp node-gyp configure --target=1.4.11 --dist-url=https://atom.io/download/electron",
+    "configure-electron": "HOME=~/.electron-gyp node-gyp configure --target=1.4.11 --dist-url=https://atom.io/download/electron; sh config-qt-headers.sh",
     "build-electron": "HOME=~/.electron-gyp node-gyp rebuild --target=1.4.11 --dist-url=https://atom.io/download/electron",
 
     "test": "mocha"

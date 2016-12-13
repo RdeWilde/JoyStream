@@ -9,9 +9,6 @@
             "include_dirs" : [
                 "<!(node -e \"require('nan')\")",
                 "../include/",
-                "../../deps/osx/dist/release/include/",
-                "/usr/local/include/",
-                "<!(qmake -query QT_INSTALL_LIBS)/QtCore.framework/Headers/",
                 "./qt_headers/"
             ],
             'defines': [
@@ -37,7 +34,7 @@
                 [ 'OS=="mac"', {
                     "xcode_settings": {
                         'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11','-stdlib=libc++'],
-                        'OTHER_LDFLAGS': ['-stdlib=libc++', "-L../../deps/osx/dist/release/lib/", "-F<!(qmake -query QT_INSTALL_LIBS)/"],
+                        'OTHER_LDFLAGS': ['-stdlib=libc++', "-F<!(qmake -query QT_INSTALL_LIBS)/"],
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
                         # 'LD_RUNPATH_SEARCH_PATHS': [
@@ -49,6 +46,14 @@
                             "QtCore.framework"
                         ]
                      },
+                     'library_dirs': [
+                        '${PWD}/../../deps/osx/dist/release/lib/', '/usr/local/lib',
+                     ],
+                     "include_dirs" : [
+                         "../../deps/osx/dist/release/include/",
+                         "/usr/local/include/",
+                         "<!(qmake -query QT_INSTALL_LIBS)/QtCore.framework/Headers/",
+                     ],
                      "postbuilds": [ {
                        'postbuild_name': 'Reconfigure @rpath',
                        'action': [
@@ -61,7 +66,15 @@
                         "libraries": [
                             "-lQtCore"
                         ]
-                    }
+                    },
+                    'library_dirs': [
+                       '${PWD}/../../deps/linux/dist/release/lib/', '/usr/local/lib',
+                    ],
+                    "include_dirs" : [
+                        "../../deps/linux/dist/release/include/",
+                        "/usr/local/include/",
+                        "<!(qmake -query QT_INSTALL_HEADERS/QtCore/",
+                    ],
                 }]
             ],
         },
