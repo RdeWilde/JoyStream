@@ -6,7 +6,7 @@
 class Session {
 public:
     Session();
-    libtorrent::session s;
+    libtorrent::session* s;
 };
 
 #endif
