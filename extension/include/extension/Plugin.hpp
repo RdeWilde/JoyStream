@@ -34,9 +34,17 @@ class Plugin : public libtorrent::plugin {
 
 public:
 
+    /**
+     * @brief Plugin
+     * @param minimumMessageId minimum BEP10 id for our plugin
+     * @param alertManager alert manager used to send alerts through
+     * @param session libtorrent session
+     * @param addedToSession whether plugin has been added to the session
+     */
     Plugin(uint minimumMessageId,
            libtorrent::alert_manager * alertManager = nullptr,
-           libtorrent::aux::session_impl * session = nullptr);
+           libtorrent::aux::session_impl * session = nullptr,
+           bool addedToSession = false);
 
     ~Plugin();
 

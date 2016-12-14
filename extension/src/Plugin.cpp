@@ -19,11 +19,12 @@ namespace extension {
 
 Plugin::Plugin(uint minimumMessageId,
                libtorrent::alert_manager * alertManager,
-               libtorrent::aux::session_impl * session)
+               libtorrent::aux::session_impl * session,
+               bool addedToSession)
     : _alertManager(alertManager)
     , _session(session)
     , _minimumMessageId(minimumMessageId)
-    , _addedToSession(false) {
+    , _addedToSession(addedToSession) {
 }
 
 Plugin::~Plugin() {
