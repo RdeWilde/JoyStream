@@ -35,6 +35,15 @@ class Plugin : public libtorrent::plugin {
 public:
 
     /**
+     * @brief Create plugin instance corresponding to given session
+     * @param minimumMessageId minimum BEP10 id for our plugin
+     * @param handle handle for session to which plugin will correspond
+     * @return plugin
+     */
+    boost::shared_ptr<extension::Plugin> create(uint minimumMessageId,
+                                                libtorrent::session_handle * handle);
+
+    /**
      * @brief Plugin
      * @param minimumMessageId minimum BEP10 id for our plugin
      * @param alertManager alert manager used to send alerts through

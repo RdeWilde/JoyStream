@@ -17,6 +17,17 @@
 namespace joystream {
 namespace extension {
 
+boost::shared_ptr<extension::Plugin> Plugin::create(uint minimumMessageId,
+                                                      libtorrent::session_handle * handle) {
+
+    extension::Plugin * p = new extension::Plugin(minimumMessageId,
+                                                  &handle->native_handle()->alerts(),
+                                                  handle->native_handle(),
+                                                  false);
+
+    return boost::shared_ptr<extension::Plugin>(p);
+}
+
 Plugin::Plugin(uint minimumMessageId,
                libtorrent::alert_manager * alertManager,
                libtorrent::aux::session_impl * session,
