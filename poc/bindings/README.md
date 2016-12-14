@@ -14,7 +14,7 @@ Build the joystream libraries and their dependencies before building the node mo
 
 ## Building For NodeJs
 
-To compile the extension run 
+To compile the extension run
 
 ```
 $ npm run configure-node
@@ -29,7 +29,7 @@ You can confirm everything built correctly by running:
 $ npm test
 ```
 
-or run the basic ap
+or run the basic app
 
 ```
 $ node examples/nodejs_app/basic.js
@@ -38,8 +38,13 @@ $ node examples/nodejs_app/basic.js
 ## Building For Electron
 
 Make sure to install electron 1.4.11
+
 ```
 $ npm -g install electron@1.4.11
+```
+
+Build and configure:
+
 ```
 $ npm run configure-electron
 $ npm run build-electron
