@@ -25,11 +25,24 @@ RequestVariantVisitor::RequestVariantVisitor(const std::map<libtorrent::sha1_has
 
 void RequestVariantVisitor::operator()(const request::Start & r) {
 
-    auto e = runTorrentPluginRequest(r.infoHash, [](const boost::shared_ptr<TorrentPlugin> & plugin) {
-        plugin->start();
-    });
+    alert::request_response::StartRequestResponse::Result response;
 
-    sendRequestResult(std::bind(r.handler, e));
+    auto it = _torrentPlugins->find(r.infoHash);
+
+    if(it == _torrentPlugins->cend())
+        response = alert::request_response::StartRequestResponse::Result::MissingTorrent;
+    else {
+
+        auto plugin = it->second.lock();
+
+        assert(plugin);
+
+        plugin->start();
+
+        response = alert::request_response::StartRequestResponse::Result::Started;
+    }
+
+    _alertManager->emplace_alert<alert::request_response::StartRequestResponse>(_requestIdentifier, response);
 }
 
 void RequestVariantVisitor::operator()(const request::Stop & r) {

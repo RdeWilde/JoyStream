@@ -20,6 +20,7 @@ namespace joystream {
 namespace extension {
 namespace request {
 
+
 // Identifies a spesific request, of any type, made to the plugin
 typedef uint32_t RequestIdentifier;
 
@@ -142,14 +143,11 @@ struct UpdateLibtorrentUploadBlocking {
 struct Start {
 
     Start() {}
-    Start(const libtorrent::sha1_hash & infoHash,
-          const SubroutineHandler & handler)
-        : infoHash(infoHash)
-        , handler(handler) {
+    Start(const libtorrent::sha1_hash & infoHash)
+        : infoHash(infoHash){
     }
 
     libtorrent::sha1_hash infoHash;
-    SubroutineHandler handler;
 };
 
 struct Stop {

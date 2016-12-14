@@ -39,18 +39,43 @@ namespace alert {
 
     typedef std::function<void()> LoadedCallback;
 
-    struct PluginRequestResponse {
+namespace request_response {
 
-        PluginRequestResponse(const request::RequestIdentifier & identifier)
+    struct RequestResponse {
+
+        RequestResponse(const request::RequestIdentifier & identifier)
             : identifier(identifier) {}
 
         const request::RequestIdentifier identifier;
     };
 
+    struct StartRequestResponse final : public libtorrent::alert, RequestResponse {
+
+        enum Result {
+            Started,
+            MissingTorrent
+        };
+
+        StartRequestResponse(libtorrent::aux::stack_allocator&,
+                             const request::RequestIdentifier & identifier,
+                             Result result)
+            : RequestResponse(identifier)
+            , result(result) {}
+
+        TORRENT_DEFINE_ALERT(Start, libtorrent::user_alert_id + 1)
+        static const int static_category = alert::status_notification;
+        virtual std::string message() const override {
+            return "Response for start request.";
+        }
+
+        Result result;
+    };
+}
+
     struct TorrentPluginStatusUpdateAlert final : public libtorrent::alert {
 
         TorrentPluginStatusUpdateAlert(libtorrent::aux::stack_allocator&,
-                                 const std::map<libtorrent::sha1_hash, status::TorrentPlugin> & statuses)
+                                       const std::map<libtorrent::sha1_hash, status::TorrentPlugin> & statuses)
             : statuses(statuses) {}
 
         TORRENT_DEFINE_ALERT(PluginStatus, libtorrent::user_alert_id + 1)
