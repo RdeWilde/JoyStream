@@ -20,6 +20,9 @@ namespace joystream {
 namespace extension {
 namespace request {
 
+// Identifies a spesific request, of any type, made to the plugin
+typedef uint32_t RequestIdentifier;
+
 /// All request classes must satisfy requirements for use with boost::variant.
 /// http://www.boost.org/doc/libs/1_55_0/doc/html/variant.html
 
