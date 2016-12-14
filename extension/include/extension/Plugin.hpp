@@ -40,8 +40,8 @@ public:
      * @param handle handle for session to which plugin will correspond
      * @return plugin
      */
-    boost::shared_ptr<extension::Plugin> create(uint minimumMessageId,
-                                                libtorrent::session_handle * handle);
+    static boost::shared_ptr<extension::Plugin> create(uint minimumMessageId,
+                                                       libtorrent::session_handle * handle);
 
     /**
      * @brief Plugin
