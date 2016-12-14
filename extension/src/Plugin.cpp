@@ -35,7 +35,8 @@ Plugin::Plugin(uint minimumMessageId,
     : _alertManager(alertManager)
     , _session(session)
     , _minimumMessageId(minimumMessageId)
-    , _addedToSession(addedToSession) {
+    , _addedToSession(addedToSession)
+    , _nextRequestIdentifier(0) {
 }
 
 Plugin::~Plugin() {
@@ -125,28 +126,32 @@ const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > & Plugin:
 
 void Plugin::processesRequestQueue() {
 
-    detail::RequestVariantVisitor visitor(this, _session, _alertManager);
+    while(true) {
 
-    // Synchronized dispatching of requests
-    _requestQueueMutex.lock();
+        detail::RequestFrame frame;
 
-    while(!_requestQueue.empty()) {
+        {
+            // Acquire lock to request queu
+            std::lock_guard<std::mutex> lock(_requestQueueMutex);
 
-        detail::RequestVariant v = _requestQueue.front();
-        _requestQueue.pop_front();
+            // If queue is empty, then we are done
+            if(_requestQueue.empty())
+                return;
 
-        // Unlock queue mutex for actual processing of request
-        _requestQueueMutex.unlock();
+            // Copy request at front of queue
+            frame = _requestQueue.front();
+
+            // Remove front of queue
+            _requestQueue.pop_front();
+        }
+
+        // Create visitor for request
+        detail::RequestVariantVisitor visitor(&_torrentPlugins, _session, _alertManager, frame.first);
 
         // Process by applying visitor
-        //boost::apply_visitor(visitor, v);
-        v.apply_visitor(visitor);
+        frame.second.apply_visitor(visitor);
 
-        // Relock for checking loop condition
-        _requestQueueMutex.lock();
     }
-
-    _requestQueueMutex.unlock();
 }
 
 }

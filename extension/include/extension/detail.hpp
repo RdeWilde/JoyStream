@@ -39,16 +39,17 @@ typedef boost::variant<request::Start,
                        request::PauseTorrent,
                        request::ResumeTorrent> RequestVariant;
 
+// A request and its identifier
+typedef std::pair<request::RequestIdentifier, RequestVariant> RequestFrame;
+
 class RequestVariantVisitor : public boost::static_visitor<> {
 
 public:
 
-    RequestVariantVisitor(Plugin * plugin,
+    RequestVariantVisitor(const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > * torrentPlugins,
                           libtorrent::aux::session_impl * session,
-                          libtorrent::alert_manager * alertManager)
-        : _plugin(plugin)
-        , _session(session)
-        , _alertManager(alertManager) {}
+                          libtorrent::alert_manager * alertManager,
+                          const request::RequestIdentifier & requestIdentifier);
 
     void operator()(const request::Start & r);
     void operator()(const request::Stop & r);
@@ -76,13 +77,17 @@ private:
     std::exception_ptr runTorrentPluginRequest(const libtorrent::sha1_hash &,
                                                const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const;
 
-    Plugin * _plugin;
+    // Map of torrent plugins
+    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > * const _torrentPlugins;
 
     // Internal session reference
     libtorrent::aux::session_impl * _session;
 
     // Alert manager for posting messages
     libtorrent::alert_manager * _alertManager;
+
+    // Identifier of request in question
+    request::RequestIdentifier _requestIdentifier;
 };
 
 }

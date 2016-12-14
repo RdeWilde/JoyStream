@@ -14,6 +14,15 @@ namespace joystream {
 namespace extension {
 namespace detail {
 
+RequestVariantVisitor::RequestVariantVisitor(const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > * torrentPlugins,
+                                             libtorrent::aux::session_impl * session,
+                                             libtorrent::alert_manager * alertManager,
+                                             const request::RequestIdentifier & requestIdentifier)
+    : _torrentPlugins(torrentPlugins)
+    , _session(session)
+    , _alertManager(alertManager)
+    , _requestIdentifier(requestIdentifier) {}
+
 void RequestVariantVisitor::operator()(const request::Start & r) {
 
     auto e = runTorrentPluginRequest(r.infoHash, [](const boost::shared_ptr<TorrentPlugin> & plugin) {
@@ -101,9 +110,7 @@ void RequestVariantVisitor::operator()(const request::PostTorrentPluginStatusUpd
     // Generate all statuses
     std::map<libtorrent::sha1_hash, status::TorrentPlugin> statuses;
 
-    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > torrentPlugins = _plugin->torrentPlugins();
-
-    for(auto m :torrentPlugins) {
+    for(auto m : *_torrentPlugins) {
 
         boost::shared_ptr<TorrentPlugin> torrentPlugin = m.second.lock();
 
@@ -120,12 +127,11 @@ void RequestVariantVisitor::operator()(const request::PostPeerPluginStatusUpdate
     /// TEMPORARY: FACTOR OUT LATER
 
     // Get torrent plugin
-    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > torrentPlugins = _plugin->torrentPlugins();
 
-    auto it = torrentPlugins.find(r._infoHash);
+    auto it = _torrentPlugins->find(r._infoHash);
 
     // If torrent has expired, we just ignore request
-    if(it == torrentPlugins.cend())
+    if(it == _torrentPlugins->cend())
         return;
 
     boost::shared_ptr<TorrentPlugin> torrentPlugin = it->second.lock();
@@ -158,9 +164,7 @@ void RequestVariantVisitor::operator()(const request::PostPeerPluginStatusUpdate
 void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r) {
 
     // Stop all torrent plugins which can be stopped
-    auto pluginMap = _plugin->torrentPlugins();
-
-    for(auto m : pluginMap) {
+    for(auto m : *_torrentPlugins) {
 
         boost::shared_ptr<TorrentPlugin> plugin = m.second.lock();
 
@@ -258,15 +262,13 @@ void RequestVariantVisitor::operator()(const request::ResumeTorrent & r) {
 std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorrent::sha1_hash & infoHash,
                                                                   const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const {
 
-    auto pluginMap = _plugin->torrentPlugins();
-
     // Make sure there is a torrent plugin for this torrent
-    auto it = pluginMap.find(infoHash);
+    auto it = _torrentPlugins->find(infoHash);
 
     std::exception_ptr e;
 
     // If there is no torrent plugin, then tell client
-    if(it == pluginMap.cend())
+    if(it == _torrentPlugins->cend())
         e = std::make_exception_ptr(exception::MissingTorrent());
     else {
 

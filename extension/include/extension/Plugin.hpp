@@ -65,17 +65,14 @@ public:
     virtual void save_state(libtorrent::entry & stateEntry) const;
     virtual void load_state(const libtorrent::bdecode_node &);
 
-    // Synchornized submittal of request, request
-    // object is not owned by plugin, is returned
-    // in response for associating responses to initial
-    // requests. Deeper association can be done by subclassing
-    // requests to have custome identification data.
-
+    /**
+     * @brief Thread safe submission of request to plugin(s).
+     *
+     * @param request request to be submitted, which has to be one among
+     * those found in the request namespace.
+     */
     template<class T>
-    void submit(const T &);
-
-    // Get map of weak torrent plugin references
-    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > & torrentPlugins() const noexcept;
+    request::RequestIdentifier submit(const T & request);
 
 private:
 
@@ -96,8 +93,11 @@ private:
     // Maps torrent hash to corresponding plugin
     std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > _torrentPlugins;
 
+    // Identifier to be assigned to the next request
+    request::RequestIdentifier _nextRequestIdentifier;
+
     // Request queue
-    std::deque<detail::RequestVariant> _requestQueue;
+    std::deque<detail::RequestFrame> _requestQueue;
 
     // Synchronization lock fo _requestQueue, coordinating
     // public ::submit() and private ::processesRequestQueue()
@@ -111,7 +111,7 @@ private:
 // These routines are templated, and therefore inlined
 
 template<class T>
-void Plugin::submit(const T & r) {
+request::RequestIdentifier Plugin::submit(const T & r) {
 
     // Put request in container variant
     detail::RequestVariant v;
@@ -120,10 +120,23 @@ void Plugin::submit(const T & r) {
     // Generates compile time guarantee that all submitted requests have been registered in variant
     v = r;
 
-    // Synchronized adding to back of queue
-    _requestQueueMutex.lock();
-    _requestQueue.push_back(v);
-    _requestQueueMutex.unlock();
+    request::RequestIdentifier id;
+
+    {
+        // Acquire lock to request queu
+        std::lock_guard<std::mutex> lock(_requestQueueMutex);
+
+        // Get next id
+        id = _nextRequestIdentifier;
+
+        // Insert into request queue
+        _requestQueue.push_back(detail::RequestFrame(id, v));
+
+        // update request identifier
+        _nextRequestIdentifier++;
+    }
+
+    return id;
 }
 
 }
