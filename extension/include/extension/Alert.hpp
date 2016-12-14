@@ -11,6 +11,7 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <extension/Status.hpp>
+#include <extension/Request.hpp>
 #include <exception>
 
 /**
@@ -37,6 +38,14 @@ namespace extension {
 namespace alert {
 
     typedef std::function<void()> LoadedCallback;
+
+    struct PluginRequestResponse {
+
+        PluginRequestResponse(const request::RequestIdentifier & identifier)
+            : identifier(identifier) {}
+
+        const request::RequestIdentifier identifier;
+    };
 
     struct TorrentPluginStatusUpdateAlert final : public libtorrent::alert {
 
