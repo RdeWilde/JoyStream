@@ -120,10 +120,6 @@ void Plugin::save_state(libtorrent::entry &) const {
 void Plugin::load_state(const libtorrent::bdecode_node &) {
 }
 
-const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > & Plugin::torrentPlugins() const noexcept {
-    return _torrentPlugins;
-}
-
 void Plugin::processesRequestQueue() {
 
     while(true) {
