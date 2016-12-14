@@ -1,4 +1,8 @@
 #include <joystream_libtorrent_session/Session.hpp>
+#include <openssl/crypto.h>
+#include <common/PrivateKey.hpp>
+#include <boost/shared_ptr.hpp>
+#include <extension/extension.hpp>
 
 #include <boost/asio/impl/src.hpp>
 
@@ -10,6 +14,14 @@ Session::Session() {
     if (ec) {
         fprintf(stderr, "failed to open listen socket: %s\n", ec.message().c_str());
     } else {
-        std::cout << "Created Session" << std::endl;
+        // Create and install plugin
+        boost::shared_ptr<joystream::extension::Plugin> plugin(new joystream::extension::Plugin([](const libtorrent::sha1_hash &, const Coin::Transaction & tx) -> void {}, 60));
+
+        // Add plugin extension
+        s->add_extension(boost::static_pointer_cast<libtorrent::plugin>(plugin));
     }
+
+    Coin::PrivateKey sk = Coin::PrivateKey::generate();
+
+    printf("OpenSSL version: %s\n", SSLeay_version(SSLEAY_VERSION));
 }

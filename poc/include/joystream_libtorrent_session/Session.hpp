@@ -3,6 +3,8 @@
 
 #include <libtorrent/session.hpp>
 
+#include <stdutils/uchar_vector.h>
+
 class Session {
 public:
     Session();
