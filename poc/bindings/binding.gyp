@@ -34,8 +34,6 @@
                     "-lprotocol_statemachine",
                     "-lprotocol_wire",
                     "-ltorrent",
-                    "-lboost_system",
-                    "-lboost_random",
                     "-lcommon",
                     "-lCoinCore",
                     # we need to link to openssl for electron (electron executable
@@ -60,6 +58,9 @@
                     },
                     "link_settings": {
                         "libraries": [
+                            "-lboost_chrono",
+                            "-lboost_random",
+                            "-lboost_system",
                             "QtCore.framework"
                         ]
                      },
@@ -91,6 +92,9 @@
                 [ 'OS=="linux"', {
                     "link_settings": {
                         "libraries": [
+                            "-lboost_chrono-mt",
+                            "-lboost_random-mt",
+                            "-lboost_system-mt",
                             "-lQt5Core"
                         ]
                     },
