@@ -3,13 +3,19 @@
         {
             "target_name": "NativeExtension",
             "sources": [ "cpp/NativeExtension.cc", "cpp/functions.cc", "../src/Session.cpp" ],
-            "cflags": ["-Wall", "-std=c++11", "-fPIC"],
-            'cflags!': [ '-fno-exceptions' ],
-            'cflags_cc!': [ '-fno-exceptions' ],
+            "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
+            'cflags!': [ '-fno-exceptions', '-fno-rtti' ],
+            'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ],
             "include_dirs" : [
                 "<!(node -e \"require('nan')\")",
                 "../include/",
-                "./qt_headers/"
+                "./qt_headers/",
+                "../../common/include",
+                "../../protocol_session/include",
+                "../../protocol_statemachine/include",
+                "../../protocol_wire/include",
+                "../../paymentchannel/include",
+                "../../extension/include",
             ],
             'defines': [
                 'TORRENT_DISABLE_GEO_IP',
@@ -22,12 +28,21 @@
             ],
             "link_settings": {
                 "libraries": [
+                    "-lpaymentchannel",
+                    "-lprotocol_wire",
+                    "-lprotocol_statemachine",
+                    "-lprotocol_session",
+                    "-lextension",
                     "-ltorrent",
                     "-lboost_system",
                     "-lboost_random",
-                    # we don't need them for node.js (might be required for electron build?)
-                    #"-lcrypto",
-                    #"-lssl",
+                    "-lcommon",
+                    "-lCoinCore",
+                    # we need to link to openssl for electron (electron executable
+                    # does not export openssl symbols) - nodejs exports openssl symbols
+                    # we should ensure we use the headers for the same version
+                    "-lcrypto",
+                    "-lssl",
                 ]
             },
             "conditions": [
@@ -36,10 +51,12 @@
                         'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11','-stdlib=libc++'],
                         'OTHER_LDFLAGS': ['-stdlib=libc++', "-F<!(qmake -query QT_INSTALL_LIBS)/"],
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
-                        # 'LD_RUNPATH_SEARCH_PATHS': [
-                        #     "./Frameworks"
-                        # ],
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'GCC_ENABLE_CPP_RTTI': '-frtti',
+                        'LD_RUNPATH_SEARCH_PATHS': [
+                             "<!(qmake -query QT_INSTALL_LIBS)/",
+                             "@loader_path/../../Frameworks/"
+                        ],
                     },
                     "link_settings": {
                         "libraries": [
@@ -47,17 +64,27 @@
                         ]
                      },
                      'library_dirs': [
-                        '${PWD}/../../deps/osx/dist/release/lib/', '/usr/local/lib',
+                        '${PWD}/../../build/osx/common/',
+                        '${PWD}/../../build/osx/protocol_session/',
+                        '${PWD}/../../build/osx/protocol_wire/',
+                        '${PWD}/../../build/osx/protocol_statemachine/',
+                        '${PWD}/../../build/osx/paymentchannel/',
+                        '${PWD}/../../build/osx/extension/',
+                        '${PWD}/../../deps/osx/dist/release/lib/',
+                        "${PWD}/../../deps/osx/src/mSIGNA-joystream/sysroot/lib/",
+                        '/usr/local/lib',
                      ],
                      "include_dirs" : [
                          "../../deps/osx/dist/release/include/",
-                         "/usr/local/include/",
                          "<!(qmake -query QT_INSTALL_LIBS)/QtCore.framework/Headers/",
+                         "../../deps/osx/src/mSIGNA-joystream/sysroot/include/",
+                         "/usr/local/include/",
                      ],
                      "postbuilds": [ {
                        'postbuild_name': 'Reconfigure @rpath',
                        'action': [
-                         "${PWD}/post_build.sh", "${BUILT_PRODUCTS_DIR}/NativeExtension.node"
+                         #"${PWD}/post_build.sh", "${BUILT_PRODUCTS_DIR}/NativeExtension.node"
+                         "${PWD}/copy_qt_framework.sh"
                        ],
                      }]
                 }],
@@ -68,14 +95,22 @@
                         ]
                     },
                     'library_dirs': [
+                       '${PWD}/../../build/linux/common/',
+                       '${PWD}/../../build/linux/protocol_session/',
+                       '${PWD}/../../build/linux/protocol_wire/',
+                       '${PWD}/../../build/linux/protocol_statemachine/',
+                       '${PWD}/../../build/linux/paymentchannel/',
+                       '${PWD}/../../build/linux/extension/',
                        '${PWD}/../../deps/linux/dist/release/lib/',
+                       '<!(qmake -query QT_INSTALL_LIBS)/',
+                       "${PWD}/../../deps/linux/src/mSIGNA-joystream/sysroot/lib/",
                        '/usr/local/lib',
-                       '<!(qmake -query QT_INSTALL_LIBS)/'
                     ],
                     "include_dirs" : [
                         "../../deps/linux/dist/release/include/",
-                        "/usr/local/include/",
                         "<!(qmake -query QT_INSTALL_HEADERS)/QtCore/",
+                        "../../deps/linux/src/mSIGNA-joystream/sysroot/include/",
+                        "/usr/local/include/",
                     ],
                 }]
             ],
