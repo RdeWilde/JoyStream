@@ -1,59 +1,52 @@
-# Node Native Extension Boilerplate
+# Node Native Extension Proof of Concept
 
-[![Build Status](https://travis-ci.org/fcanas/node-native-boilerplate.svg)](https://travis-ci.org/fcanas/node-native-boilerplate)
+The module can be built for node or electron
 
-A very approachable node native extension.
-
-This repository serves as a nearly minimal native extension built on [Nan](https://github.com/nodejs/nan) with enough tooling to also make it a great starting point for more complex projects.
-
-## Building
-
-To compile the extension for the first time, run 
+## Install Prerequisits
 
 ```
-$ npm i
-$ npm run configure
-$ npm run build
+$ npm -g install node-gyp
 ```
 
-All subsequent builds only need `npm run build`
+## Build joystream libraries
 
-You can confirm everything built correctly by [running the test suite](#to-run-tests).
+Build the joystream libraries and their dependencies before building the node module:
 
-### Working With the Extension Locally
+## Building For NodeJs
 
-After building:
+To compile the extension run 
 
-```node
-$ node
-> var NativeExtension = require('./')
-undefined
-> NativeExtension.aString()
-'This is a thing.'
-> NativeExtension.aBoolean()
-false
-> NativeExtension.nothing()
-undefined
-> 
+```
+$ npm run configure-node
+$ npm run build-node
 ```
 
-### To run tests:
+All subsequent builds only need `npm run build-node`
+
+You can confirm everything built correctly by running:
 
 ```
 $ npm test
 ```
 
-or to run test continuously 
+or run the basic ap
 
 ```
-$ npm test -- watch
+$ node examples/nodejs_app/basic.js
 ```
 
-## The Parts
+## Building For Electron
 
-File | Contents
--------------|----------------
-`NativeExtension.cc` | Represents the top level of the module. C++ constructs that are exposed to javascript are exported here
-`functions.cc` | Example top-level functions. These functions demonstrate how to build and return various js types.
-`index.js` | The main entry point for the node dependency
-`binding.gyp` | Describes your node native extention to the build system (`node-gyp`). As you add source files to the project, you should also add them to the binding file.
+Make sure to install electron 1.4.11
+```
+$ npm -g install electron@1.4.11
+```
+$ npm run configure-electron
+$ npm run build-electron
+```
+
+test by running the electron app
+
+```
+$ electron examples/electron_app/
+```
