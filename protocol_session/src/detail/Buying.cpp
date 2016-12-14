@@ -27,8 +27,9 @@ namespace detail {
                                      const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
                                      const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                      const GenerateChangeAddressesCallbackHandler &generateChangeAddresses,
-                                     const BroadcastTransaction & broadcastTransaction,
+                                     const ContractConstructed & contractConstructed,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
+                                     const SentPayment<ConnectionIdType> & sentPayment,
                                      const Coin::UnspentOutputSet & funding,
                                      const BuyingPolicy & policy,
                                      const protocol_wire::BuyerTerms & terms,
@@ -38,8 +39,9 @@ namespace detail {
         , _generateP2SHKeyPair(generateP2SHKeyPair)
         , _generateReceiveAddresses(generateReceiveAddresses)
         , _generateChangeAddresses(generateChangeAddresses)
-        , _broadcastTransaction(broadcastTransaction)
+        , _contractConstructed(contractConstructed)
         , _fullPieceArrived(fullPieceArrived)
+        , _sentPayment(sentPayment)
         , _funding(funding)
         , _policy(policy)
         , _state(BuyingState::sending_invitations)
@@ -111,7 +113,20 @@ namespace detail {
 
         // This results in payment being sent,
         // if connection is still live, and state updated
-        s.pieceWasValid();
+        bool paymentSent = s.pieceWasValid();
+
+        // Send notification
+        if(paymentSent) {
+
+            auto connection = _session->get(id);
+            const paymentchannel::Payor & payor = connection->payor();
+
+            _sentPayment(id,
+                         payor.price(),
+                         payor.numberOfPaymentsMade(),
+                         payor.amountPaid(),
+                         index);
+        }
 
         // Update piece status
         detail::Piece<ConnectionIdType> & piece = _pieces[index];
@@ -620,7 +635,7 @@ namespace detail {
         assert((float)fee >= (contractFeePerKb * contractSizeKb));
 
         // Notify client that transaction should be broadcasted
-        _broadcastTransaction(_contractTx);
+        _contractConstructed(_contractTx, c);
 
         /////////////////////////
 

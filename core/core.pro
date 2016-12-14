@@ -27,17 +27,17 @@ HEADERS += \
     include/core/detail/detail.hpp \
     include/core/TorrentPlugin.hpp \
     include/core/Peer.hpp \
-    include/core/Session.hpp \
+    #include/core/Session.hpp \
     include/core/PeerPlugin.hpp \
-    include/core/Connection.hpp \
+    #include/core/Connection.hpp \
     include/core/MagnetLink.hpp \
-    include/core/Selling.hpp \
-    include/core/Buying.hpp \
-    include/core/Seller.hpp \
+    #include/core/Selling.hpp \
+    #include/core/Buying.hpp \
+    #include/core/Seller.hpp \
     include/core/TorrentIdentifier.hpp \
-    include/core/CBStateMachine.hpp \
-    include/core/Payor.hpp \
-    include/core/Payee.hpp \
+    #include/core/CBStateMachine.hpp \
+    #include/core/Payor.hpp \
+    #include/core/Payee.hpp \
     include/core/detail/NodeImpl.hpp \
     include/core/Q_DECLARE_METATYPE.hpp
 
@@ -49,16 +49,16 @@ SOURCES += \
     src/TorrentPlugin.cpp \
     src/MagnetLink.cpp \
     src/Peer.cpp \
-    src/Session.cpp \
+    #src/Session.cpp \
     src/PeerPlugin.cpp \
-    src/Selling.cpp \
-    src/Buying.cpp \
-    src/Seller.cpp \
-    src/Connection.cpp \
+    #src/Selling.cpp \
+    #src/Buying.cpp \
+    #src/Seller.cpp \
+    #src/Connection.cpp \
     src/TorrentIdentifier.cpp \
-    src/Payor.cpp \
-    src/Payee.cpp \
-    src/CBStateMachine.cpp \
+    #src/Payor.cpp \
+    #src/Payee.cpp \
+    #src/CBStateMachine.cpp \
     src/detail/NodeImpl.cpp
 
 # extension

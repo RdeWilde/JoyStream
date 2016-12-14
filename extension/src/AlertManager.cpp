@@ -21,11 +21,6 @@ libtorrent::alert_manager* AlertManager::native_handle() const
     return _alertManager;
 }
 
-void AlertManager::plugin_emplace_alert(extension::status::Plugin status)
-{
-    _alertManager->emplace_alert<extension::alert::PluginStatus>(status);
-}
-
 void AlertManager::request_emplace_alert(extension::alert::LoadedCallBack &c)
 {
     _alertManager->emplace_alert<extension::alert::RequestResult>(c);

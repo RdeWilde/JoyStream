@@ -85,9 +85,17 @@ struct ResumeTorrent {
 
 /// Plugin requests
 
-struct UpdateStatus {
+struct PostTorrentPluginStatusUpdates {
 
-    UpdateStatus() {}
+    PostTorrentPluginStatusUpdates() {}
+};
+
+struct PostPeerPluginStatusUpdates {
+
+    PostPeerPluginStatusUpdates(const libtorrent::sha1_hash & infoHash)
+        : _infoHash(infoHash) {}
+
+    libtorrent::sha1_hash _infoHash;
 };
 
 struct PauseLibtorrent {
