@@ -10,7 +10,12 @@ NAN_MODULE_INIT(SessionWrap::Init) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "addTorrent", AddTorrent);
+  Nan::SetPrototypeMethod(tpl, "removeTorrent", RemoveTorrent);
+  Nan::SetPrototypeMethod(tpl, "listenPort", ListenPort);
+  Nan::SetPrototypeMethod(tpl, "postTorrentUpdates", PostTorrentUpdates);
   Nan::SetPrototypeMethod(tpl, "pause", Pause);
+  Nan::SetPrototypeMethod(tpl, "isPaused", IsPaused);
+  Nan::SetPrototypeMethod(tpl, "resume", Resume);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("SessionWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
@@ -38,16 +43,84 @@ NAN_METHOD(SessionWrap::New) {
 NAN_METHOD(SessionWrap::AddTorrent) {
   Nan::HandleScope scope;
 
-  if (info.Length() < 7) {
+  if (info.Length() < 6) {
     Nan::ThrowTypeError("Wrong number of arguments");
     return;
   }
 
-  /*int uploadLimit = To<uint>(info[0]).FromJust();
-  int downloadLimit = To<uint>(info[1]).FromJust();
-  std::string name = To<std::string>(info[2]).FromJust();
-  std::vector<char> resumeData = To<std::vector<char>>(info[3]).FromJust();
-  std::string savePath = To<std::string>(info[3]).FromJust();*/
+  libtorrent::add_torrent_params params;
+
+  unsigned int uploadLimit = info[0]->Uint32Value();
+  unsigned int downloadLimit = info[1]->Uint32Value();
+  v8::String::Utf8Value s1(info[2]);
+  std::string name = std::string(*s1);
+  std::vector<char> resumeData;
+  v8::String::Utf8Value s2(info[4]);
+  std::string savePath = std::string(*s2);
+  v8::String::Utf8Value s3(info[5]);
+  std::string info_hash = std::string(*s3);
+
+  if(info_hash.size() != 40) {
+    Nan::ThrowTypeError("incorrent length of hex string");
+    return;
+  }
+
+  char buf[21];
+
+  if(!libtorrent::from_hex(info_hash.c_str(), info_hash.size(), buf)) {
+    Nan::ThrowTypeError("invalid hex string");
+    return;
+  }
+
+  params.upload_limit = uploadLimit;
+  params.download_limit = downloadLimit;
+  params.name = name;
+  params.resume_data = resumeData;
+  params.save_path = savePath;
+  params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_paused;
+  params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_auto_managed;
+  params.flags |= libtorrent::add_torrent_params::flag_duplicate_is_error;
+  params.info_hash = libtorrent::sha1_hash(buf);
+
+  libtorrent::torrent_handle th;
+  libtorrent::error_code ec;
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  session_wrap->session_.s->add_torrent(params, ec);
+
+  printf("Torrent added created \n");
+
+  info.GetReturnValue().Set(Nan::Undefined());
+}
+
+NAN_METHOD(SessionWrap::RemoveTorrent) {
+  Nan::HandleScope scope;
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+
+  /*
+    Remove torrent logic here
+  */
+
+  info.GetReturnValue().Set(Nan::Undefined());
+}
+
+NAN_METHOD(SessionWrap::ListenPort) {
+  Nan::HandleScope scope;
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+
+  info.GetReturnValue().Set(session_wrap->session_.s->listen_port());
+}
+
+NAN_METHOD(SessionWrap::PostTorrentUpdates) {
+  Nan::HandleScope scope;
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+
+  session_wrap->session_.s->post_torrent_updates();
+
+  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(SessionWrap::Pause) {
@@ -55,7 +128,7 @@ NAN_METHOD(SessionWrap::Pause) {
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
   session_wrap->session_.s->pause();
-  printf("Plugin pause");
+  printf("Plugin paused \n");
   info.GetReturnValue().Set(Nan::Undefined());
 }
 
@@ -63,6 +136,20 @@ NAN_METHOD(SessionWrap::IsPaused) {
   Nan::HandleScope scope;
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
-  session_wrap->session_.s->pause();
+  v8::Local<v8::Boolean> isPaused;
+  if (session_wrap->session_.s->is_paused()) {
+    isPaused = Nan::True();
+  } else {
+    isPaused = Nan::False();
+  }
+  info.GetReturnValue().Set(isPaused);
+}
+
+NAN_METHOD(SessionWrap::Resume) {
+  Nan::HandleScope scope;
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  session_wrap->session_.s->resume();
+  printf("Plugin resumed \n");
   info.GetReturnValue().Set(Nan::Undefined());
 }
