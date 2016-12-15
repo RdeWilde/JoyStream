@@ -1,76 +1,68 @@
 #include "functions.h"
 
-NAN_METHOD(nothing) {
-}
-
-NAN_METHOD(aString) {
-    info.GetReturnValue().Set(Nan::New("This is a thing.").ToLocalChecked());
-}
-
-NAN_METHOD(aBoolean) {
-    info.GetReturnValue().Set(false);
-}
-
-NAN_METHOD(aNumber) {
-    info.GetReturnValue().Set(1.75);
-}
-
-NAN_METHOD(anObject) {
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    Nan::Set(obj, Nan::New("key").ToLocalChecked(), Nan::New("value").ToLocalChecked());
-    info.GetReturnValue().Set(obj);
-}
-
-NAN_METHOD(anArray) {
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>(3);
-    Nan::Set(arr, 0, Nan::New(1));
-    Nan::Set(arr, 1, Nan::New(2));
-    Nan::Set(arr, 2, Nan::New(3));
-    info.GetReturnValue().Set(arr);
-}
-
-NAN_METHOD(callback) {
-    v8::Local<v8::Function> callbackHandle = info[0].As<v8::Function>();
-    Nan::MakeCallback(Nan::GetCurrentContext()->Global(), callbackHandle, 0, 0);
-}
-
 // Wrapper Impl
 
-Nan::Persistent<v8::Function> MyObject::constructor;
+Nan::Persistent<v8::Function> SessionWrap::constructor;
 
-NAN_MODULE_INIT(MyObject::Init) {
+NAN_MODULE_INIT(SessionWrap::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("MyObject").ToLocalChecked());
+  tpl->SetClassName(Nan::New("SessionWrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  Nan::SetPrototypeMethod(tpl, "plusOne", PlusOne);
+  Nan::SetPrototypeMethod(tpl, "addTorrent", AddTorrent);
+  Nan::SetPrototypeMethod(tpl, "pause", Pause);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("MyObject").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("SessionWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-MyObject::MyObject(double value) : value_(value) {
+SessionWrap::SessionWrap() {
 }
 
-MyObject::~MyObject() {
+SessionWrap::~SessionWrap() {
 }
 
-NAN_METHOD(MyObject::New) {
+NAN_METHOD(SessionWrap::New) {
   if (info.IsConstructCall()) {
-    double value = info[0]->IsUndefined() ? 0 : Nan::To<double>(info[0]).FromJust();
-    MyObject *obj = new MyObject(value);
+    SessionWrap *obj = new SessionWrap();
     obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
   } else {
-    const int argc = 1; 
+    const int argc = 1;
     v8::Local<v8::Value> argv[argc] = {info[0]};
     v8::Local<v8::Function> cons = Nan::New(constructor);
     info.GetReturnValue().Set(cons->NewInstance(argc, argv));
   }
 }
 
-NAN_METHOD(MyObject::PlusOne) {
-  MyObject* obj = Nan::ObjectWrap::Unwrap<MyObject>(info.This());
-  obj->value_ += 1;
-  info.GetReturnValue().Set(obj->value_);
+NAN_METHOD(SessionWrap::AddTorrent) {
+  Nan::HandleScope scope;
+
+  if (info.Length() < 7) {
+    Nan::ThrowTypeError("Wrong number of arguments");
+    return;
+  }
+
+  /*int uploadLimit = To<uint>(info[0]).FromJust();
+  int downloadLimit = To<uint>(info[1]).FromJust();
+  std::string name = To<std::string>(info[2]).FromJust();
+  std::vector<char> resumeData = To<std::vector<char>>(info[3]).FromJust();
+  std::string savePath = To<std::string>(info[3]).FromJust();*/
+}
+
+NAN_METHOD(SessionWrap::Pause) {
+  Nan::HandleScope scope;
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  session_wrap->session_.s->pause();
+  printf("Plugin pause");
+  info.GetReturnValue().Set(Nan::Undefined());
+}
+
+NAN_METHOD(SessionWrap::IsPaused) {
+  Nan::HandleScope scope;
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  session_wrap->session_.s->pause();
+  info.GetReturnValue().Set(Nan::Undefined());
 }

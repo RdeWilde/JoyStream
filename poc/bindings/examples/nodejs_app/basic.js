@@ -1,6 +1,9 @@
 var nativeExtension = require('../../');
-var obj = new nativeExtension.MyObject(0);
+
+var session = new nativeExtension.SessionWrap();
 
 setInterval(function(){
   process.stdout.write(".");
 }, 2000);
+
+session.pause();
