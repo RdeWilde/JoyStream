@@ -4,19 +4,6 @@
 
 First Make sure to build the joystream libraries and their dependencies before building the node or electron module:
 
-
-## Common configuration Step (for nodejs or electron)
-
-Setup Qt headers
-
-```
-$ config-qt-headers.sh
-```
-
-```
-$ npm -g install node-gyp
-```
-
 ## Building For NodeJs
 
 Install dependencies and automatically build node module
@@ -28,7 +15,6 @@ $ npm install
 All subsequent builds only need
 
 ```
-$ npm run configure-node
 $ npm run build-node
 ```
 
@@ -61,7 +47,6 @@ $ npm install
 Reconfigure and build electron module:
 
 ```
-$ npm run configure-electron
 $ npm run build-electron
 ```
 
