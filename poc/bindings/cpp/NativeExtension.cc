@@ -1,4 +1,4 @@
-#include "functions.h"
+#include "session.h"
 #include <joystream_libtorrent_session/Session.hpp>
 
 using v8::FunctionTemplate;
