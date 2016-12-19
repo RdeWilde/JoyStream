@@ -26,4 +26,5 @@ $BOOST_ROOT/b2 install \
   --layout=tagged \
   variant=debug \
   cxxflags="-std=gnu++11" \
+  cflags="-fPIC" \
   --prefix=$PREFIX_PATH
