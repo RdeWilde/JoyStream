@@ -85,14 +85,20 @@ NAN_METHOD(SessionWrap::AddTorrent) {
   params.flags |= libtorrent::add_torrent_params::flag_duplicate_is_error;
   params.info_hash = libtorrent::sha1_hash(buf);
 
-  libtorrent::torrent_handle th;
-  libtorrent::error_code ec;
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
-  //session_wrap->session_.s->add_torrent(params, ec);
 
   Nan::Callback *callback = new Nan::Callback(info[6].As<v8::Function>());
-  Nan::AsyncQueueWorker(new AddTorrentWorker(callback, session_wrap->session_.s, params));
+  session_wrap->session_.plugin_->submit(joystream::extension::request::AddTorrent(params, [callback](libtorrent::error_code ec, libtorrent::torrent_handle th){
+    printf("Torrent added !!!! \n");
+
+    v8::Local<v8::Value> argv[] = {
+        Nan::Null()
+      , Nan::New<v8::Number>(1)
+    };
+
+    callback->Call(2, argv);
+  }));
 }
 
 NAN_METHOD(SessionWrap::RemoveTorrent) {

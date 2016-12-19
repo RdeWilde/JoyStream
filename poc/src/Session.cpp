@@ -19,6 +19,8 @@ Session::Session() {
 
         // Add plugin extension
         s->add_extension(boost::static_pointer_cast<libtorrent::plugin>(plugin));
+
+        plugin_ = plugin.get();
     }
 
     Coin::PrivateKey sk = Coin::PrivateKey::generate();
