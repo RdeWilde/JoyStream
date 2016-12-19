@@ -2,17 +2,8 @@
 #define TORRENT_STATUS_H
 
 #include <nan.h>
+#include <libtorrent/torrent_status.hpp>
 
-class TorrentStatusWrap : public Nan::ObjectWrap {
-  public:
-    static NAN_MODULE_INIT(Init);
-
-  private:
-    explicit TorrentStatusWrap();
-    ~TorrentStatusWrap();
-
-    static NAN_METHOD(New);
-    static Nan::Persistent<v8::Function> constructor;
-};
+v8::Local<v8::Value> torrent_status_to_object(const libtorrent::torrent_status& st);
 
 #endif
