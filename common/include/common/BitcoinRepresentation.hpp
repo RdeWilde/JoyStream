@@ -11,7 +11,9 @@
 #include "Fiat.hpp"
 
 #include <QtGlobal>
-#include <QMap>
+
+#include <vector>
+#include <unordered_map>
 
 class QString;
 class BitcoinDisplaySettings;
@@ -39,8 +41,8 @@ public:
     };
 
     // Bitcoin prefix to power bijection
-    static QMap<BitCoinPrefix, int> bitCoinPrefixToPower;
-    static QMap<int, BitCoinPrefix> powerToBitCoinPrefix;
+    static std::unordered_map<BitCoinPrefix, int> bitCoinPrefixToPower;
+    static std::unordered_map<int, BitCoinPrefix> powerToBitCoinPrefix;
 
     // Prefix used for fiat currency
     // Based on http://en.wikipedia.org/wiki/Metric_prefix
@@ -54,8 +56,8 @@ public:
     };
 
     // Metric prefix to power bijection
-    static QMap<MetricPrefix, int> metricPrefixToPower;
-    static QMap<int, MetricPrefix> powerToMetricPrefix;
+    static std::unordered_map<MetricPrefix, int> metricPrefixToPower;
+    static std::unordered_map<int, MetricPrefix> powerToMetricPrefix;
 
     /**
      * Constructors
@@ -119,7 +121,7 @@ private:
     // Find best exponent for
     // Move into some utilitie wrapper later, shouldnt be here, can be used
     // by data representation class also
-    static int bestExponent(double raw, quint8 base, const QList<int> & exponents);
+    static int bestExponent(double raw, quint8 base, const std::vector<int> & exponents);
 
     // BitCoin representation with given prefix
     QString toString(BitCoinPrefix prefix, int precision = 1) const;

@@ -11,9 +11,10 @@
 #include <QString>
 
 #include <cmath>
+#include <cassert>
 
-QMap<BitcoinRepresentation::BitCoinPrefix, int>
-BitcoinRepresentation::bitCoinPrefixToPower = QMap<BitcoinRepresentation::BitCoinPrefix, int>
+std::unordered_map<BitcoinRepresentation::BitCoinPrefix, int>
+BitcoinRepresentation::bitCoinPrefixToPower = std::unordered_map<BitcoinRepresentation::BitCoinPrefix, int>
                                             {
                                                 {BitcoinRepresentation::BitCoinPrefix::Satoshi, 0},
                                                 {BitcoinRepresentation::BitCoinPrefix::Micro, 2},
@@ -23,8 +24,8 @@ BitcoinRepresentation::bitCoinPrefixToPower = QMap<BitcoinRepresentation::BitCoi
                                                 {BitcoinRepresentation::BitCoinPrefix::Kilo, 11}
                                             };
 
-QMap<int, BitcoinRepresentation::BitCoinPrefix>
-BitcoinRepresentation::powerToBitCoinPrefix = QMap<int, BitcoinRepresentation::BitCoinPrefix>
+std::unordered_map<int, BitcoinRepresentation::BitCoinPrefix>
+BitcoinRepresentation::powerToBitCoinPrefix = std::unordered_map<int, BitcoinRepresentation::BitCoinPrefix>
                                             {
                                                 {0, BitcoinRepresentation::BitCoinPrefix::Satoshi},
                                                 {2, BitcoinRepresentation::BitCoinPrefix::Micro},
@@ -34,8 +35,8 @@ BitcoinRepresentation::powerToBitCoinPrefix = QMap<int, BitcoinRepresentation::B
                                                 {11, BitcoinRepresentation::BitCoinPrefix::Kilo}
                                             };
 
-QMap<BitcoinRepresentation::MetricPrefix, int>
-BitcoinRepresentation::metricPrefixToPower = QMap<BitcoinRepresentation::MetricPrefix, int>
+std::unordered_map<BitcoinRepresentation::MetricPrefix, int>
+BitcoinRepresentation::metricPrefixToPower = std::unordered_map<BitcoinRepresentation::MetricPrefix, int>
                                             {
                                                 {BitcoinRepresentation::MetricPrefix::Pico, -12},
                                                 {BitcoinRepresentation::MetricPrefix::Nano, -9},
@@ -45,8 +46,8 @@ BitcoinRepresentation::metricPrefixToPower = QMap<BitcoinRepresentation::MetricP
                                                 {BitcoinRepresentation::MetricPrefix::None, 0}
                                             };
 
-QMap<int, BitcoinRepresentation::MetricPrefix>
-BitcoinRepresentation::powerToMetricPrefix = QMap<int, BitcoinRepresentation::MetricPrefix>
+std::unordered_map<int, BitcoinRepresentation::MetricPrefix>
+BitcoinRepresentation::powerToMetricPrefix = std::unordered_map<int, BitcoinRepresentation::MetricPrefix>
                                             {
                                                 {-12, BitcoinRepresentation::MetricPrefix::Pico},
                                                 {-9, BitcoinRepresentation::MetricPrefix::Nano},
@@ -98,10 +99,18 @@ BitcoinRepresentation::BitcoinRepresentation(MetricPrefix prefix, double fiatUni
 
 BitcoinRepresentation::BitCoinPrefix BitcoinRepresentation::bestPrefix() const {
 
-    // Get best exponent
-    int best = bestExponent(_satoshies, 10, powerToBitCoinPrefix.keys());
+    // Get the keys
+    std::vector<int> keys;
+    auto it = powerToBitCoinPrefix.begin();
+    while(it != powerToBitCoinPrefix.end()) {
+        keys.push_back(it->first);
+        ++it;
+    }
 
-    Q_ASSERT(powerToBitCoinPrefix.contains(best));
+    // Get best exponent
+    int best = bestExponent(_satoshies, 10, keys);
+
+    assert(powerToBitCoinPrefix.find(best) != powerToBitCoinPrefix.end());
 
     // Return prefix
     return powerToBitCoinPrefix[best];
@@ -111,16 +120,24 @@ BitcoinRepresentation::MetricPrefix BitcoinRepresentation::bestPrefix(double fia
 
     double numberOfDollars = numberOfBTC() * fiatToBTCExchangeRate;
 
-    // Get best exponent
-    int best = bestExponent(numberOfDollars, 10, powerToMetricPrefix.keys());
+    // Get the keys
+    std::vector<int> keys;
+    auto it = powerToMetricPrefix.begin();
+    while(it != powerToMetricPrefix.end()) {
+        keys.push_back(it->first);
+        ++it;
+    }
 
-    Q_ASSERT(powerToMetricPrefix.contains(best));
+    // Get best exponent
+    int best = bestExponent(numberOfDollars, 10, keys);
+
+    assert(powerToMetricPrefix.find(best) != powerToMetricPrefix.end());
 
     // Return prefix
     return powerToMetricPrefix[best];
 }
 
-int BitcoinRepresentation::bestExponent(double raw, quint8 base, const QList<int> & exponents) {
+int BitcoinRepresentation::bestExponent(double raw, quint8 base, const std::vector<int> & exponents) {
 
     // Find first available
     // power of base which is greater than raw
