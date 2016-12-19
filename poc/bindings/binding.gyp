@@ -2,7 +2,13 @@
     "targets": [
         {
             "target_name": "NativeExtension",
-            "sources": [ "cpp/NativeExtension.cc", "cpp/session.cc", "../src/Session.cpp" ],
+            "sources": [
+                "cpp/NativeExtension.cc",
+                "cpp/session.cc",
+                "cpp/torrent_handle.cc",
+                "cpp/torrent_status.cc",
+                "../src/Session.cpp"
+                ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
             'cflags!': [ '-fno-exceptions', '-fno-rtti' ],
             'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ],

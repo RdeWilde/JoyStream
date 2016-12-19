@@ -1,5 +1,5 @@
-#ifndef NATIVE_EXTENSION_GRAB_H
-#define NATIVE_EXTENSION_GRAB_H
+#ifndef SESSION_H
+#define SESSION_H
 
 #include <nan.h>
 #include <iostream>
