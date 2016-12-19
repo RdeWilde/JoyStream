@@ -4,6 +4,8 @@ spec=`qmake -query QMAKE_XSPEC`
 
 DESTINATION="Frameworks/"
 
+rm -fr $DESTINATION
+
 mkdir -p $DESTINATION
 
 case "$spec" in
