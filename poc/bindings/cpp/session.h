@@ -3,8 +3,6 @@
 
 #include <nan.h>
 #include <iostream>
-#include <QString>
-#include <QByteArray>
 #include <joystream_libtorrent_session/Session.hpp>
 
 
@@ -30,8 +28,6 @@ class SessionWrap : public Nan::ObjectWrap {
     static NAN_METHOD(PopAlerts);
     static NAN_METHOD(SetAlertNotify);
     static Nan::Persistent<v8::Function> constructor;
-    QString string_;
-    QByteArray ba_;
     Session session_;
 
     class AddTorrentWorker : public Nan::AsyncWorker {
