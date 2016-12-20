@@ -8,19 +8,15 @@
 #include <common/LibtorrentUtilities.hpp>
 
 #include <libtorrent/socket_io.hpp> // libtorrent::print_endpoint
-#include <QString>
-#include <QHash>
 
 uint qHash(const libtorrent::tcp::endpoint & endpoint) {
 
     // Convert to std::string
     std::string endPointStdString = libtorrent::print_endpoint(endpoint);
 
-    // Convert to QString
-    QString endPointQString = endPointStdString.c_str();
-
     // Hash it
-    return qHash(endPointQString);
+    std::hash<std::string> str_hash;
+    return str_hash(endPointStdString);
 }
 
 /**

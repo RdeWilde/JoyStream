@@ -8,8 +8,6 @@
 #include <common/typesafeOutPoint.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::OutPoint
 
-#include <QHash>
-
 namespace Coin {
 
 typesafeOutPoint::typesafeOutPoint()
