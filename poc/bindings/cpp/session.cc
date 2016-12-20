@@ -202,10 +202,10 @@ NAN_METHOD(SessionWrap::PopAlerts) {
 
   session_wrap->session_.s->pop_alerts(&alerts);
 
-  for(libtorrent::alert * alert : alerts)
-    printf("We have an Alert !");
+  for(const libtorrent::alert * alert : alerts)
+    ret->Set(ret->Length(), AlertWrap::New(alert));
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  info.GetReturnValue().Set(ret);
 }
 
 NAN_METHOD(SessionWrap::SetAlertNotify) {

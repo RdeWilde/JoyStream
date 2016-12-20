@@ -7,6 +7,7 @@
                 "cpp/session.cc",
                 "cpp/torrent_handle.cc",
                 "cpp/torrent_status.cc",
+                "cpp/alert.cc",
                 "../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
