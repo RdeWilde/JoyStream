@@ -34,8 +34,9 @@ class Plugin : public libtorrent::plugin {
 
 public:
 
-    Plugin(const TransactionBroadcaster broadcaster,
-           uint minimumMessageId);
+    Plugin(uint minimumMessageId,
+           libtorrent::alert_manager * alertManager = nullptr,
+           libtorrent::aux::session_impl * session = nullptr);
 
     ~Plugin();
 
@@ -47,9 +48,6 @@ public:
     virtual void save_state(libtorrent::entry & stateEntry) const;
     virtual void load_state(const libtorrent::bdecode_node &);
 
-    // Return status of plugin
-    status::Plugin status() const;
-
     // Synchornized submittal of request, request
     // object is not owned by plugin, is returned
     // in response for associating responses to initial
@@ -59,16 +57,16 @@ public:
     template<class T>
     void submit(const T &);
 
+    // Get map of weak torrent plugin references
+    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > & torrentPlugins() const noexcept;
+
 private:
 
-    friend class detail::RequestVariantVisitor;
+    // Libtorrent alert manager
+    libtorrent::alert_manager * _alertManager;
 
     // Libtorrent session.
-    // NB: Is set by added() libtorrent callback, not constructor
     libtorrent::aux::session_impl * _session;
-
-    // Broadcaster for transactions
-    TransactionBroadcaster _broadcaster;
 
     // Lowest all message id where libtorrent client can guarantee we will not
     // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
@@ -79,7 +77,7 @@ private:
     bool _addedToSession;
 
     // Maps torrent hash to corresponding plugin
-    std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > _plugins;
+    std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > _torrentPlugins;
 
     // Request queue
     std::deque<detail::RequestVariant> _requestQueue;

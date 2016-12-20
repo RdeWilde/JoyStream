@@ -7,6 +7,9 @@
 
 #include <core/detail/NodeImpl.hpp>
 #include <core/Torrent.hpp>
+#include <core/TorrentPlugin.hpp>
+#include <core/Peer.hpp>
+#include <core/PeerPlugin.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
@@ -23,14 +26,18 @@ NodeImpl::NodeImpl(libtorrent::session * session,
                    const boost::shared_ptr<extension::Plugin> & plugin,
                    const StartedListening & startedListening,
                    const AddedTorrent & addedTorrent,
-                   const RemovedTorrent & removedTorrent)
+                   const RemovedTorrent & removedTorrent,
+                   const TorrentPluginStatusUpdate & torrentPluginStatusUpdate,
+                   const AlertArrived & alertArrived)
     : _session(session)
     , _plugin(plugin)
     , _assistedPeerDiscovery(false)
     , _startedListening(startedListening)
     , _addedTorrent(addedTorrent)
     , _removedTorrent(removedTorrent)
-{
+    , _torrentPluginStatusUpdate(torrentPluginStatusUpdate)
+    , _alertArrived(alertArrived) {
+
     _announceTimer.setInterval(2*3600*1000); // Every 2 hours
     _getPeersTimer.setInterval(5*60*1000); // Every 5 minutes
 
@@ -79,33 +86,8 @@ void NodeImpl::updateTorrentStatus() const {
     _session->post_torrent_updates();
 }
 
-void NodeImpl::updateTorrentPluginStatus() const {
-    _plugin->submit(extension::request::UpdateStatus());
-}
-
-void NodeImpl::updatePeerStatus() const {
-
-    for(auto & mapping : _torrents) {
-        // Get handle for torrent
-        //libtorrent::sha1_hash infoHash = mapping.second->infoHash();
-        //libtorrent::torrent_handle h = _session->find_torrent(infoHash);
-
-        // Get peer_info for peer, which unfortunately requires
-        // getting it for all peers
-        std::vector<libtorrent::peer_info> v;
-
-        try {
-            mapping.second->_handle.get_peer_info(v);
-        } catch (const libtorrent::libtorrent_exception &) {
-            // Handle was invalidated, drop torrent,
-            // torrent-removed_alert will come in due time.
-            continue;
-        }
-
-        // Update peer statuses on torrent
-        mapping.second->updatePeerStatuses(v);
-    }
-
+void NodeImpl::postTorrentPluginStatusUpdates() const {
+    _plugin->submit(extension::request::PostTorrentPluginStatusUpdates());
 }
 
 unsigned short NodeImpl::port() const{
@@ -163,13 +145,58 @@ void NodeImpl::processAlert(const libtorrent::alert * a) {
     //    processPieceFinishedAlert(p);
     else if(extension::alert::RequestResult const * p = libtorrent::alert_cast<extension::alert::RequestResult>(a))
         process(p);
-    else if(extension::alert::PluginStatus const * p = libtorrent::alert_cast<extension::alert::PluginStatus>(a))
+    else if(extension::alert::TorrentPluginStatusUpdateAlert const * p = libtorrent::alert_cast<extension::alert::TorrentPluginStatusUpdateAlert>(a))
+        process(p);
+    else if(extension::alert::PeerPluginStatusUpdateAlert const * p = libtorrent::alert_cast<extension::alert::PeerPluginStatusUpdateAlert>(a))
+        process(p);
+    else if(extension::alert::TorrentPluginAdded const * p = libtorrent::alert_cast<extension::alert::TorrentPluginAdded>(a))
+        process(p);
+    else if(extension::alert::TorrentPluginRemoved const * p = libtorrent::alert_cast<extension::alert::TorrentPluginRemoved>(a))
+        process(p);
+    else if(extension::alert::PeerPluginAdded const * p = libtorrent::alert_cast<extension::alert::PeerPluginAdded>(a))
+        process(p);
+    else if(extension::alert::PeerPluginRemoved const * p = libtorrent::alert_cast<extension::alert::PeerPluginRemoved>(a))
+        process(p);
+    else if(extension::alert::ConnectionAddedToSession const * p = libtorrent::alert_cast<extension::alert::ConnectionAddedToSession>(a))
+        process(p);
+    else if(extension::alert::ConnectionRemovedFromSession const * p = libtorrent::alert_cast<extension::alert::ConnectionRemovedFromSession>(a))
+        process(p);
+    else if(extension::alert::SessionStarted const * p = libtorrent::alert_cast<extension::alert::SessionStarted>(a))
+        process(p);
+    else if(extension::alert::SessionPaused const * p = libtorrent::alert_cast<extension::alert::SessionPaused>(a))
+        process(p);
+    else if(extension::alert::SessionStopped const * p = libtorrent::alert_cast<extension::alert::SessionStopped>(a))
+        process(p);
+    else if(extension::alert::SessionToObserveMode const * p = libtorrent::alert_cast<extension::alert::SessionToObserveMode>(a))
+        process(p);
+    else if(extension::alert::SessionToSellMode const * p = libtorrent::alert_cast<extension::alert::SessionToSellMode>(a))
+        process(p);
+    else if(extension::alert::SessionToBuyMode const * p = libtorrent::alert_cast<extension::alert::SessionToBuyMode>(a))
+        process(p);
+    else if(extension::alert::ValidPaymentReceived const * p = libtorrent::alert_cast<extension::alert::ValidPaymentReceived>(a))
+        process(p);
+    else if(extension::alert::InvalidPaymentReceived const * p = libtorrent::alert_cast<extension::alert::InvalidPaymentReceived>(a))
+        process(p);
+    else if(extension::alert::BuyerTermsUpdated const * p = libtorrent::alert_cast<extension::alert::BuyerTermsUpdated>(a))
+        process(p);
+    else if(extension::alert::SellerTermsUpdated const * p = libtorrent::alert_cast<extension::alert::SellerTermsUpdated>(a))
+        process(p);
+    else if(extension::alert::ContractConstructed const * p = libtorrent::alert_cast<extension::alert::ContractConstructed>(a))
+        process(p);
+    else if(extension::alert::SentPayment const * p = libtorrent::alert_cast<extension::alert::SentPayment>(a))
+        process(p);
+    else if(extension::alert::LastPaymentReceived const * p = libtorrent::alert_cast<extension::alert::LastPaymentReceived>(a))
+        process(p);
+    else if(extension::alert::InvalidPieceArrived const * p = libtorrent::alert_cast<extension::alert::InvalidPieceArrived>(a))
+        process(p);
+    else if(extension::alert::ValidPieceArrived const * p = libtorrent::alert_cast<extension::alert::ValidPieceArrived>(a))
         process(p);
     else if(libtorrent::dht_get_peers_reply_alert const * p = libtorrent::alert_cast<libtorrent::dht_get_peers_reply_alert>(a))
         process(p);
     else
         std::clog << "Ignored alert, not processed." << std::endl;
 
+    _alertArrived(a);
 }
 
 void NodeImpl::process(const libtorrent::dht_get_peers_reply_alert *p) {
@@ -235,7 +262,7 @@ void NodeImpl::process(const libtorrent::torrent_paused_alert * p) {
         auto it = _torrents.find(infoHash);
         assert(it != _torrents.cend());
 
-        it->second->updatePaused(true);
+        emit (it->second)->pausedChanged(true);
     }
 }
 
@@ -264,8 +291,8 @@ void NodeImpl::process(const libtorrent::torrent_resumed_alert * p) {
         auto it = _torrents.find(infoHash);
         assert(it != _torrents.cend());
 
-        // then mark as resmed
-        it->second->updatePaused(false);
+        // send signal
+        emit it->second->pausedChanged(false);
     }
 
 }
@@ -285,7 +312,7 @@ void NodeImpl::process(const libtorrent::metadata_received_alert * p) {
         assert(it != _torrents.cend());
 
         // then set metadata
-        it->second->setMetadata(torrent_info);
+        emit (it->second)->metadataReceived(torrent_info);
 
     } else
         std::clog << "Invalid handle for received metadata." << std::endl;
@@ -301,44 +328,30 @@ void NodeImpl::process(const libtorrent::add_torrent_alert * p) {
     // Did adding succeed?
     if(!p->error) {
 
-        // Get torrent info_hash
-        libtorrent::torrent_handle h = p->handle;
-        libtorrent::sha1_hash infoHash = h.info_hash();
+        libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
-        if(infoHash.is_all_zeros()) {
-            std::clog << "Added torrent has already expired." << std::endl;
-            return;
-        }
+        core::Torrent * torrent = getTorrent(p->handle.info_hash());
 
-        // This should always hold, as the latter of two outstanding
-        // add_torrent_async call will have its add_torrent_alert::error value set.
-        assert(_torrents.count(infoHash) == 0);
+        if(torrent == nullptr) {
 
-        // Get current status
-        libtorrent::torrent_status status;
+            // Create torrent
+            torrent = new Torrent(p->handle, p->params.resume_data, _plugin);
 
-        try {
-            status = h.status();
-        } catch (const libtorrent::libtorrent_exception &) {
-            std::clog << "Handle has already expired." << std::endl;
-        }
+            // add to map
+            _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(torrent)));
 
-        int uploadLimit = h.upload_limit();
-        int downloadLimit = h.download_limit();
+            // send notification signal
+            _addedTorrent(torrent);
 
-        // Create torrent
-        auto t = new Torrent(h, status, p->params.resume_data, uploadLimit, downloadLimit, _plugin);
+// Do DHT peer discovery stuff
+_torrentsBySecondaryHash.insert(std::make_pair(torrent->secondaryInfoHash(), infoHash));
 
-        // add to map
-        _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(t)));
-        _torrentsBySecondaryHash.insert(std::make_pair(t->secondaryInfoHash(), infoHash));
+// announce the new torrent with secondary info hash
+_session->dht_announce(torrent->secondaryInfoHash(), _session->listen_port());
+_session->dht_get_peers(torrent->secondaryInfoHash());
 
-        // announce the new torrent with secondary info hash
-        _session->dht_announce(t->secondaryInfoHash(), _session->listen_port());
-        _session->dht_get_peers(t->secondaryInfoHash());
-
-        // send notification signal
-        _addedTorrent(t);
+        } else
+            torrent->_resumeData = p->params.resume_data;
 
         std::clog << "Adding torrent succeeded." << std::endl;
     } else
@@ -359,7 +372,7 @@ void NodeImpl::process(const libtorrent::state_update_alert * p) {
 
         // and update status if possible
         if(it != _torrents.cend())
-            it->second->updateStatus(s);
+            emit (it->second)->stateChanged(s.state, s.progress);
         else
             std::clog << "Uknown torrent updated status." << std::endl;
     }
@@ -457,8 +470,12 @@ void NodeImpl::process(const libtorrent::peer_connect_alert * p) {
     if(it == _torrents.cend())
         return;
 
-    // Update peer statuses on torrent
-    it->second->updatePeerStatuses(v);
+    for(auto ep : v) {
+
+        // Should only happen once
+        if(ep.ip == p->ip)
+            (it->second)->addPeer(ep);
+    }
 }
 
 void NodeImpl::process(const libtorrent::peer_disconnected_alert * p) {
@@ -477,7 +494,7 @@ void NodeImpl::process(const libtorrent::peer_disconnected_alert * p) {
         return;
 
     // (try to) remove peer from torrent
-    it->second->removePeer(p->ip);
+    (it->second)->removePeer(p->ip);
 }
 
 void NodeImpl::process(const libtorrent::read_piece_alert *) {
@@ -523,29 +540,205 @@ void NodeImpl::process(const extension::alert::RequestResult * p) {
     p->loadedCallback();
 }
 
-void NodeImpl::process(const extension::alert::PluginStatus * p) {
+void NodeImpl::process(const extension::alert::TorrentPluginStatusUpdateAlert * p) {
 
     // Update torrent plugin statuses
-    for(auto status: p->status.plugins) {
+    for(auto m: p->statuses) {
 
-        // Get torrent for this plugin
-        auto it = _torrents.find(status.first);
-
-        if(it != _torrents.cend()) {
-
-            std::unique_ptr<Torrent> & t = it->second;
-
-            if(t->torrentPluginSet())
-                t->updateTorrentPluginStatus(status.second);
-            else
-                t->addTorrentPlugin(status.second);
-
-            // NB: we could keep track of missing plugin statuses also, but
-            // introducing explicit alerts for these events
-        }
+        if(core::TorrentPlugin * plugin = getTorrentPlugin(m.first))
+            plugin->update(m.second);
     }
 
-    // Do other stuff when plugin status is extended
+    _torrentPluginStatusUpdate(p->statuses);
+}
+
+void NodeImpl::process(const extension::alert::PeerPluginStatusUpdateAlert * p) {
+
+    core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash());
+
+    if(plugin == nullptr)
+        return;
+
+    // Broadcast alert from torrent plugin
+    emit plugin->updatePeerPluginStatuses(p->statuses);
+
+    // Update status for
+    for(auto m : p->statuses) {
+
+        if(PeerPlugin * peerPlugin = getPeerPlugin(plugin->infoHash(), m.first))
+            emit peerPlugin->update(m.second);
+    }
+}
+
+void NodeImpl::process(const extension::alert::TorrentPluginAdded * p) {
+
+    /// Add the corresponding torrent.
+    // We ignore the libtorrent::add_torrent_alert.
+
+    libtorrent::sha1_hash infoHash = p->handle.info_hash();
+
+    assert(getTorrent(infoHash) == nullptr);
+
+    // Create torrent
+    auto t = new Torrent(p->handle, std::vector<char>(), _plugin);
+
+    // add to map
+    _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(t)));
+
+    // send notification signal
+    _addedTorrent(t);
+
+    /// Add torrent plugin
+    t->addTorrentPlugin(p->status);
+}
+
+void NodeImpl::process(const extension::alert::TorrentPluginRemoved * p) {
+
+    libtorrent::sha1_hash infoHash = p->handle.info_hash();
+
+    /// We remain agnostic
+
+    if(core::Torrent * t = getTorrent(infoHash)) {
+
+        if(t->torrentPluginSet())
+            t->removeTorrentPlugin();
+    }
+
+}
+
+void NodeImpl::process(const extension::alert::PeerPluginAdded * p) {
+
+    if(core::Peer * peer = getPeer(p->handle.info_hash(), p->ip)) {
+
+        assert(!peer->peerPluginSet());
+
+        peer->addPeerPlugin(p->status);
+
+    }
+
+}
+
+void NodeImpl::process(const extension::alert::PeerPluginRemoved * p) {
+
+    if(core::Peer * peer = getPeer(p->handle.info_hash(), p->ip)) {
+
+        assert(peer->peerPluginSet());
+
+        peer->removePeerPlugin();
+    }
+
+}
+
+void NodeImpl::process(const extension::alert::ConnectionAddedToSession * p) {
+
+    if(core::PeerPlugin * plugin = getPeerPlugin(p->handle.info_hash(), p->ip))
+        emit plugin->connectionAdded(p->status);
+}
+
+void NodeImpl::process(const extension::alert::ConnectionRemovedFromSession * p) {
+
+    if(core::PeerPlugin * plugin = getPeerPlugin(p->handle.info_hash(), p->ip))
+        emit plugin->connectionRemoved();
+}
+
+void NodeImpl::process(const extension::alert::SessionStarted * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionStarted();
+}
+
+void NodeImpl::process(const extension::alert::SessionPaused * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionPaused();
+}
+
+void NodeImpl::process(const extension::alert::SessionStopped * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionStopped();
+}
+
+void NodeImpl::process(const extension::alert::SessionToObserveMode * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionToObserveMode();
+
+}
+
+void NodeImpl::process(const extension::alert::SessionToSellMode * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionToSellMode(p);
+
+}
+
+void NodeImpl::process(const extension::alert::SessionToBuyMode * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sessionToBuyMode(p);
+
+}
+
+void NodeImpl::process(const extension::alert::ValidPaymentReceived * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->validPaymentReceived(p);
+
+}
+
+void NodeImpl::process(const extension::alert::InvalidPaymentReceived * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->invalidPaymentReceived(p);
+}
+
+void NodeImpl::process(const extension::alert::BuyerTermsUpdated * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->buyerTermsUpdated(p);
+}
+
+void NodeImpl::process(const extension::alert::SellerTermsUpdated * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sellerTermsUpdated(p);
+}
+
+void NodeImpl::process(const extension::alert::ContractConstructed * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->contractConstructed(p);
+}
+
+void NodeImpl::process(const extension::alert::SentPayment * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->sentPayment(p);
+}
+
+void NodeImpl::process(const extension::alert::LastPaymentReceived * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->lastPaymentReceived(p);
+}
+
+void NodeImpl::process(const extension::alert::InvalidPieceArrived * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->invalidPieceArrived(p);
+}
+
+void NodeImpl::process(const extension::alert::ValidPieceArrived * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->validPieceArrived(p);
+}
+
+void NodeImpl::process(const extension::alert::AnchorAnnounced * p) {
+
+    if(core::TorrentPlugin * plugin = getTorrentPlugin(p->handle.info_hash()))
+        emit plugin->anchorAnnounced(p);
 }
 
 Torrent *NodeImpl::getTorrentBySecondaryHash(const libtorrent::sha1_hash &hash)
@@ -583,6 +776,65 @@ void NodeImpl::removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Tor
     _torrents.erase(it);
 
     _removedTorrent(info_hash);
+}
+
+core::Torrent * NodeImpl::getTorrent(const libtorrent::sha1_hash & infoHash) {
+
+    auto it = _torrents.find(infoHash);
+
+    if(it == _torrents.cend())
+        return nullptr;
+    else
+        return (it->second).get();
+
+}
+
+core::Peer * NodeImpl::getPeer(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep) {
+
+    core::Torrent * torrent = getTorrent(infoHash);
+
+    if(torrent == nullptr)
+        return nullptr;
+    else {
+
+        auto it = torrent->_peers.find(ep);
+
+        if(it == torrent->_peers.cend())
+            return nullptr;
+        else
+            return(it->second).get();
+    }
+
+}
+
+core::TorrentPlugin * NodeImpl::getTorrentPlugin(const libtorrent::sha1_hash & infoHash) {
+
+    core::Torrent * torrent = getTorrent(infoHash);
+
+    if(torrent == nullptr)
+        return nullptr;
+    else {
+
+        if(torrent->torrentPluginSet())
+            return torrent->torrentPlugin();
+        else
+            return nullptr;
+    }
+}
+
+core::PeerPlugin * NodeImpl::getPeerPlugin(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep) {
+
+    core::Peer * peer = getPeer(infoHash, ep);
+
+    if(peer == nullptr)
+        return nullptr;
+    else {
+
+        if(peer->peerPluginSet())
+            return peer->peerPlugin();
+        else
+            return nullptr;
+    }
 }
 
 }

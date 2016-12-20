@@ -25,6 +25,7 @@ namespace Coin {
 namespace joystream {
 namespace paymentchannel {
     class Payee;
+    class Contract;
 }
 namespace protocol_session {
 
@@ -76,11 +77,19 @@ typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendM
 //// Buying
 
 // Broadcasting a transaction
-typedef std::function<bool(const Coin::Transaction &)> BroadcastTransaction;
+typedef std::function<void(const Coin::Transaction &, const paymentchannel::Contract & c)> ContractConstructed;
 
 // Process arrival of a full piece, with given index over peer connection with given id
 template <class ConnectionIdType>
 using FullPieceArrived = std::function<void(const ConnectionIdType &, const protocol_wire::PieceData &, int)>;
+
+// Buyer with givne connection id send a valid payment
+template <class ConnectionIdType>
+using SentPayment = std::function<void(const ConnectionIdType &,
+                                       uint64_t paymentIncrement,
+                                       uint64_t totalNumberOfPayments,
+                                       uint64_t totalAmountPaid,
+                                       int pieceIndex)>;
 
 //// Selling
 
@@ -103,6 +112,13 @@ using ClaimLastPayment = std::function<void(const ConnectionIdType &, const joys
 // Buyer with given connection id announced anchor
 template <class ConnectionIdType>
 using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
+
+// Buyer with givne connection id send a valid payment
+template <class ConnectionIdType>
+using ReceivedValidPayment = std::function<void(const ConnectionIdType &,
+                                                uint64_t paymentIncrement,
+                                                uint64_t totalNumberOfPayments,
+                                                uint64_t totalAmountPaid)>;
 
 }
 }
