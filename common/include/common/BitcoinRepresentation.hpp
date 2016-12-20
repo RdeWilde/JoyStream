@@ -13,9 +13,9 @@
 #include <QtGlobal>
 
 #include <vector>
+#include <string>
 #include <unordered_map>
 
-class QString;
 class BitcoinDisplaySettings;
 
 // Manage crypto currency representaion
@@ -74,17 +74,17 @@ public:
     BitcoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate);
 
     /**
-     * Convert to QString routines
+     * Convert to std::string routines
      */
 
     // BitCoin representation with best prefix
-    QString toString(int precision = 1) const;
+    std::string toString(int precision = 1) const;
 
     // Fiat representation with best prefix
-    QString toString(Fiat fiat, double fiatToBTCExchangeRate, int precision = 1) const;
+    std::string toString(Fiat fiat, double fiatToBTCExchangeRate, int precision = 1) const;
 
     // Representation based on display settings
-    QString toString(const BitcoinDisplaySettings * settings) const;
+    std::string toString(const BitcoinDisplaySettings * settings) const;
 
     // Number of BitCoins
     // Is very useful since dealing with fiat requires dealing with exchange rates,
@@ -124,21 +124,21 @@ private:
     static int bestExponent(double raw, quint8 base, const std::vector<int> & exponents);
 
     // BitCoin representation with given prefix
-    QString toString(BitCoinPrefix prefix, int precision = 1) const;
+    std::string toString(BitCoinPrefix prefix, int precision = 1) const;
 
     // Fiat representation with given prefix
-    QString toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision = 1) const;
+    std::string toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision = 1) const;
 
     // Static utilities
     static quint64 satoshiesInABTC();
 
-    static QString prefixToString(BitCoinPrefix prefix);
-    static QString prefixToString(MetricPrefix prefix);
+    static std::string prefixToString(BitCoinPrefix prefix);
+    static std::string prefixToString(MetricPrefix prefix);
 
     //static quint8 prefixToExponent(BitCoinPrefix prefix);
     //static int prefixToExponent(MetricPrefix prefix);
 
-    static QString fiatToSymbol(Fiat fiat);
+    static std::string fiatToSymbol(Fiat fiat);
 };
 
 #endif // COIN_BITCOIN_REPRESENTATION_HPP

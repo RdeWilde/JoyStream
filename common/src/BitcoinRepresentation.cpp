@@ -8,8 +8,6 @@
 #include <common/BitcoinRepresentation.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 
-#include <QString>
-
 #include <cmath>
 #include <cassert>
 
@@ -190,31 +188,35 @@ double BitcoinRepresentation::unitsWithPrefix(MetricPrefix prefix, double fiatTo
     return totalAmountOfFiat / pow(10, metricPrefixToPower[prefix]);
 }
 
-QString BitcoinRepresentation::toString(BitCoinPrefix prefix, int precision) const {
+std::string BitcoinRepresentation::toString(BitCoinPrefix prefix, int precision) const {
 
     if(_satoshies == 0)
-        return QString("0B");
+        return std::string("0B");
     else
-        return (_isNegative ? QString("-") : QString("")) + QString::number(unitsWithPrefix(prefix), 'f', precision) + " " + prefixToString(prefix) + QString("B");
+        return (_isNegative ? std::string("-") : std::string("")) +
+            std::to_string(roundf(unitsWithPrefix(prefix) * pow(10, precision))/pow(10, precision)) +
+            " " + prefixToString(prefix) + std::string("B");
 }
 
-QString BitcoinRepresentation::toString(int precision) const {
+std::string BitcoinRepresentation::toString(int precision) const {
     return toString(bestPrefix(), precision);
 }
 
-QString BitcoinRepresentation::toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision) const {
+std::string BitcoinRepresentation::toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision) const {
 
     if(_satoshies == 0)
-        return QString("$0");
+        return std::string("$0");
     else
-        return (_isNegative ? QString("-") : QString("")) + fiatToSymbol(fiat) + QString::number(unitsWithPrefix(prefix, fiatToBTCExchangeRate), 'f', precision) + " " + prefixToString(prefix);
+        return (_isNegative ? std::string("-") : std::string("")) + fiatToSymbol(fiat) +
+            std::to_string(roundf(unitsWithPrefix(prefix, fiatToBTCExchangeRate) * pow(10, precision))/pow(10, precision)) +
+            " " + prefixToString(prefix);
 }
 
-QString BitcoinRepresentation::toString(Fiat fiat, double fiatToBTCExchangeRate, int precision) const {
+std::string BitcoinRepresentation::toString(Fiat fiat, double fiatToBTCExchangeRate, int precision) const {
     return toString(fiat, bestPrefix(fiatToBTCExchangeRate), fiatToBTCExchangeRate, precision);
 }
 
-QString BitcoinRepresentation::toString(const BitcoinDisplaySettings * settings) const {
+std::string BitcoinRepresentation::toString(const BitcoinDisplaySettings * settings) const {
 
     switch(settings->currency()) {
 
@@ -243,7 +245,7 @@ void BitcoinRepresentation::setSatoshies(quint64 satoshies) {
     _satoshies = satoshies;
 }
 
-QString BitcoinRepresentation::prefixToString(BitCoinPrefix prefix) {
+std::string BitcoinRepresentation::prefixToString(BitCoinPrefix prefix) {
 
     switch(prefix) {
 
@@ -259,15 +261,15 @@ QString BitcoinRepresentation::prefixToString(BitCoinPrefix prefix) {
     }
 }
 
-QString BitcoinRepresentation::prefixToString(MetricPrefix prefix) {
+std::string BitcoinRepresentation::prefixToString(MetricPrefix prefix) {
 
     switch(prefix) {
-        case MetricPrefix::Pico: return QString("p");
-        case MetricPrefix::Nano: return QString("n");
-        case MetricPrefix::Micro: return QString("μ");
-        case MetricPrefix::Milli: return QString("m");
-        case MetricPrefix::Centi: return QString("¢");
-        case MetricPrefix::None: return QString("");
+        case MetricPrefix::Pico: return std::string("p");
+        case MetricPrefix::Nano: return std::string("n");
+        case MetricPrefix::Micro: return std::string("μ");
+        case MetricPrefix::Milli: return std::string("m");
+        case MetricPrefix::Centi: return std::string("¢");
+        case MetricPrefix::None: return std::string("");
 
         default:
             Q_ASSERT(false);
@@ -307,13 +309,13 @@ int BitCoinRepresentation::prefixToExponent(MetricPrefix prefix) {
 }
 */
 
-QString BitcoinRepresentation::fiatToSymbol(Fiat fiat) {
+std::string BitcoinRepresentation::fiatToSymbol(Fiat fiat) {
 
     switch(fiat) {
-        case Fiat::USD: return QString("$");
-        case Fiat::Euro: return QString("€");
-        case Fiat::Pound: return QString("£");
-        case Fiat::Yen: return QString("¥");
+        case Fiat::USD: return std::string("$");
+        case Fiat::Euro: return std::string("€");
+        case Fiat::Pound: return std::string("£");
+        case Fiat::Yen: return std::string("¥");
 
         default:
             Q_ASSERT(false);
