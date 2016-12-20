@@ -8,7 +8,6 @@
 #include <common/typesafeOutPoint.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::OutPoint
 
-#include <QStringList>
 #include <QHash>
 
 namespace Coin {
