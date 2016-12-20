@@ -13,7 +13,7 @@ NAN_MODULE_INIT(AlertWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "type", type);
   Nan::SetPrototypeMethod(tpl, "message", message);
   Nan::SetPrototypeMethod(tpl, "category", category);
-  //Nan::SetPrototypeMethod(tpl, "handle", handle);
+  Nan::SetPrototypeMethod(tpl, "handle", handle);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -27,21 +27,7 @@ Local<Object> AlertWrap::New(const libtorrent::alert* a) {
     Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
 
     if(a) {
-        try {
-            auto casted = getObject <libtorrent::add_torrent_alert,
-                            libtorrent::torrent_removed_alert,
-                            libtorrent::save_resume_data_alert,
-                            libtorrent::save_resume_data_failed_alert,
-                            libtorrent::metadata_received_alert,
-                            libtorrent::torrent_finished_alert,
-                            joystream::extension::alert::RequestResult,
-                            joystream::extension::alert::PluginStatus>(*a);
-            Nan::ObjectWrap::Unwrap<AlertWrap>(obj.ToLocalChecked())->alert_ = casted;
-        } catch(std::exception e) {
-            /* casting failed */
-            printf("Unknown alert...");
-            Nan::ObjectWrap::Unwrap<AlertWrap>(obj.ToLocalChecked())->alert_ = a;
-        }
+        Nan::ObjectWrap::Unwrap<AlertWrap>(obj.ToLocalChecked())->alert_ = a;
     } else {
       obj = Nan::New<Object>();
     }
@@ -90,19 +76,16 @@ NAN_METHOD(AlertWrap::category) {
     info.GetReturnValue().Set(Nan::New<Integer>(AlertWrap::Unwrap(info.This())->category()));
 };
 
-/*NAN_METHOD(AlertWrap::handle) {
+NAN_METHOD(AlertWrap::handle) {
     Nan::HandleScope scope;
 
-    try {
-        auto casted = getHandle <libtorrent::add_torrent_alert,
-                             libtorrent::torrent_removed_alert,
-                             libtorrent::save_resume_data_alert,
-                             libtorrent::save_resume_data_failed_alert,
-                             libtorrent::metadata_received_alert,
-                             libtorrent::torrent_finished_alert> (*AlertWrap::Unwrap(info.This()));
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
-        info.GetReturnValue().Set(TorrentHandleWrap::FromExisting(casted));
-    } catch (std::exception e) {
-        info.GetReturnValue().SetUndefined();
+    auto casted = dynamic_cast<const libtorrent::torrent_alert*>(a);
+
+    if (!casted) {
+      info.GetReturnValue().SetUndefined();
+    } else {
+      info.GetReturnValue().Set(TorrentHandleWrap::New(casted->handle));
     }
-};*/
+};
