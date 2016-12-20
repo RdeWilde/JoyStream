@@ -18,6 +18,7 @@
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/secp256k1_openssl.h>
 
+#include <string>
 #include <QDebug>
 
 namespace Coin {
@@ -58,7 +59,7 @@ PrivateKey PrivateKey::generate() {
     return PrivateKey(key.getPrivKey());
 }
 
-PrivateKey PrivateKey::fromWIF(const QString & encoded) {
+PrivateKey PrivateKey::fromWIF(const std::string & encoded) {
 
     // Decode string
     Base58CheckEncodable encodedType;
@@ -67,7 +68,7 @@ PrivateKey PrivateKey::fromWIF(const QString & encoded) {
 
     // Throws exception if Qstring is not wellformed encoding of Base58CheckEncodable type,
     // check payload length as well.
-    decodeBase58CheckEncoding(encoded.toStdString(), encodedType, network, payload);
+    decodeBase58CheckEncoding(encoded, encodedType, network, payload);
 
     // Check that it is indeed a WIF encoded private key
     if(encodedType != Base58CheckEncodable::WIF_PRIVATE_KEY)
@@ -123,7 +124,7 @@ bool PrivateKey::valid(const PrivateKey & sk) {
     }
 }
 
-QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) const {
+std::string PrivateKey::toWIF(Network network, PublicKeyCompression compression) const {
 
     // Create version bytes
     std::vector<unsigned char> versionBytes = toVersionBytes(Base58CheckEncodable::WIF_PRIVATE_KEY, network);
@@ -142,7 +143,7 @@ QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) con
     // Base58Check encode and return result
     std::string encoded = toBase58Check(payload, versionBytes);
 
-    return QString::fromStdString(encoded);
+    return encoded;
 }
 
 Signature PrivateKey::sign(const uchar_vector & data) const {

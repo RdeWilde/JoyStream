@@ -40,13 +40,13 @@ public:
     static PrivateKey generate();
 
     // Factory from WIF encoded private key (for compressed pubkey)
-    static PrivateKey fromWIF(const QString & encoded);
+    static PrivateKey fromWIF(const std::string & encoded);
 
     // Validity of key
     static bool valid(const PrivateKey &);
 
     // WIF Encode private key
-    QString toWIF(Network network, PublicKeyCompression compression) const;
+    std::string toWIF(Network network, PublicKeyCompression compression) const;
 
     // Sign raw data
     Signature sign(const uchar_vector & message) const;
