@@ -8,9 +8,9 @@
 #ifndef COIN_DATA_SIZE_REPRESENTATION_HPP
 #define COIN_DATA_SIZE_REPRESENTATION_HPP
 
-#include <QtGlobal>
+#include <string>
 
-class QString;
+#include <QtGlobal>
 
 // Manages data size representations
 // Based on http://en.wikipedia.org/wiki/JEDEC_memory_standards#Unit_prefixes_for_semiconductor_storage_capacity
@@ -71,8 +71,8 @@ public:
     double unitsWithPrefix(Prefix prefix) const;
 
     // Returns string form of representation
-    QString toString(Prefix prefix, TextFormat format = TextFormat::Short, int precision = 1) const;
-    QString toString(TextFormat format = TextFormat::Short, int precision = 1) const;
+    std::string toString(Prefix prefix, TextFormat format = TextFormat::Short, int precision = 1) const;
+    std::string toString(TextFormat format = TextFormat::Short, int precision = 1) const;
 
     // Getters and setters
     quint64 numberOfBaseUnits() const;
@@ -90,8 +90,8 @@ private:
     Base _base;
 
     // Static utilities
-    static QString prefixToString(Prefix prefix, TextFormat format = TextFormat::Short);
-    static QString baseToString(Base base, TextFormat format = TextFormat::Short);
+    static std::string prefixToString(Prefix prefix, TextFormat format = TextFormat::Short);
+    static std::string baseToString(Base base, TextFormat format = TextFormat::Short);
 
     static quint8 prefixToExponent(Prefix prefix);
     static Prefix exponentToPrefix(quint8 power);

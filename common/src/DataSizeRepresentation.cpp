@@ -7,8 +7,6 @@
 
 #include <common/DataSizeRepresentation.hpp>
 
-#include <QString>
-
 #include <cmath>
 
 const quint8 DataSizeRepresentation::maxPower = 8;
@@ -66,11 +64,12 @@ double DataSizeRepresentation::unitsWithPrefix(Prefix prefix) const {
     return ((double)_numberOfBaseUnits) / pow(sizeOfBase(_base), prefixToExponent(prefix));
 }
 
-QString DataSizeRepresentation::toString(Prefix prefix, TextFormat format, int precision) const {
-    return QString::number(unitsWithPrefix(prefix), 'f', precision) + " " + prefixToString(prefix, format) + baseToString(_base, format);
+std::string DataSizeRepresentation::toString(Prefix prefix, TextFormat format, int precision) const {
+    return std::to_string(roundf(unitsWithPrefix(prefix) * pow(10, precision))/pow(10, precision)) +
+        " " + prefixToString(prefix, format) + baseToString(_base, format);
 }
 
-QString DataSizeRepresentation::toString(TextFormat format, int precision) const {
+std::string DataSizeRepresentation::toString(TextFormat format, int precision) const {
     return toString(bestPrefix(), format, precision);
 }
 
@@ -91,7 +90,7 @@ void DataSizeRepresentation::setBase(Base base) {
 }
 
 
-QString DataSizeRepresentation::prefixToString(Prefix prefix, TextFormat format) {
+std::string DataSizeRepresentation::prefixToString(Prefix prefix, TextFormat format) {
 
     switch(prefix) {
         case Prefix::None: return "";
@@ -108,7 +107,7 @@ QString DataSizeRepresentation::prefixToString(Prefix prefix, TextFormat format)
     }
 }
 
-QString DataSizeRepresentation::baseToString(Base base, TextFormat format) {
+std::string DataSizeRepresentation::baseToString(Base base, TextFormat format) {
 
     switch(base) {
         case Base::Bit: return "bit"; // is insensitive to format
