@@ -102,7 +102,7 @@ BitcoinRepresentation::BitCoinPrefix BitcoinRepresentation::bestPrefix() const {
     // Get the keys
     std::vector<int> keys;
     auto it = powerToBitCoinPrefix.begin();
-    while(it != powerToBitCoinPrefix.end()) {
+    while(it != powerToBitCoinPrefix.cend()) {
         keys.push_back(it->first);
         ++it;
     }
@@ -110,7 +110,7 @@ BitcoinRepresentation::BitCoinPrefix BitcoinRepresentation::bestPrefix() const {
     // Get best exponent
     int best = bestExponent(_satoshies, 10, keys);
 
-    assert(powerToBitCoinPrefix.find(best) != powerToBitCoinPrefix.end());
+    assert(powerToBitCoinPrefix.find(best) != powerToBitCoinPrefix.cend());
 
     // Return prefix
     return powerToBitCoinPrefix[best];
@@ -123,7 +123,7 @@ BitcoinRepresentation::MetricPrefix BitcoinRepresentation::bestPrefix(double fia
     // Get the keys
     std::vector<int> keys;
     auto it = powerToMetricPrefix.begin();
-    while(it != powerToMetricPrefix.end()) {
+    while(it != powerToMetricPrefix.cend()) {
         keys.push_back(it->first);
         ++it;
     }
@@ -131,7 +131,7 @@ BitcoinRepresentation::MetricPrefix BitcoinRepresentation::bestPrefix(double fia
     // Get best exponent
     int best = bestExponent(numberOfDollars, 10, keys);
 
-    assert(powerToMetricPrefix.find(best) != powerToMetricPrefix.end());
+    assert(powerToMetricPrefix.find(best) != powerToMetricPrefix.cend());
 
     // Return prefix
     return powerToMetricPrefix[best];
