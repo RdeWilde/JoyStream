@@ -8,6 +8,8 @@
 #ifndef SEED_HPP
 #define SEED_HPP
 
+#include <vector>
+
 #include <common/UCharArray.hpp>
 
 #define WALLET_SEED_BYTE_LENGTH 64 //64 bytes == 512 bits
@@ -26,7 +28,7 @@ class Seed : public Coin::UCharArray<WALLET_SEED_BYTE_LENGTH> {
 public:
 
     // Constant set of seeds suitable for testing
-    static const QList<Seed> testSeeds;
+    static const std::vector<Seed> testSeeds;
 
     // Default constructor
     Seed();
