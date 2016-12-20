@@ -1,6 +1,7 @@
 #include "session.h"
 #include "alert.h"
 #include "torrent_handle.h"
+#include "torrent_info.h"
 #include <nan.h>
 
 // NativeExtension.cc represents the top level of the module.
@@ -9,6 +10,7 @@
 NAN_MODULE_INIT(InitAll) {
   AlertWrap::Init(target);
   TorrentHandleWrap::Init(target);
+  TorrentInfoWrap::Init(target);
   SessionWrap::Init(target);
 }
 
