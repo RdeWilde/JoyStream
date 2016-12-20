@@ -194,11 +194,16 @@ NAN_METHOD(SessionWrap::FindTorrent) {
 NAN_METHOD(SessionWrap::PopAlerts) {
   Nan::HandleScope scope;
 
+  v8::Local<v8::Array> ret = Nan::New<v8::Array>();
+
+  std::vector<libtorrent::alert*> alerts;
+
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
-  /*
-   * Need to define alerts
-   */
+  session_wrap->session_.s->pop_alerts(&alerts);
+
+  for(libtorrent::alert * alert : alerts)
+    printf("We have an Alert !");
 
   info.GetReturnValue().Set(Nan::Undefined());
 }

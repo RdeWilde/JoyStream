@@ -2,6 +2,7 @@
 #define SESSION_HPP
 
 #include <libtorrent/session.hpp>
+#include <libtorrent/alert.hpp>
 #include <extension/extension.hpp>
 #include <stdutils/uchar_vector.h>
 

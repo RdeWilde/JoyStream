@@ -4,8 +4,8 @@ var session = new nativeExtension.SessionWrap();
 var torrentHandle = new nativeExtension.TorrentHandleWrap();
 
 setInterval(function(){
-  process.stdout.write(".");
-}, 2000);
+  session.popAlerts();
+}, 1000);
 
 console.log(torrentHandle);
 
