@@ -21,14 +21,14 @@ P2PKHAddress::P2PKHAddress(Network network, const PubKeyHash & pubKeyHash)
 }
 
 // Base58CheckEncoded p2pkh address
-P2PKHAddress P2PKHAddress::fromBase58CheckEncoding(const QString & encoded) {
+P2PKHAddress P2PKHAddress::fromBase58CheckEncoding(const std::string & encoded) {
 
     // Decode
     Base58CheckEncodable encodedType;
     Network network;
     uchar_vector pubKeyHash;
 
-    decodeBase58CheckEncoding(encoded.toStdString(), encodedType, network, pubKeyHash);
+    decodeBase58CheckEncoding(encoded, encodedType, network, pubKeyHash);
 
     // Check that input is indeed a p2pkh address
     if(encodedType != Base58CheckEncodable::P2PKH_ADDRESS)
@@ -42,7 +42,7 @@ bool P2PKHAddress::operator==(const P2PKHAddress & o) {
     return _pubKeyHash == o.pubKeyHash() && _network == o.network();
 }
 
-QString P2PKHAddress::toBase58CheckEncoding() const {
+std::string P2PKHAddress::toBase58CheckEncoding() const {
 
     // Create version bytes
     std::vector<unsigned char> versionBytes = toVersionBytes(Base58CheckEncodable::P2PKH_ADDRESS, _network);
@@ -50,7 +50,7 @@ QString P2PKHAddress::toBase58CheckEncoding() const {
     // Base58Check encode and return result
     std::string encoded = toBase58Check(_pubKeyHash.toUCharVector(), versionBytes);
 
-    return QString::fromStdString(encoded);
+    return encoded;
 }
 
 Network P2PKHAddress::network() const {

@@ -8,6 +8,8 @@
 #ifndef COIN_P2PKH_ADDRESS_HPP
 #define COIN_P2PKH_ADDRESS_HPP
 
+#include <string>
+
 #include <common/PubKeyHash.hpp>
 
 namespace Coin {
@@ -25,13 +27,13 @@ public:
     P2PKHAddress(Network network, const PubKeyHash & pubKeyHash);
 
     // Factory from Base58CheckEncoding
-    static P2PKHAddress fromBase58CheckEncoding(const QString & encoded);
+    static P2PKHAddress fromBase58CheckEncoding(const std::string & encoded);
 
     // Equality operator
     bool operator==(const P2PKHAddress & o);
 
     // Base58CheckEncode
-    QString toBase58CheckEncoding() const;
+    std::string toBase58CheckEncoding() const;
 
     // Getters and setters
     Network network() const;

@@ -8,6 +8,8 @@
 #ifndef COIN_P2SH_ADDRESS_HPP
 #define COIN_P2SH_ADDRESS_HPP
 
+#include <string>
+
 #include <common/Network.hpp>
 #include <common/RedeemScriptHash.hpp>
 
@@ -27,10 +29,10 @@ public:
     P2SHAddress(Network network, const RedeemScriptHash & redeemScriptHash);
 
     // Factory from Base58CheckEncoding
-    static P2SHAddress fromBase58CheckEncoding(const QString & encoded);
+    static P2SHAddress fromBase58CheckEncoding(const std::string & encoded);
 
     // Base58CheckEncode
-    QString toBase58CheckEncoding() const;
+    std::string toBase58CheckEncoding() const;
 
     // Transaction output
     TxOut txOut(quint64 value) const;
