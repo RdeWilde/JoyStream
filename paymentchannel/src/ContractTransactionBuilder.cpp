@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, April 20 2016
  */
 
-#include <paymentchannel/Contract.hpp>
+#include <paymentchannel/ContractTransactionBuilder.hpp>
 #include <paymentchannel/Commitment.hpp>
 #include <common/Payment.hpp>
 #include <common/Utilities.hpp>
@@ -22,34 +22,34 @@
 namespace joystream {
 namespace paymentchannel {
 
-Contract::Contract() {
+ContractTransactionBuilder::ContractTransactionBuilder() {
 }
 
-boost::optional<Coin::UnspentOutputSet> Contract::funding() const {
+boost::optional<Coin::UnspentOutputSet> ContractTransactionBuilder::funding() const {
     return _funding;
 }
 
-void Contract::setFunding(const boost::optional<Coin::UnspentOutputSet> &funding) {
+void ContractTransactionBuilder::setFunding(const boost::optional<Coin::UnspentOutputSet> &funding) {
     _funding = funding;
 }
 
-Contract::Commitments Contract::commitments() const {
+ContractTransactionBuilder::Commitments ContractTransactionBuilder::commitments() const {
     return _commitments;
 }
 
-void Contract::setCommitments(const Commitments &commitments) {
+void ContractTransactionBuilder::setCommitments(const Commitments &commitments) {
     _commitments = commitments;
 }
 
-boost::optional<Coin::Payment> Contract::change() const {
+boost::optional<Coin::Payment> ContractTransactionBuilder::change() const {
     return _change;
 }
 
-void Contract::setChange(const boost::optional<Coin::Payment> &change) {
+void ContractTransactionBuilder::setChange(const boost::optional<Coin::Payment> &change) {
     _change = change;
 }
 
-Coin::Transaction Contract::transaction() const {
+Coin::Transaction ContractTransactionBuilder::transaction() const {
 
     // Create transaction
     Coin::Transaction transaction;
@@ -69,7 +69,7 @@ Coin::Transaction Contract::transaction() const {
     return transaction;
 }
 
-uint64_t Contract::totalFee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, uint64_t sizeOfAllInputs) {
+uint64_t ContractTransactionBuilder::totalFee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, uint64_t sizeOfAllInputs) {
 
     // Sizeof transaction
     quint64 txByteSize = transactionSize(numberOfCommitments, hasChange) + sizeOfAllInputs;
@@ -78,9 +78,9 @@ uint64_t Contract::totalFee(uint32_t numberOfCommitments, bool hasChange, quint6
     return ceil(feePerKb*((float)txByteSize/1024));
 }
 
-uint64_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange) {
+uint64_t ContractTransactionBuilder::transactionSize(uint32_t numberOfCommitments, bool hasChange) {
 
-    Contract c;
+    ContractTransactionBuilder c;
 
     // set commitments
     c.setCommitments(Commitments(numberOfCommitments));

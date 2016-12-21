@@ -92,12 +92,12 @@ void Test::RefundLocking() {
     Coin::RelativeLockTime locktime(Coin::RelativeLockTime::Units::Blocks, lockTimeBlocks);
 
     // Construct a Contract with one commitment
-    Contract contract;
+    ContractTransactionBuilder contract;
     contract.setFunding(funding);
 
     Commitment commitment(commitmentAmount, buyerSk.toPublicKey(), sellerSk.toPublicKey(), locktime);
 
-    contract.setCommitments(Contract::Commitments({commitment}));
+    contract.setCommitments(ContractTransactionBuilder::Commitments({commitment}));
 
     auto contractTx = contract.transaction();
 
@@ -172,13 +172,13 @@ void Test::Settlement() {
     Coin::RelativeLockTime locktime(Coin::RelativeLockTime::Units::Blocks, lockTimeBlocks);
 
     // Construct a Contract with one commitment
-    Contract contract;
+    ContractTransactionBuilder contract;
 
     contract.setFunding(funding);
 
     Commitment commitment(commitmentAmount, buyerSk.toPublicKey(), sellerSk.toPublicKey(), locktime);
 
-    contract.setCommitments(Contract::Commitments({commitment}));
+    contract.setCommitments(ContractTransactionBuilder::Commitments({commitment}));
 
     auto contractTx = contract.transaction();
 

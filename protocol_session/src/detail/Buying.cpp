@@ -555,7 +555,7 @@ namespace detail {
         uint64_t changeAmount = determineChangeAmount(numberOfSellers, totalComitted, contractFeePerKb, _funding.size());
 
         // Ensure Enough funds available to fund the contract
-        uint64_t estimatedFee = paymentchannel::Contract::fee(numberOfSellers, true, contractFeePerKb, _funding.size());
+        uint64_t estimatedFee = paymentchannel::ContractTransactionBuilder::fee(numberOfSellers, true, contractFeePerKb, _funding.size());
 
         if(_funding.value() < (totalComitted + changeAmount + estimatedFee))
             throw std::runtime_error("Aborted trying to start download, not enough funding provided");
@@ -569,7 +569,7 @@ namespace detail {
         // Create contract
         // Note: must be done before sending ready message on wire,
         // as it requires the contract txid, which is based on outputs
-        paymentchannel::Contract c(_funding);
+        paymentchannel::ContractTransactionBuilder c(_funding);
 
         // Generate keys and addresses required
         std::vector<Coin::PubKeyHash> finalPkHashes;
@@ -725,7 +725,7 @@ namespace detail {
     uint64_t Buying<ConnectionIdType>::determineChangeAmount(uint32_t numberOfSellers, uint64_t totalComitted, uint64_t contractFeePerKb, int numberOfInputs) const {
 
         // Contract fee when there is a change output
-        uint64_t contractTxFeeWithChangeOutput = paymentchannel::Contract::fee(numberOfSellers, true, contractFeePerKb, numberOfInputs);
+        uint64_t contractTxFeeWithChangeOutput = paymentchannel::ContractTransactionBuilder::fee(numberOfSellers, true, contractFeePerKb, numberOfInputs);
 
         // Amount to use as change, if we are going to have change
         uint64_t potentialChangeAmount = _funding.value() - totalComitted - contractTxFeeWithChangeOutput;

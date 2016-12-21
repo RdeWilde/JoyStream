@@ -22,13 +22,13 @@ namespace Coin {
 namespace joystream {
 namespace paymentchannel {
 
-class Contract {
+class ContractTransactionBuilder {
 
 public:
 
     typedef std::vector<Commitment> Commitments;
 
-    Contract();
+    ContractTransactionBuilder();
 
     boost::optional<Coin::UnspentOutputSet> funding() const;
     void setFunding(const boost::optional<Coin::UnspentOutputSet> &funding);

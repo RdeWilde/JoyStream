@@ -33,7 +33,7 @@ namespace protocol_session {
         int64_t maxTotalOutput = outputPerContractOutput * terms.minNumberOfSellers();
 
         // Contract fee when *there is a change output*
-        uint64_t contractTxFeeWithChangeOutput = paymentchannel::Contract::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb());
+        uint64_t contractTxFeeWithChangeOutput = paymentchannel::ContractTransactionBuilder::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb());
 
         return maxTotalOutput + contractTxFeeWithChangeOutput;
     }
