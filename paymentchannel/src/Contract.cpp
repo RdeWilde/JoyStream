@@ -22,48 +22,31 @@
 namespace joystream {
 namespace paymentchannel {
 
-Contract::Contract()
-    : _changeSet(false) {
+Contract::Contract() {
 }
 
-Contract::Contract(const Coin::UnspentOutputSet & funding)
-    : _funding(funding)
-    , _changeSet(false) {
+boost::optional<Coin::UnspentOutputSet> Contract::funding() const {
+    return _funding;
 }
 
-Contract::Contract(const Coin::UnspentOutputSet &funding,
-                   const std::vector<Commitment> & commitments)
-    : _funding(funding)
-    , _commitments(commitments)
-    , _changeSet(false) {
+void Contract::setFunding(const boost::optional<Coin::UnspentOutputSet> &funding) {
+    _funding = funding;
 }
 
-Contract::Contract(const Coin::UnspentOutputSet & funding,
-                   const std::vector<Commitment> & commitments,
-                   const Coin::Payment & change)
-    : _funding(funding)
-    , _commitments(commitments)
-    , _changeSet(true)
-    , _change(change) {
+Contract::Commitments Contract::commitments() const {
+    return _commitments;
 }
 
-uint Contract::addCommitment(const Commitment & commitment){
-
-    // Add commitments
-    _commitments.push_back(commitment);
-
-    // Return number of commitments at present
-    return _commitments.size();
+void Contract::setCommitments(const Commitments &commitments) {
+    _commitments = commitments;
 }
 
-void Contract::setChange(const Coin::Payment & change) {
+boost::optional<Coin::Payment> Contract::change() const {
+    return _change;
+}
 
+void Contract::setChange(const boost::optional<Coin::Payment> &change) {
     _change = change;
-    _changeSet = true;
-}
-
-void Contract::clearChange() {
-    _changeSet = false;
 }
 
 Coin::Transaction Contract::transaction() const {
@@ -76,30 +59,33 @@ Coin::Transaction Contract::transaction() const {
         transaction.addOutput(c.contractOutput());
 
     // Add change output if set
-    if(_changeSet)
-        transaction.addOutput(_change.txOut());
+    if(_change.is_initialized())
+        transaction.addOutput(_change.get().txOut());
 
-    _funding.finance(transaction, Coin::SigHashType::standard());
+    // Add funding if set
+    if(_funding.is_initialized())
+        _funding.get().finance(transaction, Coin::SigHashType::standard());
 
     return transaction;
 }
 
-uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange, int numberOfInputs) {
+uint64_t Contract::totalFee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, uint64_t sizeOfAllInputs) {
 
-    // Create blank contract with correct structure
-    Coin::UnspentOutputSet funding;
+    // Sizeof transaction
+    quint64 txByteSize = transactionSize(numberOfCommitments, hasChange) + sizeOfAllInputs;
 
-    // NB: We must have valid private key, as there will be actual signing with key
-    for(int i = 0; i < numberOfInputs; i++) {
-        auto utxo = std::make_shared<Coin::UnspentP2PKHOutput>(Coin::PrivateKey("153213303DA61F20BD67FC233AA33262"), Coin::typesafeOutPoint(), 0);
-        funding.insert(utxo);
-    }
+    // Seed on fee estimate at http://bitcoinfees.com/
+    return ceil(feePerKb*((float)txByteSize/1024));
+}
 
-    Contract c(funding);
+uint64_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange) {
 
-    for(uint32_t i = 0;i < numberOfCommitments; i++)
-        c.addCommitment(Commitment());
+    Contract c;
 
+    // set commitments
+    c.setCommitments(Commitments(numberOfCommitments));
+
+    // set change
     if(hasChange)
         c.setChange(Coin::Payment(0, Coin::PrivateKey("153213303DA61F20BD67FC233AA33262").toPublicKey().toPubKeyHash()));
 
@@ -108,15 +94,6 @@ uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange,
 
     // return total size
     return tx.getSize();
-}
-
-uint64_t Contract::fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, int numberOfInputs) {
-
-    // Sizeof transaction
-    quint64 txByteSize = transactionSize(numberOfCommitments, hasChange, numberOfInputs);
-
-    // Seed on fee estimate at http://bitcoinfees.com/
-    return ceil(feePerKb*((float)txByteSize/1024));
 }
 
 }

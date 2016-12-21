@@ -12,6 +12,7 @@
 #include <common/Payment.hpp>
 #include <paymentchannel/Commitment.hpp>
 
+#include <boost/optional.hpp> // std::optional<> in c++17
 #include <vector>
 
 namespace Coin {
@@ -25,49 +26,42 @@ class Contract {
 
 public:
 
+    typedef std::vector<Commitment> Commitments;
+
     Contract();
 
-    Contract(const Coin::UnspentOutputSet &);
+    boost::optional<Coin::UnspentOutputSet> funding() const;
+    void setFunding(const boost::optional<Coin::UnspentOutputSet> &funding);
 
-    // Setup contract without change
-    Contract(const Coin::UnspentOutputSet &,
-             const std::vector<Commitment> &);
+    Commitments commitments() const;
+    void setCommitments(const Commitments &commitments);
 
-    // Setup contract with change
-    Contract(const Coin::UnspentOutputSet &,
-             const std::vector<Commitment> &,
-             const Coin::Payment &);
+    boost::optional<Coin::Payment> change() const;
+    void setChange(const boost::optional<Coin::Payment> &change);
 
-    // Adds commitment, and returns number of commitments in total after adding
-    uint addCommitment(const Commitment &);
-
-    // Set change
-    void setChange(const Coin::Payment &);
-
-    // Removes the change
-    void clearChange();
-
-    // The transaction corresponding to the contract
+    /**
+     * @brief Contract transaction for payment channel setup, which
+     * is also signed if funding was provided.
+     * @return contract transaction
+     */
     Coin::Transaction transaction() const;
 
     // Transaction fee for contract with given terms
-    static uint64_t fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, int numberOfInputs = 1);
+    static uint64_t totalFee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, uint64_t sizeOfAllInputs);
 
 private:
 
     // The size of a contract transaction with given terms
-    static uint32_t transactionSize(uint32_t, bool, int);
+    static uint64_t transactionSize(uint32_t, bool);
 
     // Funding contract
-    Coin::UnspentOutputSet _funding;
+    boost::optional<Coin::UnspentOutputSet> _funding;
 
     // Commitments for end to end channels
-    std::vector<Commitment> _commitments;
+    Commitments _commitments;
 
     // Change in contract back to payor
-    // NB: ** replace with std::optional<> when it comes out
-    bool _changeSet;
-    Coin::Payment _change;
+    boost::optional<Coin::Payment> _change;
 };
 
 }
