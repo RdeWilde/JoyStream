@@ -11,6 +11,7 @@
 #include <common/Base58CheckEncodable.hpp> // version macroes
 #include <common/AddressType.hpp>
 #include <stdutils/uchar_vector.h>
+#include <string>
 
 class QByteArray;
 
@@ -20,7 +21,7 @@ namespace Coin {
 
     QByteArray toByteArray(const uchar_vector & vector);
 
-    uchar_vector toUCharVector(const QByteArray & array);
+    uchar_vector toUCharVector(const std::string & array);
 
     // Used to provide version array for mSIGNA libs.
     // Returns 1 byte version byte for p2pkh and p2sh addresses on given network

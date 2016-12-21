@@ -5,6 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 9 2015
  */
 
+#include <string>
 #include <stdutils/uchar_vector.h>
 
 #ifndef COIN_SIGNATURE_HPP
@@ -36,7 +37,7 @@ public:
     Signature(const uchar_vector & raw);
 
     // Hex encoded signature
-    Signature(const QString & signature);
+    Signature(const std::string & signature);
 
     // Copy constructor
     Signature(const Signature & signature);

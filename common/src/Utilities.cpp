@@ -29,7 +29,7 @@ namespace Coin {
         return QByteArray(data, raw.size());
     }
 
-    uchar_vector toUCharVector(const QByteArray & array) {
+    uchar_vector toUCharVector(const std::string & array) {
 
         // Get pointer to data
         const unsigned char * data = (const unsigned char *)array.data();

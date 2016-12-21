@@ -5,6 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 9 2015
  */
 
+#include <common/Utilities.hpp>
 #include <common/Signature.hpp>
 
 #include <QString>
@@ -39,7 +40,7 @@ Signature::Signature(const uchar_vector & raw) {
 
 }
 
-Signature::Signature(const QString & string) {
+Signature::Signature(const std::string & string) {
 
     // Check that string has correct length
 
@@ -47,18 +48,8 @@ Signature::Signature(const QString & string) {
 
     if(stringLength > 2*maxLength)
         throw std::runtime_error("String argument is of incorrect length, should be 2*MAX_SIGNATURE_LENGTH.");
-    else {
-
-        // Decode from hex format
-        QByteArray b = QByteArray::fromHex(string.toLatin1());
-
-        Q_ASSERT((unsigned int)(b.length()*2) == stringLength);
-
-        // Read into vector buffer
-        unsigned const char * begin = (unsigned const char *)b.constBegin();
-        unsigned const char * end = (unsigned const char *)b.constEnd();
-        _raw = std::vector<unsigned char>(begin, end);
-    }
+    else
+        _raw = Coin::toUCharVector(string);
 }
 
 Signature::Signature(const Signature & signature)
