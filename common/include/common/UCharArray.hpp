@@ -9,6 +9,7 @@
 #define COIN_UCHAR_ARRAY_HPP
 
 #include <array>
+#include <string>
 
 class QByteArray;
 class QString;
@@ -41,7 +42,7 @@ public:
     UCharArray(const uchar_vector & vector);
 
     // Constructor from hex encoded string
-    UCharArray(const QString & hexEncodedString);
+    UCharArray(const std::string & hexEncodedString);
 
     // Constructor from hex encoded string
     UCharArray(const char * hexEncodedString);

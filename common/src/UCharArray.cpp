@@ -9,6 +9,7 @@
 #include <QDataStream>
 #include <QString>
 
+#include <common/Utilities.hpp>
 #include <stdutils/uchar_vector.h>
 
 #include <sstream> // stringstream
@@ -46,7 +47,7 @@ UCharArray<array_length>::UCharArray(const uchar_vector & vector) {
 }
 
 template<unsigned int array_length>
-UCharArray<array_length>::UCharArray(const QString & hexEncoded) {
+UCharArray<array_length>::UCharArray(const std::string & hexEncoded) {
 
     // Check that string has correct length
     if(hexEncoded.length() != 2*array_length) {
@@ -63,15 +64,7 @@ UCharArray<array_length>::UCharArray(const QString & hexEncoded) {
         throw std::runtime_error(s.str());
 
     } else {
-
-        // Decode from hex format
-        QByteArray b = QByteArray::fromHex(hexEncoded.toLatin1());
-
-        Q_ASSERT(b.length() == array_length);
-
-        // Copy into array
-        // Does not work => static_cast<const unsigned char *>(b.constData())
-        fill((const unsigned char *)(b.constData()));
+        UCharArray<array_length>(Coin::toUCharVector(hexEncoded));
     }
 }
 
