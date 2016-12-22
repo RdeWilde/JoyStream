@@ -9,6 +9,7 @@
                 "cpp/torrent_status.cc",
                 "cpp/alert.cc",
                 "cpp/torrent_info.cc",
+                "cpp/add_torrent_params.cc",
                 "../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
