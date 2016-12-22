@@ -647,8 +647,8 @@ protocol_session::ContractConstructed TorrentPlugin::contractConstructed() {
     auto torrent = _torrent;
     auto alertManager = _alertManager;
 
-    return [torrent, alertManager](const Coin::Transaction & tx, const paymentchannel::ContractTransactionBuilder & c) {
-        alertManager->emplace_alert<alert::ContractConstructed>(torrent, tx, c);
+    return [torrent, alertManager](const Coin::Transaction & tx) {
+        alertManager->emplace_alert<alert::ContractConstructed>(torrent, tx);
     };
 }
 

@@ -406,7 +406,7 @@ namespace extension {
         return true; // overrid default handler
     }
 
-    bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
+    bool PeerPlugin::can_disconnect(libtorrent::error_code const &) {
 
         //std::clog << "can_disconnect: " << ec.message() << std::endl;
 
