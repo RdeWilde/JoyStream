@@ -1,7 +1,6 @@
 #include "torrent_status.h"
 
-// Wrapper Impl
 
-NAN_METHOD(nothing) {
+NAN_METHOD(torrent_status_to_object) {
 
 }
