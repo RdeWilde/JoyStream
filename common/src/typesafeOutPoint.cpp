@@ -14,7 +14,7 @@ typesafeOutPoint::typesafeOutPoint()
     : _index(0){
 }
 
-typesafeOutPoint::typesafeOutPoint(const TransactionId & txId, quint32 index)
+typesafeOutPoint::typesafeOutPoint(const TransactionId & txId, uint32_t index)
     : _txId(txId)
     , _index(index) {
 }
@@ -64,8 +64,8 @@ QDataStream & operator>>(QDataStream & stream, typesafeOutPoint & o) {
     return stream;
 }
 
-QString typesafeOutPoint::toLittleEndianTxIdString() const {
-    return QString::fromStdString(_txId.toRPCByteOrder()) + "-" + QString::number(_index);
+std::string typesafeOutPoint::toLittleEndianTxIdString() const {
+    return _txId.toRPCByteOrder() + "-" + std::to_string(_index);
 }
 
 Coin::OutPoint typesafeOutPoint::getClassicOutPoint() const {
@@ -80,11 +80,11 @@ void typesafeOutPoint::setTransactionId(const TransactionId & txId){
     _txId = txId;
 }
 
-quint32 typesafeOutPoint::index() const {
+uint32_t typesafeOutPoint::index() const {
     return _index;
 }
 
-void typesafeOutPoint::setIndex(quint32 index) {
+void typesafeOutPoint::setIndex(uint32_t index) {
     _index = index;
 }
 

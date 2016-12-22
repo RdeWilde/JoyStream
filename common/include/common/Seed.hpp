@@ -8,6 +8,7 @@
 #ifndef SEED_HPP
 #define SEED_HPP
 
+#include <string>
 #include <vector>
 
 #include <common/UCharArray.hpp>
@@ -40,7 +41,7 @@ public:
     Seed(const char * hexEncoded);
 
     // Constructor from hex encoded string
-    Seed(const QString & hexEncoded);
+    Seed(const std::string & hexEncoded);
 
     /**
      * TODO

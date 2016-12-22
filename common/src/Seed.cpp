@@ -50,7 +50,7 @@ Seed::Seed(const QByteArray & raw)
 }
 
 
-Seed::Seed(const QString & hexEncoded)
+Seed::Seed(const std::string & hexEncoded)
     : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(hexEncoded) {
 }
 

@@ -70,7 +70,7 @@ UCharArray<array_length>::UCharArray(const std::string & hexEncoded) {
 
 template<unsigned int array_length>
 UCharArray<array_length>::UCharArray(const char * hexEncodedString)
-    : UCharArray<array_length>(QString(hexEncodedString)) {
+    : UCharArray<array_length>(std::string(hexEncodedString)) {
 }
 
 template<unsigned int array_length>
