@@ -1,7 +1,10 @@
 "use strict"
 
 var NativeExtension = require('../../../')
+var debug = require('debug')('node')
 const EventEmitter = require('events')
+
+var Torrent = require('./torrent')
 
 const _processDhtGetPeersReplyAlert = Symbol('processDhtGetPeersReplyAlert')
 const _listenSucceededAlert = Symbol('listenSucceededAlert')
@@ -29,7 +32,7 @@ class Node extends EventEmitter {
       super()
       this.session = new NativeExtension.SessionWrap()
       this.plugin = null
-      this.torrents = []
+      this.torrents = new Map()
 
       // Pop alerts every seconde
       setInterval(function () {
@@ -159,7 +162,7 @@ class Node extends EventEmitter {
           break
 
         default:
-          console.log('Alert ' + alert.what() + ' ignored ' + alert.type())
+          debug('Alert ' + alert.what() + ' ignored')
           break
       }
     }
@@ -185,7 +188,25 @@ class Node extends EventEmitter {
 
     [_addTorrentAlert](alert) {
       if (!alert.error()) {
-        var h = alert.handle()
+        var torrentHandle = alert.handle()
+        var resumeData = alert.params().resumeData()
+
+        var torrent = this.torrents.get(torrentHandle.infoHash())
+        // Verify if torrent not already in torrents list
+        if (!torrent) {
+
+          var torrent = new Torrent(torrentHandle,
+                                    resumeData,
+                                    this.plugin)
+
+          // Add torrent to torrents map
+          this.torrents.set(torrentHandle.infoHash(),torrent)
+          // Emit event 'addTorrentAlert'
+          this.emit('addTorrentAlert')
+        } else {
+          torrent.resumeData = resumeData
+        }
+
       }
     }
 

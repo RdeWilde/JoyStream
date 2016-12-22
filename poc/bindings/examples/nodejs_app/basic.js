@@ -1,4 +1,7 @@
 var Node = require('./lib/node')
+var debug = require('debug')('basic');
+
+debug('Starting basic.js example')
 
 var node = new Node()
 
