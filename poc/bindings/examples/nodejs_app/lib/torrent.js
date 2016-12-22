@@ -1,6 +1,20 @@
-"use strict"
+'use strict'
+
+var sha1 = require('sha1')
 
 class Torrent {
+
+  constructor (handle, resumeData, plugin) {
+    this.handle = handle
+    this.resumeData = resumeData
+    this.plugin = plugin
+  }
+
+  // Review needed !
+  secondaryInfoHash () {
+    var newInfoHash = this.handle.infoHash() + '_JS'
+    return sha1(newInfoHash)
+  }
 
 }
 
