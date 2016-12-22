@@ -7,7 +7,6 @@
 
 #include <QByteArray>
 #include <QDataStream>
-#include <QString>
 
 #include <common/Utilities.hpp>
 #include <stdutils/uchar_vector.h>
@@ -125,15 +124,10 @@ bool UCharArray<array_length>::isClear() const {
 }
 
 template<unsigned int array_length>
-QString UCharArray<array_length>::toHex() const {
+std::string UCharArray<array_length>::toHex() const {
 
     const char * ptr = (const char *)(this->data()); // this conversion is not safe ? think
-
-    // Wrap in byte array
-    QByteArray byteArray(ptr, array_length);
-
-    // Convert to hex and return
-    return QString(byteArray.toHex());
+    return std::string(ptr);
 }
 
 template<unsigned int array_length>

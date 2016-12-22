@@ -12,7 +12,6 @@
 #include <string>
 
 class QByteArray;
-class QString;
 class uchar_vector;
 class QDataStream;
 
@@ -63,7 +62,7 @@ public:
     bool isClear() const;
 
     // Encodes as hex string
-    QString toHex() const;
+    std::string toHex() const;
 
     // Convert to unsigned char vector
     uchar_vector toUCharVector() const;

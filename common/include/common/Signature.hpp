@@ -11,7 +11,6 @@
 #ifndef COIN_SIGNATURE_HPP
 #define COIN_SIGNATURE_HPP
 
-class QString;
 class QDataStream;
 class QByteArray;
 
@@ -55,7 +54,7 @@ public:
     unsigned int length() const;
 
     // Hex encoded signature
-    QString toString() const;
+    std::string toString() const;
 
     // Raw data
     QByteArray toByteArray() const;

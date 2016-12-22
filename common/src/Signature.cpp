@@ -8,7 +8,6 @@
 #include <common/Utilities.hpp>
 #include <common/Signature.hpp>
 
-#include <QString>
 #include <QDataStream>
 
 #include <sstream>
@@ -73,17 +72,10 @@ unsigned int Signature::length() const {
     return _raw.size();
 }
 
-QString Signature::toString() const {
+std::string Signature::toString() const {
 
-    // Put into byte array
     const char * begin = (const char *)_raw.data();
-    QByteArray raw(begin, _raw.size());
-
-    // Hex encode
-    QByteArray hexEncoded = raw.toHex();
-
-    // Return as string
-    return QString(hexEncoded.constData());
+    return std::string(begin);
 }
 
 QByteArray Signature::toByteArray() const {
