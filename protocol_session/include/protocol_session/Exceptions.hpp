@@ -16,6 +16,8 @@ namespace joystream {
 namespace protocol_session {
 namespace exception {
 
+class CouldNotCompleteContract : public std::runtime_error {};
+
 template <class ConnectionIdType>
 class ConnectionAlreadyAddedException : public std::runtime_error {
 

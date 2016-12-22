@@ -11,12 +11,10 @@ template <class ConnectionIdType>
 SessionSpy<ConnectionIdType>::SessionSpy(const GenerateP2SHKeyPairCallbackHandler &kpHandler,
                                          const GenerateReceiveAddressesCallbackHandler &receiveAddressHandler,
                                          const GenerateChangeAddressesCallbackHandler &changeAddressHandler,
-                                         const BroadcastTransaction & broadcast,
                                          Session<ConnectionIdType> * session)
     : generateKeyPairCallbackSlot(kpHandler)
     , generateReceiveAddressesCallbackSlot(receiveAddressHandler)
     , generateChangeAddressesCallbackSlot(changeAddressHandler)
-    , broadcastTransactionCallbackSlot(broadcast)
     , _session(session) {
 }
 
@@ -41,6 +39,7 @@ void SessionSpy<ConnectionIdType>::toMonitoredSellMode(const SellingPolicy & pol
                          loadPieceForBuyerCallbackSlot.hook(),
                          claimLastPaymentCallbackSlot.hook(),
                          anchorAnnouncedCallbackSlot.hook(),
+                         ReceivedValidPayment<ConnectionIdType>([](const ConnectionIdType &, uint64_t, uint64_t, uint64_t) -> void{}), // not bothering to add monitoring to this now, session will be deprecated
                          policy,
                          terms,
                          maxPieceIndex);
@@ -48,20 +47,20 @@ void SessionSpy<ConnectionIdType>::toMonitoredSellMode(const SellingPolicy & pol
 }
 
 template <class ConnectionIdType>
-void SessionSpy<ConnectionIdType>::toMonitoredBuyMode(const Coin::UnspentOutputSet & funding,
-                                                      const BuyingPolicy & policy,
+void SessionSpy<ConnectionIdType>::toMonitoredBuyMode(const BuyingPolicy & policy,
                                                       const protocol_wire::BuyerTerms & terms,
                                                       const TorrentPieceInformation & information) {
     _session->toBuyMode(removedConnectionCallbackSlot.hook(),
-                         generateKeyPairCallbackSlot.hook(),
-                         generateReceiveAddressesCallbackSlot.hook(),
-                         generateChangeAddressesCallbackSlot.hook(),
-                         broadcastTransactionCallbackSlot.hook(),
-                         fullPieceArrivedCallbackSlot.hook(),
-                         funding,
-                         policy,
-                         terms,
-                         information);
+                        generateKeyPairCallbackSlot.hook(),
+                        generateReceiveAddressesCallbackSlot.hook(),
+                        generateChangeAddressesCallbackSlot.hook(),
+                        contractConstructedCallbackSlot.hook(),
+                        fullPieceArrivedCallbackSlot.hook(),
+                        SentPayment<ConnectionIdType>([](const ConnectionIdType &, uint64_t, uint64_t, uint64_t, int) -> void {}), // not bothering to add monitoring to this now, session will be deprecated
+                        CompleteContract([](const Coin::Transaction &, int64_t) -> Coin::Transaction { return Coin::Transaction(); }), // not bothering to add monitoring to this now, session will be deprecated
+                        policy,
+                        terms,
+                        information);
 }
 
 template <class ConnectionIdType>
@@ -109,7 +108,7 @@ bool SessionSpy<ConnectionIdType>::blankSession() const {
             generateReceiveAddressesCallbackSlot.empty() &&
             generateChangeAddressesCallbackSlot.empty() &&
             //// Buying
-            broadcastTransactionCallbackSlot.empty() &&
+            contractConstructedCallbackSlot.empty() &&
             fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             loadPieceForBuyerCallbackSlot.empty() &&
@@ -141,7 +140,7 @@ void SessionSpy<ConnectionIdType>::reset() {
     generateChangeAddressesCallbackSlot.clear();
 
     //// Buying
-    broadcastTransactionCallbackSlot.clear();
+    contractConstructedCallbackSlot.clear();
     fullPieceArrivedCallbackSlot.clear();
 
     //// Selling
@@ -162,7 +161,7 @@ bool SessionSpy<ConnectionIdType>::onlyCalledRemovedConnection() const {
             generateReceiveAddressesCallbackSlot.empty() &&
             generateChangeAddressesCallbackSlot.empty() &&
             //// Buying
-            broadcastTransactionCallbackSlot.empty() &&
+            contractConstructedCallbackSlot.empty() &&
             fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             loadPieceForBuyerCallbackSlot.empty() &&
@@ -178,7 +177,7 @@ bool SessionSpy<ConnectionIdType>::onlyCalledGenerateKeyPairs() const {
             generateReceiveAddressesCallbackSlot.empty() &&
             generateChangeAddressesCallbackSlot.empty() &&
             //// Buying
-            broadcastTransactionCallbackSlot.empty() &&
+            contractConstructedCallbackSlot.empty() &&
             fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             loadPieceForBuyerCallbackSlot.empty() &&
@@ -194,7 +193,7 @@ bool SessionSpy<ConnectionIdType>::onlyCalledGenerateReceiveAddresses() const {
             !generateReceiveAddressesCallbackSlot.empty() &&
             generateChangeAddressesCallbackSlot.empty() &&
             //// Buying
-            broadcastTransactionCallbackSlot.empty() &&
+            contractConstructedCallbackSlot.empty() &&
             fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             loadPieceForBuyerCallbackSlot.empty() &&
@@ -209,7 +208,7 @@ bool SessionSpy<ConnectionIdType>::onlyCalledBroadcastTransaction() const {
             generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
-            !broadcastTransactionCallbackSlot.empty() &&
+            !contractConstructedCallbackSlot.empty() &&
             fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             loadPieceForBuyerCallbackSlot.empty() &&
@@ -224,7 +223,7 @@ bool SessionSpy<ConnectionIdType>::onlyCalledFullPieceArrived() const {
             generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
-            broadcastTransactionCallbackSlot.empty() &&
+            contractConstructedCallbackSlot.empty() &&
             !fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             loadPieceForBuyerCallbackSlot.empty() &&
@@ -239,7 +238,7 @@ bool SessionSpy<ConnectionIdType>::onlyCalledLoadPieceForBuyer() const {
             generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
-            broadcastTransactionCallbackSlot.empty() &&
+            contractConstructedCallbackSlot.empty() &&
             fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             !loadPieceForBuyerCallbackSlot.empty() &&
@@ -254,7 +253,7 @@ bool SessionSpy<ConnectionIdType>::onlyCalledClaimLastPayment() const {
             generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
-            broadcastTransactionCallbackSlot.empty() &&
+            contractConstructedCallbackSlot.empty() &&
             fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             loadPieceForBuyerCallbackSlot.empty() &&
@@ -269,7 +268,7 @@ bool SessionSpy<ConnectionIdType>::onlyCalledAnchorAnnounced() const {
             generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
-            broadcastTransactionCallbackSlot.empty() &&
+            contractConstructedCallbackSlot.empty() &&
             fullPieceArrivedCallbackSlot.empty() &&
             //// Selling
             loadPieceForBuyerCallbackSlot.empty() &&

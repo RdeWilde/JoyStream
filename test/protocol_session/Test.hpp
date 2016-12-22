@@ -114,8 +114,7 @@ private:
                     int);
 
     // Session to buy mode
-    void toBuyMode(const Coin::UnspentOutputSet &,
-                   const BuyingPolicy &,
+    void toBuyMode(const BuyingPolicy &,
                    const protocol_wire::BuyerTerms &,
                    const TorrentPieceInformation &);
 

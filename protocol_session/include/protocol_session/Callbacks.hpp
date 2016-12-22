@@ -11,6 +11,7 @@
 
 #include <common/P2SHAddress.hpp>
 #include <common/P2PKHAddress.hpp>
+#include <CoinCore/CoinNodeData.h>
 
 #include <functional>
 #include <vector>
@@ -77,7 +78,7 @@ typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendM
 //// Buying
 
 // Broadcasting a transaction
-typedef std::function<void(const Coin::Transaction &, const paymentchannel::ContractTransactionBuilder & c)> ContractConstructed;
+typedef std::function<void(const Coin::Transaction &)> ContractConstructed;
 
 // Process arrival of a full piece, with given index over peer connection with given id
 template <class ConnectionIdType>
@@ -90,6 +91,15 @@ using SentPayment = std::function<void(const ConnectionIdType &,
                                        uint64_t totalNumberOfPayments,
                                        uint64_t totalAmountPaid,
                                        int pieceIndex)>;
+
+/**
+* @brief Completes contract by financing it, and adding change output if required.
+* @param tx contract transaction to be signed
+* @param feePrKb minimum satoshies per Kilobyte fee rate required
+* @throws exception::UnsufficientFunds could not sign contract
+* @return signed inputs
+*/
+typedef std::function<Coin::Transaction(const Coin::Transaction & tx, int64_t feePrKb)> CompleteContract;
 
 //// Selling
 

@@ -17,6 +17,7 @@
 namespace joystream {
 namespace protocol_session {
 
+    /**
     template <class ConnectionIdType>
     int64_t Session<ConnectionIdType>::minimumFundsRequiredAsBuyer(const protocol_wire::BuyerTerms & terms, int numberOfPieces) {
 
@@ -37,6 +38,7 @@ namespace protocol_session {
 
         return maxTotalOutput + contractTxFeeWithChangeOutput;
     }
+    */
 
     template <class ConnectionIdType>
     Session<ConnectionIdType>::Session()
@@ -172,7 +174,7 @@ namespace protocol_session {
                                               const ContractConstructed & contractConstructed,
                                               const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                               const SentPayment<ConnectionIdType> & sentPayment,
-                                              const Coin::UnspentOutputSet & funding,
+                                              const CompleteContract & completeContract,
                                               const BuyingPolicy & policy,
                                               const protocol_wire::BuyerTerms & terms,
                                               const TorrentPieceInformation & information) {
@@ -221,7 +223,7 @@ namespace protocol_session {
                                                        contractConstructed,
                                                        fullPieceArrived,
                                                        sentPayment,
-                                                       funding,
+                                                       completeContract,
                                                        policy,
                                                        terms,
                                                        information);
