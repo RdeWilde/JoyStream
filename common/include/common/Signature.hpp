@@ -6,12 +6,12 @@
  */
 
 #include <string>
+#include <istream>
+#include <ostream>
 #include <stdutils/uchar_vector.h>
 
 #ifndef COIN_SIGNATURE_HPP
 #define COIN_SIGNATURE_HPP
-
-class QDataStream;
 
 namespace Coin {
 
@@ -59,8 +59,8 @@ public:
     uchar_vector toUCharVector() const;
 
     // Stream processing
-    int readFromStream(QDataStream & stream, unsigned int length);
-    int writeToStream(QDataStream & stream) const;
+    int readFromStream(std::istream & stream, unsigned int length);
+    int writeToStream(std::ostream & stream) const;
 
     // Getters and setters
     uchar_vector raw() const;

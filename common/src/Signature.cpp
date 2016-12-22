@@ -8,8 +8,6 @@
 #include <common/Utilities.hpp>
 #include <common/Signature.hpp>
 
-#include <QDataStream>
-
 #include <sstream>
 
 namespace Coin {
@@ -87,7 +85,7 @@ uchar_vector Signature::toUCharVector() const {
     return uchar_vector(data, _raw.size());
 }
 
-int Signature::readFromStream(QDataStream & stream, unsigned int length) {
+int Signature::readFromStream(std::istream & stream, unsigned int length) {
 
     // Check that signature is not to large
     if(length > maxLength)
@@ -98,7 +96,8 @@ int Signature::readFromStream(QDataStream & stream, unsigned int length) {
 
     // Read from stream
     char * data = (char *)_raw.data();
-    unsigned int bytesRead = stream.readRawData(data, length);
+    stream.read(data, length);
+    unsigned int bytesRead = stream.gcount();
 
     if(bytesRead != length)
         throw new std::runtime_error("Could not read length bytes.");
@@ -106,14 +105,24 @@ int Signature::readFromStream(QDataStream & stream, unsigned int length) {
     return bytesRead;
 }
 
-int Signature::writeToStream(QDataStream & stream) const {
+int Signature::writeToStream(std::ostream & stream) const {
 
     if(_raw.size() == 0)
         return 0;
 
+    unsigned int bytesWritten;
+
     // Write to stream
     const char * data = (const char *)_raw.data();
-    unsigned int bytesWritten = stream.writeRawData(data, _raw.size());
+
+    auto begin = stream.tellp();
+    stream.write(data, _raw.size());
+    auto end = stream.tellp();
+
+    if (begin != -1 && end != -1)
+        bytesWritten = end - begin;
+    else
+        bytesWritten = -1;
 
     if(bytesWritten != _raw.size())
         throw new std::runtime_error("Could not write length bytes.");
