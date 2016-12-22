@@ -30,7 +30,7 @@ namespace detail {
                                      const ContractConstructed & contractConstructed,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                      const SentPayment<ConnectionIdType> & sentPayment,
-                                     const CompleteContract & completeContract,
+                                     const SignContract & signContract,
                                      const BuyingPolicy & policy,
                                      const protocol_wire::BuyerTerms & terms,
                                      const TorrentPieceInformation & information)
@@ -42,7 +42,7 @@ namespace detail {
         , _contractConstructed(contractConstructed)
         , _fullPieceArrived(fullPieceArrived)
         , _sentPayment(sentPayment)
-        , _completeContract(completeContract)
+        , _signContract(signContract)
         , _policy(policy)
         , _state(BuyingState::sending_invitations)
         , _terms(terms)
@@ -625,7 +625,7 @@ namespace detail {
 
         // Create and store contract transaction
         try {
-            _contractTx = _completeContract(c.transaction(), contractFeePerKb);
+            _contractTx = _signContract(c.transaction(), contractFeePerKb);
         } catch (const exception::CouldNotCompleteContract &) {
             return false;
         }

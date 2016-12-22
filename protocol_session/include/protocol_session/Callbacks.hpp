@@ -99,7 +99,7 @@ using SentPayment = std::function<void(const ConnectionIdType &,
 * @throws exception::UnsufficientFunds could not sign contract
 * @return signed inputs
 */
-typedef std::function<Coin::Transaction(const Coin::Transaction & tx, int64_t feePrKb)> CompleteContract;
+typedef std::function<Coin::Transaction(const Coin::Transaction & tx, int64_t feePrKb)> SignContract;
 
 //// Selling
 

@@ -47,7 +47,7 @@ public:
            const ContractConstructed &,
            const FullPieceArrived<ConnectionIdType> &,
            const SentPayment<ConnectionIdType> &,
-           const CompleteContract &,
+           const SignContract &,
            const BuyingPolicy &,
            const protocol_wire::BuyerTerms &,
            const TorrentPieceInformation &);
@@ -171,7 +171,7 @@ private:
     ContractConstructed _contractConstructed;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
     SentPayment<ConnectionIdType> _sentPayment;
-    CompleteContract _completeContract;
+    SignContract _signContract;
 
     // Controls behaviour of session
     BuyingPolicy _policy;

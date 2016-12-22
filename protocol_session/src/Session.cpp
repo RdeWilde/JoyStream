@@ -174,7 +174,7 @@ namespace protocol_session {
                                               const ContractConstructed & contractConstructed,
                                               const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                               const SentPayment<ConnectionIdType> & sentPayment,
-                                              const CompleteContract & completeContract,
+                                              const SignContract & signContract,
                                               const BuyingPolicy & policy,
                                               const protocol_wire::BuyerTerms & terms,
                                               const TorrentPieceInformation & information) {
@@ -223,7 +223,7 @@ namespace protocol_session {
                                                        contractConstructed,
                                                        fullPieceArrived,
                                                        sentPayment,
-                                                       completeContract,
+                                                       signContract,
                                                        policy,
                                                        terms,
                                                        information);

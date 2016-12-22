@@ -91,7 +91,7 @@ namespace detail {
                        const ContractConstructed &,
                        const FullPieceArrived<ConnectionIdType> &,
                        const SentPayment<ConnectionIdType> &,
-                       const CompleteContract & completeContract,
+                       const SignContract & signContract,
                        const BuyingPolicy &,
                        const protocol_wire::BuyerTerms &,
                        const TorrentPieceInformation &);
