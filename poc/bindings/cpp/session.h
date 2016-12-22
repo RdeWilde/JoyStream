@@ -29,6 +29,9 @@ class SessionWrap : public Nan::ObjectWrap {
     static NAN_METHOD(FindTorrent);
     static NAN_METHOD(PopAlerts);
     static NAN_METHOD(SetAlertNotify);
+    
+    static NAN_METHOD(dht_announce);
+
     static Nan::Persistent<v8::Function> constructor;
     Session session_;
 };

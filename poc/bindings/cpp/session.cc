@@ -20,6 +20,8 @@ NAN_MODULE_INIT(SessionWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "popAlerts", PopAlerts);
   Nan::SetPrototypeMethod(tpl, "setAlertNotify", SetAlertNotify);
 
+  Nan::SetPrototypeMethod(tpl, "dhtAnnounce", dht_announce);
+
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("SessionWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
@@ -216,6 +218,34 @@ NAN_METHOD(SessionWrap::SetAlertNotify) {
   /*
    * Need to define the logic here
    */
+
+  info.GetReturnValue().Set(Nan::Undefined());
+}
+
+
+NAN_METHOD(SessionWrap::dht_announce) {
+  Nan::HandleScope scope;
+
+  v8::String::Utf8Value s(info[0]);
+  std::string secondary_info_hash = std::string(*s);
+
+  if(secondary_info_hash.size() != 40) {
+    Nan::ThrowTypeError("incorrent length of hex string");
+    return;
+  }
+
+  char buf[21];
+
+  if(!libtorrent::from_hex(secondary_info_hash.c_str(), secondary_info_hash.size(), buf)) {
+    Nan::ThrowTypeError("invalid hex string");
+    return;
+  }
+
+  unsigned int listen_port = info[1]->Uint32Value();
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+
+  session_wrap->session_.s->dht_announce(libtorrent::sha1_hash(buf), listen_port);
 
   info.GetReturnValue().Set(Nan::Undefined());
 }
