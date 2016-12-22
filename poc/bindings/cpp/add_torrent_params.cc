@@ -53,6 +53,6 @@ NAN_METHOD(AddTorrentParamsWrap::resume_data) {
     const libtorrent::add_torrent_params* atp = AddTorrentParamsWrap::Unwrap(info.This());
 
     // Not sure about this, need review...
-    Nan::MaybeLocal<String> rd = Nan::New<String>(atp->resume_data.data());
+    Nan::MaybeLocal<String> rd = Nan::New<String>(atp->resume_data.data(), atp->resume_data.size());
     info.GetReturnValue().Set(rd.ToLocalChecked());
 };
