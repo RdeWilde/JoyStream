@@ -12,7 +12,6 @@
 #define COIN_SIGNATURE_HPP
 
 class QDataStream;
-class QByteArray;
 
 namespace Coin {
 
@@ -55,9 +54,6 @@ public:
 
     // Hex encoded signature
     std::string toString() const;
-
-    // Raw data
-    QByteArray toByteArray() const;
 
     // Raw data
     uchar_vector toUCharVector() const;

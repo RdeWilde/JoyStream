@@ -11,7 +11,6 @@
 #include <array>
 #include <string>
 
-class QByteArray;
 class uchar_vector;
 class QDataStream;
 
@@ -46,9 +45,6 @@ public:
     // Constructor from hex encoded string
     UCharArray(const char * hexEncodedString);
 
-    // Constructor from raw byte array
-    UCharArray(const QByteArray & raw);
-
     // Reverses representation, to switch between little/big-endian
     void reverse();
 
@@ -66,9 +62,6 @@ public:
 
     // Convert to unsigned char vector
     uchar_vector toUCharVector() const;
-
-    // Convert to byte array
-    QByteArray toByteArray() const;
 
     // Stream operator
     friend QDataStream & operator<< <array_length> (QDataStream & stream, const UCharArray<array_length> & o);

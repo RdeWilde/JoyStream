@@ -78,15 +78,6 @@ std::string Signature::toString() const {
     return std::string(begin);
 }
 
-QByteArray Signature::toByteArray() const {
-
-    // Get pointer to data
-    const char * data = reinterpret_cast<const char *>(_raw.data());
-
-    // Construct byte array and return it
-    return QByteArray(data, _raw.size());
-}
-
 uchar_vector Signature::toUCharVector() const {
 
     // Get pointer to data

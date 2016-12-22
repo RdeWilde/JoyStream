@@ -5,7 +5,6 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#include <QByteArray>
 #include <QDataStream>
 
 #include <common/Utilities.hpp>
@@ -73,29 +72,6 @@ UCharArray<array_length>::UCharArray(const char * hexEncodedString)
 }
 
 template<unsigned int array_length>
-UCharArray<array_length>::UCharArray(const QByteArray & raw) {
-
-    // Check that byte array has correct length
-    uchar_vector::size_type byteArrayLength = raw.size();
-
-    if(byteArrayLength != array_length) {
-
-        // Create error message
-        std::stringstream s;
-
-        s << "vector argument is of incorrect length, should be "
-          << array_length
-          << ", but was "
-          << byteArrayLength
-          << ".";
-
-        throw std::runtime_error(s.str());
-
-    } else
-        fill((const unsigned char *)(raw.constData()));
-}
-
-template<unsigned int array_length>
 void UCharArray<array_length>::reverse() {
     std::reverse(this->begin(), this->end());
 }
@@ -138,16 +114,6 @@ uchar_vector UCharArray<array_length>::toUCharVector() const {
 
     // Construct vector and return it
     return uchar_vector(data, array_length);
-}
-
-template<unsigned int array_length>
-QByteArray UCharArray<array_length>::toByteArray() const {
-
-    // Get pointer to data
-    const char * data = reinterpret_cast<const char *>(this->data());
-
-    // Construct byte array and return it
-    return QByteArray(data, array_length);
 }
 
 template<unsigned int array_length>
