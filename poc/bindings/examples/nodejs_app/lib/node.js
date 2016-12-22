@@ -31,13 +31,33 @@ class Node extends EventEmitter {
       this.plugin = null
       this.torrents = []
 
-      // Pop alerts every secondes
+      // Pop alerts every seconde
       setInterval(function () {
         var alerts = this.session.popAlerts()
         for (var i in alerts) {
           this.process(alerts[i])
-        }
+        };
       }.bind(this), 1000)
+    }
+
+    pause () {
+      this.session.pause()
+    }
+
+    isPaused () {
+      return this.session.isPaused()
+    }
+
+    resume () {
+      this.session.resume()
+    }
+
+    listenPort () {
+      return this.session.listenPort()
+    }
+
+    addTorrent (uploadLimit, downloadLimit, name, resumeData, savePath, infoHash, callback) {
+      this.session.addTorrent(uploadLimit, downloadLimit, name, resumeData, savePath, infoHash, callback)
     }
 
     process (alert) {
@@ -129,17 +149,17 @@ class Node extends EventEmitter {
           break
 
         // PluginStatus
-        case 100001:
+        case 10001:
           this[_pluginStatus](alert)
           break
 
-        // PluginStatus
-        case 100002:
+        // RequestResult
+        case 10002:
           this[_requestResult](alert)
           break
 
         default:
-          console.log('Alert ' + alert.what() + ' ignored')
+          console.log('Alert ' + alert.what() + ' ignored ' + alert.type())
           break
       }
     }
@@ -155,7 +175,8 @@ class Node extends EventEmitter {
     }
 
     [_metadataReceivedAlert](alert) {
-      // Logic here
+      var h = alert.handle()
+
     }
 
     [_metadataFailedAlert](alert) {
@@ -163,7 +184,9 @@ class Node extends EventEmitter {
     }
 
     [_addTorrentAlert](alert) {
-      // Logic here
+      if (!alert.error()) {
+        var h = alert.handle()
+      }
     }
 
     [_torrentFinishedAlert](alert) {
