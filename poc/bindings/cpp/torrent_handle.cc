@@ -892,7 +892,13 @@ NAN_METHOD(TorrentHandleWrap::torrent_file) {
 
     libtorrent::torrent_handle* th = TorrentHandleWrap::Unwrap(info.This());
 
+    // Not good...
     boost::shared_ptr<const libtorrent::torrent_info> torrent_info = th->torrent_file();
 
-    info.GetReturnValue().Set(TorrentInfoWrap::New(torrent_info.get()));
+    if (torrent_info.get()) {
+      info.GetReturnValue().Set(TorrentInfoWrap::New(torrent_info.get()));
+    } else {
+      info.GetReturnValue().SetUndefined();
+    }
+
 };

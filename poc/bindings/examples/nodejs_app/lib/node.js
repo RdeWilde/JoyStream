@@ -190,7 +190,14 @@ class Node extends EventEmitter {
     }
 
     [_metadataReceivedAlert](alert) {
-      var h = alert.handle()
+      var torrentHandle = alert.handle()
+      var torrentInfo = torrentHandle.torrentInfo()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrentInfo && torrent) {
+        debug('Received Metadata for torrent')
+        this.torrent.emit('metadataReceivedAlert', torrentInfo)
+      }
 
     }
 
