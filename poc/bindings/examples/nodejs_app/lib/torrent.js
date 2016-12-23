@@ -6,6 +6,7 @@ const EventEmitter = require('events')
 class Torrent extends EventEmitter {
 
   constructor (handle, resumeData, plugin) {
+    super()
     this.handle = handle
     this.resumeData = resumeData
     this.plugin = plugin
