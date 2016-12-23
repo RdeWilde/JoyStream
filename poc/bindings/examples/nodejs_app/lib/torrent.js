@@ -1,8 +1,9 @@
 'use strict'
 
 var sha1 = require('sha1')
+const EventEmitter = require('events')
 
-class Torrent {
+class Torrent extends EventEmitter {
 
   constructor (handle, resumeData, plugin) {
     this.handle = handle

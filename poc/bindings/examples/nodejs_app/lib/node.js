@@ -168,9 +168,20 @@ class Node extends EventEmitter {
       }
     }
 
-    // private
+    /*
+     * Private Method
+     */
+
     [_processDhtGetPeersReplyAlert](alert) {
-      // Logic here
+      var torrent = torrentsBySecondaryHash.get(alert.infoHash())
+
+      if (torrent) {
+        /*
+         * Not finished...
+         */
+      } else {
+        debug('Torrent with secondaryInfoHash ' + alert.infoHash() + ' not found')
+      }
     }
 
     [_listenSucceededAlert](alert) {
@@ -231,7 +242,17 @@ class Node extends EventEmitter {
     }
 
     [_torrentRemovedAlert](alert) {
-      // Logic here
+      /*
+       * NOTICE: Docs say p->handle may be invalid at this time - likely because this is a removal operation,
+       * so we must use p->info_hash instead.
+       */
+       var torrent = this.torrents.get(alert.infoHash())
+
+       if (torrent) {
+         torrent.emit('torrentRemovedAlert')
+       } else {
+         debug('Torrent not found')
+       }
     }
 
     [_torrentResumedAlert](alert) {
@@ -247,7 +268,24 @@ class Node extends EventEmitter {
     }
 
     [_torrentPausedAlert](alert) {
-      // Logic here
+
+      var infoHash = alert.handle().infoHash()
+      var torrent = this.torrents.get(infoHash)
+
+      /* Need to verify if is_all_zero() ?
+       * If all_zero torrent not find so probably not
+       */
+
+      if (torrent) {
+        // emit alert that the torrent has been paused
+        debug('Torrent paused')
+        torrent.emit('torrentPausedAlert')
+      } else {
+        var err = 'Cannot find torrent to pause'
+        debug(err)
+        throw new Error(err)
+      }
+
     }
 
     [_torrentCheckedAlert](alert) {
