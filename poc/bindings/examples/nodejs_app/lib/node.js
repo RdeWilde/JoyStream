@@ -256,7 +256,18 @@ class Node extends EventEmitter {
     }
 
     [_torrentResumedAlert](alert) {
-      // Logic here
+      var infoHash = alert.handle().infoHash()
+      var torrent = this.torrents.get(infoHash)
+
+      if (torrent) {
+        // emit alert that the torrent has been resumed
+        debug('Torrent resumed')
+        torrent.emit('torrentResumedAlert')
+      } else {
+        var err = 'Cannot find torrent to resume'
+        debug(err)
+        throw new Error(err)
+      }
     }
 
     [_saveResumeDataAlert](alert) {
