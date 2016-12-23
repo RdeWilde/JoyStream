@@ -173,7 +173,7 @@ class Node extends EventEmitter {
      */
 
     [_processDhtGetPeersReplyAlert](alert) {
-      var torrent = torrentsBySecondaryHash.get(alert.infoHash())
+      var torrent = this.torrentsBySecondaryHash.get(alert.infoHash())
 
       if (torrent) {
         /*
@@ -191,18 +191,19 @@ class Node extends EventEmitter {
 
     [_metadataReceivedAlert](alert) {
       var torrentHandle = alert.handle()
-      var torrentInfo = torrentHandle.torrentInfo()
+      var torrentInfo = torrentHandle.torrentFile()
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       if (torrentInfo && torrent) {
         debug('Received Metadata for torrent')
-        this.torrent.emit('metadataReceivedAlert', torrentInfo)
+        torrent.emit('metadataReceivedAlert', torrentInfo)
       }
 
     }
 
     [_metadataFailedAlert](alert) {
-      // Logic here
+      debug('Metadata Failed Alert !')
+      // what to do?
     }
 
     [_addTorrentAlert](alert) {
@@ -246,6 +247,17 @@ class Node extends EventEmitter {
 
     [_stateUpdateAlert](alert) {
       // Logic here
+      var status = alert.status()
+
+      for (var i in status) {
+        var torrent = this.torrents.get(status[i].infoHash())
+
+        if (torrent) {
+          torrent.emit('stateUpdatedAlert', status[i].state(), status[i].progress())
+        } else {
+          debug('Torrent not found !')
+        }
+      }
     }
 
     [_torrentRemovedAlert](alert) {
