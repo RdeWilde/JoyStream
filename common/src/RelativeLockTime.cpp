@@ -1,8 +1,9 @@
 #include <common/RelativeLockTime.hpp>
 #include <common/Utilities.hpp>
-#include <QDataStream>
 #include <stdexcept>
 #include <stdutils/uchar_vector.h>
+
+typedef unsigned char uchar;
 
 namespace Coin {
 
