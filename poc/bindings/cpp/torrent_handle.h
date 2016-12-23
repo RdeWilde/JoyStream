@@ -3,7 +3,10 @@
 
 #include <nan.h>
 #include <libtorrent/torrent_handle.hpp>
+#include <libtorrent/torrent_info.hpp>
 #include <libtorrent/peer_info.hpp>
+
+#include "torrent_info.h"
 
 class TorrentHandleWrap : public Nan::ObjectWrap {
   public:
@@ -99,6 +102,8 @@ class TorrentHandleWrap : public Nan::ObjectWrap {
     static NAN_METHOD(force_recheck);
     static NAN_METHOD(rename_file);
     static NAN_METHOD(set_ssl_certificate);
+
+    static NAN_METHOD(torrent_file);
 
     libtorrent::torrent_handle* th_;
 };

@@ -89,6 +89,7 @@ NAN_MODULE_INIT(TorrentHandleWrap::Init) {
    Nan::SetPrototypeMethod(tpl, "renameFile", rename_file);
    Nan::SetPrototypeMethod(tpl, "setSSLCertificate", set_ssl_certificate);
 
+   Nan::SetPrototypeMethod(tpl, "torrentFile", torrent_file);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("TorrentHandleWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
@@ -884,4 +885,14 @@ NAN_METHOD(TorrentHandleWrap::set_ssl_certificate) {
         th->set_ssl_certificate(certificate, private_key, dh_params);
 
     info.GetReturnValue().SetUndefined();
+};
+
+NAN_METHOD(TorrentHandleWrap::torrent_file) {
+    Nan::HandleScope scope;
+
+    libtorrent::torrent_handle* th = TorrentHandleWrap::Unwrap(info.This());
+
+    boost::shared_ptr<const libtorrent::torrent_info> torrent_info = th->torrent_file();
+
+    info.GetReturnValue().Set(TorrentInfoWrap::New(torrent_info.get()));
 };
