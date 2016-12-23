@@ -29,9 +29,16 @@ class AlertWrap: public Nan::ObjectWrap {
       static NAN_METHOD(type);
       static NAN_METHOD(message);
       static NAN_METHOD(category);
+
+      // torrent_alert
       static NAN_METHOD(handle);
+
+      //
       static NAN_METHOD(error);
       static NAN_METHOD(params);
+
+      // dht_get_peers_reply_alert
+      static NAN_METHOD(info_hash);
 
       static Nan::Persistent<Function> constructor;
       const libtorrent::alert* alert_;
