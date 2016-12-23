@@ -2,6 +2,7 @@
 #include "alert.h"
 #include "torrent_handle.h"
 #include "torrent_info.h"
+#include "torrent_status.h"
 #include "add_torrent_params.h"
 #include <nan.h>
 
@@ -13,6 +14,7 @@ NAN_MODULE_INIT(InitAll) {
   AlertWrap::Init(target);
   TorrentHandleWrap::Init(target);
   TorrentInfoWrap::Init(target);
+  TorrentStatusWrap::Init(target);
   SessionWrap::Init(target);
 }
 

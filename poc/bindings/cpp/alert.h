@@ -3,6 +3,7 @@
 
 #include <nan.h>
 #include "torrent_handle.h"
+#include "torrent_status.h"
 #include "add_torrent_params.h"
 #include <extension/Alert.hpp>
 
@@ -37,8 +38,11 @@ class AlertWrap: public Nan::ObjectWrap {
       static NAN_METHOD(error);
       static NAN_METHOD(params);
 
-      // dht_get_peers_reply_alert
+      // dht_get_peers_reply_alert torrent_removed_alert
       static NAN_METHOD(info_hash);
+
+      // state_update_alert
+      static NAN_METHOD(status);
 
       static Nan::Persistent<Function> constructor;
       const libtorrent::alert* alert_;
