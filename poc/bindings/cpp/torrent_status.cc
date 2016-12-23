@@ -9,6 +9,8 @@ NAN_MODULE_INIT(TorrentStatusWrap::Init) {
   tpl->SetClassName(Nan::New("TorrentStatusWrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+  Nan::SetPrototypeMethod(tpl, "infoHash", info_hash);
+
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("TorrentStatusWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
@@ -43,4 +45,12 @@ NAN_METHOD(TorrentStatusWrap::NewInstance) {
   obj->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
+};
+
+NAN_METHOD(TorrentStatusWrap::info_hash) {
+    Nan::HandleScope scope;
+
+    libtorrent::sha1_hash h(TorrentStatusWrap::Unwrap(info.This())->info_hash());
+
+    info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(h.to_string())).ToLocalChecked());
 };
