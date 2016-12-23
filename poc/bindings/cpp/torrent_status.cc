@@ -10,6 +10,9 @@ NAN_MODULE_INIT(TorrentStatusWrap::Init) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "infoHash", info_hash);
+  Nan::SetPrototypeMethod(tpl, "state", state);
+  Nan::SetPrototypeMethod(tpl, "progress", progress);
+
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("TorrentStatusWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
@@ -50,7 +53,23 @@ NAN_METHOD(TorrentStatusWrap::NewInstance) {
 NAN_METHOD(TorrentStatusWrap::info_hash) {
     Nan::HandleScope scope;
 
-    libtorrent::sha1_hash h(TorrentStatusWrap::Unwrap(info.This())->info_hash());
+    const libtorrent::torrent_status* ts(TorrentStatusWrap::Unwrap(info.This()));
 
-    info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(h.to_string())).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(ts->info_hash.to_string())).ToLocalChecked());
+};
+
+NAN_METHOD(TorrentStatusWrap::state) {
+    Nan::HandleScope scope;
+
+    const libtorrent::torrent_status* ts(TorrentStatusWrap::Unwrap(info.This()));
+
+    info.GetReturnValue().Set(Nan::New<Number>(ts->state));
+};
+
+NAN_METHOD(TorrentStatusWrap::progress) {
+    Nan::HandleScope scope;
+
+    const libtorrent::torrent_status* ts(TorrentStatusWrap::Unwrap(info.This()));
+
+    info.GetReturnValue().Set(Nan::New<Number>(ts->progress));
 };

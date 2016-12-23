@@ -20,6 +20,9 @@ class TorrentStatusWrap: public Nan::ObjectWrap {
 
       static NAN_METHOD(NewInstance);
       static NAN_METHOD(info_hash);
+      static NAN_METHOD(state);
+      static NAN_METHOD(progress);
+
 
       static Nan::Persistent<Function> constructor;
       const libtorrent::torrent_status* torrent_status_;
