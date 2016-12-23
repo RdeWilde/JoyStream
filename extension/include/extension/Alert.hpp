@@ -322,11 +322,9 @@ namespace alert {
 
         SessionToBuyMode(libtorrent::aux::stack_allocator& alloc,
                          const libtorrent::torrent_handle & h,
-                         const Coin::UnspentOutputSet & funding,
                          const protocol_session::BuyingPolicy & policy,
                          const protocol_wire::BuyerTerms & terms)
             : libtorrent::torrent_alert(alloc, h)
-            , funding(funding)
             , policy(policy)
             , terms(terms) {}
 
@@ -336,7 +334,6 @@ namespace alert {
             return torrent_alert::message() + " session to buy mode";
         }
 
-        Coin::UnspentOutputSet funding;
         protocol_session::BuyingPolicy policy;
         protocol_wire::BuyerTerms terms;
     };
@@ -529,11 +526,9 @@ namespace alert {
 
         ContractConstructed(libtorrent::aux::stack_allocator & alloc,
                             const libtorrent::torrent_handle & h,
-                            const Coin::Transaction  & tx,
-                            const paymentchannel::Contract & contract)
+                            const Coin::Transaction  & tx)
             : libtorrent::torrent_alert(alloc, h)
-            , tx(tx)
-            , contract(contract) {}
+            , tx(tx) {}
 
         TORRENT_DEFINE_ALERT(ContractTransactionReady, libtorrent::user_alert_id + 26)
         static const int static_category = alert::status_notification;
@@ -542,7 +537,6 @@ namespace alert {
         }
 
         Coin::Transaction tx;
-        paymentchannel::Contract contract;
     };
 
     // Trigger: validPieceReceivedOnConnection

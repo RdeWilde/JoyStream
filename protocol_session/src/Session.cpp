@@ -17,6 +17,7 @@
 namespace joystream {
 namespace protocol_session {
 
+    /**
     template <class ConnectionIdType>
     int64_t Session<ConnectionIdType>::minimumFundsRequiredAsBuyer(const protocol_wire::BuyerTerms & terms, int numberOfPieces) {
 
@@ -33,10 +34,11 @@ namespace protocol_session {
         int64_t maxTotalOutput = outputPerContractOutput * terms.minNumberOfSellers();
 
         // Contract fee when *there is a change output*
-        uint64_t contractTxFeeWithChangeOutput = paymentchannel::Contract::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb());
+        uint64_t contractTxFeeWithChangeOutput = paymentchannel::ContractTransactionBuilder::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb());
 
         return maxTotalOutput + contractTxFeeWithChangeOutput;
     }
+    */
 
     template <class ConnectionIdType>
     Session<ConnectionIdType>::Session()
@@ -172,7 +174,7 @@ namespace protocol_session {
                                               const ContractConstructed & contractConstructed,
                                               const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                               const SentPayment<ConnectionIdType> & sentPayment,
-                                              const Coin::UnspentOutputSet & funding,
+                                              const SignContract & signContract,
                                               const BuyingPolicy & policy,
                                               const protocol_wire::BuyerTerms & terms,
                                               const TorrentPieceInformation & information) {
@@ -221,7 +223,7 @@ namespace protocol_session {
                                                        contractConstructed,
                                                        fullPieceArrived,
                                                        sentPayment,
-                                                       funding,
+                                                       signContract,
                                                        policy,
                                                        terms,
                                                        information);

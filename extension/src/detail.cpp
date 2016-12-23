@@ -86,7 +86,7 @@ void RequestVariantVisitor::operator()(const request::ToBuyMode & r) {
         plugin->toBuyMode(r.generateKeyPairCallbackHandler,
                           r.generateReceiveAddressesCallbackHandler,
                           r.generateChangeAddressesCallbackHandler,
-                          r.funding,
+                          r.signContract,
                           r.policy,
                           r.terms);
     });

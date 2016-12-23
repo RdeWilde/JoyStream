@@ -30,7 +30,7 @@ namespace detail {
                                      const ContractConstructed & contractConstructed,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                      const SentPayment<ConnectionIdType> & sentPayment,
-                                     const Coin::UnspentOutputSet & funding,
+                                     const SignContract & signContract,
                                      const BuyingPolicy & policy,
                                      const protocol_wire::BuyerTerms & terms,
                                      const TorrentPieceInformation & information)
@@ -42,7 +42,7 @@ namespace detail {
         , _contractConstructed(contractConstructed)
         , _fullPieceArrived(fullPieceArrived)
         , _sentPayment(sentPayment)
-        , _funding(funding)
+        , _signContract(signContract)
         , _policy(policy)
         , _state(BuyingState::sending_invitations)
         , _terms(terms)
@@ -471,8 +471,7 @@ namespace detail {
             sellerStatuses.insert(std::make_pair(mapping.first, mapping.second.status()));
         }
 
-        return status::Buying<ConnectionIdType>(_funding,
-                                                _policy,
+        return status::Buying<ConnectionIdType>(_policy,
                                                 _state,
                                                 _terms,
                                                 sellerStatuses,
@@ -535,7 +534,7 @@ namespace detail {
         assert(funds.size() == numberOfSellers);
 
         // Total amount that will be commited: that is not sent to change or tx fee
-        uint64_t totalComitted = std::accumulate(funds.begin(), funds.end(), 0);
+        //uint64_t totalComitted = std::accumulate(funds.begin(), funds.end(), 0);
 
         /////////////////////////
 
@@ -551,14 +550,16 @@ namespace detail {
                 contractFeePerKb = minContractFeePerKb;
         }
 
+        /**
         // Determine the change amount if any (!=0)
         uint64_t changeAmount = determineChangeAmount(numberOfSellers, totalComitted, contractFeePerKb, _funding.size());
 
         // Ensure Enough funds available to fund the contract
-        uint64_t estimatedFee = paymentchannel::Contract::fee(numberOfSellers, true, contractFeePerKb, _funding.size());
+        uint64_t estimatedFee = paymentchannel::ContractTransactionBuilder::fee(numberOfSellers, true, contractFeePerKb, _funding.size());
 
         if(_funding.value() < (totalComitted + changeAmount + estimatedFee))
             throw std::runtime_error("Aborted trying to start download, not enough funding provided");
+        */
 
         // Create sellers
         for(auto c : selected)
@@ -569,7 +570,7 @@ namespace detail {
         // Create contract
         // Note: must be done before sending ready message on wire,
         // as it requires the contract txid, which is based on outputs
-        paymentchannel::Contract c(_funding);
+        paymentchannel::ContractTransactionBuilder c;
 
         // Generate keys and addresses required
         std::vector<Coin::PubKeyHash> finalPkHashes;
@@ -580,7 +581,7 @@ namespace detail {
 
         // Generate contract key pairs
         std::vector<Coin::KeyPair> contractKeyPairs;
-        std::vector<paymentchannel::Commitment> commitments;
+        paymentchannel::ContractTransactionBuilder::Commitments commitments;
 
         for(uint32_t i = 0; i < numberOfSellers; i++) {
 
@@ -596,11 +597,11 @@ namespace detail {
 
             }, paymentchannel::RedeemScript::PayorOptionalData());
 
-            paymentchannel::Commitment commitment(value,
-                                                  payorCommitmentKeyPair.pk(),
-                                                  payeeContractPk,
-                                                  lockTime);
-            commitments.push_back(commitment);
+            // Add commitment
+            commitments.push_back(paymentchannel::Commitment(value,
+                                                             payorCommitmentKeyPair.pk(),
+                                                             payeeContractPk,
+                                                             lockTime));
 
             contractKeyPairs.push_back(payorCommitmentKeyPair);
         }
@@ -608,11 +609,9 @@ namespace detail {
         assert(contractKeyPairs.size() == numberOfSellers);
         assert(commitments.size() == numberOfSellers);
 
-        for(auto &commitment : commitments) {
-            // Add commitment to contract
-            c.addCommitment(commitment);
-        }
+        c.setCommitments(commitments);
 
+        /**
         // Add change if worth doing
         if(changeAmount != 0) {
 
@@ -622,10 +621,16 @@ namespace detail {
             // Create and set change payment
             c.setChange(Coin::Payment(changeAmount, address));
         }
+        */
 
         // Create and store contract transaction
-        _contractTx = c.transaction();
+        try {
+            _contractTx = _signContract(c.transaction(), contractFeePerKb);
+        } catch (const exception::CouldNotCompleteContract &) {
+            return false;
+        }
 
+        /**
         // Make sure we are sending the right amount
         assert(_contractTx.getTotalSent() == totalComitted + changeAmount);
 
@@ -633,9 +638,10 @@ namespace detail {
         uint64_t fee = _funding.value() - _contractTx.getTotalSent();
         float contractSizeKb = ((float)_contractTx.getSize())/1024;
         assert((float)fee >= (contractFeePerKb * contractSizeKb));
+        */
 
         // Notify client that transaction should be broadcasted
-        _contractConstructed(_contractTx, c);
+        _contractConstructed(_contractTx);
 
         /////////////////////////
 
@@ -721,11 +727,12 @@ namespace detail {
         return funds;
     }
 
+    /**
     template <class ConnectionIdType>
     uint64_t Buying<ConnectionIdType>::determineChangeAmount(uint32_t numberOfSellers, uint64_t totalComitted, uint64_t contractFeePerKb, int numberOfInputs) const {
 
         // Contract fee when there is a change output
-        uint64_t contractTxFeeWithChangeOutput = paymentchannel::Contract::fee(numberOfSellers, true, contractFeePerKb, numberOfInputs);
+        uint64_t contractTxFeeWithChangeOutput = paymentchannel::ContractTransactionBuilder::fee(numberOfSellers, true, contractFeePerKb, numberOfInputs);
 
         // Amount to use as change, if we are going to have change
         uint64_t potentialChangeAmount = _funding.value() - totalComitted - contractTxFeeWithChangeOutput;
@@ -736,6 +743,7 @@ namespace detail {
         else
             return 0;
     }
+    */
 
     template <class ConnectionIdType>
     bool Buying<ConnectionIdType>::tryToAssignAndRequestPiece(detail::Seller<ConnectionIdType> & s) {
@@ -881,11 +889,6 @@ namespace detail {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::setPolicy(const BuyingPolicy & policy) {
         _policy = policy;
-    }
-
-    template <class ConnectionIdType>
-    Coin::UnspentOutputSet Buying<ConnectionIdType>::funding() const {
-        return _funding;
     }
 
     template <class ConnectionIdType>

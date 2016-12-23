@@ -76,7 +76,7 @@ using GenerateChangeAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coi
 
 typedef SubroutineCallbackSlot<const protocol_wire::ExtendedMessagePayload *> SendMessageOnConnectionCallbackSlot;
 
-typedef FunctionCallbackSlot<bool, Coin::Transaction> BroadcastTransactionCallbackSlot;
+typedef SubroutineCallbackSlot<Coin::Transaction> ContractConstructedCallbackSlot;
 
 template <class ConnectionIdType>
 using FullPieceArrivedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, protocol_wire::PieceData, int>;
@@ -139,7 +139,6 @@ public:
     SessionSpy(const GenerateP2SHKeyPairCallbackHandler &,
                const GenerateReceiveAddressesCallbackHandler &,
                const GenerateChangeAddressesCallbackHandler &,
-               const BroadcastTransaction &,
                Session<ConnectionIdType> *);
 
     ~SessionSpy();
@@ -150,8 +149,7 @@ public:
                              const protocol_wire::SellerTerms &,
                              int);
 
-    void toMonitoredBuyMode(const Coin::UnspentOutputSet &,
-                            const BuyingPolicy &,
+    void toMonitoredBuyMode(const BuyingPolicy &,
                             const protocol_wire::BuyerTerms &,
                             const TorrentPieceInformation &);
 
@@ -186,7 +184,7 @@ public:
     GenerateChangeAddressesCallbackSlot<ConnectionIdType> generateChangeAddressesCallbackSlot;
 
     //// Buying
-    BroadcastTransactionCallbackSlot broadcastTransactionCallbackSlot;
+    ContractConstructedCallbackSlot contractConstructedCallbackSlot;
     FullPieceArrivedCallbackSlot<ConnectionIdType> fullPieceArrivedCallbackSlot;
 
     //// Selling

@@ -33,7 +33,7 @@ void Test::init() {
 
     spy = new
     SessionSpy<ID>(
-    [this](const P2SHScriptGeneratorFromPubKey & scriptGenerator, const uchar_vector &optional_data) -> Coin::KeyPair {
+    [this](const P2SHScriptGeneratorFromPubKey & scriptGenerator, const uchar_vector &) -> Coin::KeyPair {
 
         Coin::PrivateKey sk = nextPrivateKey();
 
@@ -64,9 +64,6 @@ void Test::init() {
         }
         return addresses;
 
-    },
-    [this](const Coin::Transaction &) {
-        return true;
     },
     session);
 }
@@ -104,8 +101,7 @@ void Test::observing() {
     addConnection(1);
 
     // Go to buy mode
-    toBuyMode(Coin::UnspentOutputSet(),
-              BuyingPolicy(),
+    toBuyMode(BuyingPolicy(),
               protocol_wire::BuyerTerms(),
               TorrentPieceInformation());
 
@@ -145,8 +141,7 @@ void Test::selling_basic() {
     addConnection(1);
 
     // Go to buy mode
-    toBuyMode(Coin::UnspentOutputSet(),
-              BuyingPolicy(),
+    toBuyMode(BuyingPolicy(),
               protocol_wire::BuyerTerms(),
               TorrentPieceInformation());
 
@@ -407,10 +402,10 @@ void Test::buying_basic() {
 
     // To buy mode
     BuyingPolicy policy(1000, 1000, protocol_wire::SellerTerms::OrderingPolicy::min_price);
-    toBuyMode(Coin::UnspentOutputSet(), policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
+    toBuyMode(policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
 
     // Incorrectly try to go to same mode again
-    QVERIFY_EXCEPTION_THROWN(toBuyMode(Coin::UnspentOutputSet(), BuyingPolicy(), protocol_wire::BuyerTerms(), TorrentPieceInformation()),
+    QVERIFY_EXCEPTION_THROWN(toBuyMode(BuyingPolicy(), protocol_wire::BuyerTerms(), TorrentPieceInformation()),
                              exception::SessionAlreadyInThisMode);
 
     // Start session
@@ -433,7 +428,7 @@ void Test::buying_basic() {
     toObserveMode();
 
     // Back to buy mode
-    toBuyMode(Coin::UnspentOutputSet(), policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
+    toBuyMode(policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
 }
 
 void Test::buying() {
@@ -452,6 +447,7 @@ void Test::buying() {
     assert(!buyerTerms.satisfiedBy(bad.terms));
 
     // To buy mode
+    /**
     std::shared_ptr<Coin::UnspentOutput> utxo(
       new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
                                   uchar_vector(),
@@ -462,6 +458,7 @@ void Test::buying() {
     );
 
     Coin::UnspentOutputSet funding({utxo});
+    */
 
     // minTimeBeforeBuildingContract = 1
     // servicingPieceTimeOutLimit = 2
@@ -472,7 +469,7 @@ void Test::buying() {
     for(uint i = 0;i < totalNumberOfPieces;i++)
         information.push_back(PieceInformation(0, (i % 2) == 0)); // every even index piece is missing
 
-    toBuyMode(funding, policy, buyerTerms, information);
+    toBuyMode(policy, buyerTerms, information);
 
     // Start session
     firstStart();
@@ -526,13 +523,13 @@ void Test::buying() {
     bad.assertNoContractAnnounced();
 
     // Verify contract
-    QCOMPARE((int)spy->broadcastTransactionCallbackSlot.size(), 1);
+    QCOMPARE((int)spy->contractConstructedCallbackSlot.size(), 1);
 
     {
         //bool result;
         Coin::Transaction tx;
 
-        std::tie(tx) = spy->broadcastTransactionCallbackSlot.front();
+        std::tie(tx) = spy->contractConstructedCallbackSlot.front();
 
         first.assertContractValidity(tx);
         second.assertContractValidity(tx);
@@ -566,6 +563,7 @@ void Test::buying_seller_has_interrupted_contract() {
 
     assert(buyerTerms.satisfiedBy(first.terms));
 
+    /**
     // To buy mode
     std::shared_ptr<Coin::UnspentOutput> utxo(
       new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
@@ -577,6 +575,7 @@ void Test::buying_seller_has_interrupted_contract() {
     );
 
     Coin::UnspentOutputSet funding({utxo});
+    */
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
@@ -589,7 +588,7 @@ void Test::buying_seller_has_interrupted_contract() {
 
     ////
 
-    toBuyMode(funding, policy, buyerTerms, information);
+    toBuyMode(policy, buyerTerms, information);
 
     // Start session
     firstStart();
@@ -626,6 +625,7 @@ void Test::buying_seller_servicing_piece_has_timed_out() {
     assert(buyerTerms.satisfiedBy(first.terms));
 
     // To buy mode
+    /**
     std::shared_ptr<Coin::UnspentOutput> utxo(
       new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
                                   uchar_vector(),
@@ -636,6 +636,7 @@ void Test::buying_seller_servicing_piece_has_timed_out() {
     );
 
     Coin::UnspentOutputSet funding({utxo});
+    */
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
@@ -648,7 +649,7 @@ void Test::buying_seller_servicing_piece_has_timed_out() {
 
     ////
 
-    toBuyMode(funding, policy, buyerTerms, information);
+    toBuyMode(policy, buyerTerms, information);
 
     // Start session
     firstStart();
@@ -683,6 +684,7 @@ void Test::buying_seller_sent_invalid_piece() {
 
     assert(buyerTerms.satisfiedBy(first.terms));
 
+    /**
     // To buy mode
     std::shared_ptr<Coin::UnspentOutput> utxo(
       new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
@@ -694,6 +696,7 @@ void Test::buying_seller_sent_invalid_piece() {
     );
 
     Coin::UnspentOutputSet funding({utxo});
+    */
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
@@ -706,7 +709,7 @@ void Test::buying_seller_sent_invalid_piece() {
 
     ////
 
-    toBuyMode(funding, policy, buyerTerms, information);
+    toBuyMode(policy, buyerTerms, information);
 
     // Start session
     firstStart();
@@ -936,15 +939,13 @@ void Test::toSellMode(const SellingPolicy & policy,
     QCOMPARE(session->mode(), SessionMode::selling);
 }
 
-void Test::toBuyMode(const Coin::UnspentOutputSet & funding,
-                     const BuyingPolicy & policy,
+void Test::toBuyMode(const BuyingPolicy & policy,
                      const protocol_wire::BuyerTerms & terms,
                      const TorrentPieceInformation & information) {
 
-    spy->toMonitoredBuyMode(funding,
-                           policy,
-                           terms,
-                           information);
+    spy->toMonitoredBuyMode(policy,
+                            terms,
+                            information);
 
     QCOMPARE(session->mode(), SessionMode::buying);
 }
@@ -1264,8 +1265,8 @@ void Test::takeSingleSellerToExchange(SellerPeer & peer) {
     peer.contractAnnounced();
 
     // Verify contract
-    QCOMPARE((int)spy->broadcastTransactionCallbackSlot.size(), 1);
-    Coin::Transaction tx = std::get<0>(spy->broadcastTransactionCallbackSlot.front());
+    QCOMPARE((int)spy->contractConstructedCallbackSlot.size(), 1);
+    Coin::Transaction tx = std::get<0>(spy->contractConstructedCallbackSlot.front());
 
     peer.assertContractValidity(tx);
 

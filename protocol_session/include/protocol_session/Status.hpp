@@ -19,8 +19,6 @@
 
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
-//#include <common/UnspentP2PKHOutput.hpp>
-
 #include <queue>
 
 namespace joystream {
@@ -136,24 +134,19 @@ namespace status {
 
         Buying() {}
 
-        Buying(const Coin::UnspentOutputSet & funding,
-               const BuyingPolicy & policy,
+        Buying(const BuyingPolicy & policy,
                const BuyingState state,
                const protocol_wire::BuyerTerms & terms,
                const std::map<ConnectionIdType, Seller<ConnectionIdType>> & sellers,
                const Coin::Transaction & contractTx,
                const std::vector<Piece<ConnectionIdType>> & pieces)
-            : funding(funding)
-            , policy(policy)
+            : policy(policy)
             , state(state)
             , terms(terms)
             , sellers(sellers)
             , contractTx(contractTx)
             , pieces(pieces) {
         }
-
-        // Funding for buyer
-        Coin::UnspentOutputSet funding;
 
         // Controls behaviour of session
         BuyingPolicy policy;

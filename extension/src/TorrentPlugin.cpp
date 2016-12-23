@@ -387,7 +387,7 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallba
 void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
                               const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
                               const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
-                              const Coin::UnspentOutputSet & funding,
+                              const protocol_session::SignContract & signContract,
                               const protocol_session::BuyingPolicy & policy,
                               const protocol_wire::BuyerTerms & terms) {
 
@@ -410,13 +410,13 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
                        contractConstructed(),
                        fullPieceArrived(),
                        sentPayment(),
-                       funding,
+                       signContract,
                        policy,
                        terms,
                        torrentPieceInformation());
 
     // Send notification
-    _alertManager->emplace_alert<alert::SessionToBuyMode>(_torrent, funding, policy, terms);
+    _alertManager->emplace_alert<alert::SessionToBuyMode>(_torrent, policy, terms);
 }
 
 std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
@@ -647,8 +647,8 @@ protocol_session::ContractConstructed TorrentPlugin::contractConstructed() {
     auto torrent = _torrent;
     auto alertManager = _alertManager;
 
-    return [torrent, alertManager](const Coin::Transaction & tx, const paymentchannel::Contract & c) {
-        alertManager->emplace_alert<alert::ContractConstructed>(torrent, tx, c);
+    return [torrent, alertManager](const Coin::Transaction & tx) {
+        alertManager->emplace_alert<alert::ContractConstructed>(torrent, tx);
     };
 }
 

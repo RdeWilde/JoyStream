@@ -252,7 +252,7 @@ struct ToBuyMode {
               const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
               const protocol_session::GenerateReceiveAddressesCallbackHandler & genReceiveAddressesCallbackHandler,
               const protocol_session::GenerateChangeAddressesCallbackHandler & genChangeAddressesCallbackHandler,
-              const Coin::UnspentOutputSet & funding,
+              const protocol_session::SignContract signContract,
               const protocol_session::BuyingPolicy & policy,
               const protocol_wire::BuyerTerms & terms,
               const SubroutineHandler & handler)
@@ -260,7 +260,7 @@ struct ToBuyMode {
         , generateKeyPairCallbackHandler(generateKeyPairCallbackHandler)
         , generateReceiveAddressesCallbackHandler(genReceiveAddressesCallbackHandler)
         , generateChangeAddressesCallbackHandler(genChangeAddressesCallbackHandler)
-        , funding(funding)
+        , signContract(signContract)
         , policy(policy)
         , terms(terms)
         , handler(handler) {
@@ -270,7 +270,7 @@ struct ToBuyMode {
     protocol_session::GenerateP2SHKeyPairCallbackHandler generateKeyPairCallbackHandler;
     protocol_session::GenerateReceiveAddressesCallbackHandler generateReceiveAddressesCallbackHandler;
     protocol_session::GenerateChangeAddressesCallbackHandler generateChangeAddressesCallbackHandler;
-    Coin::UnspentOutputSet funding;
+    protocol_session::SignContract signContract;
     protocol_session::BuyingPolicy policy;
     protocol_wire::BuyerTerms terms;
     SubroutineHandler handler;

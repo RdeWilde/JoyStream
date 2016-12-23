@@ -51,8 +51,9 @@ namespace detail {
          * @param terms Terms that buyer side will have
          * @param numberOfPieces Number of pieces to buy
          * @return minimum Funds (#satoshies) required for buyer, with given terms, to fund contract
-         */
+
         static int64_t minimumFundsRequiredAsBuyer(const protocol_wire::BuyerTerms & terms, int numberOfPieces);
+         */
 
         Session();
 
@@ -90,7 +91,7 @@ namespace detail {
                        const ContractConstructed &,
                        const FullPieceArrived<ConnectionIdType> &,
                        const SentPayment<ConnectionIdType> &,
-                       const Coin::UnspentOutputSet &,
+                       const SignContract & signContract,
                        const BuyingPolicy &,
                        const protocol_wire::BuyerTerms &,
                        const TorrentPieceInformation &);
