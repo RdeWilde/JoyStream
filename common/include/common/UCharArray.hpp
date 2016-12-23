@@ -10,9 +10,9 @@
 
 #include <array>
 #include <string>
+#include <iostream>
 
 class uchar_vector;
-class QDataStream;
 
 namespace Coin {
 
@@ -22,10 +22,10 @@ class UCharArray;
 
 // Stream operator
 template<unsigned int array_length>
-QDataStream & operator<<(QDataStream & stream, const UCharArray<array_length> & o);
+std::ostream & operator<<(std::ostream & stream, const UCharArray<array_length> & o);
 
 template<unsigned int array_length>
-QDataStream & operator>>(QDataStream & stream, UCharArray<array_length> & o);
+std::istream & operator>>(std::istream & stream, UCharArray<array_length> & o);
 
 // (type safe length) fixed length array of unsigned chars
 template<unsigned int array_length>
@@ -64,8 +64,8 @@ public:
     uchar_vector toUCharVector() const;
 
     // Stream operator
-    friend QDataStream & operator<< <array_length> (QDataStream & stream, const UCharArray<array_length> & o);
-    friend QDataStream & operator>> <array_length> (QDataStream & stream, UCharArray<array_length> & o);
+    friend std::ostream & operator<< <array_length> (std::ostream & stream, const UCharArray<array_length> & o);
+    friend std::istream & operator>> <array_length> (std::istream & stream, UCharArray<array_length> & o);
 
     /**
     // Comparison for use with QMap

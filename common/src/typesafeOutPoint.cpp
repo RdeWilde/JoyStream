@@ -52,13 +52,13 @@ bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
 }
 
-QDataStream & operator<<(QDataStream & stream, const typesafeOutPoint & o) {
+std::ostream & operator<<(std::ostream & stream, const typesafeOutPoint & o) {
     stream << o._txId << o._index;
 
     return stream;
 }
 
-QDataStream & operator>>(QDataStream & stream, typesafeOutPoint & o) {
+std::istream & operator>>(std::istream & stream, typesafeOutPoint & o) {
     stream >> o._txId >> o._index;
 
     return stream;
@@ -92,8 +92,9 @@ void typesafeOutPoint::setIndex(uint32_t index) {
 
 uint qHash(const Coin::typesafeOutPoint & o) {
 
-    QByteArray total = o.transactionId().toByteArray();
-    total.push_back(QByteArray::number(o.index()));
+    uchar_vector total = o.transactionId().toUCharVector();
+    total.push_back((unsigned char)o.index());
 
-    return qHash(total);
+    std::hash<std::string> hexHash;
+    return hexHash(total.getCharsAsString());
 }

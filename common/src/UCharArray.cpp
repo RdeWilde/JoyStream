@@ -5,13 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#include <QDataStream>
-
 #include <common/Utilities.hpp>
 #include <stdutils/uchar_vector.h>
 
 #include <sstream> // stringstream
-#include <string>
 
 namespace Coin {
 
@@ -125,10 +122,22 @@ void UCharArray<array_length>::fill(const unsigned char * start) {
 }
 
 template<unsigned int array_length>
-QDataStream & operator<<(QDataStream& stream, const Coin::UCharArray<array_length> & o) {
+std::ostream & operator<<(std::ostream& stream, const Coin::UCharArray<array_length> & o) {
+
+    int bytesWritten;
+
+    // Get initial position of pointer the stream
+    auto before = stream.tellp();
 
     // Write to stream from buffer
-    int bytesWritten = stream.writeRawData((const char *)(o.data()), array_length);
+    stream.write((const char *)(o.data()), array_length);
+
+    // Get position of pointer after writing to stream
+    auto after = stream.tellp();
+
+    if(after != -1 && before != -1)
+        bytesWritten = after - before;
+    else bytesWritten = -1;
 
     if(bytesWritten != array_length) {
 
@@ -145,10 +154,11 @@ QDataStream & operator<<(QDataStream& stream, const Coin::UCharArray<array_lengt
 }
 
 template<unsigned int array_length>
-QDataStream & operator>>(QDataStream& stream, Coin::UCharArray<array_length> & o) {
+std::istream & operator>>(std::istream& stream, Coin::UCharArray<array_length> & o) {
 
     // Read from stream to array
-    int bytesRead = stream.readRawData((char *)(o.data()), array_length);
+    stream.read((char *)(o.data()), array_length);
+    int bytesRead = stream.gcount();
 
     if(bytesRead != array_length) {
 
