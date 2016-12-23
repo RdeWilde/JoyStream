@@ -21,6 +21,7 @@ NAN_MODULE_INIT(SessionWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "setAlertNotify", SetAlertNotify);
 
   Nan::SetPrototypeMethod(tpl, "dhtAnnounce", dht_announce);
+  Nan::SetPrototypeMethod(tpl, "dhtGetPeers", dht_get_peers);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("SessionWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
@@ -30,6 +31,23 @@ SessionWrap::SessionWrap() {
 }
 
 SessionWrap::~SessionWrap() {
+}
+
+libtorrent::sha1_hash SessionWrap::object_to_sha1_hash(v8::Local<v8::Value> infoHash) {
+  v8::String::Utf8Value s(infoHash);
+  std::string info_hash = std::string(*s);
+
+  if(info_hash.size() != 40) {
+    Nan::ThrowTypeError("incorrent length of hex string");
+  }
+
+  char buf[21];
+
+  if(!libtorrent::from_hex(info_hash.c_str(), info_hash.size(), buf)) {
+    Nan::ThrowTypeError("invalid hex string");
+  }
+
+  return libtorrent::sha1_hash(buf);
 }
 
 NAN_METHOD(SessionWrap::New) {
@@ -168,23 +186,11 @@ NAN_METHOD(SessionWrap::FindTorrent) {
   Nan::HandleScope scope;
   libtorrent::torrent_handle th;
 
-  v8::String::Utf8Value s(info[0]);
-  std::string info_hash = std::string(*s);
-
-  if(info_hash.size() != 40) {
-    Nan::ThrowTypeError("incorrent length of hex string");
-    return;
-  }
-
-  char buf[21];
-
-  if(!libtorrent::from_hex(info_hash.c_str(), info_hash.size(), buf)) {
-    Nan::ThrowTypeError("invalid hex string");
-    return;
-  }
+  libtorrent::sha1_hash info_hash;
+  info_hash = object_to_sha1_hash(info[0]);
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
-  th = session_wrap->session_.s->find_torrent(libtorrent::sha1_hash(buf));
+  th = session_wrap->session_.s->find_torrent(info_hash);
 
   /*
    * Not finished need to define TorrentHandleWrap
@@ -226,26 +232,29 @@ NAN_METHOD(SessionWrap::SetAlertNotify) {
 NAN_METHOD(SessionWrap::dht_announce) {
   Nan::HandleScope scope;
 
-  v8::String::Utf8Value s(info[0]);
-  std::string secondary_info_hash = std::string(*s);
-
-  if(secondary_info_hash.size() != 40) {
-    Nan::ThrowTypeError("incorrent length of hex string");
-    return;
-  }
-
-  char buf[21];
-
-  if(!libtorrent::from_hex(secondary_info_hash.c_str(), secondary_info_hash.size(), buf)) {
-    Nan::ThrowTypeError("invalid hex string");
-    return;
-  }
+  libtorrent::sha1_hash info_hash;
+  info_hash = object_to_sha1_hash(info[0]);
 
   unsigned int listen_port = info[1]->Uint32Value();
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
-  session_wrap->session_.s->dht_announce(libtorrent::sha1_hash(buf), listen_port);
+  session_wrap->session_.s->dht_announce(info_hash, listen_port);
+
+  info.GetReturnValue().Set(Nan::Undefined());
+}
+
+NAN_METHOD(SessionWrap::dht_get_peers) {
+  Nan::HandleScope scope;
+
+  libtorrent::sha1_hash info_hash;
+  info_hash = object_to_sha1_hash(info[0]);
+
+  unsigned int listen_port = info[1]->Uint32Value();
+
+  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+
+  session_wrap->session_.s->dht_announce(info_hash, listen_port);
 
   info.GetReturnValue().Set(Nan::Undefined());
 }

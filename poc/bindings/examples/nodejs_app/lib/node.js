@@ -33,6 +33,7 @@ class Node extends EventEmitter {
       this.session = new NativeExtension.SessionWrap()
       this.plugin = null
       this.torrents = new Map()
+      this.torrentsBySecondaryHash = new Map()
 
       // Pop alerts every seconde
       setInterval(function () {
@@ -202,16 +203,27 @@ class Node extends EventEmitter {
           // Add torrent to torrents map
           this.torrents.set(torrentHandle.infoHash(),torrent)
           // Emit event 'addTorrentAlert'
-          this.emit('addTorrentAlert')
+          this.emit('addTorrentAlert', torrent)
+
+          // DHT stuff
+          this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash(), torrentHandle.infoHash())
+          this.session.dhtAnnounce(torrent.secondaryInfoHash(), this.session.listenPort())
+
+
         } else {
           torrent.resumeData = resumeData
         }
-
+        debug('Adding torrent succeeded.')
+      } else {
+        // Need error wrapper for message
+        debug('Adding torrent failed:')
       }
     }
 
     [_torrentFinishedAlert](alert) {
-      // Logic here
+      debug('Torrent finish alert !')
+      // nothing to do?
+      // Maybe emit an event ?
     }
 
     [_stateUpdateAlert](alert) {

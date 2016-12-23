@@ -8,11 +8,10 @@
 #include <joystream_libtorrent_session/Session.hpp>
 
 
-// Example with node ObjectWrap
-// Based on https://nodejs.org/api/addons.html#addons_wrapping_c_objects but using NAN
 class SessionWrap : public Nan::ObjectWrap {
   public:
     static NAN_MODULE_INIT(Init);
+    static libtorrent::sha1_hash object_to_sha1_hash(Local<Value> infoHash);
 
   private:
     explicit SessionWrap();
@@ -29,8 +28,9 @@ class SessionWrap : public Nan::ObjectWrap {
     static NAN_METHOD(FindTorrent);
     static NAN_METHOD(PopAlerts);
     static NAN_METHOD(SetAlertNotify);
-    
+
     static NAN_METHOD(dht_announce);
+    static NAN_METHOD(dht_get_peers);
 
     static Nan::Persistent<v8::Function> constructor;
     Session session_;

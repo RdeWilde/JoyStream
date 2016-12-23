@@ -8,6 +8,10 @@
 
 using namespace v8;
 
+/*
+ * alert* pointer issue
+ */
+
 class AlertWrap: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
