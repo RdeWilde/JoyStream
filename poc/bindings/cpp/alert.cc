@@ -126,11 +126,20 @@ NAN_METHOD(AlertWrap::info_hash) {
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
-    auto casted = dynamic_cast<const libtorrent::dht_get_peers_reply_alert*>(a);
-
-    if (!casted) {
-      info.GetReturnValue().SetUndefined();
-    } else {
-      info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(casted->info_hash.to_string())).ToLocalChecked());
+    // Not optimal. Can be improved.
+    switch (a->type()) {
+      case 87: {
+          auto casted = dynamic_cast<const libtorrent::dht_get_peers_reply_alert*>(a);
+          info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(casted->info_hash.to_string())).ToLocalChecked());
+        }
+        break;
+      case 4: {
+          auto casted = dynamic_cast<const libtorrent::torrent_removed_alert*>(a);
+          info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(casted->info_hash.to_string())).ToLocalChecked());
+        }
+        break;
+      default:
+        info.GetReturnValue().SetUndefined();
     }
+
 };
