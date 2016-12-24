@@ -46,7 +46,6 @@ namespace Coin {
 
         // Factory from hex encoded RPC byte order
         static TransactionId fromRPCByteOrder(const std::string & str);
-        static TransactionId fromRPCByteOrder(const QByteArray & array);
         static TransactionId fromRPCByteOrder(const uchar_vector & vector);
 
         // Encodes as internal byte order

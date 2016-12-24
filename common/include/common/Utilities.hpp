@@ -13,13 +13,9 @@
 #include <stdutils/uchar_vector.h>
 #include <string>
 
-class QByteArray;
-
 #define DEFAULT_SEQUENCE_NUMBER 0xFFFFFFFF
 
 namespace Coin {
-
-    QByteArray toByteArray(const uchar_vector & vector);
 
     uchar_vector toUCharVector(const std::string & array);
 

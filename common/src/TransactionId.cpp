@@ -55,33 +55,26 @@ TransactionId TransactionId::fromInternalByteOrder(const uchar_vector & vector) 
 
 TransactionId TransactionId::fromRPCByteOrder(const std::string & str) {
 
-    // Turn std::string into QByteArray
-    QByteArray hexArray = QByteArray::fromStdString(str);
+    // Turn std::string into uchar_vector
+    uchar_vector hexVector(str);
 
-    // Use QbyteArray factory
-    return TransactionId::fromRPCByteOrder(QByteArray::fromHex(hexArray));
+    // Use uchar_vector to get TransactionId
+    return TransactionId::fromRPCByteOrder(hexVector);
 }
 
-TransactionId TransactionId::fromRPCByteOrder(const QByteArray & array) {
+TransactionId TransactionId::fromRPCByteOrder(const uchar_vector & vector) {
 
     // Check length
-    if(array.size() != TXID_BYTE_LENGTH)
+    if(vector.size() != TXID_BYTE_LENGTH)
         throw std::runtime_error("Incorrect size..");
 
     // Create blank txid
     TransactionId id;
 
     // Fill id with copy
-    id.fill((const unsigned char *)array.data());
+    id.fill((const unsigned char *)vector.data());
 
     return id;
-}
-
-TransactionId TransactionId::fromRPCByteOrder(const uchar_vector & vector) {
-
-    QByteArray array((const char *)vector.data(), (int)(vector.size()));
-
-    return TransactionId::fromRPCByteOrder(array);
 }
 
 std::string TransactionId::toRPCByteOrder() const {

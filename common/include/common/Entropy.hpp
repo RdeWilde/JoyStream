@@ -23,9 +23,6 @@ public:
     Entropy();
 
     // Constructor from raw data
-    explicit Entropy(const QByteArray & raw);
-
-    // Constructor from raw data
     explicit Entropy(const char * raw);
 
     // Constructor from raw data

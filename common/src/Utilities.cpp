@@ -15,19 +15,9 @@
 #include <common/P2PKHScriptSig.hpp>
 #include <common/typesafeOutPoint.hpp>
 
-#include <QByteArray>
 #include <QDebug>
 
 namespace Coin {
-
-    QByteArray toByteArray(const uchar_vector & raw) {
-
-        // Get pointer to data
-        const char * data = (const char *)raw.data();
-
-        // Construct byte array and return it
-        return QByteArray(data, raw.size());
-    }
 
     uchar_vector toUCharVector(const std::string & array) {
 

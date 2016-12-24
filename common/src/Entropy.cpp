@@ -21,10 +21,6 @@ Entropy::Entropy() {
 }
 
 Entropy::Entropy(const char * raw)
-    : Entropy(QByteArray(raw, WALLET_ENTROPY_BYTE_LENGTH)) {
-}
-
-Entropy::Entropy(const QByteArray & raw)
     : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
 }
 
@@ -73,7 +69,7 @@ Seed Entropy::seed(std::string passphrase) const {
     }
 
     // Construct Seed from raw bytes
-    QByteArray seed((char*)digest, WALLET_SEED_BYTE_LENGTH);
+    const char *seed = (char*)digest;
 
     return Seed(seed);
 }

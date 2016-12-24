@@ -34,9 +34,6 @@ public:
     // Default constructor
     Seed();
 
-    // Constructor from raw data
-    Seed(const QByteArray & raw);
-
     // Constructor from hex encoded C string
     Seed(const char * hexEncoded);
 
@@ -68,7 +65,7 @@ public:
     //void startAsyncGenerating();
     //void stopAsyncGenerating();
 
-signals:
+//signals:
 
     // Done generating signal
     //void finishedAsyncGenerating(Seed s);

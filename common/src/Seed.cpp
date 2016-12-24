@@ -45,11 +45,6 @@ Seed::Seed(const char * hexEncoded)
     : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(hexEncoded) {
 }
 
-Seed::Seed(const QByteArray & raw)
-    : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(raw) {
-}
-
-
 Seed::Seed(const std::string & hexEncoded)
     : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(hexEncoded) {
 }

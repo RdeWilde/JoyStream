@@ -59,7 +59,7 @@ std::vector<unsigned char> toVersionBytes(Base58CheckEncodable encodable, Networ
     // Recover version value
     uint32_t versionValue = toVersionValue(encodable, network);
 
-    // Encode as bytes: could have use QByteArray here?
+    // Encode as bytes
     unsigned char * p = (unsigned char *)(&versionValue);
 
     std::vector<unsigned char> versionBytes;

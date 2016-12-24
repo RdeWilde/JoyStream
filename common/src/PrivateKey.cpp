@@ -35,14 +35,6 @@ PrivateKey::PrivateKey(const uchar_vector & vector)
         throw InvalidPrivateKeyException(*this);
 }
 
-PrivateKey::PrivateKey(const QByteArray & array)
-    : UCharArray<PRIVATE_KEY_BYTE_LENGTH>(array) {
-
-    // Verify key validity
-    if(!valid(*this))
-        throw InvalidPrivateKeyException(*this);
-}
-
 PrivateKey::~PrivateKey() {
     clear();
 }
