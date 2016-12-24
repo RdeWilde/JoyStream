@@ -19,7 +19,7 @@
 #include <CoinCore/secp256k1_openssl.h>
 
 #include <string>
-#include <QDebug>
+#include <cassert>
 
 namespace Coin {
 
@@ -71,7 +71,7 @@ PrivateKey PrivateKey::fromWIF(const std::string & encoded) {
 
     if(payloadLength == WIF_PRIVATE_KEY_FOR_UNCOMPRESSED_PUBKEY_PAYLOAD_LENGTH) {
 
-        Q_ASSERT(payload.size() == PRIVATE_KEY_BYTE_LENGTH);
+        assert(payload.size() == PRIVATE_KEY_BYTE_LENGTH);
 
         return PrivateKey(payload);
     } else if(payloadLength == WIF_PRIVATE_KEY_FOR_COMPRESSED_PUBKEY_PAYLOAD_LENGTH) {
@@ -96,11 +96,11 @@ PrivateKey PrivateKey::fromWIF(const std::string & encoded) {
         // Remove last byte WIF in payload
         payload.pop_back();
 
-        Q_ASSERT(payload.size() == PRIVATE_KEY_BYTE_LENGTH);
+        assert(payload.size() == PRIVATE_KEY_BYTE_LENGTH);
 
         return PrivateKey(payload);
     } else
-        Q_ASSERT(false);
+        assert(false);
 }
 
 bool PrivateKey::valid(const PrivateKey & sk) {
@@ -130,7 +130,7 @@ std::string PrivateKey::toWIF(Network network, PublicKeyCompression compression)
     // Add 1 byte indicator if key corresponds to compressed pubkey
     if(compression == PublicKeyCompression::Compressed)
         payload.push_back(WIF_PRIVATE_KEY_FOR_COMPRESSED_PUBKEY_BYTE);
-    else Q_ASSERT(false); // We really should only ever have private keys corresponding to compressed public keys at the moment
+    else assert(false); // We really should only ever have private keys corresponding to compressed public keys at the moment
 
     // Base58Check encode and return result
     std::string encoded = toBase58Check(payload, versionBytes);

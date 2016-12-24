@@ -59,14 +59,14 @@ BitcoinRepresentation::BitcoinRepresentation(qint64 satoshies)
     : _satoshies(satoshies < 0 ? -satoshies : satoshies)
     , _isNegative(satoshies < 0 ? true : false) {
 
-    Q_ASSERT(BitcoinRepresentation::bitCoinPrefixToPower.size() == BitcoinRepresentation::powerToBitCoinPrefix.size());
-    Q_ASSERT(BitcoinRepresentation::metricPrefixToPower.size() == BitcoinRepresentation::powerToMetricPrefix.size());
+    assert(BitcoinRepresentation::bitCoinPrefixToPower.size() == BitcoinRepresentation::powerToBitCoinPrefix.size());
+    assert(BitcoinRepresentation::metricPrefixToPower.size() == BitcoinRepresentation::powerToMetricPrefix.size());
 }
 
 BitcoinRepresentation::BitcoinRepresentation(BitCoinPrefix prefix, double quantity) {
 
-    Q_ASSERT(BitcoinRepresentation::bitCoinPrefixToPower.size() == BitcoinRepresentation::powerToBitCoinPrefix.size());
-    Q_ASSERT(BitcoinRepresentation::metricPrefixToPower.size() == BitcoinRepresentation::powerToMetricPrefix.size());
+    assert(BitcoinRepresentation::bitCoinPrefixToPower.size() == BitcoinRepresentation::powerToBitCoinPrefix.size());
+    assert(BitcoinRepresentation::metricPrefixToPower.size() == BitcoinRepresentation::powerToMetricPrefix.size());
 
     if(quantity < 0) {
         _isNegative = true;
@@ -225,7 +225,7 @@ std::string BitcoinRepresentation::toString(const BitcoinDisplaySettings * setti
         case BitcoinDisplaySettings::Currency::Fiat:
             return toString(settings->fiat(), settings->rate(), settings->precision());
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
@@ -257,7 +257,7 @@ std::string BitcoinRepresentation::prefixToString(BitCoinPrefix prefix) {
         case BitCoinPrefix::Kilo: return "k";
 
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
@@ -272,7 +272,7 @@ std::string BitcoinRepresentation::prefixToString(MetricPrefix prefix) {
         case MetricPrefix::None: return std::string("");
 
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
@@ -318,6 +318,6 @@ std::string BitcoinRepresentation::fiatToSymbol(Fiat fiat) {
         case Fiat::Yen: return std::string("¥");
 
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }

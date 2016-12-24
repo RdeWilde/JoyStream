@@ -8,6 +8,7 @@
 #include <common/DataSizeRepresentation.hpp>
 
 #include <cmath>
+#include <cassert>
 
 const quint8 DataSizeRepresentation::maxPower = 8;
 
@@ -41,7 +42,7 @@ DataSizeRepresentation::Prefix DataSizeRepresentation::bestPrefix() const {
 
     // Taking no exponent was big enough
     if(exponent == 0) {
-        Q_ASSERT(_numberOfBaseUnits == 0);
+        assert(_numberOfBaseUnits == 0);
         return Prefix::None;
     }
 
@@ -103,7 +104,7 @@ std::string DataSizeRepresentation::prefixToString(Prefix prefix, TextFormat for
         case Prefix::Zetta: return (format == TextFormat::Short ? "Z" : "zetta");
         case Prefix::Yotta: return (format == TextFormat::Short ? "Y" : "yotta");
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
@@ -113,7 +114,7 @@ std::string DataSizeRepresentation::baseToString(Base base, TextFormat format) {
         case Base::Bit: return "bit"; // is insensitive to format
         case Base::Byte: return (format == TextFormat::Short ? "B" : "byte");
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
@@ -130,7 +131,7 @@ quint8 DataSizeRepresentation::prefixToExponent(Prefix prefix) {
         case Prefix::Zetta: return 7;
         case Prefix::Yotta: return 8;
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
@@ -148,7 +149,7 @@ DataSizeRepresentation::Prefix DataSizeRepresentation::exponentToPrefix(quint8 e
         case 7: return Prefix::Zetta;
         case 8: return Prefix::Yotta;
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
@@ -158,6 +159,6 @@ quint16 DataSizeRepresentation::sizeOfBase(Base base) {
         case Base::Bit: return 1024;
         case Base::Byte: return 1000;
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }

@@ -5,6 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 3 2015
  */
 
+#include <cassert>
+
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/PublicKey.hpp>
 
@@ -33,7 +35,7 @@ P2PKHScriptPubKey P2PKHScriptPubKey::deserialize(const uchar_vector & script) {
 
     P2PKHScriptPubKey scriptPubKey = P2PKHScriptPubKey(PubKeyHash(hash));
 
-    Q_ASSERT(scriptPubKey.serialize() == script);
+    assert(scriptPubKey.serialize() == script);
 
     return scriptPubKey;
 }

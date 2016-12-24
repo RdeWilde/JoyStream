@@ -5,6 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
+#include <cassert>
+
 #include <common/Utilities.hpp>
 
 #include <stdutils/uchar_vector.h>
@@ -14,8 +16,6 @@
 #include <common/PrivateKey.hpp>
 #include <common/P2PKHScriptSig.hpp>
 #include <common/typesafeOutPoint.hpp>
-
-#include <QDebug>
 
 namespace Coin {
 
@@ -36,7 +36,7 @@ namespace Coin {
             case Network::mainnet: return mainnetAddressVersions;
             case Network::regtest: return testnet3AddressVersions;
             default:
-                    Q_ASSERT(false);
+                    assert(false);
         }
     }
 
@@ -76,7 +76,7 @@ namespace Coin {
         }
 
         if(value < 17) {
-            return uchar_vector(1, 0x51 + (uchar)value - 1);
+            return uchar_vector(1, 0x51 + (unsigned char)value - 1);
         }
 
         uchar_vector encodedNumber = serializeScriptNum(value);
@@ -254,7 +254,7 @@ namespace Coin {
                 serialized += (*i).opPushForScriptSigSerialized();
 
         } else
-            Q_ASSERT(false);
+            assert(false);
 
         return serialized;
 
