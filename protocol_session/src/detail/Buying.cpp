@@ -220,7 +220,7 @@ namespace detail {
 
         if(_session->_state == SessionState::started &&
            _state == BuyingState::sending_invitations)
-            tryToStartDownloading();
+            startDownloading();
     }
 
     template <class ConnectionIdType>
@@ -344,7 +344,7 @@ namespace detail {
         if(_session->_state == SessionState::started) {
 
             if(_state == BuyingState::sending_invitations)
-                tryToStartDownloading();
+                startDownloading();
             else if(_state == BuyingState::downloading) {
 
                 for(auto mapping : _sellers) {
@@ -495,7 +495,7 @@ namespace detail {
 
 
     template <class ConnectionIdType>
-    bool Buying<ConnectionIdType>::tryToStartDownloading() {
+    bool Buying<ConnectionIdType>::startDownloading() {
 
         std::cout << "Trying to start downloading." << std::endl;
 

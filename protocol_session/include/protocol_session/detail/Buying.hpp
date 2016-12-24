@@ -93,6 +93,12 @@ public:
     // honors last pending payment, but issues no new piece requests.
     void pause();
 
+    /**
+     * @brief startDownloading
+     * @return
+     */
+    bool startDownloading();
+
     //// Miscellenous
 
     // Time out processing hook
@@ -122,9 +128,6 @@ private:
 
     // Whether downloading can begin
     bool canToStartDownloading();
-
-    // Tries start downloading if possible
-    bool tryToStartDownloading();
 
     // Pick an appropriate subset of connections as sellers
     std::vector<detail::Connection<ConnectionIdType> *> selectSellers() const;
