@@ -21,7 +21,7 @@ namespace protocol_wire {
 
         JoiningContract();
         JoiningContract(const Coin::PublicKey &, const Coin::PubKeyHash &finalPkHash);
-        JoiningContract(QDataStream & stream);
+        JoiningContract(std::istream & stream);
 
         virtual ~JoiningContract() {}
 
@@ -30,7 +30,7 @@ namespace protocol_wire {
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
+        virtual void write(std::ostream & stream) const;
 
         // Getters
         Coin::PublicKey contractPk() const;

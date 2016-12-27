@@ -10,8 +10,6 @@
 #include <cassert>
 #include <stdexcept>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -39,7 +37,7 @@ namespace protocol_wire {
         return !(*this == rhs);
     }
 
-    QDataStream & operator >>(QDataStream & stream, SellerTerms & rhs) {
+    std::istream & operator >>(std::istream & stream, SellerTerms & rhs) {
 
         stream >> rhs._minPrice >> rhs._minLock >> rhs._maxSellers >> rhs._minContractFeePerKb >> rhs._settlementFee;
 
@@ -116,7 +114,7 @@ namespace protocol_wire {
         _settlementFee = settlementFee;
     }
 
-    QDataStream & operator <<(QDataStream & stream, const SellerTerms & rhs) {
+    std::ostream & operator <<(std::ostream & stream, const SellerTerms & rhs) {
 
         stream << rhs.minPrice() << rhs.minLock() << rhs.maxSellers() << rhs.minContractFeePerKb() << rhs.settlementFee();
         return stream;

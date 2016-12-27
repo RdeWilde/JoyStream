@@ -27,7 +27,7 @@ namespace protocol_wire {
         // Constructor based on raw payload
         // NB: Substitute with static factory in future, so that you cannot create stale
         // payload objects if there is an error in the reading from stream
-        Payment(QDataStream & stream, quint8 lengthOfSignature);
+        Payment(std::istream & stream, uint8_t lengthOfSignature);
 
         virtual ~Payment() {}
 
@@ -36,7 +36,7 @@ namespace protocol_wire {
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
+        virtual void write(std::ostream & stream) const;
 
         // Getters and setters
         Coin::Signature sig() const;

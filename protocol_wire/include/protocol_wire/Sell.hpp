@@ -25,7 +25,7 @@ namespace protocol_wire {
         Sell(const SellerTerms & terms, uint32_t index);
 
         // Constructor based on raw data
-        Sell(QDataStream & stream);
+        Sell(std::istream & stream);
 
         virtual ~Sell() {}
 
@@ -34,7 +34,7 @@ namespace protocol_wire {
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
+        virtual void write(std::ostream & stream) const;
 
         // Getters and setters
         SellerTerms terms() const;

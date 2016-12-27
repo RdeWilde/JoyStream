@@ -20,7 +20,7 @@ namespace protocol_wire {
 
         virtual MessageType messageType() const = 0;
         virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
+        virtual void write(std::ostream & stream) const;
     };
 
 }

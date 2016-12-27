@@ -8,8 +8,6 @@
 #include <protocol_wire/Buy.hpp>
 #include <protocol_wire/MessageType.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -24,7 +22,7 @@ namespace protocol_wire {
         return _terms == o.terms();
     }
 
-    Buy::Buy(QDataStream & stream) {
+    Buy::Buy(std::istream & stream) {
         stream >> _terms;
     }
 
@@ -36,14 +34,14 @@ namespace protocol_wire {
         return _terms.length();
     }
 
-    void Buy::write(QDataStream & stream) const {
+    void Buy::write(std::ostream & stream) const {
         stream << _terms;
     }
-    
+
     BuyerTerms Buy::terms() const {
         return _terms;
     }
-    
+
     void Buy::setTerms(const BuyerTerms & terms) {
         _terms = terms;
     }

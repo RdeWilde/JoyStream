@@ -7,8 +7,6 @@
 #include <protocol_wire/BuyerTerms.hpp>
 #include <protocol_wire/SellerTerms.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -34,7 +32,7 @@ namespace protocol_wire {
         return !(*this == rhs);
     }
 
-    QDataStream & operator >>(QDataStream & stream, BuyerTerms & rhs) {
+    std::istream & operator >>(std::istream & stream, BuyerTerms & rhs) {
 
         stream >> rhs._maxPrice >> rhs._maxLock >> rhs._minNumberOfSellers >> rhs._maxContractFeePerKb;
 
@@ -81,7 +79,7 @@ namespace protocol_wire {
         _maxContractFeePerKb = maxContractFeePerKb;
     }
 
-    QDataStream & operator <<(QDataStream & stream, const BuyerTerms & rhs) {
+    std::ostream & operator <<(std::ostream & stream, const BuyerTerms & rhs) {
 
         stream << rhs.maxPrice() << rhs.maxLock() << rhs.minNumberOfSellers() << rhs.maxContractFeePerKb();
         return stream;

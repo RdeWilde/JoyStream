@@ -8,7 +8,6 @@
 #include <protocol_wire/JoiningContract.hpp>
 #include <protocol_wire/MessageType.hpp>
 
-#include <QDataStream>
 #include <common/PublicKey.hpp>
 
 namespace joystream {
@@ -27,7 +26,7 @@ namespace protocol_wire {
                rhs.finalPkHash() == rhs.finalPkHash();
     }
 
-    JoiningContract::JoiningContract(QDataStream & stream) {
+    JoiningContract::JoiningContract(std::istream & stream) {
         stream >> _contractPk >> _finalPkHash;
     }
 
@@ -39,7 +38,7 @@ namespace protocol_wire {
         return Coin::PublicKey::length() + Coin::PubKeyHash::length();
     }
 
-    void JoiningContract::write(QDataStream & stream) const {
+    void JoiningContract::write(std::ostream & stream) const {
         stream << _contractPk << _finalPkHash;
     }
 

@@ -8,8 +8,6 @@
 #include <protocol_wire/Sell.hpp>
 #include <protocol_wire/MessageType.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -22,7 +20,7 @@ namespace protocol_wire {
         , _index(index) {
     }
 
-    Sell::Sell(QDataStream & stream) {
+    Sell::Sell(std::istream & stream) {
         stream >> _terms >> _index;
     }
 
@@ -39,7 +37,7 @@ namespace protocol_wire {
         return _terms.length() + sizeof(_index);
     }
 
-    void Sell::write(QDataStream & stream) const {
+    void Sell::write(std::ostream & stream) const {
         stream << _terms << _index;
     }
 

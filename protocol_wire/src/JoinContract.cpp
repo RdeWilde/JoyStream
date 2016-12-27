@@ -8,8 +8,6 @@
 #include <protocol_wire/JoinContract.hpp>
 #include <protocol_wire/MessageType.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -21,7 +19,7 @@ namespace protocol_wire {
         : _index(index) {
     }
 
-    JoinContract::JoinContract(QDataStream & stream) {
+    JoinContract::JoinContract(std::istream & stream) {
         stream >> _index;
     }
 
@@ -33,7 +31,7 @@ namespace protocol_wire {
         return sizeof(_index);
     }
 
-    void JoinContract::write(QDataStream & stream) const {
+    void JoinContract::write(std::ostream & stream) const {
         stream << _index;
     }
 

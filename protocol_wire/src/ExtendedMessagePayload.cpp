@@ -17,12 +17,10 @@
 #include <protocol_wire/FullPiece.hpp>
 #include <protocol_wire/Payment.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
-    ExtendedMessagePayload * ExtendedMessagePayload::fromRaw(MessageType type, QDataStream & stream, int lengthOfExtendedMessagePayload) {
+    ExtendedMessagePayload * ExtendedMessagePayload::fromRaw(MessageType type, std::istream & stream, int lengthOfExtendedMessagePayload) {
 
         try {
 

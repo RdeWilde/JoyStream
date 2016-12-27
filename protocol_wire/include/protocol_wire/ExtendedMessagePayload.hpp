@@ -8,9 +8,8 @@
 #ifndef JOYSTREAM_PROTOCOL_WIRE_EXTENDEDMESSAGEPAYLOAD_HPP
 #define JOYSTREAM_PROTOCOL_WIRE_EXTENDEDMESSAGEPAYLOAD_HPP
 
+#include <iostream>
 #include <QtGlobal> // quint32
-
-class QDataStream;
 
 namespace joystream {
 namespace protocol_wire {
@@ -22,7 +21,7 @@ namespace protocol_wire {
     public:
 
         // Message factory based on only payload, header is encoded in type argument
-        static ExtendedMessagePayload * fromRaw(MessageType type, QDataStream & stream, int lengthOfExtendedMessagePayload);
+        static ExtendedMessagePayload * fromRaw(MessageType type, std::istream & stream, int lengthOfExtendedMessagePayload);
 
         /**
          * Virtual methods that subclassing messages have to implement
@@ -38,7 +37,7 @@ namespace protocol_wire {
         virtual quint32 length() const = 0;
 
         // Write wire form of extended message payload (not payload of full message, hence BEP10 header not written)
-        virtual void write(QDataStream & stream) const = 0;
+        virtual void write(std::ostream & stream) const = 0;
     };
 
 }

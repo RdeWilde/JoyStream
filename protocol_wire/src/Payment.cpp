@@ -8,8 +8,6 @@
 #include <protocol_wire/Payment.hpp>
 #include <protocol_wire/MessageType.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -20,14 +18,14 @@ namespace protocol_wire {
         : _sig(sig) {
     }
 
-    Payment::Payment(QDataStream & stream, quint8 lengthOfSignature) {
+    Payment::Payment(std::istream & stream, uint8_t lengthOfSignature) {
 
         // Check that signature has valid length
         if(lengthOfSignature > Coin::Signature::maxLength)
             throw std::runtime_error("Maximum signature length exceeded.");
 
         // Read signature
-        _sig.readFromStream(stream, lengthOfSignature);
+        _sig.readFromStream(stream, (unsigned int)lengthOfSignature);
     }
 
     bool Payment::operator==(const Payment & rhs) const {
@@ -42,7 +40,7 @@ namespace protocol_wire {
         return _sig.length();
     }
 
-    void Payment::write(QDataStream & stream) const {
+    void Payment::write(std::ostream & stream) const {
         _sig.writeToStream(stream);
     }
 

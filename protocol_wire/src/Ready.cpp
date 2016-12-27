@@ -23,7 +23,7 @@ namespace protocol_wire {
         , _finalPkHash(finalPkHash) {
     }
 
-    Ready::Ready(QDataStream & stream) {
+    Ready::Ready(std::istream & stream) {
         stream >> _value >> _anchor >> _contractPk >> _finalPkHash;
     }
 
@@ -42,7 +42,7 @@ namespace protocol_wire {
         return sizeof(quint64) + Coin::typesafeOutPoint::length() + Coin::PublicKey::length() + Coin::PubKeyHash::length();
     }
 
-    void Ready::write(QDataStream & stream) const {
+    void Ready::write(std::ostream & stream) const {
         stream << _value << _anchor << _contractPk << _finalPkHash;
     }
 

@@ -19,7 +19,7 @@ namespace protocol_wire {
 
         JoinContract();
         JoinContract(uint32_t index);
-        JoinContract(QDataStream & stream);
+        JoinContract(std::istream & stream);
 
         virtual ~JoinContract() {}
 
@@ -28,7 +28,7 @@ namespace protocol_wire {
         // Virtual methods that subclassing messages have to implement
         MessageType messageType() const;
         quint32 length() const;
-        void write(QDataStream & stream) const;
+        void write(std::ostream & stream) const;
 
         // Getters
         uint32_t index() const;

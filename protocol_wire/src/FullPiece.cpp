@@ -8,8 +8,6 @@
 #include <protocol_wire/FullPiece.hpp>
 #include <protocol_wire/MessageType.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -20,7 +18,7 @@ namespace protocol_wire {
         : _pieceData(pieceData) {
     }
 
-    FullPiece::FullPiece(QDataStream & stream, int length)
+    FullPiece::FullPiece(std::istream & stream, int length)
         : _pieceData(stream, length) {
     }
 
@@ -36,7 +34,7 @@ namespace protocol_wire {
         return _pieceData.length();
     }
 
-    void FullPiece::write(QDataStream & stream) const {
+    void FullPiece::write(std::ostream & stream) const {
         _pieceData.write(stream);
     }
 

@@ -7,7 +7,7 @@
 
 #include <protocol_wire/PieceData.hpp>
 
-#include <QDataStream>
+#include <cstring>
 #include <sstream>
 #include <iostream>     // std::cout, std::dec, std::hex, std::oct
 
@@ -41,12 +41,13 @@ namespace protocol_wire {
         return PieceData(piece, length);
     }
 
-    PieceData::PieceData(QDataStream & stream, unsigned int length)
+    PieceData::PieceData(std::istream & stream, unsigned int length)
         : _piece(new char[length])
         , _length(length) {
 
         // Try to fill buffer
-        int result = stream.readRawData(_piece.get(), _length);
+        stream.read(_piece.get(), _length);
+        int result = stream.gcount();
 
         // Check that we were able to read full piece
         if(result != (int)_length)
@@ -70,8 +71,10 @@ namespace protocol_wire {
         return true;
     }
 
-    int PieceData::write(QDataStream & stream) const {
-        return stream.writeRawData(_piece.get(), _length);
+    int PieceData::write(std::ostream & stream) const {
+        auto initial = stream.tellp();
+        stream.write(_piece.get(), _length);
+        return stream.tellp() - initial;
     }
 
     boost::shared_array<char> PieceData::piece() const {

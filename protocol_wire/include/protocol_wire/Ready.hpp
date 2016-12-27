@@ -21,7 +21,7 @@ namespace protocol_wire {
 
         Ready();
         Ready(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
-        Ready(QDataStream &);
+        Ready(std::istream &);
 
         virtual ~Ready() {}
 
@@ -30,7 +30,7 @@ namespace protocol_wire {
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;
-        virtual void write(QDataStream &) const;
+        virtual void write(std::ostream &) const;
 
         // Getters
         quint64 value() const;

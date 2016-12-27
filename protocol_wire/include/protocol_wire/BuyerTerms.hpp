@@ -8,7 +8,9 @@
 #ifndef JOYSTREAM_PROTOCOL_WIREBUYERTERMS_HPP
 #define JOYSTREAM_PROTOCOL_WIREBUYERTERMS_HPP
 
-//#include <stdint.h>
+#include <cstdint>
+#include <iostream>
+
 #include <QtGlobal>
 #include <common/RelativeLockTime.hpp>
 
@@ -31,7 +33,7 @@ namespace protocol_wire {
         bool operator!=(const BuyerTerms & rhs) const;
 
         // Read from stream: is friend to write directly to private BuyerTerm members, simpler than using setters
-        friend QDataStream & operator >>(QDataStream &, BuyerTerms &);
+        friend std::istream & operator >>(std::istream &, BuyerTerms &);
 
         bool satisfiedBy(const SellerTerms & terms) const;
 
@@ -69,7 +71,7 @@ namespace protocol_wire {
     };
 
     // Write terms to stream
-    QDataStream & operator <<(QDataStream &, const BuyerTerms &);
+    std::ostream & operator <<(std::ostream &, const BuyerTerms &);
 
 }
 }
