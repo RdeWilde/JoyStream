@@ -781,15 +781,9 @@ NAN_METHOD(TorrentHandleWrap::connect_peer) {
 
     libtorrent::torrent_handle* th = TorrentHandleWrap::Unwrap(info.This());
 
-    Local<Array> arg0 = info[0].As<Array>();
+    const libtorrent::tcp::endpoint* ep = EndpointWrap::Unwrap(info[0]->ToObject());
 
-    libtorrent::tcp::endpoint ip(libtorrent::address::from_string(std::string(*Nan::Utf8String(arg0->Get(0)))),
-        arg0->Get(0)->IntegerValue());
-
-    if (info.Length() == 2)
-        th->connect_peer(ip, info[1]->IntegerValue());
-    else
-        th->connect_peer(ip);
+    th->connect_peer(*ep);
 
     info.GetReturnValue().SetUndefined();
 };

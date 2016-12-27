@@ -176,9 +176,11 @@ class Node extends EventEmitter {
       var torrent = this.torrentsBySecondaryHash.get(alert.infoHash())
 
       if (torrent) {
-        /*
-         * Not finished...
-         */
+        var timestamp = new Date.now()
+        var peers = alert.peers()
+        for (var i in peers) {
+          torrent.addJSPeerAtTimestamp(peers[i], timestamp)
+        }
       } else {
         debug('Torrent with secondaryInfoHash ' + alert.infoHash() + ' not found')
       }
@@ -246,7 +248,6 @@ class Node extends EventEmitter {
     }
 
     [_stateUpdateAlert](alert) {
-      // Logic here
       var status = alert.status()
 
       for (var i in status) {

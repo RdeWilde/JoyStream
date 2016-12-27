@@ -18,6 +18,7 @@ NAN_MODULE_INIT(AlertWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "params", params);
   Nan::SetPrototypeMethod(tpl, "infoHash", info_hash);
   Nan::SetPrototypeMethod(tpl, "status", status);
+  Nan::SetPrototypeMethod(tpl, "peers", peers);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -159,6 +160,25 @@ NAN_METHOD(AlertWrap::status) {
     } else {
       for(const libtorrent::torrent_status ts : casted->status)
         ret->Set(ret->Length(), TorrentStatusWrap::New(&ts));
+      info.GetReturnValue().Set(ret);
+    }
+
+};
+
+NAN_METHOD(AlertWrap::peers) {
+    Nan::HandleScope scope;
+
+    v8::Local<v8::Array> ret = Nan::New<v8::Array>();
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const libtorrent::dht_get_peers_reply_alert*>(a);
+
+    if (!casted) {
+      info.GetReturnValue().SetUndefined();
+    } else {
+      for(const libtorrent::tcp::endpoint ep : casted->peers())
+        ret->Set(ret->Length(), EndpointWrap::New(&ep));
       info.GetReturnValue().Set(ret);
     }
 

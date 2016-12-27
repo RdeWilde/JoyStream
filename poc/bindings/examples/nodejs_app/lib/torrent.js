@@ -10,12 +10,17 @@ class Torrent extends EventEmitter {
     this.handle = handle
     this.resumeData = resumeData
     this.plugin = plugin
+    this.announcedJSPeersAtTimestamp = new Map()
   }
 
   // Review needed !
   secondaryInfoHash () {
     var newInfoHash = this.handle.infoHash() + '_JS'
     return sha1(newInfoHash)
+  }
+
+  addJSPeerAtTimestamp (peer, timestamp) {
+    this.announcedJSPeersAtTimestamp.set(peer, timestamp)
   }
 
 }

@@ -5,6 +5,7 @@
 #include "torrent_handle.h"
 #include "torrent_status.h"
 #include "add_torrent_params.h"
+#include "endpoint.h"
 #include <extension/Alert.hpp>
 
 using namespace v8;
@@ -43,6 +44,9 @@ class AlertWrap: public Nan::ObjectWrap {
 
       // state_update_alert
       static NAN_METHOD(status);
+
+      // dht_get_peers_reply_alert
+      static NAN_METHOD(peers);
 
       static Nan::Persistent<Function> constructor;
       const libtorrent::alert* alert_;
