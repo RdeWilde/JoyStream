@@ -327,7 +327,7 @@ class Node extends EventEmitter {
     }
 
     [_torrentCheckedAlert](alert) {
-      // Logic here
+       // Nothing to do ?
     }
 
     [_peerConnectAlert](alert) {
