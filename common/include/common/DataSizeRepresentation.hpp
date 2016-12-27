@@ -10,8 +10,6 @@
 
 #include <string>
 
-#include <QtGlobal>
-
 // Manages data size representations
 // Based on http://en.wikipedia.org/wiki/JEDEC_memory_standards#Unit_prefixes_for_semiconductor_storage_capacity
 // extended with extra prefixes only present in the metric case.

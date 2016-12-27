@@ -10,8 +10,6 @@
 
 #include "Fiat.hpp"
 
-#include <QtGlobal>
-
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -64,7 +62,7 @@ public:
      */
 
     // Constructor from raw number of satoshies
-    BitcoinRepresentation(qint64 satoshies);
+    BitcoinRepresentation(int64_t satoshies);
 
     // Constructor from prefixed crypto currency amount
     BitcoinRepresentation(BitCoinPrefix prefix, double units);
@@ -91,13 +89,13 @@ public:
     // which are always /btc.
     double numberOfBTC() const;
 
-    quint64 satoshies() const;
-    void setSatoshies(quint64 satoshies);
+    uint64_t satoshies() const;
+    void setSatoshies(uint64_t satoshies);
 
 private:
 
     // Raw number of satoshies, is always positive
-    quint64 _satoshies;
+    uint64_t _satoshies;
 
     // Whether amount is negative
     bool _isNegative;
@@ -121,7 +119,7 @@ private:
     // Find best exponent for
     // Move into some utilitie wrapper later, shouldnt be here, can be used
     // by data representation class also
-    static int bestExponent(double raw, quint8 base, const std::vector<int> & exponents);
+    static int bestExponent(double raw, uint8_t base, const std::vector<int> & exponents);
 
     // BitCoin representation with given prefix
     std::string toString(BitCoinPrefix prefix, int precision = 1) const;
@@ -130,7 +128,7 @@ private:
     std::string toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision = 1) const;
 
     // Static utilities
-    static quint64 satoshiesInABTC();
+    static uint64_t satoshiesInABTC();
 
     static std::string prefixToString(BitCoinPrefix prefix);
     static std::string prefixToString(MetricPrefix prefix);

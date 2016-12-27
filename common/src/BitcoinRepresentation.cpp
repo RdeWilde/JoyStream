@@ -55,7 +55,7 @@ BitcoinRepresentation::powerToMetricPrefix = std::unordered_map<int, BitcoinRepr
                                                 {0, BitcoinRepresentation::MetricPrefix::None}
                                             };
 
-BitcoinRepresentation::BitcoinRepresentation(qint64 satoshies)
+BitcoinRepresentation::BitcoinRepresentation(int64_t satoshies)
     : _satoshies(satoshies < 0 ? -satoshies : satoshies)
     , _isNegative(satoshies < 0 ? true : false) {
 
@@ -88,7 +88,7 @@ BitcoinRepresentation::BitcoinRepresentation(BitCoinPrefix prefix, double quanti
 
     // THERE IS NO GOOD WAY TO DEAL WITH BROKEN FLOATS COMING FROM BTC EXCHANGE RATES
     // SO WE JUST ROUND
-    _satoshies = static_cast<quint64>(numberOfSatoshies);
+    _satoshies = static_cast<uint64_t>(numberOfSatoshies);
 }
 
 BitcoinRepresentation::BitcoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate)
@@ -135,7 +135,7 @@ BitcoinRepresentation::MetricPrefix BitcoinRepresentation::bestPrefix(double fia
     return powerToMetricPrefix[best];
 }
 
-int BitcoinRepresentation::bestExponent(double raw, quint8 base, const std::vector<int> & exponents) {
+int BitcoinRepresentation::bestExponent(double raw, uint8_t base, const std::vector<int> & exponents) {
 
     // Find first available
     // power of base which is greater than raw
@@ -231,17 +231,17 @@ std::string BitcoinRepresentation::toString(const BitcoinDisplaySettings * setti
 
 double BitcoinRepresentation::numberOfBTC() const {
 
-    quint64 satoshiesInABitCoin = pow(10, bitCoinPrefixToPower[BitCoinPrefix::None]);
+    uint64_t satoshiesInABitCoin = pow(10, bitCoinPrefixToPower[BitCoinPrefix::None]);
     double numberOfBitCoins = ((double)_satoshies) / satoshiesInABitCoin;
 
     return numberOfBitCoins;
 }
 
-quint64 BitcoinRepresentation::satoshies() const {
+uint64_t BitcoinRepresentation::satoshies() const {
     return _satoshies;
 }
 
-void BitcoinRepresentation::setSatoshies(quint64 satoshies) {
+void BitcoinRepresentation::setSatoshies(uint64_t satoshies) {
     _satoshies = satoshies;
 }
 
