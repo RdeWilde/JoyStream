@@ -7,24 +7,26 @@
 
 #include <common/TimeTools.hpp>
 
-#include <QtMath>
-#include <QTime>
+#include <cmath>
+#include <ctime>
+#include <chrono>
 
 namespace TimeTools {
 
-quint8 hoursInSeconds(quint32 seconds) {
-    return qFloor(seconds / 3600);
+uint8_t hoursInSeconds(uint32_t seconds) {
+    return (uint8_t)floor(seconds / 3600);
 }
 
-quint8 minutesInSeconds(quint32 seconds) {
-    return qFloor(((seconds - 3600 * hoursInSeconds(seconds)) / 60));
+uint8_t minutesInSeconds(uint32_t seconds) {
+    return (uint8_t)floor(((seconds - 3600 * hoursInSeconds(seconds)) / 60));
 }
 
-quint8 secondsInSeconds(quint32 seconds) {
-    return seconds - hoursInSeconds(seconds)*3600 - minutesInSeconds(seconds)*60;
+uint8_t secondsInSeconds(uint32_t seconds) {
+    return uint8_t(seconds - hoursInSeconds(seconds)*3600 - minutesInSeconds(seconds)*60);
 }
 
-QTime secondsToQTime(quint32 seconds) {
+/*
+QTime secondsToQTime(uint32_t seconds) {
 
     quint8 h = hoursInSeconds(seconds);
     quint8 m = minutesInSeconds(seconds);
@@ -32,5 +34,6 @@ QTime secondsToQTime(quint32 seconds) {
 
     return QTime(h,m,s);
 }
+*/
 
 }

@@ -8,18 +8,16 @@
 #ifndef COIN_TIME_TOOLS_HPP
 #define COIN_TIME_TOOLS_HPP
 
-#include <QtGlobal> // quint32
-
-class QTime;
+#include <cstdint>
 
 namespace TimeTools {
 
 // Converts x-> #units in x
-quint8 hoursInSeconds(quint32 seconds);
-quint8 minutesInSeconds(quint32 seconds);
-quint8 secondsInSeconds(quint32 seconds);
+uint8_t hoursInSeconds(uint32_t seconds);
+uint8_t minutesInSeconds(uint32_t seconds);
+uint8_t secondsInSeconds(uint32_t seconds);
 
-QTime secondsToQTime(quint32 seconds);
+//QTime secondsToQTime(quint32 seconds);
 
 }
 
