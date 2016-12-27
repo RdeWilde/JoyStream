@@ -10,9 +10,6 @@ CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
 
-QT      += core
-QT      += network # used by blockcypher module
-
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
