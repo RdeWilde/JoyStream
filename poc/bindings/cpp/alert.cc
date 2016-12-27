@@ -19,6 +19,7 @@ NAN_MODULE_INIT(AlertWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "infoHash", info_hash);
   Nan::SetPrototypeMethod(tpl, "status", status);
   Nan::SetPrototypeMethod(tpl, "peers", peers);
+  Nan::SetPrototypeMethod(tpl, "endpoint", endpoint);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -182,4 +183,18 @@ NAN_METHOD(AlertWrap::peers) {
       info.GetReturnValue().Set(ret);
     }
 
+};
+
+NAN_METHOD(AlertWrap::endpoint) {
+    Nan::HandleScope scope;
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const libtorrent::listen_succeeded_alert*>(a);
+
+    if (!casted) {
+      info.GetReturnValue().SetUndefined();
+    } else {
+      info.GetReturnValue().Set(EndpointWrap::New(&casted->endpoint));
+    }
 };

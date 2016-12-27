@@ -48,6 +48,9 @@ class AlertWrap: public Nan::ObjectWrap {
       // dht_get_peers_reply_alert
       static NAN_METHOD(peers);
 
+      // listen_succeeded_alert
+      static NAN_METHOD(endpoint);
+
       static Nan::Persistent<Function> constructor;
       const libtorrent::alert* alert_;
 

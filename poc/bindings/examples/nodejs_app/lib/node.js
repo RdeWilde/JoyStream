@@ -195,8 +195,7 @@ class Node extends EventEmitter {
     }
 
     [_listenSucceededAlert](alert) {
-      // Need to send endpoint...
-      this.emit('listenSucceededAlert')
+      this.emit('listenSucceededAlert', alert.endpoint())
     }
 
     [_metadataReceivedAlert](alert) {
