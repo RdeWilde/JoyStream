@@ -35,7 +35,7 @@ namespace protocol_wire {
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual quint32 length() const;
+        virtual uint32_t length() const;
         virtual void write(std::ostream & stream) const;
 
         // Getters and setters

@@ -27,7 +27,7 @@ namespace protocol_wire {
 
         // Virtual methods that subclassing messages have to implement
         MessageType messageType() const;
-        quint32 length() const;
+        uint32_t length() const;
         void write(std::ostream & stream) const;
 
         // Getters
@@ -37,7 +37,7 @@ namespace protocol_wire {
 
         // Seller terms index
         // cant be uint32_t, due to qdatastream not supporting it
-        quint32 _index;
+        uint32_t _index;
     };
 
 }

@@ -20,7 +20,7 @@ namespace protocol_wire {
     public:
 
         Ready();
-        Ready(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
+        Ready(uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
         Ready(std::istream &);
 
         virtual ~Ready() {}
@@ -29,11 +29,11 @@ namespace protocol_wire {
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual quint32 length() const;
+        virtual uint32_t length() const;
         virtual void write(std::ostream &) const;
 
         // Getters
-        quint64 value() const;
+        uint64_t value() const;
 
         Coin::typesafeOutPoint anchor() const;
 
@@ -45,7 +45,7 @@ namespace protocol_wire {
 
         // Value locked up
         // NB: May be dropped later
-        quint64 _value;
+        uint64_t _value;
 
         // Anchor for contract
         Coin::typesafeOutPoint _anchor;

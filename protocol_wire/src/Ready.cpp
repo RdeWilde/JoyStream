@@ -16,7 +16,7 @@ namespace protocol_wire {
         : Ready(0, Coin::typesafeOutPoint(), Coin::PublicKey(), Coin::PubKeyHash()) {
     }
 
-    Ready::Ready(quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash &finalPkHash)
+    Ready::Ready(uint64_t value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash &finalPkHash)
         : _value(value)
         , _anchor(anchor)
         , _contractPk(contractPk)
@@ -38,15 +38,15 @@ namespace protocol_wire {
         return MessageType::ready;
     }
 
-    quint32 Ready::length() const {
-        return sizeof(quint64) + Coin::typesafeOutPoint::length() + Coin::PublicKey::length() + Coin::PubKeyHash::length();
+    uint32_t Ready::length() const {
+        return sizeof(uint64_t) + Coin::typesafeOutPoint::length() + Coin::PublicKey::length() + Coin::PubKeyHash::length();
     }
 
     void Ready::write(std::ostream & stream) const {
         stream << _value << _anchor << _contractPk << _finalPkHash;
     }
 
-    quint64 Ready::value() const {
+    uint64_t Ready::value() const {
         return _value;
     }
 

@@ -33,7 +33,7 @@ namespace protocol_wire {
                _index == rhs.index();
     }
 
-    quint32 Sell::length() const {
+    uint32_t Sell::length() const {
         return _terms.length() + sizeof(_index);
     }
 

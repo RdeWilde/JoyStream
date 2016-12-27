@@ -31,7 +31,7 @@ namespace protocol_wire {
         return MessageType::request_full_piece;
     }
 
-    quint32 RequestFullPiece::length() const {
+    uint32_t RequestFullPiece::length() const {
         return sizeof(_pieceIndex);
     }
 

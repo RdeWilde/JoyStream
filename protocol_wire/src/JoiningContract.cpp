@@ -34,7 +34,7 @@ namespace protocol_wire {
         return MessageType::joining_contract;
     }
 
-    quint32 JoiningContract::length() const {
+    uint32_t JoiningContract::length() const {
         return Coin::PublicKey::length() + Coin::PubKeyHash::length();
     }
 

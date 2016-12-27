@@ -8,8 +8,8 @@
 #ifndef JOYSTREAM_PROTOCOL_WIRE_EXTENDEDMESSAGEPAYLOAD_HPP
 #define JOYSTREAM_PROTOCOL_WIRE_EXTENDEDMESSAGEPAYLOAD_HPP
 
+#include <cstdint>
 #include <iostream>
-#include <QtGlobal> // quint32
 
 namespace joystream {
 namespace protocol_wire {
@@ -34,7 +34,7 @@ namespace protocol_wire {
         virtual MessageType messageType() const = 0;
 
         // Length of payload of extended message (not full message, hence BEP10 id field not counted)
-        virtual quint32 length() const = 0;
+        virtual uint32_t length() const = 0;
 
         // Write wire form of extended message payload (not payload of full message, hence BEP10 header not written)
         virtual void write(std::ostream & stream) const = 0;

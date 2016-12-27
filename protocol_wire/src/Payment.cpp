@@ -36,7 +36,7 @@ namespace protocol_wire {
         return MessageType::payment;
     }
 
-    quint32 Payment::length() const {
+    uint32_t Payment::length() const {
         return _sig.length();
     }
 

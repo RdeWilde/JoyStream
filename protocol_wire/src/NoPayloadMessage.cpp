@@ -10,7 +10,7 @@
 namespace joystream {
 namespace protocol_wire {
 
-    quint32 NoPayloadMessage::length() const {
+    uint32_t NoPayloadMessage::length() const {
         return 0;
     }
 

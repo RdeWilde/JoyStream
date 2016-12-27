@@ -30,7 +30,7 @@ namespace protocol_wire {
         return MessageType::buy;
     }
 
-    quint32 Buy::length() const {
+    uint32_t Buy::length() const {
         return _terms.length();
     }
 

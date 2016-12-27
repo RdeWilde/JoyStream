@@ -30,7 +30,7 @@ namespace protocol_wire {
         return MessageType::full_piece;
     }
 
-    quint32 FullPiece::length() const {
+    uint32_t FullPiece::length() const {
         return _pieceData.length();
     }
 

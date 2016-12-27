@@ -5,6 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
+#include <cassert>
+
 #include <protocol_wire/ExtendedMessagePayload.hpp>
 #include <protocol_wire/MessageType.hpp>
 #include <protocol_wire/Observe.hpp>
@@ -37,7 +39,7 @@ namespace protocol_wire {
                 case MessageType::payment: return new Payment(stream, lengthOfExtendedMessagePayload);
 
                 default:
-                    Q_ASSERT(false); // We are not covering full value range of enum
+                    assert(false); // We are not covering full value range of enum
                     return NULL;
             }
 

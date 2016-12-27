@@ -27,7 +27,7 @@ namespace protocol_wire {
         return _index == rhs.index();
     }
 
-    quint32 JoinContract::length() const {
+    uint32_t JoinContract::length() const {
         return sizeof(_index);
     }
 

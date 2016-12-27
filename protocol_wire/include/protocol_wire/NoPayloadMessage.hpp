@@ -19,7 +19,7 @@ namespace protocol_wire {
     public:
 
         virtual MessageType messageType() const = 0;
-        virtual quint32 length() const;
+        virtual uint32_t length() const;
         virtual void write(std::ostream & stream) const;
     };
 
