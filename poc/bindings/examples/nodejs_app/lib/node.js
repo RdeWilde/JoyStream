@@ -37,10 +37,16 @@ class Node extends EventEmitter {
 
       // Pop alerts every seconde
       setInterval(function () {
-        var alerts = this.session.popAlerts()
-        for (var i in alerts) {
-          this.process(alerts[i])
-        };
+        var alerts = []
+        // To be sure all the alerts are process before getting new ones
+        if (alerts.length == 0) {
+          var alerts = this.session.popAlerts()
+          while (alerts.length > 0) {
+            // shift remve and return the first alert in the array
+            var alert = alerts.shift()
+            this.process(alert)
+          }
+        }
       }.bind(this), 1000)
     }
 
@@ -180,6 +186,8 @@ class Node extends EventEmitter {
         var peers = alert.peers()
         for (var i in peers) {
           torrent.addJSPeerAtTimestamp(peers[i], timestamp)
+          torrent.handle.connectPeer(peers[i])
+          debug('Connection added')
         }
       } else {
         debug('Torrent with secondaryInfoHash ' + alert.infoHash() + ' not found')
