@@ -182,9 +182,10 @@ class Node extends EventEmitter {
       var torrent = this.torrentsBySecondaryHash.get(alert.infoHash())
 
       if (torrent) {
-        var timestamp = new Date.now()
+        var timestamp = Date.now()
         var peers = alert.peers()
         for (var i in peers) {
+          console.log(peers[i])
           torrent.addJSPeerAtTimestamp(peers[i], timestamp)
           torrent.handle.connectPeer(peers[i])
           debug('Connection added')

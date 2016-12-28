@@ -179,7 +179,7 @@ NAN_METHOD(AlertWrap::peers) {
       info.GetReturnValue().SetUndefined();
     } else {
       for(const libtorrent::tcp::endpoint ep : casted->peers())
-        ret->Set(ret->Length(), EndpointWrap::New(&ep));
+        ret->Set(ret->Length(), EndpointWrap::New(ep));
       info.GetReturnValue().Set(ret);
     }
 
@@ -195,6 +195,6 @@ NAN_METHOD(AlertWrap::endpoint) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      info.GetReturnValue().Set(EndpointWrap::New(&casted->endpoint));
+      info.GetReturnValue().Set(EndpointWrap::New(casted->endpoint));
     }
 };

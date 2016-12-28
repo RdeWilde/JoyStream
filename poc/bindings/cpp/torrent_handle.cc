@@ -9,7 +9,7 @@ NAN_MODULE_INIT(TorrentHandleWrap::Init) {
   tpl->SetClassName(Nan::New("TorrentHandleWrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  //Nan::SetPrototypeMethod(tpl, "getPeerInfo", get_peer_info);
+  Nan::SetPrototypeMethod(tpl, "getPeerInfo", get_peer_info);
   //Nan::SetPrototypeMethod(tpl, "status", status);
   Nan::SetPrototypeMethod(tpl, "getDownloadQueue", get_download_queue);
   //Nan::SetPrototypeMethod(tpl, "fileProgress", file_progress);
@@ -130,21 +130,21 @@ NAN_METHOD(TorrentHandleWrap::NewInstance) {
   info.GetReturnValue().Set(info.This());
 };
 
-/* Don't have peer_info
 NAN_METHOD(TorrentHandleWrap::get_peer_info) {
     Nan::HandleScope scope;
 
     std::vector<libtorrent::peer_info> res;
+
+    // Get error exception here ?
     TorrentHandleWrap::Unwrap(info.This())->get_peer_info(res);
 
     Local<Array> ret = Nan::New<Array>();
 
-    for (std::vector<libtorrent::peer_info>::iterator i(res.begin()), e(res.end()); i != e; ++i)
-        ret->Set(ret->Length(), peer_info_to_object(*i));
+    for(const libtorrent::peer_info i : res)
+      ret->Set(ret->Length(), PeerInfoWrap::New(&i));
 
-
-    info.GetReturnValue().Set(info.This());
-};*/
+    info.GetReturnValue().Set(ret);
+};
 
 /*
 NAN_METHOD(TorrentHandleWrap::status) {
@@ -781,9 +781,9 @@ NAN_METHOD(TorrentHandleWrap::connect_peer) {
 
     libtorrent::torrent_handle* th = TorrentHandleWrap::Unwrap(info.This());
 
-    const libtorrent::tcp::endpoint* ep = EndpointWrap::Unwrap(info[0]->ToObject());
+    const libtorrent::tcp::endpoint ep = EndpointWrap::Unwrap(info[0]->ToObject());
 
-    th->connect_peer(*ep);
+    th->connect_peer(ep);
 
     info.GetReturnValue().SetUndefined();
 };

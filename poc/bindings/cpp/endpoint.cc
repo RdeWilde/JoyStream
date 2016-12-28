@@ -14,27 +14,23 @@ NAN_MODULE_INIT(EndpointWrap::Init) {
   Nan::Set(target, Nan::New("EndpointWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
-Local<Object> EndpointWrap::New(const libtorrent::tcp::endpoint* ep) {
+Local<Object> EndpointWrap::New(libtorrent::tcp::endpoint ep) {
     Nan::EscapableHandleScope scope;
 
     Local<Function> cons = Nan::New(constructor);
     Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
 
-    if(ep) {
-        Nan::ObjectWrap::Unwrap<EndpointWrap>(obj.ToLocalChecked())->endpoint_ = ep;
-    } else {
-      obj = Nan::New<Object>();
-    }
+    Nan::ObjectWrap::Unwrap<EndpointWrap>(obj.ToLocalChecked())->endpoint_ = ep;
+
     return scope.Escape(obj.ToLocalChecked());
 };
 
 EndpointWrap::EndpointWrap() {
-  endpoint_ = NULL;
+
 };
 
 EndpointWrap::~EndpointWrap() {
-  if (endpoint_ != NULL)
-    delete endpoint_;
+
 };
 
 NAN_METHOD(EndpointWrap::NewInstance) {

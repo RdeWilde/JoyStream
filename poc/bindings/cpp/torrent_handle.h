@@ -8,6 +8,7 @@
 
 #include "torrent_info.h"
 #include "endpoint.h"
+#include "peer_info.h"
 
 class TorrentHandleWrap : public Nan::ObjectWrap {
   public:
@@ -21,10 +22,11 @@ class TorrentHandleWrap : public Nan::ObjectWrap {
     explicit TorrentHandleWrap();
     ~TorrentHandleWrap();
 
-    static NAN_METHOD(NewInstance);
     static Nan::Persistent<v8::Function> constructor;
+    libtorrent::torrent_handle* th_;
 
-    //static NAN_METHOD(get_peer_info);
+    static NAN_METHOD(NewInstance);
+    static NAN_METHOD(get_peer_info);
     //static NAN_METHOD(status);
     static NAN_METHOD(get_download_queue);
     //static NAN_METHOD(file_progress);
@@ -105,8 +107,6 @@ class TorrentHandleWrap : public Nan::ObjectWrap {
     static NAN_METHOD(set_ssl_certificate);
 
     static NAN_METHOD(torrent_file);
-
-    libtorrent::torrent_handle* th_;
 };
 
 #endif

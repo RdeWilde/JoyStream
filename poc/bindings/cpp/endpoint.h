@@ -9,8 +9,8 @@ using namespace v8;
 class EndpointWrap: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
-      static Local<Object> New(const libtorrent::tcp::endpoint* ep);
-      static const libtorrent::tcp::endpoint* Unwrap(const Local<Object>& obj) {
+      static Local<Object> New(const libtorrent::tcp::endpoint ep);
+      static libtorrent::tcp::endpoint Unwrap(const Local<Object>& obj) {
         return Nan::ObjectWrap::Unwrap<EndpointWrap>(obj)->endpoint_;
       };
 
@@ -21,7 +21,7 @@ class EndpointWrap: public Nan::ObjectWrap {
       static NAN_METHOD(NewInstance);
 
       static Nan::Persistent<Function> constructor;
-      const libtorrent::tcp::endpoint* endpoint_;
+      libtorrent::tcp::endpoint endpoint_;
 
 };
 
