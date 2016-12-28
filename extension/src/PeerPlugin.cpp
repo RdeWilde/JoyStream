@@ -5,6 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
+#include <cassert>
+
 #include <extension/PeerPlugin.hpp>
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Exception.hpp>
@@ -631,7 +633,7 @@ namespace extension {
 
         int64_t written = postWritePosition - preWritePosition;
 
-        Q_ASSERT(written == extendedMessagePayloadLength);
+        assert(written == extendedMessagePayloadLength);
 
         std::clog << "SENT:" << joystream::protocol_wire::messageName(extendedMessagePayload->messageType()) << " = " << written << "bytes" << std::endl;
 
