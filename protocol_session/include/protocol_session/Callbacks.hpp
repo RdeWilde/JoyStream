@@ -17,8 +17,6 @@
 #include <functional>
 #include <vector>
 
-#include <QtGlobal> // quint64
-
 namespace Coin {
     class typesafeOutPoint;
     class PublicKey;
@@ -112,7 +110,7 @@ using ClaimLastPayment = std::function<void(const ConnectionIdType &, const joys
 
 // Buyer with given connection id announced anchor
 template <class ConnectionIdType>
-using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
+using AnchorAnnounced = std::function<void(const ConnectionIdType &, uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
 
 // Buyer with givne connection id send a valid payment
 template <class ConnectionIdType>
