@@ -731,7 +731,7 @@ protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anch
     libtorrent::alert_manager & manager = t->alerts();
     libtorrent::torrent_handle h = t->get_handle();
 
-    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
+    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, uint64_t value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
 
         manager.emplace_alert<alert::AnchorAnnounced>(h, endPoint, value, anchor, contractPk, finalPkHash);
     };

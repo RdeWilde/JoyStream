@@ -502,11 +502,11 @@ namespace extension {
         stream.setByteOrder(QDataStream::BigEndian);
 
         // Parse message
-        qint64 preReadPosition = stream.device()->pos();
+        int64_t preReadPosition = stream.device()->pos();
         joystream::protocol_wire::ExtendedMessagePayload * m = joystream::protocol_wire::ExtendedMessagePayload::fromRaw(messageType, stream, lengthOfExtendedMessagePayload);
-        qint64 postReadPosition = stream.device()->pos();
+        int64_t postReadPosition = stream.device()->pos();
 
-        qint64 totalReadLength = postReadPosition - preReadPosition;
+        int64_t totalReadLength = postReadPosition - preReadPosition;
 
         // Check that the full extended payload was parsed
         if(totalReadLength != lengthOfExtendedMessagePayload) {
@@ -593,13 +593,13 @@ namespace extension {
     void PeerPlugin::send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessagePayload) {
 
         // Get length of
-        quint32 extendedMessagePayloadLength = extendedMessagePayload->length();
+        uint32_t extendedMessagePayloadLength = extendedMessagePayload->length();
 
         // Length of message full message
-        quint32 fullMessageLength = 4 + 1 + 1 + extendedMessagePayloadLength;
+        uint32_t fullMessageLength = 4 + 1 + 1 + extendedMessagePayloadLength;
 
         // Length value in outer BitTorrent header
-        quint32 fullMessageLengthFieldValue = 1 + 1 + extendedMessagePayloadLength;
+        uint32_t fullMessageLengthFieldValue = 1 + 1 + extendedMessagePayloadLength;
 
         // Allocate message array buffer
         QByteArray byteArray(fullMessageLength, 0);
@@ -619,17 +619,17 @@ namespace extension {
         stream << fullMessageLengthFieldValue;
 
         // BEP10 message id: should always be 20 according to BEP10 spec
-        stream << static_cast<quint8>(libtorrent::bt_peer_connection::msg_extended);
+        stream << static_cast<uint8_t>(libtorrent::bt_peer_connection::msg_extended);
 
         // Extended message id
-        stream << static_cast<quint8>(_peerMapping.id(extendedMessagePayload->messageType()));
+        stream << static_cast<uint8_t>(_peerMapping.id(extendedMessagePayload->messageType()));
 
         // Write message into buffer through stream
-        qint64 preWritePosition = stream.device()->pos();
+        int64_t preWritePosition = stream.device()->pos();
         extendedMessagePayload->write(stream);
-        qint64 postWritePosition = stream.device()->pos();
+        int64_t postWritePosition = stream.device()->pos();
 
-        qint64 written = postWritePosition - preWritePosition;
+        int64_t written = postWritePosition - preWritePosition;
 
         Q_ASSERT(written == extendedMessagePayloadLength);
 
