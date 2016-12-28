@@ -17,7 +17,7 @@ uint8_t hoursInSeconds(uint32_t seconds);
 uint8_t minutesInSeconds(uint32_t seconds);
 uint8_t secondsInSeconds(uint32_t seconds);
 
-//QTime secondsToQTime(quint32 seconds);
+//QTime secondsToQTime(uint32_t seconds);
 
 }
 

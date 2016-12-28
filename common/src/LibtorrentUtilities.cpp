@@ -271,23 +271,23 @@ PluginInstalled Utilities::PluginModeToPluginInstalled(PluginMode mode) {
 #include <QtMath>
 #include <QTime>
 
-quint8 Utilities::hoursInSeconds(quint32 seconds) {
+uint8_t Utilities::hoursInSeconds(uint32_t seconds) {
     return qFloor(seconds / 3600);
 }
 
-quint8 Utilities::minutesInSeconds(quint32 seconds) {
+uint8_t Utilities::minutesInSeconds(uint32_t seconds) {
     return qFloor(((seconds - 3600 * Utilities::hoursInSeconds(seconds)) / 60));
 }
 
-quint8 Utilities::secondsInSeconds(quint32 seconds) {
+uint8_t Utilities::secondsInSeconds(uint32_t seconds) {
     return seconds - Utilities::hoursInSeconds(seconds)*3600 - Utilities::minutesInSeconds(seconds)*60;
 }
 
-QTime Utilities::secondsToQTime(quint32 seconds) {
+QTime Utilities::secondsToQTime(uint32_t seconds) {
 
-    quint8 h = Utilities::hoursInSeconds(seconds);
-    quint8 m = Utilities::minutesInSeconds(seconds);
-    quint8 s = Utilities::secondsInSeconds(seconds);
+    uint8_t h = Utilities::hoursInSeconds(seconds);
+    uint8_t m = Utilities::minutesInSeconds(seconds);
+    uint8_t s = Utilities::secondsInSeconds(seconds);
 
     return QTime(h,m,s);
 }

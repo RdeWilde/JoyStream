@@ -35,7 +35,7 @@ public:
     std::string toBase58CheckEncoding() const;
 
     // Transaction output
-    TxOut txOut(quint64 value) const;
+    TxOut txOut(uint64_t value) const;
 
     // P2SHScriptPubKey
     P2SHScriptPubKey toP2SHScriptPubKey() const;

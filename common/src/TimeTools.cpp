@@ -28,9 +28,9 @@ uint8_t secondsInSeconds(uint32_t seconds) {
 /*
 QTime secondsToQTime(uint32_t seconds) {
 
-    quint8 h = hoursInSeconds(seconds);
-    quint8 m = minutesInSeconds(seconds);
-    quint8 s = secondsInSeconds(seconds);
+    uint8_t h = hoursInSeconds(seconds);
+    uint8_t m = minutesInSeconds(seconds);
+    uint8_t s = secondsInSeconds(seconds);
 
     return QTime(h,m,s);
 }

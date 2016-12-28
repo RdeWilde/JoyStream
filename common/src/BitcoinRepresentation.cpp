@@ -83,7 +83,7 @@ BitcoinRepresentation::BitcoinRepresentation(BitCoinPrefix prefix, double quanti
     if(numberOfSatoshies != floor(numberOfSatoshies))
         throw std::exception("Invalid representation provided, does not give integer quanitity of satoshies.");
     else
-        _satoshies = static_cast<quint64>(numberOfSatoshies);
+        _satoshies = static_cast<uint64_t>(numberOfSatoshies);
     */
 
     // THERE IS NO GOOD WAY TO DEAL WITH BROKEN FLOATS COMING FROM BTC EXCHANGE RATES
@@ -277,7 +277,7 @@ std::string BitcoinRepresentation::prefixToString(MetricPrefix prefix) {
 }
 
 /**
-quint8 BitCoinRepresentation::prefixToExponent(BitCoinPrefix prefix) {
+uint8_t BitCoinRepresentation::prefixToExponent(BitCoinPrefix prefix) {
 
     switch(prefix) {
         case BitCoinPrefix::Satoshi: return 0;

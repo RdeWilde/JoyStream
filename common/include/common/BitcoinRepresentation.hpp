@@ -133,7 +133,7 @@ private:
     static std::string prefixToString(BitCoinPrefix prefix);
     static std::string prefixToString(MetricPrefix prefix);
 
-    //static quint8 prefixToExponent(BitCoinPrefix prefix);
+    //static uint8_t prefixToExponent(BitCoinPrefix prefix);
     //static int prefixToExponent(MetricPrefix prefix);
 
     static std::string fiatToSymbol(Fiat fiat);
