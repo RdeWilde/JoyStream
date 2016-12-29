@@ -7,12 +7,16 @@
 
 #include <cassert>
 
+#include <boost/iostreams/stream.hpp>
+
 #include <extension/PeerPlugin.hpp>
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Exception.hpp>
 #include <extension/Status.hpp>
 #include <extension/Alert.hpp>
+#include <extension/detail.hpp>
 #include <protocol_wire/protocol_wire.hpp>
+
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
 #include <libtorrent/peer_info.hpp>
@@ -494,19 +498,16 @@ namespace extension {
         */
 
         // WRAP in QByteAray: No copying is done, and no ownership is taken!
-        // http://doc.qt.io/qt-4.8/qbytearray.html#fromRawData
-        QByteArray byteArray = QByteArray::fromRawData(body.begin, lengthOfExtendedMessagePayload);
+        detail::intervalBuffer buffer(body.begin, lengthOfExtendedMessagePayload);
+        std::istream stream(&buffer);
 
-        // Wrap data in byte array in stream
-        QDataStream stream(&byteArray, QIODevice::ReadOnly);
-
-        // Explicitly set endianness
-        stream.setByteOrder(QDataStream::BigEndian);
+        // TODO: Explicitly set endianness
+        //stream.setByteOrder(QDataStream::BigEndian);
 
         // Parse message
-        int64_t preReadPosition = stream.device()->pos();
+        int64_t preReadPosition = stream.tellg();
         joystream::protocol_wire::ExtendedMessagePayload * m = joystream::protocol_wire::ExtendedMessagePayload::fromRaw(messageType, stream, lengthOfExtendedMessagePayload);
-        int64_t postReadPosition = stream.device()->pos();
+        int64_t postReadPosition = stream.tellg();
 
         int64_t totalReadLength = postReadPosition - preReadPosition;
 
@@ -604,13 +605,14 @@ namespace extension {
         uint32_t fullMessageLengthFieldValue = 1 + 1 + extendedMessagePayloadLength;
 
         // Allocate message array buffer
-        QByteArray byteArray(fullMessageLength, 0);
+        const std::string stringBuf(fullMessageLength, 0);
+        std::stringbuf buffer(stringBuf);
 
         // Wrap buffer in stream
-        QDataStream stream(&byteArray, QIODevice::WriteOnly);
+        std::ostream stream(&buffer);
 
-        // Set byte order explicitly
-        stream.setByteOrder(QDataStream::BigEndian);
+        // TODO: Set byte order explicitly
+        //stream.setByteOrder(QDataStream::BigEndian);
 
         /**
          * Write both headers to stream:
@@ -627,9 +629,9 @@ namespace extension {
         stream << static_cast<uint8_t>(_peerMapping.id(extendedMessagePayload->messageType()));
 
         // Write message into buffer through stream
-        int64_t preWritePosition = stream.device()->pos();
+        int64_t preWritePosition = stream.tellp();
         extendedMessagePayload->write(stream);
-        int64_t postWritePosition = stream.device()->pos();
+        int64_t postWritePosition = stream.tellp();
 
         int64_t written = postWritePosition - preWritePosition;
 
@@ -638,15 +640,16 @@ namespace extension {
         std::clog << "SENT:" << joystream::protocol_wire::messageName(extendedMessagePayload->messageType()) << " = " << written << "bytes" << std::endl;
 
         // If message was written properly buffer, then send buffer to peer
-        if(stream.status() != QDataStream::Status::Ok)
+
+        if(!stream.good())
             std::clog << "Output stream in bad state after message write, message not sent." << std::endl;
         else {
 
             // Get raw buffer
-            const char * constData = byteArray.constData(); // is zero terminated, but we dont care
+            const char * constData = (buffer.str()).c_str(); // is zero terminated, but we dont care
 
             // Send message buffer
-            _connection.send_buffer(constData, byteArray.length());
+            _connection.send_buffer(constData, (buffer.str()).size());
 
             // Do some sort of catching of error if sending did not work??
 

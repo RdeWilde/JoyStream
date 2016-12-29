@@ -303,6 +303,57 @@ void RequestVariantVisitor::sendRequestResult(const alert::LoadedCallback & c) {
     _alertManager->emplace_alert<alert::RequestResult>(c);
 }
 
+intervalBuffer::intervalBuffer(const char *str)
+    : _begin(str),
+      _end(str + std::strlen(str)),
+      _current(_begin)
+{
+}
+
+intervalBuffer::intervalBuffer(const char *data, unsigned int len)
+    : _begin(data),
+      _end(data + len),
+      _current(_begin)
+{
+}
+
+intervalBuffer::intervalBuffer(const char *begin, const char *end)
+    : _begin(begin),
+      _end(end),
+      _current(_begin)
+{
+    assert(std::less_equal<const char*>()(_begin, _end));
+}
+
+int_type intervalBuffer::underflow()
+{
+    if(_current == _end) {
+        return traits_type::eof();
+    }
+    return traits_type::to_int_type(*_current);
+}
+
+int_type intervalBuffer::uflow()
+{
+    if(_current == _end) {
+        return traits_type::eof();
+    }
+    return traits_type::to_int_type(*_current++);
+}
+
+int_type intervalBuffer::pbackfail(int_type ch)
+{
+    if(_current == _begin || (ch != traits_type::eof() && ch != _current[-1])) {
+        return traits_type::eof();
+    }
+    return traits_type::to_int_type(*--_current);
+}
+
+std::streamsize intervalBuffer::showmanyc()
+{
+    return _end - _current;
+}
+
 }
 }
 }
