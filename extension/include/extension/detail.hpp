@@ -13,9 +13,6 @@
 
 #include <boost/variant.hpp>
 
-#include <string>
-#include <iostream>
-#include <streambuf>
 #include <exception>
 #include <functional>
 
@@ -95,27 +92,6 @@ private:
     libtorrent::alert_manager * _alertManager;
 };
 
-/*
- * A custom derived stream buffer for use with
- * libtorrent::buffer::const_interval type.
- *
- */
-class intervalBuffer : public std::streambuf {
-public:
-    intervalBuffer(const char *str);
-    intervalBuffer(const char *data, unsigned int len);
-    intervalBuffer(const char *begin, const char *end);
-
-private:
-    int_type underflow();
-    int_type uflow();
-    int_type pbackfail(int_type ch);
-    std::streamsize showmanyc();
-
-    const char* _current;
-    const char* const _begin;
-    const char* const _end;
-};
 
 }
 }

@@ -497,8 +497,9 @@ namespace extension {
         }
         */
 
-        // WRAP in QByteAray: No copying is done, and no ownership is taken!
-        detail::intervalBuffer buffer(body.begin, lengthOfExtendedMessagePayload);
+        // NOTE: Wrap in std::stringbuf: No copying is done, and no ownership is taken!(??Unsure??)
+        std::stringbuf buffer;
+        buffer.pubsetbuf(const_cast<char *>(body.begin), lengthOfExtendedMessagePayload);
         std::istream stream(&buffer);
 
         // TODO: Explicitly set endianness
@@ -605,8 +606,9 @@ namespace extension {
         uint32_t fullMessageLengthFieldValue = 1 + 1 + extendedMessagePayloadLength;
 
         // Allocate message array buffer
-        const std::string stringBuf(fullMessageLength, 0);
-        std::stringbuf buffer(stringBuf);
+        std::stringbuf buffer;
+        std::vector<char> v_buffer(fullMessageLength);
+        buffer.pubsetbuf(&v_buffer[0], fullMessageLength);
 
         // Wrap buffer in stream
         std::ostream stream(&buffer);
