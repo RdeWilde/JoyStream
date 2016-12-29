@@ -45,8 +45,9 @@ public:
            const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
            const GenerateReceiveAddressesCallbackHandler &,
            const GenerateChangeAddressesCallbackHandler &,
-           const BroadcastTransaction &,
+           const ContractConstructed &,
            const FullPieceArrived<ConnectionIdType> &,
+           const SentPayment<ConnectionIdType> &,
            const Coin::UnspentOutputSet &,
            const BuyingPolicy &,
            const protocol_wire::BuyerTerms &,
@@ -170,8 +171,9 @@ private:
     GenerateP2SHKeyPairCallbackHandler _generateP2SHKeyPair;
     GenerateReceiveAddressesCallbackHandler _generateReceiveAddresses;
     GenerateChangeAddressesCallbackHandler _generateChangeAddresses;
-    BroadcastTransaction _broadcastTransaction;
+    ContractConstructed _contractConstructed;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
+    SentPayment<ConnectionIdType> _sentPayment;
 
     // Funding for buyer
     Coin::UnspentOutputSet _funding;

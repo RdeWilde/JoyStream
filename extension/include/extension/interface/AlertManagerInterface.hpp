@@ -11,9 +11,6 @@ namespace extension {
     namespace alert {
         typedef std::function<void()> LoadedCallBack;
     }
-    namespace status {
-        struct Plugin;
-    }
 
 namespace interface {
 
@@ -23,7 +20,6 @@ public:
 
     virtual libtorrent::alert_manager* native_handle() const = 0;
 
-    virtual void plugin_emplace_alert(extension::status::Plugin status) = 0;
     virtual void request_emplace_alert(extension::alert::LoadedCallBack &c) = 0;
     virtual void anchorAnnounced_emplace_alert(
         libtorrent::torrent_handle h, libtorrent::tcp::endpoint &endpoint,

@@ -1,27 +1,22 @@
 # Node Native Extension Proof of Concept
 
-The module can be built for node or electron
-
-## Install Prerequisits
-
-```
-$ npm -g install node-gyp
-```
-
 ## Build joystream libraries
 
-Build the joystream libraries and their dependencies before building the node module:
+First Make sure to build the joystream libraries and their dependencies before building the node or electron module:
 
 ## Building For NodeJs
 
-To compile the extension run
+Install dependencies and automatically build node module
 
 ```
-$ npm run configure-node
+$ npm install
+```
+
+All subsequent builds only need
+
+```
 $ npm run build-node
 ```
-
-All subsequent builds only need `npm run build-node`
 
 You can confirm everything built correctly by running:
 
@@ -43,10 +38,15 @@ Make sure to install electron 1.4.11
 $ npm -g install electron@1.4.11
 ```
 
-Build and configure:
+Install dependencies (This will also automatically build the nodejs module)
 
 ```
-$ npm run configure-electron
+$ npm install
+```
+
+Reconfigure and build electron module:
+
+```
 $ npm run build-electron
 ```
 

@@ -1,4 +1,4 @@
 node_modules
 build/
 qt_headers/
-Frameworks/*.framework
+Frameworks/

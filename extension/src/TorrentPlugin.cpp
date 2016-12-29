@@ -9,6 +9,7 @@
 #include <extension/Plugin.hpp>
 #include <extension/Request.hpp>
 #include <extension/Exception.hpp>
+#include <libtorrent/alert_manager.hpp>
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection_handle.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
@@ -28,22 +29,25 @@ namespace extension {
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const libtorrent::torrent_handle & torrent,
-                             const TransactionBroadcaster broadcaster,
                              uint minimumMessageId,
+                             libtorrent::alert_manager * alertManager,
                              const Policy & policy,
                              LibtorrentInteraction libtorrentInteraction)
     : _plugin(plugin)
     , _torrent(torrent)
-    , _broadcaster(broadcaster)
     , _minimumMessageId(minimumMessageId)
+    , _alertManager(alertManager)
     , _policy(policy)
     , _libtorrentInteraction(libtorrentInteraction)
-    , _infoHash(torrent.info_hash())
-{
+    , _infoHash(torrent.info_hash()) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
+
     std::clog << "~TorrentPlugin()";
+
+    // Send alert notification
+    _alertManager->emplace_alert<alert::TorrentPluginRemoved>(_torrent, _infoHash);
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const libtorrent::peer_connection_handle & connection) {
@@ -87,10 +91,23 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
     std::clog << "Installed peer plugin #" << _peers.size() << std::endl;
 
     // Create a new peer plugin
-    boost::shared_ptr<PeerPlugin> plugin(new PeerPlugin(this, connection, _policy.peerPolicy, _minimumMessageId));
+    PeerPlugin * rawPeerPlugin = new PeerPlugin(this, _torrent, connection, _policy.peerPolicy, _minimumMessageId, _alertManager);
+
+    // Wrap for return to libtorrent
+    boost::shared_ptr<PeerPlugin> plugin(rawPeerPlugin);
 
     // Add to collection
     _peers[endPoint] = boost::weak_ptr<PeerPlugin>(plugin);
+
+    // Send alert notification
+
+    boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> connectionStatus;
+
+    try{
+        connectionStatus = _session.connectionStatus(endPoint);
+    } catch(...) {}
+
+    _alertManager->emplace_alert<alert::PeerPluginAdded>(_torrent, endPoint, connection.pid(), rawPeerPlugin->status(connectionStatus));
 
     // Return pointer to plugin as required
     return plugin;
@@ -105,6 +122,11 @@ void TorrentPlugin::on_piece_pass(int index) {
 
         // If this validation is not due to us
         if(it == _outstandingFullPieceArrivedCalls.cend()) {
+
+            // For now, just use defaut peer id
+            libtorrent::peer_id peer_id;
+
+            _alertManager->emplace_alert<alert::ValidPieceArrived>(_torrent, it->second, peer_id, index);
 
             // then just tell session about it
             _session.pieceDownloaded(index);
@@ -134,7 +156,14 @@ void TorrentPlugin::on_piece_failed(int index) {
 
         } else {
 
-            // if its due to us, then tell session about endpoint and piece
+            // if its due to us, then
+
+            // For now, just use defaut peer id
+            libtorrent::peer_id peer_id;
+
+            _alertManager->emplace_alert<alert::InvalidPieceArrived>(_torrent, it->second, peer_id, index);
+
+            // tell session about endpoint and piece
             _session.invalidPieceReceivedOnConnection(it->second, index);
 
             // and remove call
@@ -243,6 +272,9 @@ void TorrentPlugin::start() {
     // Start session
     _session.start();
 
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionStarted>(_torrent);
+
     // If session was initially stopped (not paused), then initiate extended handshake
     if(initialState == protocol_session::SessionState::stopped)
         forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void {
@@ -268,20 +300,35 @@ void TorrentPlugin::stop() {
     // as we don't initate it in callback from session.
     _session.stop();
 
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionStopped>(_torrent);
+
     // Start handshake
     forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_extensions(); });
 }
 
 void TorrentPlugin::pause() {
+
     _session.pause();
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionPaused>(_torrent);
 }
 
 void TorrentPlugin::updateTerms(const protocol_wire::SellerTerms & terms) {
+
     _session.updateTerms(terms);
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SellerTermsUpdated>(_torrent, terms);
 }
 
 void TorrentPlugin::updateTerms(const protocol_wire::BuyerTerms & terms) {
+
     _session.updateTerms(terms);
+
+    // Send notification
+    _alertManager->emplace_alert<alert::BuyerTermsUpdated>(_torrent, terms);
 }
 
 void TorrentPlugin::toObserveMode() {
@@ -294,6 +341,9 @@ void TorrentPlugin::toObserveMode() {
         _outstandingFullPieceArrivedCalls.clear();
 
     _session.toObserveMode(removeConnection());
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionToObserveMode>(_torrent);
 }
 
 void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
@@ -324,9 +374,14 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallba
                         loadPieceForBuyer(),
                         claimLastPayment(),
                         anchorAnnounced(),
+                        receivedValidPayment(),
                         policy,
                         terms,
                         maxPieceIndex);
+
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionToSellMode>(_torrent, policy, terms);
 }
 
 void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
@@ -352,41 +407,29 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
                        generateKeyPairCallbackHandler,
                        generateReceiveAddressesCallbackHandler,
                        generateChangeAddressesCallbackHandler,
-                       broadcastTransaction(),
+                       contractConstructed(),
                        fullPieceArrived(),
+                       sentPayment(),
                        funding,
                        policy,
                        terms,
                        torrentPieceInformation());
+
+    // Send notification
+    _alertManager->emplace_alert<alert::SessionToBuyMode>(_torrent, funding, policy, terms);
+}
+
+std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
+    return _peers;
 }
 
 status::TorrentPlugin TorrentPlugin::status() const {
 
-    status::TorrentPlugin status;
-
-    status.infoHash = _infoHash;
-    status.session = _session.status();
-
-    // Get state of peer plugins
-    for(auto mapping : _peers) {
-
-        // Get shared_ptr reference to peer pluging
-        boost::shared_ptr<PeerPlugin> plugin = mapping.second.lock();
-
-        assert(plugin);
-
-        status.peers.insert(std::make_pair(mapping.first, plugin->status()));
-    }
-
-    return status;
+    return status::TorrentPlugin(_infoHash, _session.status());
 }
 
 TorrentPlugin::LibtorrentInteraction TorrentPlugin::libtorrentInteraction() const {
     return _libtorrentInteraction;
-}
-
-libtorrent::alert_manager & TorrentPlugin::alert_manager() const {
-    return torrent()->alerts();
 }
 
 PeerPlugin * TorrentPlugin::peer(const libtorrent::tcp::endpoint & endPoint) {
@@ -477,6 +520,10 @@ protocol_session::SessionState TorrentPlugin::sessionState() const {
     return _session.state();
 }
 
+const protocol_session::Session<libtorrent::tcp::endpoint> & TorrentPlugin::session() const noexcept {
+    return _session;
+}
+
 void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
 
     // we must know peer
@@ -500,14 +547,30 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
 
     // add peer to sesion
     _session.addConnection(endPoint, send);
+
+    // Send notification
+    boost::shared_ptr<PeerPlugin> plugin = wPeerPlugin.lock();
+    assert(plugin);
+    auto connectionStatus = _session.connectionStatus(endPoint);
+    _alertManager->emplace_alert<alert::ConnectionAddedToSession>(_torrent, endPoint, plugin->connection().pid(), connectionStatus);
 }
 
 void TorrentPlugin::removeFromSession(const libtorrent::tcp::endpoint & endPoint) {
     if(_session.mode() == protocol_session::SessionMode::not_set)
         return;
 
-    if(_session.hasConnection(endPoint))
+    if(_session.hasConnection(endPoint)) {
+
         _session.removeConnection(endPoint);
+
+        // Send notification
+        auto it = _peers.find(endPoint);
+        assert(it != _peers.cend());
+        boost::shared_ptr<PeerPlugin> plugin = it->second.lock();
+        assert(plugin);
+
+        _alertManager->emplace_alert<alert::ConnectionRemovedFromSession>(_torrent, endPoint, plugin->connection().pid());
+    }
 }
 
 void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libtorrent::error_code & ec, bool disconnect)  {
@@ -579,19 +642,13 @@ protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> To
     };
 }
 
-protocol_session::BroadcastTransaction TorrentPlugin::broadcastTransaction() {
+protocol_session::ContractConstructed TorrentPlugin::contractConstructed() {
 
-    // Recover info hash
-    libtorrent::torrent * t = torrent();
-    libtorrent::torrent_handle h = t->get_handle();
-    libtorrent::sha1_hash infoHash = h.info_hash();
+    auto torrent = _torrent;
+    auto alertManager = _alertManager;
 
-    return [this, infoHash](const Coin::Transaction & tx) -> bool {
-
-        // Broadcast transaction
-        this->_broadcaster(infoHash, tx);
-
-        return true; // remove later, there is a github issue
+    return [torrent, alertManager](const Coin::Transaction & tx, const paymentchannel::Contract & c) {
+        alertManager->emplace_alert<alert::ContractConstructed>(torrent, tx, c);
     };
 }
 
@@ -662,15 +719,17 @@ protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::cla
 
     // Recover info hash
     libtorrent::torrent * t = torrent();
+    libtorrent::alert_manager & manager = t->alerts();
     libtorrent::torrent_handle h = t->get_handle();
     libtorrent::sha1_hash infoHash = h.info_hash();
 
-    return [this, infoHash](const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee & payee) {
+    return [&manager, infoHash, h](const libtorrent::tcp::endpoint & endpoint, const joystream::paymentchannel::Payee & payee) {
 
-        Coin::Transaction tx = payee.lastPaymentTransaction();
+        // For now, just use defaut peer id
+        libtorrent::peer_id peer_id;
 
-        // Broadcast transaction
-        this->_broadcaster(infoHash, tx);
+        // Send alert about this being last payment
+        manager.emplace_alert<alert::LastPaymentReceived>(h, endpoint, peer_id, payee);
     };
 }
 
@@ -685,6 +744,39 @@ protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anch
 
         manager.emplace_alert<alert::AnchorAnnounced>(h, endPoint, value, anchor, contractPk, finalPkHash);
     };
+}
+
+protocol_session::ReceivedValidPayment<libtorrent::tcp::endpoint> TorrentPlugin::receivedValidPayment() {
+
+    // Get alert manager and handle for torrent
+    libtorrent::torrent * t = torrent();
+    libtorrent::alert_manager & manager = t->alerts();
+    libtorrent::torrent_handle h = t->get_handle();
+
+    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, uint64_t paymentIncrement, uint64_t totalNumberOfPayments, uint64_t totalAmountPaid) {
+
+        // For now, just use defaut peer id
+        libtorrent::peer_id peer_id;
+
+        manager.emplace_alert<alert::ValidPaymentReceived>(h, endPoint, peer_id, paymentIncrement, totalNumberOfPayments, totalAmountPaid);
+    };
+}
+
+protocol_session::SentPayment<libtorrent::tcp::endpoint> TorrentPlugin::sentPayment() {
+
+    // Get alert manager and handle for torrent
+    libtorrent::torrent * t = torrent();
+    libtorrent::alert_manager & manager = t->alerts();
+    libtorrent::torrent_handle h = t->get_handle();
+
+    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, uint64_t paymentIncrement, uint64_t totalNumberOfPayments, uint64_t totalAmountPaid, int pieceIndex) {
+
+        // For now, just use defaut peer id
+        libtorrent::peer_id peer_id;
+
+        manager.emplace_alert<alert::SentPayment>(h, endPoint, peer_id, paymentIncrement, totalNumberOfPayments, totalAmountPaid, pieceIndex);
+    };
+
 }
 
 }
