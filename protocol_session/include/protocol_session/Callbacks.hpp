@@ -9,6 +9,7 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_CALLBACKS_HPP
 #define JOYSTREAM_PROTOCOLSESSION_CALLBACKS_HPP
 
+#include <protocol_session/common.hpp>
 #include <common/P2SHAddress.hpp>
 #include <common/P2PKHAddress.hpp>
 #include <CoinCore/CoinNodeData.h>
@@ -47,7 +48,7 @@ enum class DisconnectCause {
 
     //// selling
 
-    buyer_invited_with_bad_terms,
+    //buyer_invited_with_bad_terms,
 
     buyer_requested_invalid_piece,
 
@@ -60,6 +61,7 @@ enum class DisconnectCause {
 template <class ConnectionIdType>
 using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &, DisconnectCause)>;
 
+/**
 // P2SH redeem script generator callback - generates script from a Coin::PublicKey
 typedef std::function<uchar_vector(const Coin::PublicKey &)> P2SHScriptGeneratorFromPubKey;
 
@@ -71,14 +73,12 @@ typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateReceiveAddre
 
 // Generate set of change p2pkh addresses
 typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateChangeAddressesCallbackHandler;
+*/
 
 // Send a message to be sent
 typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendMessageOnConnection;
 
 //// Buying
-
-// Broadcasting a transaction
-typedef std::function<void(const Coin::Transaction &)> ContractConstructed;
 
 // Process arrival of a full piece, with given index over peer connection with given id
 template <class ConnectionIdType>

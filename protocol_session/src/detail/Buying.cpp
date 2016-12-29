@@ -24,26 +24,16 @@ namespace detail {
     template <class ConnectionIdType>
     Buying<ConnectionIdType>::Buying(Session<ConnectionIdType> * session,
                                      const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                     const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
-                                     const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
-                                     const GenerateChangeAddressesCallbackHandler &generateChangeAddresses,
-                                     const ContractConstructed & contractConstructed,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                      const SentPayment<ConnectionIdType> & sentPayment,
                                      const SignContract & signContract,
-                                     const BuyingPolicy & policy,
                                      const protocol_wire::BuyerTerms & terms,
                                      const TorrentPieceInformation & information)
         : _session(session)
         , _removedConnection(removedConnection)
-        , _generateP2SHKeyPair(generateP2SHKeyPair)
-        , _generateReceiveAddresses(generateReceiveAddresses)
-        , _generateChangeAddresses(generateChangeAddresses)
-        , _contractConstructed(contractConstructed)
         , _fullPieceArrived(fullPieceArrived)
         , _sentPayment(sentPayment)
         , _signContract(signContract)
-        , _policy(policy)
         , _state(BuyingState::sending_invitations)
         , _terms(terms)
         , _numberOfMissingPieces(0)
@@ -218,9 +208,11 @@ namespace detail {
         assert(_session->_state != SessionState::stopped);
         assert(_session->hasConnection(id));
 
+        /**
         if(_session->_state == SessionState::started &&
            _state == BuyingState::sending_invitations)
             startDownloading();
+        */
     }
 
     template <class ConnectionIdType>
@@ -343,9 +335,8 @@ namespace detail {
         // Only process if we are active
         if(_session->_state == SessionState::started) {
 
-            if(_state == BuyingState::sending_invitations)
-                startDownloading();
-            else if(_state == BuyingState::downloading) {
+            // Allocate pieces if we are downloading
+            if(_state == BuyingState::downloading) {
 
                 for(auto mapping : _sellers) {
 
@@ -371,7 +362,7 @@ namespace detail {
 
                         // Check if seller has timed out in servicing the current request,
                         // if so remove connection
-                        if(s.servicingPieceHasTimedOut(_policy.servicingPieceTimeOutLimit()))
+                        if(s.servicingPieceHasTimedOut(std::chrono::seconds(5))) // <== hard coded for now, logic will be factored out later! see PR on this
                             removeConnection(id, DisconnectCause::seller_servicing_piece_has_timed_out);
                     }
                 }
@@ -471,279 +462,118 @@ namespace detail {
             sellerStatuses.insert(std::make_pair(mapping.first, mapping.second.status()));
         }
 
-        return status::Buying<ConnectionIdType>(_policy,
-                                                _state,
+        return status::Buying<ConnectionIdType>(_state,
                                                 _terms,
                                                 sellerStatuses,
-                                                _contractTx,
+                                                //_contractTx,
                                                 pieceStatuses);
     }
 
     template <class ConnectionIdType>
-    bool Buying<ConnectionIdType>::canToStartDownloading() {
+    void Buying<ConnectionIdType>::startDownloading(const Coin::Transaction & contractTx,
+                                                    const PeerToStartDownloadInformationMap<ConnectionIdType> & peerToStartDownloadInformationMap) {
 
-        assert(_session->_state == SessionState::started);
-        assert(_state == BuyingState::sending_invitations);
+        std::clog << "Trying to start downloading." << std::endl;
+
+        if(_state != BuyingState::sending_invitations)
+            throw exception::NoLongerSendingInvitations();
+
         assert(_sellers.empty());
+        //assert(!_contractTx.isiniliezd());
 
-        auto t0 = std::chrono::high_resolution_clock::now();
+        /// Determine if announce contract
 
-        auto timeSinceSendingInvitations = t0 - _lastStartOfSendingInvitations;
+        PeersNotReadyToStartDownloadingMap<ConnectionIdType> peersNotReadyToStartDownloadingMap;
 
-        return timeSinceSendingInvitations >= _policy.minTimeBeforeBuildingContract();
-    }
+        for(auto m : peerToStartDownloadInformationMap) {
 
+           auto id = m.first;
 
-    template <class ConnectionIdType>
-    bool Buying<ConnectionIdType>::startDownloading() {
+           auto it = _session->_connections.find(id);
 
-        std::cout << "Trying to start downloading." << std::endl;
+           if(it == _session->_connections.cend()) {
 
-        assert(_session->_state == SessionState::started);
-        assert(_state == BuyingState::sending_invitations);
-        assert(_sellers.empty());
+               std::clog << IdToString(id) << " gone." << std::endl;
 
-        // Determine if we can start to build contract at present
-        if(!canToStartDownloading()) {
+               peersNotReadyToStartDownloadingMap.insert(std::make_pair(id, PeerNotReadyToStartDownloadCause::connection_gone));
 
-            std::cout << "Aborted, cannot start at current time." << std::endl;
-            return false;
+           } else if(!((it->second) -> template inState<protocol_statemachine::PreparingContract>())) {
+
+               std::clog << IdToString(id) << " no longer in `PreparingContract` state." << std::endl;
+
+               peersNotReadyToStartDownloadingMap.insert(std::make_pair(id, PeerNotReadyToStartDownloadCause::connection_not_in_preparing_contract_state));
+
+           } else {
+
+                // Check if terms are up to date
+                protocol_statemachine::AnnouncedModeAndTerms a = it->second->announcedModeAndTermsFromPeer();
+
+                // connectionsInState<protocol_statemachine::PreparingContract> =>
+                assert(a.modeAnnounced() == protocol_statemachine::ModeAnnounced::sell);
+
+                if(a.sellModeTerms() != m.second.sellerTerms)  {
+
+                    std::clog << IdToString(id) << " terms expired." << std::endl;
+
+                    peersNotReadyToStartDownloadingMap.insert(std::make_pair(id, PeerNotReadyToStartDownloadCause::terms_expired));
+
+                } else {
+
+                    std::clog << IdToString(id) << " ready." << std::endl;
+                }
+
+            }
         }
 
-        // Select connections of peers to sell to
-        std::vector<detail::Connection<ConnectionIdType> *> selected = selectSellers();
+        if(!peersNotReadyToStartDownloadingMap.empty()) {
 
-        uint32_t numberOfSellers = selected.size();
+            std::clog << "Some peer(s) in bad state, contract could not be announced, prevents starting download. " << std::endl;
 
-        // Make sure there are enough peers
-        if(numberOfSellers < _terms.minNumberOfSellers()) {
-
-            std::cout << "Aborted, too few viable seller peers, needed " << _terms.minNumberOfSellers() << ", found " << numberOfSellers << std::endl;
-            return false;
+            throw exception::PeersNotAllReadyToStartDownload<ConnectionIdType>(peersNotReadyToStartDownloadingMap);
         }
 
-        /////////////////////////
-
-        // Determine fund distribution among sellers
-        std::vector<protocol_wire::SellerTerms> terms;
-        for(auto c : selected)
-            terms.push_back(c->announcedModeAndTermsFromPeer().sellModeTerms());
-
-        std::vector<uint64_t> funds = distributeFunds(terms);
-
-        assert(funds.size() == numberOfSellers);
-
-        // Total amount that will be commited: that is not sent to change or tx fee
-        //uint64_t totalComitted = std::accumulate(funds.begin(), funds.end(), 0);
-
-        /////////////////////////
-
-        // Determine the contract fee
-        uint64_t contractFeePerKb = 0;
-
-        for(auto c : selected) {
-
-            uint64_t minContractFeePerKb = c->announcedModeAndTermsFromPeer().sellModeTerms().minContractFeePerKb();
-
-            // If this sellers has a greater minimal fee, then we must respect that
-            if(minContractFeePerKb > contractFeePerKb)
-                contractFeePerKb = minContractFeePerKb;
-        }
-
-        /**
-        // Determine the change amount if any (!=0)
-        uint64_t changeAmount = determineChangeAmount(numberOfSellers, totalComitted, contractFeePerKb, _funding.size());
-
-        // Ensure Enough funds available to fund the contract
-        uint64_t estimatedFee = paymentchannel::ContractTransactionBuilder::fee(numberOfSellers, true, contractFeePerKb, _funding.size());
-
-        if(_funding.value() < (totalComitted + changeAmount + estimatedFee))
-            throw std::runtime_error("Aborted trying to start download, not enough funding provided");
-        */
-
-        // Create sellers
-        for(auto c : selected)
-            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(SellerState::waiting_to_be_assigned_piece, c, 0);
-
-        /////////////////////////
-
-        // Create contract
-        // Note: must be done before sending ready message on wire,
-        // as it requires the contract txid, which is based on outputs
-        paymentchannel::ContractTransactionBuilder c;
-
-        // Generate keys and addresses required
-        std::vector<Coin::PubKeyHash> finalPkHashes;
-
-        for(const Coin::P2PKHAddress &finalAddress : _generateReceiveAddresses(numberOfSellers)){
-            finalPkHashes.push_back(finalAddress.pubKeyHash());
-        }
-
-        // Generate contract key pairs
-        std::vector<Coin::KeyPair> contractKeyPairs;
-        paymentchannel::ContractTransactionBuilder::Commitments commitments;
-
-        for(uint32_t i = 0; i < numberOfSellers; i++) {
-
-            auto value = funds[i];
-            auto payeeContractPk = selected[i]->payor().payeeContractPk();
-            auto lockTime = Coin::RelativeLockTime::fromTimeUnits(terms[i].minLock());
-
-            // Generate new buyer keypair for commitment
-            Coin::KeyPair payorCommitmentKeyPair = _generateP2SHKeyPair([payeeContractPk, lockTime](const Coin::PublicKey & payorCommitmentPk){
-
-                paymentchannel::RedeemScript redeemScript(payorCommitmentPk, payeeContractPk, lockTime);
-                return redeemScript.serialized();
-
-            }, paymentchannel::RedeemScript::PayorOptionalData());
-
-            // Add commitment
-            commitments.push_back(paymentchannel::Commitment(value,
-                                                             payorCommitmentKeyPair.pk(),
-                                                             payeeContractPk,
-                                                             lockTime));
-
-            contractKeyPairs.push_back(payorCommitmentKeyPair);
-        }
-
-        assert(contractKeyPairs.size() == numberOfSellers);
-        assert(commitments.size() == numberOfSellers);
-
-        c.setCommitments(commitments);
-
-        /**
-        // Add change if worth doing
-        if(changeAmount != 0) {
-
-            // New change address
-            Coin::P2PKHAddress address = _generateChangeAddresses(1).front();
-
-            // Create and set change payment
-            c.setChange(Coin::Payment(changeAmount, address));
-        }
-        */
-
-        // Create and store contract transaction
-        try {
-            _contractTx = _signContract(c.transaction(), contractFeePerKb);
-        } catch (const exception::CouldNotCompleteContract &) {
-            return false;
-        }
-
-        /**
-        // Make sure we are sending the right amount
-        assert(_contractTx.getTotalSent() == totalComitted + changeAmount);
-
-        // Make sure we are covering the intended fee rate
-        uint64_t fee = _funding.value() - _contractTx.getTotalSent();
-        float contractSizeKb = ((float)_contractTx.getSize())/1024;
-        assert((float)fee >= (contractFeePerKb * contractSizeKb));
-        */
-
-        // Notify client that transaction should be broadcasted
-        _contractConstructed(_contractTx);
-
-        /////////////////////////
-
-        // Notify seller peers about contract being ready and broadcasted
-        Coin::TransactionId txId(Coin::TransactionId::fromTx(_contractTx));
-
-        for(uint32_t i = 0;i < numberOfSellers;i++)
-            selected[i]->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, i),
-                                                                                     contractKeyPairs[i],
-                                                                                     finalPkHashes[i],
-                                                                                     funds[i]));
-
-        /////////////////////////
+        // store contruct?
+        //_contractTx = contractTx;
+        Coin::TransactionId txId(Coin::TransactionId::fromTx(contractTx));
 
         // Update state of sessions,
         // has to be done before starting to assign pieces to sellers
         _state = BuyingState::downloading;
 
-        /////////////////////////
+        /// Try to announce to each prospective seller
+        for(auto m : peerToStartDownloadInformationMap) {
 
-        // Assing first piece to each seller
-        for(auto & mapping : _sellers) {
+            auto id = m.first;
+
+            auto it = _session->_connections.find(id);
+
+            // test above =>
+            assert(it != _session->_connections.cend());
+
+            auto c = it->second;
+
+            // Create sellers
+            _sellers[id] = detail::Seller<ConnectionIdType>(SellerState::waiting_to_be_assigned_piece, c, 0);
+
+            // Send message to peer
+            StartDownloadConnectionInformation inf = m.second;
+
+            c->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, inf.index),
+                                                                           inf.buyerContractKeyPair,
+                                                                           inf.buyerFinalPkHash,
+                                                                           inf.value));
 
             // Assign the first piece to this peer
-            bool assigned = tryToAssignAndRequestPiece(_sellers[mapping.first]);
+            bool assigned = tryToAssignAndRequestPiece(_sellers[id]);
 
-            // Unless there are more peers than unassigned pieces
-            // this should always work
+            // Unless there are more peers than unassigned pieces this should always work
             assert(assigned);
         }
 
         /////////////////////////
 
         std::cout << "Started downloading." << std::endl;
-
-        return true;
     }
-
-    template <class ConnectionIdType>
-    std::vector<detail::Connection<ConnectionIdType> *> Buying<ConnectionIdType>::selectSellers() const {
-
-        // Find peers that have joined our last invitation.
-        // This implicitly guarantees that it is in sell mode, and satisfies our terms
-        std::vector<detail::Connection<ConnectionIdType> *> joinedSellers = _session-> template connectionsInState<protocol_statemachine::PreparingContract>();
-
-        // Pick how many sellers we actualy want.
-        // NB**: in future, we base it on policy,
-        // and that will also influence how we select sellers,
-        // as they have constraints on this.
-        uint N = _terms.minNumberOfSellers();
-
-        // Stop if there are fewer than the absolute minimum
-        if(joinedSellers.size() < N)
-            return std::vector<detail::Connection<ConnectionIdType> *>();
-        else if((joinedSellers.size() > N)) {
-
-            // If we have more than desired number, we rank them accoring to terms
-            // NB**: in future, base it on policy
-            std::sort(joinedSellers.begin(), joinedSellers.end(),
-                      [this](detail::Connection<ConnectionIdType> * a, detail::Connection<ConnectionIdType> * b) -> bool {
-                      return protocol_wire::SellerTerms::compare(this->_policy.sellerTermsOrderingPolicy(),
-                                                                 a->announcedModeAndTermsFromPeer().sellModeTerms(),
-                                                                 b->announcedModeAndTermsFromPeer().sellModeTerms());
-            });
-
-            // Only keep top N
-            joinedSellers.resize(N);
-        }
-
-        assert(joinedSellers.size() == N);
-
-        return joinedSellers;
-    }
-
-    template <class ConnectionIdType>
-    std::vector<uint64_t> Buying<ConnectionIdType>::distributeFunds(const std::vector<protocol_wire::SellerTerms> & terms) const {
-
-        //NB: Based on policy in the future
-        std::vector<uint64_t> funds;
-        for(protocol_wire::SellerTerms t : terms)
-            funds.push_back(t.minPrice() * _pieces.size());
-
-        return funds;
-    }
-
-    /**
-    template <class ConnectionIdType>
-    uint64_t Buying<ConnectionIdType>::determineChangeAmount(uint32_t numberOfSellers, uint64_t totalComitted, uint64_t contractFeePerKb, int numberOfInputs) const {
-
-        // Contract fee when there is a change output
-        uint64_t contractTxFeeWithChangeOutput = paymentchannel::ContractTransactionBuilder::fee(numberOfSellers, true, contractFeePerKb, numberOfInputs);
-
-        // Amount to use as change, if we are going to have change
-        uint64_t potentialChangeAmount = _funding.value() - totalComitted - contractTxFeeWithChangeOutput;
-
-        // Return potential change amount if it exeeds dust limit
-        if(potentialChangeAmount > BITCOIN_DUST_LIMIT)
-            return potentialChangeAmount;
-        else
-            return 0;
-    }
-    */
 
     template <class ConnectionIdType>
     bool Buying<ConnectionIdType>::tryToAssignAndRequestPiece(detail::Seller<ConnectionIdType> & s) {
@@ -879,16 +709,6 @@ namespace detail {
             if(s.isPossiblyOwedPayment())
                 s.pieceWasValid();
         }
-    }
-
-    template <class ConnectionIdType>
-    BuyingPolicy Buying<ConnectionIdType>::policy() const {
-        return _policy;
-    }
-
-    template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::setPolicy(const BuyingPolicy & policy) {
-        _policy = policy;
     }
 
     template <class ConnectionIdType>

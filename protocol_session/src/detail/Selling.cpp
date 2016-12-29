@@ -18,24 +18,18 @@ namespace detail {
     template <class ConnectionIdType>
     Selling<ConnectionIdType>::Selling(Session<ConnectionIdType> * session,
                                        const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                       const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
-                                       const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                        const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                        const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
                                        const ReceivedValidPayment<ConnectionIdType> & receivedValidPayment,
-                                       const SellingPolicy & policy,
                                        const protocol_wire::SellerTerms & terms,
                                        int MAX_PIECE_INDEX)
         : _session(session)
         , _removedConnection(removedConnection)
-        , _generateP2SHKeyPair(generateP2SHKeyPair)
-        , _generateReceiveAddresses(generateReceiveAddresses)
         , _loadPieceForBuyer(loadPieceForBuyer)
         , _claimLastPayment(claimLastPayment)
         , _anchorAnnounced(anchorAnnounced)
         , _receivedValidPayment(receivedValidPayment)
-        , _policy(policy)
         , _terms(terms)
         , _MAX_PIECE_INDEX(MAX_PIECE_INDEX) {
 
@@ -81,13 +75,38 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
+    void Selling<ConnectionIdType>::startUploading(const ConnectionIdType & id,
+                                                   const protocol_wire::BuyerTerms & terms,
+                                                   const Coin::KeyPair & contractKeyPair,
+                                                   const Coin::PubKeyHash & finalPkHash) {
+
+        if(_session->state() == SessionState::stopped)
+            throw exception::StateIncompatibleOperation("Cannot start uploading while session is stopped.");
+
+        if(!_session->hasConnection(id))
+            throw exception::PeerNotReadyToStartUploading(PeerNotReadyToStartUploadingCause::connection_gone);
+
+        detail::Connection<ConnectionIdType> * c = _session->get(id);
+
+        // Get connection state
+        if(!c-> template inState<joystream::protocol_statemachine::Invited>())
+            throw exception::PeerNotReadyToStartUploading(PeerNotReadyToStartUploadingCause::connection_not_in_invited_state);
+
+        // c-> template inState<joystream::protocol_statemachine::Invited>() =>
+        assert(c->announcedModeAndTermsFromPeer().modeAnnounced() == protocol_statemachine::ModeAnnounced::buy);
+
+        // Check that terms still match
+        if(c->announcedModeAndTermsFromPeer().buyModeTerms() != terms)
+            throw exception::PeerNotReadyToStartUploading(PeerNotReadyToStartUploadingCause::terms_expired);
+
+        c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));
+    }
+
+    template<class ConnectionIdType>
     void Selling<ConnectionIdType>::pieceLoaded(const ConnectionIdType & id, const protocol_wire::PieceData & data, int) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);
-
-        if(!_session->hasConnection(id))
-            throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
         // Get connection state
         detail::Connection<ConnectionIdType> * c = _session->get(id);
@@ -138,22 +157,7 @@ namespace detail {
         // Connection must be live
         assert(_session->hasConnection(id));
 
-        // Do not initiate joining if we are paused
-        if(_session->state() == SessionState::started) {
-
-            detail::Connection<ConnectionIdType> * c = _session->get(id);
-
-            // NB** In the future we do something more sophisticated rather than just joining right away?
-            try {
-                tryToJoin(c);
-            } catch(InvitedWithBadTerms &) {
-
-                removeConnection(id, DisconnectCause::buyer_invited_with_bad_terms);
-
-                // Notify state machine about deletion
-                throw protocol_statemachine::exception::StateMachineDeletedException();
-            }
-        }
+        //** TODO: Add calback for this event later **
     }
 
     template<class ConnectionIdType>
@@ -261,37 +265,16 @@ namespace detail {
         // require that we are started.
         _session->_state = SessionState::started;
 
+        //// if we are here, we are paused
+
         // For each connection: iteration safe deletion
-        for(auto it = _session->_connections.cbegin(); it != _session->_connections.cend();) {
+        for(auto m : _session->_connections) {
 
-            //// if we hare here, we are paused
+            detail::Connection<ConnectionIdType> * c = m.second;
 
-            detail::Connection<ConnectionIdType> * c = it->second;
-
-            if(c-> template inState<protocol_statemachine::ReadyForInvitation>())
-                ; // Waiting to be invited, nothing to do!
-            else if(c-> template inState<protocol_statemachine::Invited>()) {
-
-                // We have been invited, so lets try to join
-                try {
-                    tryToJoin(c);
-
-                    it++;
-                } catch(InvitedWithBadTerms &) {
-                    it = removeConnection(it->first, DisconnectCause::buyer_invited_with_bad_terms);
-                }
-
-            } else if(c-> template inState<protocol_statemachine::WaitingToStart>()) {
-                it++; // Waiting to get contract announcement, nothing to do!
-            } else if(c-> template inState<protocol_statemachine::ReadyForPieceRequest>()) {
-                it++; // Waiting for piece to be requested, nothing to do!
-            } else if(c-> template inState<protocol_statemachine::LoadingPiece>()) {
-                tryToLoadPiece(c); // Waiting for piece to be loaded, which may have been aborted due to pause
-                it++;
-            } else if(c-> template inState<protocol_statemachine::WaitingForPayment>()) {
-                it++; // Waiting for payment, nothing to do!
-            } else // terminated, should not happen
-                assert(false);
+            // Waiting for piece to be loaded, which may have been aborted due to pause
+            if(c-> template inState<protocol_statemachine::LoadingPiece>())
+                tryToLoadPiece(c);
         }
     }
 
@@ -340,7 +323,7 @@ namespace detail {
 
     template<class ConnectionIdType>
     status::Selling Selling<ConnectionIdType>::status() const {
-        return status::Selling(_policy, _terms);
+        return status::Selling(_terms);
     }
 
     template<class ConnectionIdType>
@@ -365,36 +348,6 @@ namespace detail {
 
         // Destroy connection
         return _session->destroyConnection(id);
-    }
-
-    template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::tryToJoin(detail::Connection<ConnectionIdType> * c) {
-
-        assert(_session->state() == SessionState::started);
-        assert(c-> template inState<joystream::protocol_statemachine::Invited>());
-
-        // Figure out  if buyer terms are good enough
-        protocol_statemachine::AnnouncedModeAndTerms announced = c->announcedModeAndTermsFromPeer();
-
-        assert(announced.modeAnnounced() == protocol_statemachine::ModeAnnounced::buy);
-
-        if(_terms.satisfiedBy(announced.buyModeTerms())) {
-
-            // Join if they are
-            Coin::KeyPair contractKeyPair = _generateP2SHKeyPair([&](const Coin::PublicKey &pubKey){
-                paymentchannel::RedeemScript redeemScript(c->payee().payorContractPk(), pubKey, c->payee().lockTime());
-                return redeemScript.serialized();
-            }, paymentchannel::RedeemScript::PayeeOptionalData());
-
-            Coin::PubKeyHash finalPkHash = _generateReceiveAddresses(1).front().pubKeyHash();
-            c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));
-
-        } else {
-
-            // If we were invited based on non-expired terms, yet buyer
-            // terms were not good enough, then we ditch conection.
-            throw InvitedWithBadTerms();
-        }
     }
 
     template<class ConnectionIdType>

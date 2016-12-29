@@ -33,6 +33,7 @@ void Test::init() {
 
     spy = new
     SessionSpy<ID>(
+                /**
     [this](const P2SHScriptGeneratorFromPubKey & scriptGenerator, const uchar_vector &) -> Coin::KeyPair {
 
         Coin::PrivateKey sk = nextPrivateKey();
@@ -64,7 +65,7 @@ void Test::init() {
         }
         return addresses;
 
-    },
+    },*/
     session);
 }
 
@@ -101,16 +102,14 @@ void Test::observing() {
     addConnection(1);
 
     // Go to buy mode
-    toBuyMode(BuyingPolicy(),
-              protocol_wire::BuyerTerms(),
+    toBuyMode(protocol_wire::BuyerTerms(),
               TorrentPieceInformation());
 
     // back to observe mode
     toObserveMode();
 
     // Go to sell mode
-    toSellMode(SellingPolicy(),
-               protocol_wire::SellerTerms(),
+    toSellMode(protocol_wire::SellerTerms(),
                0);
 
 }
@@ -118,10 +117,10 @@ void Test::observing() {
 void Test::selling_basic() {
 
     // to observe mode
-    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(22, 134, 1, 88, 32), 0);
+    toSellMode(protocol_wire::SellerTerms(22, 134, 1, 88, 32), 0);
 
     // incorrectly try to go to same mode again
-    QVERIFY_EXCEPTION_THROWN(toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 0),
+    QVERIFY_EXCEPTION_THROWN(toSellMode(protocol_wire::SellerTerms(), 0),
                              exception::SessionAlreadyInThisMode);
 
     // Start session
@@ -141,12 +140,11 @@ void Test::selling_basic() {
     addConnection(1);
 
     // Go to buy mode
-    toBuyMode(BuyingPolicy(),
-              protocol_wire::BuyerTerms(),
+    toBuyMode(protocol_wire::BuyerTerms(),
               TorrentPieceInformation());
 
     // back to sell mode
-    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(22, 134, 1, 88, 32), 0);
+    toSellMode(protocol_wire::SellerTerms(22, 134, 1, 88, 32), 0);
 
     // Go to observe mode
     toObserveMode();
@@ -169,7 +167,7 @@ void Test::selling() {
     assert(sellerTerms.satisfiedBy(buyerTerms));
 
     // back to sell mode
-    toSellMode(SellingPolicy(), sellerTerms, numberOfExchangesWhileStarted + 1);
+    toSellMode(sellerTerms, numberOfExchangesWhileStarted + 1);
 
     // Start session
     firstStart();
@@ -215,6 +213,7 @@ void Test::selling() {
     spy->reset();
 }
 
+/**
 void Test::selling_buyer_invited_with_bad_terms() {
 
     protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
@@ -224,7 +223,7 @@ void Test::selling_buyer_invited_with_bad_terms() {
     assert(!sellerTerms.satisfiedBy(badBuyerTerms));
 
     // back to sell mode
-    toSellMode(SellingPolicy(), sellerTerms, 0);
+    toSellMode(sellerTerms, 0);
 
     // Start session
     firstStart();
@@ -251,6 +250,7 @@ void Test::selling_buyer_invited_with_bad_terms() {
 
     spy->reset();
 }
+*/
 
 void Test::selling_buyer_requested_invalid_piece() {
 
@@ -258,7 +258,7 @@ void Test::selling_buyer_requested_invalid_piece() {
     ID peer = 0;
 
     // back to sell mode
-    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 5);
+    toSellMode(protocol_wire::SellerTerms(), 5);
 
     // Start session
     firstStart();
@@ -290,7 +290,7 @@ void Test::selling_buyer_interrupted_payment() {
     ID peer = 0;
 
     // back to sell mode
-    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 5);
+    toSellMode(protocol_wire::SellerTerms(), 5);
 
     // Start session
     firstStart();
@@ -324,7 +324,7 @@ void Test::selling_buyer_sent_invalid_payment() {
                                                       payorContractSk.toPublicKey(),
                                                       Coin::RedeemScriptHash::fromRawHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671")));
     // back to sell mode
-    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 5);
+    toSellMode(protocol_wire::SellerTerms(), 5);
 
     // Start session
     firstStart();
@@ -364,7 +364,7 @@ void Test::selling_buyer_disappears() {
     assert(sellerTerms.satisfiedBy(buyerTerms));
 
     // back to sell mode
-    toSellMode(SellingPolicy(), sellerTerms, 5);
+    toSellMode(sellerTerms, 5);
 
     // Start session
     firstStart();
@@ -401,11 +401,10 @@ void Test::selling_buyer_disappears() {
 void Test::buying_basic() {
 
     // To buy mode
-    BuyingPolicy policy(1000, 1000, protocol_wire::SellerTerms::OrderingPolicy::min_price);
-    toBuyMode(policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
+    toBuyMode(protocol_wire::BuyerTerms(), TorrentPieceInformation());
 
     // Incorrectly try to go to same mode again
-    QVERIFY_EXCEPTION_THROWN(toBuyMode(BuyingPolicy(), protocol_wire::BuyerTerms(), TorrentPieceInformation()),
+    QVERIFY_EXCEPTION_THROWN(toBuyMode(protocol_wire::BuyerTerms(), TorrentPieceInformation()),
                              exception::SessionAlreadyInThisMode);
 
     // Start session
@@ -428,7 +427,7 @@ void Test::buying_basic() {
     toObserveMode();
 
     // Back to buy mode
-    toBuyMode(policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
+    toBuyMode(protocol_wire::BuyerTerms(), TorrentPieceInformation());
 }
 
 void Test::buying() {
@@ -436,10 +435,10 @@ void Test::buying() {
     // min #sellers = 3
     protocol_wire::BuyerTerms buyerTerms(24, 200, 3, 400);
 
-    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32),
-               second(1, protocol_wire::SellerTerms(4, 13, 11, 88, 32), 13),
-               third(2, protocol_wire::SellerTerms(1, 2, 3, 88, 32), 3),
-               bad(3, protocol_wire::SellerTerms(), 8);
+    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 2075),
+               second(1, protocol_wire::SellerTerms(4, 13, 11, 88, 32), 1234),
+               third(2, protocol_wire::SellerTerms(1, 2, 3, 88, 32), 123),
+               bad(3, protocol_wire::SellerTerms(),765);
 
     assert(buyerTerms.satisfiedBy(first.terms));
     assert(buyerTerms.satisfiedBy(second.terms));
@@ -462,14 +461,13 @@ void Test::buying() {
 
     // minTimeBeforeBuildingContract = 1
     // servicingPieceTimeOutLimit = 2
-    BuyingPolicy policy(1, 2, protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
     uint totalNumberOfPieces = 30;
     TorrentPieceInformation information;
     for(uint i = 0;i < totalNumberOfPieces;i++)
         information.push_back(PieceInformation(0, (i % 2) == 0)); // every even index piece is missing
 
-    toBuyMode(policy, buyerTerms, information);
+    toBuyMode(buyerTerms, information);
 
     // Start session
     firstStart();
@@ -509,32 +507,29 @@ void Test::buying() {
     // Nothing should happen, due to policy.minTimeBeforeBuildingContract() not having passed
     QVERIFY(spy->blank());
 
-    // wait sufficient amount of time
-    std::cout << "Sleeping during testing to trigger buying policy." << std::endl;
-    std::this_thread::sleep_for(policy.minTimeBeforeBuildingContract());
+    /// Start download
 
-    // tick()
-    session->tick();
+    // Setup
+    auto v = { BuyerSellerRelationship(StartDownloadConnectionInformation(first.terms,  0, 9999999, Coin::KeyPair(nextPrivateKey()), nextPrivateKey().toPublicKey().toPubKeyHash()), first),
+               BuyerSellerRelationship(StartDownloadConnectionInformation(second.terms, 1, 2222222, Coin::KeyPair(nextPrivateKey()), nextPrivateKey().toPublicKey().toPubKeyHash()), second),
+               BuyerSellerRelationship(StartDownloadConnectionInformation(third.terms,  2, 3333333, Coin::KeyPair(nextPrivateKey()), nextPrivateKey().toPublicKey().toPubKeyHash()), third)};
+
+    Coin::Transaction contractTx = simpleContract(v);
+
+    first.assertContractValidity(contractTx);
+    second.assertContractValidity(contractTx);
+    third.assertContractValidity(contractTx);
+
+    PeerToStartDownloadInformationMap<ID> map = downloadInformationMap(v);
+
+    // Start download
+    session->startDownloading(contractTx, map);
 
     // make sure contract was announced to only relevant peers
     first.contractAnnounced();
     second.contractAnnounced();
     third.contractAnnounced();
     bad.assertNoContractAnnounced();
-
-    // Verify contract
-    QCOMPARE((int)spy->contractConstructedCallbackSlot.size(), 1);
-
-    {
-        //bool result;
-        Coin::Transaction tx;
-
-        std::tie(tx) = spy->contractConstructedCallbackSlot.front();
-
-        first.assertContractValidity(tx);
-        second.assertContractValidity(tx);
-        third.assertContractValidity(tx);
-    }
 
     // asserts for this? requires us to understand
     // _generateKeyPairs(numberOfSellers);
@@ -559,7 +554,7 @@ void Test::buying_seller_has_interrupted_contract() {
     // min #sellers = 1
     protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400);
 
-    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32);
+    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32),5634);
 
     assert(buyerTerms.satisfiedBy(first.terms));
 
@@ -579,7 +574,6 @@ void Test::buying_seller_has_interrupted_contract() {
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
-    BuyingPolicy policy(0, 2, protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
     uint totalNumberOfPieces = 30;
     TorrentPieceInformation information;
@@ -588,7 +582,7 @@ void Test::buying_seller_has_interrupted_contract() {
 
     ////
 
-    toBuyMode(policy, buyerTerms, information);
+    toBuyMode(buyerTerms, information);
 
     // Start session
     firstStart();
@@ -615,6 +609,7 @@ void Test::buying_seller_has_interrupted_contract() {
     spy->reset();
 }
 
+/**
 void Test::buying_seller_servicing_piece_has_timed_out() {
 
     // min #sellers = 1
@@ -624,23 +619,20 @@ void Test::buying_seller_servicing_piece_has_timed_out() {
 
     assert(buyerTerms.satisfiedBy(first.terms));
 
-    // To buy mode
-    /**
-    std::shared_ptr<Coin::UnspentOutput> utxo(
-      new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
-                                  uchar_vector(),
-                                  uchar_vector(),
-                                  Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
-                                                         55),
-                                  34561)
-    );
+//    // To buy mode
+//    std::shared_ptr<Coin::UnspentOutput> utxo(
+//      new Coin::UnspentP2SHOutput(Coin::KeyPair::generate(),
+//                                  uchar_vector(),
+//                                  uchar_vector(),
+//                                  Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+//                                                         55),
+//                                  34561)
+//    );
 
-    Coin::UnspentOutputSet funding({utxo});
-    */
+//    Coin::UnspentOutputSet funding({utxo});
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
-    BuyingPolicy policy(0, 2, protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
     uint totalNumberOfPieces = 30;
     TorrentPieceInformation information;
@@ -649,7 +641,7 @@ void Test::buying_seller_servicing_piece_has_timed_out() {
 
     ////
 
-    toBuyMode(policy, buyerTerms, information);
+    toBuyMode(buyerTerms, information);
 
     // Start session
     firstStart();
@@ -659,28 +651,28 @@ void Test::buying_seller_servicing_piece_has_timed_out() {
 
     spy->reset();
 
-    // wait sufficient amount of time
-    std::cout << "Sleeping to have piece request to time out." << std::endl;
-    std::this_thread::sleep_for(policy.servicingPieceTimeOutLimit());
+    // Start download
 
-    // Processes expiry
-    session->tick();
+    session->startDownloading(Coin::Transaction(),
+                              {{first.id, StartDownloadConnectionInformation(first.terms, 0, Coin::KeyPair(nextPrivateKey()), nextPrivateKey().toPublicKey().toPubKeyHash())}});
 
+    // ***WE NO LONGER CHECK FOR THIS, SINCE WE DONT HAVE TIMEOUTS
     // assert removal
-    assertConnectionRemoved(first.id, DisconnectCause::seller_servicing_piece_has_timed_out);
+    //assertConnectionRemoved(first.id, DisconnectCause::seller_servicing_piece_has_timed_out);
 
     // extra check that no other callback was made
     QVERIFY(spy->onlyCalledRemovedConnection());
 
     spy->reset();
 }
+*/
 
 void Test::buying_seller_sent_invalid_piece() {
 
     // min #sellers = 1
     protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400);
 
-    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32);
+    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 543);
 
     assert(buyerTerms.satisfiedBy(first.terms));
 
@@ -700,7 +692,6 @@ void Test::buying_seller_sent_invalid_piece() {
 
     // minTimeBeforeBuildingContract = 0
     // servicingPieceTimeOutLimit = 2
-    BuyingPolicy policy(0, 2, protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
     uint totalNumberOfPieces = 30;
     TorrentPieceInformation information;
@@ -709,7 +700,7 @@ void Test::buying_seller_sent_invalid_piece() {
 
     ////
 
-    toBuyMode(policy, buyerTerms, information);
+    toBuyMode(buyerTerms, information);
 
     // Start session
     firstStart();
@@ -930,21 +921,18 @@ void Test::toObserveMode() {
     QCOMPARE(session->mode(), SessionMode::observing);
 }
 
-void Test::toSellMode(const SellingPolicy & policy,
-                      const protocol_wire::SellerTerms & terms,
+void Test::toSellMode(const protocol_wire::SellerTerms & terms,
                       int maxPieceIndex) {
 
-    spy->toMonitoredSellMode(policy, terms, maxPieceIndex);
+    spy->toMonitoredSellMode(terms, maxPieceIndex);
 
     QCOMPARE(session->mode(), SessionMode::selling);
 }
 
-void Test::toBuyMode(const BuyingPolicy & policy,
-                     const protocol_wire::BuyerTerms & terms,
+void Test::toBuyMode(const protocol_wire::BuyerTerms & terms,
                      const TorrentPieceInformation & information) {
 
-    spy->toMonitoredBuyMode(policy,
-                            terms,
+    spy->toMonitoredBuyMode(terms,
                             information);
 
     QCOMPARE(session->mode(), SessionMode::buying);
@@ -1056,12 +1044,10 @@ void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::Buyer
     // NB: we assume the seller has only sent one terms message, which has 0 index
     session->processMessageOnConnection(id, protocol_wire::JoinContract(0));
 
-    // key pair was generated
-    QCOMPARE((int)spy->generateKeyPairCallbackSlot.size(), 1);
-
-    // address was generated
-    QCOMPARE((int)spy->generateReceiveAddressesCallbackSlot.size(), 1);
-    QCOMPARE((int)std::get<0>(spy->generateReceiveAddressesCallbackSlot.front()), 1);
+    /// Seller joins contract
+    Coin::KeyPair contract(nextPrivateKey());
+    Coin::PublicKey finalPk(nextPrivateKey().toPublicKey());
+    session->startUploading(id, terms, contract, finalPk.toPubKeyHash());
 
     // client joined contract
     ConnectionSpy<ID> * cSpy = spy->connectionSpies.at(id);
@@ -1166,7 +1152,7 @@ void Test::add(SellerPeer & peer) {
 
     addConnection(peer.id);
     peer.spy = spy->connectionSpies.at(peer.id);
-    session->processMessageOnConnection(peer.id, protocol_wire::Sell(peer.terms, peer.index));
+    session->processMessageOnConnection(peer.id, protocol_wire::Sell(peer.terms, peer.sellerTermsIndex));
 }
 
 void Test::completeExchange(SellerPeer & peer) {
@@ -1258,21 +1244,24 @@ void Test::takeSingleSellerToExchange(SellerPeer & peer) {
 
     // no need to wait due to policy
 
-    // tick()
-    session->tick();
+    /// Start download
+
+    // Setup
+    auto v = { BuyerSellerRelationship(StartDownloadConnectionInformation(peer.terms,  0, 9999999, Coin::KeyPair(nextPrivateKey()), nextPrivateKey().toPublicKey().toPubKeyHash()), peer)};
+
+    Coin::Transaction contractTx = simpleContract(v);
+
+    peer.assertContractValidity(contractTx);
+
+    PeerToStartDownloadInformationMap<ID> map = downloadInformationMap(v);
+
+    // Start download
+    session->startDownloading(contractTx, map);
 
     // make sure contract was announced to only relevant peers
     peer.contractAnnounced();
 
-    // Verify contract
-    QCOMPARE((int)spy->contractConstructedCallbackSlot.size(), 1);
-    Coin::Transaction tx = std::get<0>(spy->contractConstructedCallbackSlot.front());
-
-    peer.assertContractValidity(tx);
-
-    // asserts for this? requires us to understand
-    // _generateKeyPairs(numberOfSellers);
-    // _generateP2PKHAddresses(numberOfSellers);
+    ////////peer.assertContractValidity(tx);
 }
 
 /**
@@ -1291,7 +1280,7 @@ void Test::assertSellerInvited(const SellerPeer & peer) {
     QCOMPARE(m->messageType(), protocol_wire::MessageType::join_contract);
     const protocol_wire::JoinContract * m2 = dynamic_cast<const protocol_wire::JoinContract *>(m);
 
-    QCOMPARE(m2->index(), peer.index);
+    QCOMPARE(m2->index(), peer.sellerTermsIndex);
 
 }
 
