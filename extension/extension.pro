@@ -12,8 +12,6 @@ CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
 
-QT      += core
-
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
