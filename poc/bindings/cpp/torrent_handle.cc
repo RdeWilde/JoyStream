@@ -95,23 +95,13 @@ NAN_MODULE_INIT(TorrentHandleWrap::Init) {
   Nan::Set(target, Nan::New("TorrentHandleWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
-TorrentHandleWrap::TorrentHandleWrap() {
-   th_ = NULL;
-};
-
-TorrentHandleWrap::~TorrentHandleWrap() {
-  if (th_ != NULL)
-    delete th_;
-};
-
-
-Local<Object> TorrentHandleWrap::New(const libtorrent::torrent_handle& th) {
+Local<Object> TorrentHandleWrap::New(libtorrent::torrent_handle th) {
     Nan::EscapableHandleScope scope;
 
     Local<Function> cons = Nan::New(constructor);
     Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
 
-    Nan::ObjectWrap::Unwrap<TorrentHandleWrap>(obj.ToLocalChecked())->th_ = new libtorrent::torrent_handle(th);
+    Nan::ObjectWrap::Unwrap<TorrentHandleWrap>(obj.ToLocalChecked())->th_ = th;
 
     return scope.Escape(obj.ToLocalChecked());
 };
@@ -140,8 +130,8 @@ NAN_METHOD(TorrentHandleWrap::get_peer_info) {
 
     Local<Array> ret = Nan::New<Array>();
 
-    for(const libtorrent::peer_info i : res)
-      ret->Set(ret->Length(), PeerInfoWrap::New(&i));
+    for(libtorrent::peer_info i : res)
+      ret->Set(ret->Length(), PeerInfoWrap::New(i));
 
     info.GetReturnValue().Set(ret);
 };
@@ -781,9 +771,9 @@ NAN_METHOD(TorrentHandleWrap::connect_peer) {
 
     libtorrent::torrent_handle* th = TorrentHandleWrap::Unwrap(info.This());
 
-    const libtorrent::tcp::endpoint ep = EndpointWrap::Unwrap(info[0]->ToObject());
+    libtorrent::tcp::endpoint* ep = EndpointWrap::Unwrap(info[0]->ToObject());
 
-    th->connect_peer(ep);
+    th->connect_peer(*ep);
 
     info.GetReturnValue().SetUndefined();
 };

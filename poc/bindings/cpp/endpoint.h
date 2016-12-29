@@ -9,16 +9,15 @@ using namespace v8;
 class EndpointWrap: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
-      static Local<Object> New(const libtorrent::tcp::endpoint ep);
-      static libtorrent::tcp::endpoint Unwrap(const Local<Object>& obj) {
-        return Nan::ObjectWrap::Unwrap<EndpointWrap>(obj)->endpoint_;
+      static Local<Object> New(libtorrent::tcp::endpoint ep);
+      static libtorrent::tcp::endpoint* Unwrap(const Local<Object>& obj) {
+        EndpointWrap* ep = Nan::ObjectWrap::Unwrap<EndpointWrap>(obj);
+        return &ep->endpoint_;
       };
 
     private:
-      explicit EndpointWrap();
-      ~EndpointWrap();
-
       static NAN_METHOD(NewInstance);
+      static NAN_METHOD(address);
 
       static Nan::Persistent<Function> constructor;
       libtorrent::tcp::endpoint endpoint_;

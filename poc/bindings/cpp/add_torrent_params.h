@@ -9,9 +9,10 @@ using namespace v8;
 class AddTorrentParamsWrap: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
-      static Local<Object> New(const libtorrent::add_torrent_params* atp);
-      static const libtorrent::add_torrent_params* Unwrap(const Local<Object>& obj) {
-        return Nan::ObjectWrap::Unwrap<AddTorrentParamsWrap>(obj)->add_torrent_params_;
+      static Local<Object> New(libtorrent::add_torrent_params atp);
+      static libtorrent::add_torrent_params* Unwrap(const Local<Object>& obj) {
+        AddTorrentParamsWrap* atp = Nan::ObjectWrap::Unwrap<AddTorrentParamsWrap>(obj);
+        return &atp->add_torrent_params_;
       };
 
     private:
@@ -22,7 +23,7 @@ class AddTorrentParamsWrap: public Nan::ObjectWrap {
       static NAN_METHOD(resume_data);
 
       static Nan::Persistent<Function> constructor;
-      const libtorrent::add_torrent_params* add_torrent_params_;
+      libtorrent::add_torrent_params add_torrent_params_;
 
 };
 

@@ -9,23 +9,20 @@ using namespace v8;
 class TorrentStatusWrap: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
-      static Local<Object> New(const libtorrent::torrent_status* ts);
-      static const libtorrent::torrent_status* Unwrap(const Local<Object>& obj) {
-        return Nan::ObjectWrap::Unwrap<TorrentStatusWrap>(obj)->torrent_status_;
+      static Local<Object> New(libtorrent::torrent_status ts);
+      static libtorrent::torrent_status* Unwrap(const Local<Object>& obj) {
+        TorrentStatusWrap* ts = Nan::ObjectWrap::Unwrap<TorrentStatusWrap>(obj);
+        return &ts->torrent_status_;
       };
 
     private:
-      explicit TorrentStatusWrap();
-      ~TorrentStatusWrap();
+      static Nan::Persistent<Function> constructor;
+      libtorrent::torrent_status torrent_status_;
 
       static NAN_METHOD(NewInstance);
       static NAN_METHOD(info_hash);
       static NAN_METHOD(state);
       static NAN_METHOD(progress);
-
-
-      static Nan::Persistent<Function> constructor;
-      const libtorrent::torrent_status* torrent_status_;
 
 };
 

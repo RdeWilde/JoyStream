@@ -37,16 +37,17 @@ class Node extends EventEmitter {
 
       // Pop alerts every seconde
       setInterval(function () {
-        var alerts = []
-        // To be sure all the alerts are process before getting new ones
-        if (alerts.length == 0) {
-          var alerts = this.session.popAlerts()
-          while (alerts.length > 0) {
-            // shift remve and return the first alert in the array
-            var alert = alerts.shift()
-            this.process(alert)
-          }
+        var alerts = this.session.popAlerts()
+        for (var i in alerts) {
+          this.process(alerts[i])
         }
+
+        /*while (alerts.length > 0) {
+          // shift remove and return the first alert in the array
+          var alert = alerts.shift()
+          console.log(alerts.length)
+          this.process(alert)
+        }*/
       }.bind(this), 1000)
     }
 
@@ -68,6 +69,10 @@ class Node extends EventEmitter {
 
     addTorrent (uploadLimit, downloadLimit, name, resumeData, savePath, infoHash, callback) {
       this.session.addTorrent(uploadLimit, downloadLimit, name, resumeData, savePath, infoHash, callback)
+    }
+
+    removeTorrent (infoHash, callback) {
+      this.session.removeTorrent(infoHash, callback)
     }
 
     process (alert) {
@@ -179,14 +184,16 @@ class Node extends EventEmitter {
      */
 
     [_processDhtGetPeersReplyAlert](alert) {
-      var torrent = this.torrentsBySecondaryHash.get(alert.infoHash())
+      debug('Process dht_get_peer_reply')
 
+      var torrentSecondaryHash = this.torrentsBySecondaryHash.get(alert.infoHash())
+      var torrent = this.torrents.get(torrentSecondaryHash)
       if (torrent) {
         var timestamp = Date.now()
         var peers = alert.peers()
         for (var i in peers) {
-          console.log(peers[i])
-          torrent.addJSPeerAtTimestamp(peers[i], timestamp)
+          var address = peers[i].address()
+          torrent.addJSPeerAtTimestamp(address, timestamp)
           torrent.handle.connectPeer(peers[i])
           debug('Connection added')
         }
@@ -196,10 +203,15 @@ class Node extends EventEmitter {
     }
 
     [_listenSucceededAlert](alert) {
-      this.emit('listenSucceededAlert', alert.endpoint())
+      debug('Process listen_succeeded_alert')
+
+      var endpoint = alert.endpoint()
+      this.emit('listenSucceededAlert', endpoint)
     }
 
     [_metadataReceivedAlert](alert) {
+      debug('Process metadata_received_alert')
+
       var torrentHandle = alert.handle()
       var torrentInfo = torrentHandle.torrentFile()
       var torrent = this.torrents.get(torrentHandle.infoHash())
@@ -217,6 +229,8 @@ class Node extends EventEmitter {
     }
 
     [_addTorrentAlert](alert) {
+      debug('Process add_torrent_alert')
+
       if (!alert.error()) {
         var torrentHandle = alert.handle()
         var resumeData = alert.params().resumeData()
@@ -228,6 +242,8 @@ class Node extends EventEmitter {
           var torrent = new Torrent(torrentHandle,
                                     resumeData,
                                     this.plugin)
+
+          console.log(torrentHandle.infoHash())
 
           // Add torrent to torrents map
           this.torrents.set(torrentHandle.infoHash(),torrent)
@@ -256,6 +272,8 @@ class Node extends EventEmitter {
     }
 
     [_stateUpdateAlert](alert) {
+      debug('Process state_update_alert')
+
       var status = alert.status()
 
       for (var i in status) {
@@ -274,7 +292,11 @@ class Node extends EventEmitter {
        * NOTICE: Docs say p->handle may be invalid at this time - likely because this is a removal operation,
        * so we must use p->info_hash instead.
        */
+       debug('Process torrent_removed_alert')
+
        var torrent = this.torrents.get(alert.infoHash())
+
+       console.log(this.torrents)
 
        if (torrent) {
          torrent.emit('torrentRemovedAlert')
@@ -284,6 +306,8 @@ class Node extends EventEmitter {
     }
 
     [_torrentResumedAlert](alert) {
+      debug('Process torrent_resumed_alert')
+
       var infoHash = alert.handle().infoHash()
       var torrent = this.torrents.get(infoHash)
 
@@ -299,14 +323,17 @@ class Node extends EventEmitter {
     }
 
     [_saveResumeDataAlert](alert) {
+      debug('Process save_resume_data_alert')
       // Logic here
     }
 
     [_saveResumeDataFailedAlert](alert) {
+      debug('Process save_resume_data_failed_alert')
       // Logic here
     }
 
     [_torrentPausedAlert](alert) {
+      debug('Process torrent_paused_alert')
 
       var infoHash = alert.handle().infoHash()
       var torrent = this.torrents.get(infoHash)
@@ -328,31 +355,66 @@ class Node extends EventEmitter {
     }
 
     [_torrentCheckedAlert](alert) {
+      debug('Process torrent_checked_alert')
        // Nothing to do ?
     }
 
     [_peerConnectAlert](alert) {
-      // Logic here
+
+      debug('Process peer_connect_alert')
+
+      var torrentHandle = alert.handle()
+      var peersInfo = torrentHandle.getPeerInfo()
+
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrent) {
+        for (var i in peersInfo) {
+          if (peersInfo[i].ip() == alert.ip()) {
+            torrent.addPeer(peersInfo[i])
+          }
+        }
+      } else {
+        debug('Torrent not found')
+      }
+
     }
 
     [_peerDisconnectedAlert](alert) {
-      // Logic here
+
+      debug('Process peer_disconnected_alert')
+
+      var torrentHandle = alert.handle()
+
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrent) {
+        torrent.removePeer(alert.ip())
+      } else {
+        debug('Torrent not found')
+      }
     }
 
     [_readPieceAlert](alert) {
-      // Logic here
+      debug('Process read_piece_alert')
+
+      // Nothing todo here ?
     }
 
     [_pieceFinishedAlert](alert) {
-      // Logic here
+      debug('Process piece_finished_alert')
+
+      // Nothing to do here ?
     }
 
     [_pluginStatus](alert) {
+      debug('Process PluginStatus')
       // Logic here
     }
 
     [_requestResult](alert) {
-      // Logic here
+      debug('Process RequestResult')
+      alert.loadedCallback()
     }
 
 }

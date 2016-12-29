@@ -13,17 +13,15 @@
 class TorrentHandleWrap : public Nan::ObjectWrap {
   public:
     static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> New(const libtorrent::torrent_handle& th);
+    static v8::Local<v8::Object> New(libtorrent::torrent_handle th);
     static libtorrent::torrent_handle* Unwrap(const v8::Local<v8::Object>& obj) {
-      return Nan::ObjectWrap::Unwrap<TorrentHandleWrap>(obj)->th_;
+      TorrentHandleWrap* th = Nan::ObjectWrap::Unwrap<TorrentHandleWrap>(obj);
+      return &th->th_;
     };
 
   private:
-    explicit TorrentHandleWrap();
-    ~TorrentHandleWrap();
-
     static Nan::Persistent<v8::Function> constructor;
-    libtorrent::torrent_handle* th_;
+    libtorrent::torrent_handle th_;
 
     static NAN_METHOD(NewInstance);
     static NAN_METHOD(get_peer_info);

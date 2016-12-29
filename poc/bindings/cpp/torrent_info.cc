@@ -19,18 +19,9 @@ Local<Object> TorrentInfoWrap::New(const libtorrent::torrent_info* ti) {
     Local<Function> cons = Nan::New(constructor);
     Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
 
-    Nan::ObjectWrap::Unwrap<TorrentInfoWrap>(obj.ToLocalChecked())->ti_ = ti;
+    Nan::ObjectWrap::Unwrap<TorrentInfoWrap>(obj.ToLocalChecked())->torrent_info_ = ti;
 
     return scope.Escape(obj.ToLocalChecked());
-};
-
-TorrentInfoWrap::TorrentInfoWrap() {
-  ti_ = NULL;
-};
-
-TorrentInfoWrap::~TorrentInfoWrap() {
-  if (ti_ != NULL)
-    delete ti_;
 };
 
 NAN_METHOD(TorrentInfoWrap::NewInstance) {

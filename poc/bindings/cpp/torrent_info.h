@@ -11,12 +11,13 @@ class TorrentInfoWrap: public Nan::ObjectWrap {
       static NAN_MODULE_INIT(Init);
       static Local<Object> New(const libtorrent::torrent_info* ti);
       static const libtorrent::torrent_info* Unwrap(const Local<Object>& obj) {
-        return Nan::ObjectWrap::Unwrap<TorrentInfoWrap>(obj)->ti_;
+        TorrentInfoWrap* ti = Nan::ObjectWrap::Unwrap<TorrentInfoWrap>(obj);
+        return ti->torrent_info_;
       };
 
     private:
-      explicit TorrentInfoWrap();
-      ~TorrentInfoWrap();
+      static Nan::Persistent<Function> constructor;
+      const libtorrent::torrent_info* torrent_info_;
 
       static NAN_METHOD(NewInstance);
       /*static NAN_METHOD(remap_files);
@@ -49,9 +50,6 @@ class TorrentInfoWrap: public Nan::ObjectWrap {
       static NAN_METHOD(metadata_size);
       static NAN_METHOD(map_block);
       static NAN_METHOD(map_file);*/
-
-      static Nan::Persistent<Function> constructor;
-      const libtorrent::torrent_info* ti_;
 };
 
 #endif

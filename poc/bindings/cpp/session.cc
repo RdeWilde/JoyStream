@@ -80,20 +80,6 @@ NAN_METHOD(SessionWrap::AddTorrent) {
   std::vector<char> resumeData;
   v8::String::Utf8Value s2(info[4]);
   std::string savePath = std::string(*s2);
-  v8::String::Utf8Value s3(info[5]);
-  std::string info_hash = std::string(*s3);
-
-  if(info_hash.size() != 40) {
-    Nan::ThrowTypeError("incorrent length of hex string");
-    return;
-  }
-
-  char buf[21];
-
-  if(!libtorrent::from_hex(info_hash.c_str(), info_hash.size(), buf)) {
-    Nan::ThrowTypeError("invalid hex string");
-    return;
-  }
 
   params.upload_limit = uploadLimit;
   params.download_limit = downloadLimit;
@@ -103,21 +89,24 @@ NAN_METHOD(SessionWrap::AddTorrent) {
   params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_paused;
   params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_auto_managed;
   params.flags |= libtorrent::add_torrent_params::flag_duplicate_is_error;
-  params.info_hash = libtorrent::sha1_hash(buf);
-
+  params.info_hash = object_to_sha1_hash(info[5]);
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
   Nan::Callback *callback = new Nan::Callback(info[6].As<v8::Function>());
   session_wrap->session_.plugin_->submit(joystream::extension::request::AddTorrent(params, [callback](libtorrent::error_code ec, libtorrent::torrent_handle th){
-    printf("Torrent added !!!! \n");
 
-    v8::Local<v8::Value> argv[] = {
-        Nan::Null()
-      , Nan::New<v8::Number>(1)
-    };
+    if (ec) {
+      Nan::ThrowError("Error !");
+    } else {
+      v8::Local<v8::Value> argv[] = {
+          Nan::Null()
+        , TorrentHandleWrap::New(th)
+      };
 
-    callback->Call(2, argv);
+      callback->Call(2, argv);
+    }
+
   }));
 }
 
@@ -126,11 +115,17 @@ NAN_METHOD(SessionWrap::RemoveTorrent) {
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
-  /*
-    Remove torrent logic here
-  */
+  libtorrent::sha1_hash info_hash = object_to_sha1_hash(info[0]);
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+  session_wrap->session_.plugin_->submit(joystream::extension::request::RemoveTorrent(info_hash, [callback](const std::exception_ptr &){
+
+    v8::Local<v8::Value> argv[] = {
+        Nan::Null()
+    };
+
+    callback->Call(1, argv);
+  }));
 }
 
 NAN_METHOD(SessionWrap::ListenPort) {

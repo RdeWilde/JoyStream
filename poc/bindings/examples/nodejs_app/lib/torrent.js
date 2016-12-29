@@ -19,8 +19,16 @@ class Torrent extends EventEmitter {
     return sha1(newInfoHash)
   }
 
-  addJSPeerAtTimestamp (peer, timestamp) {
-    this.announcedJSPeersAtTimestamp.set(peer, timestamp)
+  addJSPeerAtTimestamp (address, timestamp) {
+    this.announcedJSPeersAtTimestamp.set(address, timestamp)
+  }
+
+  addPeer(ip) {
+    // TODO
+  }
+
+  removePeer(ip) {
+    // TODO
   }
 
 }

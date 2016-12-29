@@ -23,8 +23,8 @@ class AlertWrap: public Nan::ObjectWrap {
       };
 
     private:
-      explicit AlertWrap();
-      ~AlertWrap();
+      /*explicit AlertWrap();
+      ~AlertWrap();*/
 
       static NAN_METHOD(NewInstance);
       static NAN_METHOD(what);
@@ -50,6 +50,12 @@ class AlertWrap: public Nan::ObjectWrap {
 
       // listen_succeeded_alert
       static NAN_METHOD(endpoint);
+
+      // listen_succeeded_alert
+      static NAN_METHOD(ip);
+
+      // ResultRequest
+      static NAN_METHOD(loaded_callback);
 
       static Nan::Persistent<Function> constructor;
       const libtorrent::alert* alert_;

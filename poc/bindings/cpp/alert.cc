@@ -20,6 +20,8 @@ NAN_MODULE_INIT(AlertWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "status", status);
   Nan::SetPrototypeMethod(tpl, "peers", peers);
   Nan::SetPrototypeMethod(tpl, "endpoint", endpoint);
+  Nan::SetPrototypeMethod(tpl, "ip", ip);
+  Nan::SetPrototypeMethod(tpl, "loadedCallback", loaded_callback);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -40,14 +42,16 @@ Local<Object> AlertWrap::New(const libtorrent::alert* a) {
     return scope.Escape(obj.ToLocalChecked());
 };
 
-AlertWrap::AlertWrap() {
-  alert_ = NULL;
-};
+/*AlertWrap::AlertWrap() {
+  //alert_ = NULL;
+};*/
 
-AlertWrap::~AlertWrap() {
-  if (alert_ != NULL)
-    delete alert_;
-};
+/*AlertWrap::~AlertWrap() {
+  std::cout << "Destroy alert" << std::endl;
+  std::cout << alert_->type() << std::endl;
+  //if (alert_ != NULL)
+  //  delete alert_;
+};*/
 
 NAN_METHOD(AlertWrap::NewInstance) {
   Nan::HandleScope scope;
@@ -120,7 +124,7 @@ NAN_METHOD(AlertWrap::params) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      info.GetReturnValue().Set(AddTorrentParamsWrap::New(&casted->params));
+      info.GetReturnValue().Set(AddTorrentParamsWrap::New(casted->params));
     }
 };
 
@@ -160,7 +164,7 @@ NAN_METHOD(AlertWrap::status) {
       info.GetReturnValue().SetUndefined();
     } else {
       for(const libtorrent::torrent_status ts : casted->status)
-        ret->Set(ret->Length(), TorrentStatusWrap::New(&ts));
+        ret->Set(ret->Length(), TorrentStatusWrap::New(ts));
       info.GetReturnValue().Set(ret);
     }
 
@@ -182,7 +186,6 @@ NAN_METHOD(AlertWrap::peers) {
         ret->Set(ret->Length(), EndpointWrap::New(ep));
       info.GetReturnValue().Set(ret);
     }
-
 };
 
 NAN_METHOD(AlertWrap::endpoint) {
@@ -197,4 +200,33 @@ NAN_METHOD(AlertWrap::endpoint) {
     } else {
       info.GetReturnValue().Set(EndpointWrap::New(casted->endpoint));
     }
+};
+
+NAN_METHOD(AlertWrap::ip) {
+    Nan::HandleScope scope;
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const libtorrent::peer_connect_alert*>(a);
+
+    if (!casted) {
+      info.GetReturnValue().SetUndefined();
+    } else {
+      info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+    }
+};
+
+NAN_METHOD(AlertWrap::loaded_callback) {
+    Nan::HandleScope scope;
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const joystream::extension::alert::RequestResult*>(a);
+
+    if (casted) {
+      casted->loadedCallback();
+    } else {
+      Nan::ThrowTypeError("Not a RequestResult alert");
+    }
+    info.GetReturnValue().SetUndefined();
 };
