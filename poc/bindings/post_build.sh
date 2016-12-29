@@ -1,22 +1,3 @@
 #!/bin/bash
-
-spec=`qmake -query QMAKE_XSPEC`
-
-DESTINATION="Frameworks/"
-
-rm -fr $DESTINATION
-
-mkdir -p $DESTINATION
-
-case "$spec" in
-    macx-clang)
-      cp -R `qmake -query QT_INSTALL_LIBS`/QtCore.framework ${DESTINATION}
-    ;;
-    linux-g++)
-      cp `qmake -query QT_INSTALL_LIBS`/libQt5Core.so ${DESTINATION}
-      chrpath -r \$ORIGIN/../../Frameworks build/Release/NativeExtension.node
-    ;;
-    *)
-      exit 1
-    ;;
-esac
+# Run this after building on OSX
+install_name_tool -change @rpath/QtCore.framework/Versions/5/QtCore @loader_path/../../Frameworks/QtCore.framework/Versions/5/QtCore $1

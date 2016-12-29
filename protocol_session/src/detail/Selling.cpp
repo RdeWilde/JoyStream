@@ -23,7 +23,6 @@ namespace detail {
                                        const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                        const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
-                                       const ReceivedValidPayment<ConnectionIdType> & receivedValidPayment,
                                        const SellingPolicy & policy,
                                        const protocol_wire::SellerTerms & terms,
                                        int MAX_PIECE_INDEX)
@@ -34,7 +33,6 @@ namespace detail {
         , _loadPieceForBuyer(loadPieceForBuyer)
         , _claimLastPayment(claimLastPayment)
         , _anchorAnnounced(anchorAnnounced)
-        , _receivedValidPayment(receivedValidPayment)
         , _policy(policy)
         , _terms(terms)
         , _MAX_PIECE_INDEX(MAX_PIECE_INDEX) {
@@ -215,13 +213,8 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::receivedValidPayment(const ConnectionIdType & endPoint, const Coin::Signature &) {
-
-        auto connection = _session->get(endPoint);
-
-        const paymentchannel::Payee & payee = connection->payee();
-
-        _receivedValidPayment(endPoint, payee.price(), payee.numberOfPaymentsMade(), payee.amountPaid());
+    void Selling<ConnectionIdType>::receivedValidPayment(const ConnectionIdType &, const Coin::Signature &) {
+        // Nothing to do here, just good news really!
     }
 
     template<class ConnectionIdType>

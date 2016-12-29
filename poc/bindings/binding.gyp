@@ -76,14 +76,14 @@
                         ]
                      },
                      'library_dirs': [
-                        '$(srcdir)/../../build/osx/common/',
-                        '$(srcdir)/../../build/osx/protocol_session/',
-                        '$(srcdir)/../../build/osx/protocol_wire/',
-                        '$(srcdir)/../../build/osx/protocol_statemachine/',
-                        '$(srcdir)/../../build/osx/paymentchannel/',
-                        '$(srcdir)/../../build/osx/extension/',
-                        '$(srcdir)/../../deps/osx/dist/release/lib/',
-                        "$(srcdir)/../../deps/osx/src/mSIGNA-joystream/sysroot/lib/",
+                        '${PWD}/../../build/osx/common/',
+                        '${PWD}/../../build/osx/protocol_session/',
+                        '${PWD}/../../build/osx/protocol_wire/',
+                        '${PWD}/../../build/osx/protocol_statemachine/',
+                        '${PWD}/../../build/osx/paymentchannel/',
+                        '${PWD}/../../build/osx/extension/',
+                        '${PWD}/../../deps/osx/dist/release/lib/',
+                        "${PWD}/../../deps/osx/src/mSIGNA-joystream/sysroot/lib/",
                         '/usr/local/lib',
                      ],
                      "include_dirs" : [
@@ -91,11 +91,17 @@
                          "<!(qmake -query QT_INSTALL_LIBS)/QtCore.framework/Headers/",
                          "../../deps/osx/src/mSIGNA-joystream/sysroot/include/",
                          "/usr/local/include/",
-                     ]
+                     ],
+                     "postbuilds": [ {
+                       'postbuild_name': 'Reconfigure @rpath',
+                       'action': [
+                         #"${PWD}/post_build.sh", "${BUILT_PRODUCTS_DIR}/NativeExtension.node"
+                         "${PWD}/copy_qt_framework.sh"
+                       ],
+                     }]
                 }],
                 [ 'OS=="linux"', {
                     "link_settings": {
-                        "ldflags" : [ '-Wl,-rpath=XORIGIN/../../Frameworks' ],
                         "libraries": [
                             "-lboost_chrono-mt",
                             "-lboost_random-mt",
@@ -104,15 +110,15 @@
                         ]
                     },
                     'library_dirs': [
-                       "$(srcdir)/../../build/linux-x64/common/",
-                       '$(srcdir)/../../build/linux-x64/protocol_session/',
-                       '$(srcdir)/../../build/linux-x64/protocol_wire/',
-                       '$(srcdir)/../../build/linux-x64/protocol_statemachine/',
-                       '$(srcdir)/../../build/linux-x64/paymentchannel/',
-                       '$(srcdir)/../../build/linux-x64/extension/',
-                       '$(srcdir)/../../deps/linux/dist/release/lib/',
+                       '${PWD}/../../build/linux-x64/common/',
+                       '${PWD}/../../build/linux-x64/protocol_session/',
+                       '${PWD}/../../build/linux-x64/protocol_wire/',
+                       '${PWD}/../../build/linux-x64/protocol_statemachine/',
+                       '${PWD}/../../build/linux-x64/paymentchannel/',
+                       '${PWD}/../../build/linux-x64/extension/',
+                       '${PWD}/../../deps/linux/dist/release/lib/',
                        '<!(qmake -query QT_INSTALL_LIBS)/',
-                       "$(srcdir)/../../deps/linux/src/mSIGNA-joystream/sysroot/lib/",
+                       "${PWD}/../../deps/linux/src/mSIGNA-joystream/sysroot/lib/",
                        '/usr/local/lib',
                     ],
                     "include_dirs" : [
@@ -120,7 +126,7 @@
                         "<!(qmake -query QT_INSTALL_HEADERS)/QtCore/",
                         "../../deps/linux/src/mSIGNA-joystream/sysroot/include/",
                         "/usr/local/include/",
-                    ]
+                    ],
                 }]
             ],
         },

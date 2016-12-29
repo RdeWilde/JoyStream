@@ -18,6 +18,8 @@ namespace extension {
         protocol_wire::MessageType::sell,
         protocol_wire::MessageType::join_contract,
         protocol_wire::MessageType::joining_contract,
+        protocol_wire::MessageType::sign_refund,
+        protocol_wire::MessageType::refund_signed,
         protocol_wire::MessageType::ready,
         protocol_wire::MessageType::request_full_piece,
         protocol_wire::MessageType::full_piece,

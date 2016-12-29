@@ -16,9 +16,6 @@
 Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
 
-typedef std::map<libtorrent::sha1_hash, joystream::extension::status::TorrentPlugin> TorrentPluginStatuses;
-Q_DECLARE_METATYPE(TorrentPluginStatuses)
-
 namespace joystream {
 namespace core {
 
@@ -35,12 +32,10 @@ Node::Node(libtorrent::session * session,
              plugin,
              std::bind(&Node::pimplStartedListeningHandler, this, std::placeholders::_1),
              std::bind(&Node::pimplTorrentAdded, this, std::placeholders::_1),
-             std::bind(&Node::pimplTorrentRemoved, this, std::placeholders::_1),
-             std::bind(&Node::pimplTorrentPluginStatusUpdate, this, std::placeholders::_1),
-             std::bind(&Node::pimplAlertArrived, this, std::placeholders::_1)) {
+             std::bind(&Node::pimplTorrentRemoved, this, std::placeholders::_1)) {
 }
 
-Node * Node::create() {
+Node * Node::create(const BroadcastTransaction & broadcastTransaction) {
 
     // Create session instance
     libtorrent::session * session = new libtorrent::session(Node::session_settings(false),
@@ -74,7 +69,10 @@ Node * Node::create() {
     /// Setup plugin
 
     // Create and install plugin
-    boost::shared_ptr<extension::Plugin> plugin(new extension::Plugin(CORE_MINIMUM_EXTENDED_MESSAGE_ID));
+    boost::shared_ptr<extension::Plugin> plugin(new extension::Plugin([broadcastTransaction](const libtorrent::sha1_hash &, const Coin::Transaction & tx) -> void {
+                                                        // Call user provided broadcasting callback
+                                                        broadcastTransaction(tx);
+                                                     }, CORE_MINIMUM_EXTENDED_MESSAGE_ID));
 
     // Add plugin extension
     session->add_extension(boost::static_pointer_cast<libtorrent::plugin>(plugin));
@@ -136,12 +134,10 @@ void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedT
     _pimpl.removeTorrent(info_hash, handler);
 }
 
-void Node::postTorrentStatusUpdates() const noexcept {
+void Node::updateStatus() {
     _pimpl.updateTorrentStatus();
-}
-
-void Node::postTorrentPluginStatusUpdates() const noexcept {
-    _pimpl.postTorrentPluginStatusUpdates();
+    _pimpl.updateTorrentPluginStatus();
+    _pimpl.updatePeerStatus();
 }
 
 void Node::pimplStartedListeningHandler(const libtorrent::tcp::endpoint & endPoint) {
@@ -154,14 +150,6 @@ void Node::pimplTorrentAdded(core::Torrent * torrent) {
 
 void Node::pimplTorrentRemoved(const libtorrent::sha1_hash & info_hash) {
     emit removedTorrent(info_hash);
-}
-
-void Node::pimplTorrentPluginStatusUpdate(const std::map<libtorrent::sha1_hash, extension::status::TorrentPlugin> & status) {
-    emit torrentPluginStatusUpdate(status);
-}
-
-void Node::pimplAlertArrived(const libtorrent::alert * a) {
-    emit alertArrived(a);
 }
 
 void Node::libtorrent_alert_notification_entry_point() {

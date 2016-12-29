@@ -20,20 +20,20 @@ TorrentIdentifier::TorrentIdentifier(const libtorrent::sha1_hash & infoHash)
 
 TorrentIdentifier::TorrentIdentifier(const MagnetLink & magnetLink)
     : _type(Type::MagnetLink)
-    , _infoHash(magnetLink.infoHash())
-    , _magnetLink(magnetLink) {
+    , _magnetLink(magnetLink)
+    , _infoHash(magnetLink.infoHash()) {
 }
 
 TorrentIdentifier::TorrentIdentifier(const boost::shared_ptr<libtorrent::torrent_info> & torrentFile)
     : _type(Type::TorrentFile)
-    , _infoHash(torrentFile->info_hash())
-    , _torrentFile(torrentFile) {
+    , _torrentFile(torrentFile)
+    , _infoHash(torrentFile->info_hash()) {
 }
 
 TorrentIdentifier::TorrentIdentifier(const TorrentIdentifier* ti)
     : _type(ti->type())
-    , _infoHash(ti->infoHash())
-    , _torrentFile(ti->torrentFile()){
+    , _torrentFile(ti->torrentFile())
+    , _infoHash(ti->infoHash()) {
 }
 
 TorrentIdentifier TorrentIdentifier::fromTorrentFilePath(const std::string &path)

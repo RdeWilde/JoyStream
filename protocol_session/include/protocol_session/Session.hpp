@@ -77,7 +77,6 @@ namespace detail {
                         const LoadPieceForBuyer<ConnectionIdType> &,
                         const ClaimLastPayment<ConnectionIdType> &,
                         const AnchorAnnounced<ConnectionIdType> &,
-                        const ReceivedValidPayment<ConnectionIdType> & receivedValidPayment,
                         const SellingPolicy &,
                         const protocol_wire::SellerTerms &,
                         int);
@@ -87,9 +86,8 @@ namespace detail {
                        const GenerateP2SHKeyPairCallbackHandler &,
                        const GenerateReceiveAddressesCallbackHandler &,
                        const GenerateChangeAddressesCallbackHandler &,
-                       const ContractConstructed &,
+                       const BroadcastTransaction &,
                        const FullPieceArrived<ConnectionIdType> &,
-                       const SentPayment<ConnectionIdType> &,
                        const Coin::UnspentOutputSet &,
                        const BuyingPolicy &,
                        const protocol_wire::BuyerTerms &,
@@ -125,16 +123,6 @@ namespace detail {
 
         // Remove connection if one exists with given id, otherwise returns false.
         bool removeConnection(const ConnectionIdType &);
-
-        // *** TEMPORARY FIX ***
-
-        /**
-         * @brief Returns status of connection with given id
-         * @return status of connection
-         * @throws exception::SessionModeNotSetException if mode is not set
-         * @throws exception::ConnectionDoesNotExist<ConnectionIdType> if connection does not exist which corresponds to @a id
-         */
-        status::Connection<ConnectionIdType> connectionStatus(const ConnectionIdType & id) const noexcept;
 
         // Get vector of all connection ids
         std::set<ConnectionIdType> connectionIds() const;
@@ -172,7 +160,7 @@ namespace detail {
         SessionMode mode() const;
 
         // Status of session
-        status::Session<ConnectionIdType> status() const noexcept;
+        status::Session<ConnectionIdType> status() const;
 
     private:
 

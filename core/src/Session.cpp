@@ -58,10 +58,16 @@ Session * Session::create(const protocol_session::status::Session<libtorrent::tc
             break;
     }
 
+    for(auto m : status.connections)
+        session->addConnection(m.second);
+
     return session;
 }
 
 Session::~Session() {
+
+    for(auto it = _connections.begin();it != _connections.end();)
+        removeConnection(it++);
 }
 
 protocol_session::SessionMode Session::mode() const noexcept {
@@ -70,6 +76,10 @@ protocol_session::SessionMode Session::mode() const noexcept {
 
 protocol_session::SessionState Session::state() const noexcept {
     return _state;
+}
+
+std::map<libtorrent::tcp::endpoint, Connection*> Session::connections() const noexcept {
+    return detail::getRawMap<libtorrent::tcp::endpoint, Connection>(_connections);
 }
 
 bool Session::sellingSet() const noexcept {
@@ -96,11 +106,72 @@ Buying * Session::buying() const {
         throw exception::HandleNotSet();
 }
 
+void Session::addConnection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status) {
+
+    // Ignore if it has already been added
+    if(_connections.count(status.connectionId) > 0)
+        return;
+
+    // Create conneciton
+    Connection * c = Connection::create(status);
+
+    // Add to map
+    _connections.insert(std::make_pair(status.connectionId, std::unique_ptr<Connection>(c)));
+
+    // announce
+    emit connectionAdded(c);
+}
+
+void Session::removeConnection(const libtorrent::tcp::endpoint & endPoint) {
+
+    auto it = _connections.find(endPoint);
+    assert(it != _connections.end());
+
+    removeConnection(it);
+}
+
+void Session::removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::const_iterator it) {
+
+    libtorrent::tcp::endpoint endPoint = it->first;
+
+    // Remove from map
+    _connections.erase(it);
+
+    // announce
+    emit connectionRemoved(endPoint);
+}
+
 void Session::update(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status) {
 
     if(_state != status.state) {
         _state = status.state;
         emit stateChanged(status.state);
+    }
+
+    /// Update connections
+
+    // for each connection with a status
+    for(auto p: status.connections) {
+
+        auto it = _connections.find(p.first);
+
+        // if connection is present, then update
+        if(it != _connections.cend())
+            it->second->update(p.second);
+        else // otherwise add
+            addConnection(p.second);
+
+    }
+
+    // for each exisiting peer
+    for(auto it = _connections.cbegin(); it != _connections.cend();) {
+
+        // if there is no status for it, then remove
+        if(status.connections.count(it->first) == 0){
+            removeConnection(it++);
+        } else {
+            it++;
+        }
     }
 
     /// Update mode and tranistion to substates
@@ -115,8 +186,6 @@ void Session::update(const protocol_session::status::Session<libtorrent::tcp::en
 }
 
 void Session::updateSubstate(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status) {
-
-    // dont do actual upgrade , just assert congruents
 
     switch(status.mode) {
 

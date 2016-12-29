@@ -94,71 +94,14 @@ void RequestVariantVisitor::operator()(const request::ToBuyMode & r) {
     sendRequestResult(std::bind(r.handler, e));
 }
 
-void RequestVariantVisitor::operator()(const request::PostTorrentPluginStatusUpdates &) {
-
-    /// TEMPORARY: FACTOR OUT LATER
-
-    // Generate all statuses
-    std::map<libtorrent::sha1_hash, status::TorrentPlugin> statuses;
-
-    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > torrentPlugins = _plugin->torrentPlugins();
-
-    for(auto m :torrentPlugins) {
-
-        boost::shared_ptr<TorrentPlugin> torrentPlugin = m.second.lock();
-
-        assert(torrentPlugin);
-
-        statuses.insert(std::make_pair(m.first, torrentPlugin->status()));
-    }
-
-    _alertManager->emplace_alert<alert::TorrentPluginStatusUpdateAlert>(statuses);
-}
-
-void RequestVariantVisitor::operator()(const request::PostPeerPluginStatusUpdates & r) {
-
-    /// TEMPORARY: FACTOR OUT LATER
-
-    // Get torrent plugin
-    const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > torrentPlugins = _plugin->torrentPlugins();
-
-    auto it = torrentPlugins.find(r._infoHash);
-
-    // If torrent has expired, we just ignore request
-    if(it == torrentPlugins.cend())
-        return;
-
-    boost::shared_ptr<TorrentPlugin> torrentPlugin = it->second.lock();
-
-    assert(torrentPlugin);
-
-    // Generate statuses for all peer plugins
-    std::map<libtorrent::tcp::endpoint, status::PeerPlugin> statuses;
-
-    std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > torrentPeerPlugins = torrentPlugin->peers();
-
-    for(auto m : torrentPeerPlugins) {
-
-        // Get connection status corresponding to peer plugin
-        auto connectionStatus = torrentPlugin->session().connectionStatus(m.first);
-
-        // Generate peer plugin status, and add it to the map
-        boost::shared_ptr<PeerPlugin> peerPlugin = m.second.lock();
-
-        assert(peerPlugin);
-
-        statuses.insert(std::make_pair(m.first, peerPlugin->status(connectionStatus)));
-    }
-
-    libtorrent::torrent_handle h = _session->find_torrent_handle(r._infoHash);
-
-    _alertManager->emplace_alert<alert::PeerPluginStatusUpdateAlert>(h, statuses);
+void RequestVariantVisitor::operator()(const request::UpdateStatus &) {
+    _plugin->_session->alerts().emplace_alert<alert::PluginStatus>(_plugin->status());
 }
 
 void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r) {
 
     // Stop all torrent plugins which can be stopped
-    auto pluginMap = _plugin->torrentPlugins();
+    auto pluginMap = _plugin->_plugins;
 
     for(auto m : pluginMap) {
 
@@ -176,7 +119,7 @@ void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r)
 void RequestVariantVisitor::operator()(const request::PauseLibtorrent & r) {
 
     // Synchronous pause
-    _session->pause();
+    _plugin->_session->pause();
 
     // Send the result that we are done
     sendRequestResult(r.handler);
@@ -185,7 +128,7 @@ void RequestVariantVisitor::operator()(const request::PauseLibtorrent & r) {
 void RequestVariantVisitor::operator()(const request::AddTorrent & r) {
 
     libtorrent::error_code ec;
-    libtorrent::torrent_handle h = _session->add_torrent(r.params, ec);
+    libtorrent::torrent_handle h = _plugin->_session->add_torrent(r.params, ec);
 
     // Bind to handler and send back to user
     sendRequestResult(std::bind(r.handler, ec, h));
@@ -193,14 +136,14 @@ void RequestVariantVisitor::operator()(const request::AddTorrent & r) {
 
 void RequestVariantVisitor::operator()(const request::RemoveTorrent & r) {
 
-    libtorrent::torrent_handle h = _session->find_torrent_handle(r.infoHash);
+    libtorrent::torrent_handle h = _plugin->_session->find_torrent_handle(r.infoHash);
 
     alert::LoadedCallback callback;
 
     if(h.is_valid()) {
 
         // Remove torrent
-        _session->remove_torrent(h, 0);
+        _plugin->_session->remove_torrent(h, 0);
 
         callback = std::bind(r.handler, std::exception_ptr());
 
@@ -214,7 +157,7 @@ void RequestVariantVisitor::operator()(const request::RemoveTorrent & r) {
 void RequestVariantVisitor::operator()(const request::PauseTorrent & r) {
 
     // Find torrent
-    boost::weak_ptr<libtorrent::torrent> w = _session->find_torrent(r.infoHash);
+    boost::weak_ptr<libtorrent::torrent> w = _plugin->_session->find_torrent(r.infoHash);
 
     alert::LoadedCallback callback;
 
@@ -236,7 +179,7 @@ void RequestVariantVisitor::operator()(const request::PauseTorrent & r) {
 void RequestVariantVisitor::operator()(const request::ResumeTorrent & r) {
 
     // Find torrent
-    boost::weak_ptr<libtorrent::torrent> w = _session->find_torrent(r.infoHash);
+    boost::weak_ptr<libtorrent::torrent> w = _plugin->_session->find_torrent(r.infoHash);
 
     alert::LoadedCallback callback;
 
@@ -258,15 +201,13 @@ void RequestVariantVisitor::operator()(const request::ResumeTorrent & r) {
 std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorrent::sha1_hash & infoHash,
                                                                   const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const {
 
-    auto pluginMap = _plugin->torrentPlugins();
-
     // Make sure there is a torrent plugin for this torrent
-    auto it = pluginMap.find(infoHash);
+    auto it = _plugin->_plugins.find(infoHash);
 
     std::exception_ptr e;
 
     // If there is no torrent plugin, then tell client
-    if(it == pluginMap.cend())
+    if(it == _plugin->_plugins.cend())
         e = std::make_exception_ptr(exception::MissingTorrent());
     else {
 
@@ -286,7 +227,7 @@ std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorre
 }
 
 void RequestVariantVisitor::sendRequestResult(const alert::LoadedCallback & c) {
-    _alertManager->emplace_alert<alert::RequestResult>(c);
+    _plugin->_session->alerts().emplace_alert<alert::RequestResult>(c);
 }
 
 }

@@ -30,8 +30,7 @@ typedef boost::variant<request::Start,
                        request::ToObserveMode,
                        request::ToSellMode,
                        request::ToBuyMode,
-                       request::PostTorrentPluginStatusUpdates,
-                       request::PostPeerPluginStatusUpdates,
+                       request::UpdateStatus,
                        request::StopAllTorrentPlugins,
                        request::PauseLibtorrent,
                        request::AddTorrent,
@@ -43,12 +42,9 @@ class RequestVariantVisitor : public boost::static_visitor<> {
 
 public:
 
-    RequestVariantVisitor(Plugin * plugin,
-                          libtorrent::aux::session_impl * session,
-                          libtorrent::alert_manager * alertManager)
-        : _plugin(plugin)
-        , _session(session)
-        , _alertManager(alertManager) {}
+    RequestVariantVisitor(Plugin * plugin)
+        : _plugin(plugin) {
+    }
 
     void operator()(const request::Start & r);
     void operator()(const request::Stop & r);
@@ -58,8 +54,7 @@ public:
     void operator()(const request::ToObserveMode & r);
     void operator()(const request::ToSellMode & r);
     void operator()(const request::ToBuyMode & r);
-    void operator()(const request::PostTorrentPluginStatusUpdates & r);
-    void operator()(const request::PostPeerPluginStatusUpdates & r);
+    void operator()(const request::UpdateStatus & r);
     void operator()(const request::StopAllTorrentPlugins & r);
     void operator()(const request::PauseLibtorrent & r);
     void operator()(const request::AddTorrent & r);
@@ -77,12 +72,6 @@ private:
                                                const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const;
 
     Plugin * _plugin;
-
-    // Internal session reference
-    libtorrent::aux::session_impl * _session;
-
-    // Alert manager for posting messages
-    libtorrent::alert_manager * _alertManager;
 };
 
 }

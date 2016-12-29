@@ -9,29 +9,23 @@
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Exception.hpp>
 #include <extension/Status.hpp>
-#include <extension/Alert.hpp>
 #include <protocol_wire/protocol_wire.hpp>
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
 #include <libtorrent/peer_info.hpp>
-#include <libtorrent/alert_manager.hpp>
 
 namespace joystream {
 namespace extension {
 
     PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
-                           const libtorrent::torrent_handle & torrent,
                            const libtorrent::peer_connection_handle & connection,
                            const Policy & policy,
-                           uint minimumMessageId,
-                           libtorrent::alert_manager * alertManager)
+                           uint minimumMessageId)
         : _undead(false)
         , _plugin(plugin)
-        , _torrent(torrent)
         , _connection(connection)
         , _policy(policy)
         , _minimumMessageId(minimumMessageId)
-        , _alertManager(alertManager)
         , _endPoint(connection.remote())
         , _clientMapping(ExtendedMessageIdMapping::consecutiveIdsStartingAt(_minimumMessageId))
         , _sendUninstallMappingOnNextExtendedHandshake(false)
@@ -45,9 +39,6 @@ namespace extension {
 
     PeerPlugin::~PeerPlugin() {
         std::clog << "~PeerPlugin() called.";
-
-        // Send removal notification
-        _alertManager->emplace_alert<alert::PeerPluginRemoved>(_torrent, _endPoint, _connection.pid());
     }
 
     char const* PeerPlugin::type() const {
@@ -656,11 +647,10 @@ namespace extension {
         }
     }
 
-    status::PeerPlugin PeerPlugin::status(const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections) const {
+    status::PeerPlugin PeerPlugin::status() const {
         return status::PeerPlugin(_endPoint,
                                   _peerBEP10SupportStatus,
-                                  _peerPaymentBEPSupportStatus,
-                                  connections);
+                                  _peerPaymentBEPSupportStatus);
     }
 
     bool PeerPlugin::undead() const  {

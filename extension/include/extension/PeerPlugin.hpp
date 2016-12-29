@@ -12,8 +12,6 @@
 #include <extension/ExtendedMessageIdMapping.hpp>
 #include <common/MajorMinorSoftwareVersion.hpp>
 
-#include <protocol_session/protocol_session.hpp> // TEMPORARY
-
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/peer_connection_handle.hpp>
 #include <libtorrent/entry.hpp>
@@ -49,11 +47,9 @@ namespace status {
         };
 
         PeerPlugin(TorrentPlugin * plugin,
-                   const libtorrent::torrent_handle & torrent,
                    const libtorrent::peer_connection_handle & connection,
                    const Policy & policy,
-                   uint numberMessageIdsFrom,
-                   libtorrent::alert_manager * alertManager);
+                   uint numberMessageIdsFrom);
 
         virtual ~PeerPlugin();
 
@@ -151,7 +147,7 @@ namespace status {
         void send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessage);
 
         // Status of plugin
-        status::PeerPlugin status(const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections) const;
+        status::PeerPlugin status() const;
 
         // Getters
         bool undead() const;
@@ -193,9 +189,6 @@ namespace status {
         // Torrent plugin for torrent
         TorrentPlugin * _plugin;
 
-        // Torrent to which peer corresponds
-        libtorrent::torrent_handle _torrent;
-
         // Connection to peer for this plugin
         libtorrent::peer_connection_handle _connection;
 
@@ -205,9 +198,6 @@ namespace status {
         // Lowest all message id where libtorrent client can guarantee we will not
         // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
         const uint _minimumMessageId;
-
-        // Libtorrent alert manager
-        libtorrent::alert_manager * _alertManager;
 
         // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
         const libtorrent::tcp::endpoint _endPoint;

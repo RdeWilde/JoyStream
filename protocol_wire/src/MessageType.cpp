@@ -21,6 +21,8 @@ namespace protocol_wire {
             case MessageType::sell: return "sell";
             case MessageType::join_contract: return "join_contract";
             case MessageType::joining_contract: return "joining_contract";
+            case MessageType::sign_refund: return "sign_refund";
+            case MessageType::refund_signed: return "refund_signed";
             case MessageType::ready: return "ready";
             case MessageType::request_full_piece: return "request_full_piece";
             case MessageType::full_piece: return "full_piece";
@@ -42,6 +44,10 @@ namespace protocol_wire {
             return MessageType::join_contract;
         else if(messageName(MessageType::joining_contract) == name)
             return MessageType::joining_contract;
+        else if(messageName(MessageType::sign_refund) == name)
+            return MessageType::sign_refund;
+        else if(messageName(MessageType::refund_signed) == name)
+            return MessageType::refund_signed;
         else if(messageName(MessageType::ready) == name)
             return MessageType::ready;
         else if(messageName(MessageType::request_full_piece) == name)

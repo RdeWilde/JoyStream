@@ -1,10 +1,10 @@
 {
   "main": "index.js",
   "scripts": {
-    "preinstall" : "sh link_qt_headers.sh",
-    "postinstall" : "sh build_node_module.sh",
-    "build-node": "sh build_node_module.sh",
-    "build-electron" : "sh build_electron_module.sh",
+    "configure-node": "node-gyp configure; sh config-qt-headers.sh",
+    "build-node": "node-gyp rebuild",
+    "configure-electron": "HOME=~/.electron-gyp node-gyp configure --target=1.4.11 --dist-url=https://atom.io/download/electron; sh config-qt-headers.sh",
+    "build-electron": "HOME=~/.electron-gyp node-gyp rebuild --target=1.4.11 --dist-url=https://atom.io/download/electron",
     "test": "mocha"
   },
   "devDependencies": {

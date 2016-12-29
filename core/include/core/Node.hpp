@@ -32,6 +32,7 @@ class Node : public QObject {
 
 public:
 
+    typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void()> NodeUnPaused;
     typedef std::function<void()> NodePaused;
     typedef extension::request::AddTorrent::AddTorrentHandler AddedTorrent;
@@ -58,7 +59,7 @@ public:
      * @throws exception::FailedToStartNodeException if starting failed.
      * @return a starte node instance
      */
-    static Node * create();
+    static Node * create(const BroadcastTransaction & broadcastTransaction);
 
     /**
      * @brief Terminates all connections on all torrents, and stops all plugins, but
@@ -103,16 +104,10 @@ public:
     void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler);
 
     /**
-     * @brief Requests updates on status of all known torrents on the libtorrent session,
-     * result appears as signal on core::
+     * @brief Triggers an update of the status of all torrents,
+     * and any changes in state will be emitted as signals.
      */
-    void postTorrentStatusUpdates() const noexcept;
-
-    /**
-     * @brief Requests updates on status of all known torrent plugins, result
-     * appears as signal core::TorrentPlugin::statusUpdated on corresponding objects.
-     */
-    void postTorrentPluginStatusUpdates() const noexcept;
+    void updateStatus();
 
     /**
      * @brief Port on which node is currently listening for BitTorrent
@@ -190,12 +185,6 @@ signals:
     // Torrent with given info hash was removed
     void removedTorrent(const libtorrent::sha1_hash & info_hash);
 
-    // Status update with all torrent plugins
-    void torrentPluginStatusUpdate(const std::map<libtorrent::sha1_hash, extension::status::TorrentPlugin> &);
-
-    // A status arrived from libtorrent
-    void alertArrived(const libtorrent::alert *);
-
     /**
      * @brief Assisted peer discovery is enabled/disabled
      */
@@ -210,8 +199,6 @@ private:
     void pimplStartedListeningHandler(const libtorrent::tcp::endpoint & endPoint);
     void pimplTorrentAdded(core::Torrent * torrent);
     void pimplTorrentRemoved(const libtorrent::sha1_hash & info_hash);
-    void pimplTorrentPluginStatusUpdate(const std::map<libtorrent::sha1_hash, extension::status::TorrentPlugin> &);
-    void pimplAlertArrived(const libtorrent::alert *);
 
     // Entry point for callback from libtorrent, warning about 0->1 alert in queue.
     // NB: Do not under any circumstance have a call to libtorrent in this routine, since the network

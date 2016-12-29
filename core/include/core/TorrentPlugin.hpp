@@ -12,16 +12,11 @@
 
 #include <QObject>
 
-typedef std::map<libtorrent::tcp::endpoint, joystream::extension::status::PeerPlugin> PeerPluginStatuses;
-Q_DECLARE_METATYPE(PeerPluginStatuses)
-
 namespace joystream {
 namespace core {
-namespace detail {
-    struct NodeImpl;
-}
 
 class PeerPlugin;
+class Session;
 
 /**
  * @brief The TorrentPlugin class
@@ -40,7 +35,7 @@ public:
     static void registerMetaTypes();
 
     TorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                  const extension::status::TorrentPlugin & status,
+                  Session * session,
                   const boost::shared_ptr<extension::Plugin> & plugin);
 
     static TorrentPlugin * create(const extension::status::TorrentPlugin & status,
@@ -78,60 +73,33 @@ public:
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
-    extension::status::TorrentPlugin status() const noexcept;
+    /**
+     * @brief Returns peer plugin object mapping
+     * @return mapping of endpoint to peer plugin object
+     */
+    std::map<libtorrent::tcp::endpoint, PeerPlugin *> peers() const noexcept;
 
     /**
-     * @brief Requests an update of status of all corresponding peer plugins
-     * on this torrent. Result is emitted on core::PeerPlugin::statusUpdated
-     * signal for all known peer plugin objects know by this.
+     * @brief Returns session handle for session in plugin.
+     * @return Session handle
      */
-    void postPeerPluginStatusUpdates() const noexcept;
+    Session * session() const;
 
 signals:
 
-    void statusUpdated(const extension::status::TorrentPlugin &);
+    void peerPluginAdded(PeerPlugin *);
 
-    // Sloppy signals where we ship alerts, rahter than
-    // decomposing them, not worth the effort of registering types
-    // with Qt, this is all temporary.
-
-    void anchorAnnounced(const extension::alert::AnchorAnnounced *);
-
-    void updatePeerPluginStatuses(const PeerPluginStatuses &);
-
-    void sessionStarted();
-
-    void sessionPaused();
-
-    void sessionStopped();
-
-    void sessionToObserveMode();
-
-    void sessionToSellMode(const extension::alert::SessionToSellMode *);
-
-    void sessionToBuyMode(const extension::alert::SessionToBuyMode *);
-
-    void validPaymentReceived(const extension::alert::ValidPaymentReceived *);
-
-    void invalidPaymentReceived(const extension::alert::InvalidPaymentReceived *);
-
-    void buyerTermsUpdated(const extension::alert::BuyerTermsUpdated *);
-
-    void sellerTermsUpdated(const extension::alert::SellerTermsUpdated *);
-
-    void contractConstructed(const extension::alert::ContractConstructed *);
-
-    void sentPayment(const extension::alert::SentPayment * p);
-
-    void lastPaymentReceived(const extension::alert::LastPaymentReceived *);
-
-    void validPieceArrived(const extension::alert::ValidPieceArrived * p);
-
-    void invalidPieceArrived(const extension::alert::InvalidPieceArrived * p);
+    void peerPluginRemoved(const libtorrent::tcp::endpoint &);
 
 private:
 
-    friend struct detail::NodeImpl;
+    friend class Torrent;
+
+    void addPeerPlugin(const extension::status::PeerPlugin &);
+
+    void removePeerPlugin(const libtorrent::tcp::endpoint &);
+
+    void removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::const_iterator it);
 
     void update(const extension::status::TorrentPlugin &);
 
@@ -139,7 +107,9 @@ private:
 
     libtorrent::sha1_hash _infoHash;
 
-    extension::status::TorrentPlugin _status;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>> _peers;
+
+    std::unique_ptr<Session> _session;
 
     boost::shared_ptr<extension::Plugin> _plugin;
 };

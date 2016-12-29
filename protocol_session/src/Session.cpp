@@ -110,7 +110,6 @@ namespace protocol_session {
                                                const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                                const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                                const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
-                                               const ReceivedValidPayment<ConnectionIdType> & receivedValidPayment,
                                                const SellingPolicy & policy,
                                                const protocol_wire::SellerTerms & terms,
                                                int MAX_PIECE_INDEX) {
@@ -158,7 +157,6 @@ namespace protocol_session {
                                                          loadPieceForBuyer,
                                                          claimLastPayment,
                                                          anchorAnnounced,
-                                                         receivedValidPayment,
                                                          policy,
                                                          terms,
                                                          MAX_PIECE_INDEX);
@@ -169,9 +167,8 @@ namespace protocol_session {
                                               const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
                                               const GenerateReceiveAddressesCallbackHandler & generateReceiveAddresses,
                                               const GenerateChangeAddressesCallbackHandler & generateChangeAddresses,
-                                              const ContractConstructed & contractConstructed,
+                                              const BroadcastTransaction & hasOutstandingPayment,
                                               const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
-                                              const SentPayment<ConnectionIdType> & sentPayment,
                                               const Coin::UnspentOutputSet & funding,
                                               const BuyingPolicy & policy,
                                               const protocol_wire::BuyerTerms & terms,
@@ -218,9 +215,8 @@ namespace protocol_session {
                                                        generateP2SHKeyPair,
                                                        generateReceiveAddresses,
                                                        generateChangeAddresses,
-                                                       contractConstructed,
+                                                       hasOutstandingPayment,
                                                        fullPieceArrived,
-                                                       sentPayment,
                                                        funding,
                                                        policy,
                                                        terms,
@@ -444,22 +440,6 @@ namespace protocol_session {
         }
 
         return true;
-    }
-
-    template<class ConnectionIdType>
-    status::Connection<ConnectionIdType> Session<ConnectionIdType>::connectionStatus(const ConnectionIdType & id) const noexcept {
-
-        if(_mode == SessionMode::not_set)
-            throw exception::SessionModeNotSetException();
-
-        // Try to recover conneciton based on id
-        auto it = _connections.find(id);
-
-        if(it == _connections.cend())
-            throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
-
-        // Generate status for connection
-        return (*it).second->status();
     }
 
     template<class ConnectionIdType>
@@ -699,10 +679,18 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    typename status::Session<ConnectionIdType> Session<ConnectionIdType>::status() const noexcept {
+    typename status::Session<ConnectionIdType> Session<ConnectionIdType>::status() const {
 
+        // Collect connection statuses
+        std::map<ConnectionIdType, status::Connection<ConnectionIdType>> connectionStatuses;
+
+        for(auto mapping : _connections)
+            connectionStatuses.insert(std::make_pair(mapping.first, (mapping.second)->status()));
+
+        // Generate Session status
         return status::Session<ConnectionIdType>(_mode,
                                                  _state,
+                                                 connectionStatuses,
                                                  (_mode == SessionMode::selling ? _selling->status() : status::Selling()),
                                                  (_mode == SessionMode::buying ? _buying->status() : status::Buying<ConnectionIdType>()));
     }

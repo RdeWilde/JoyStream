@@ -196,9 +196,10 @@ namespace status {
 
         Session() {}
 
-        Session(SessionMode mode, SessionState state, const Selling & selling, const Buying<ConnectionIdType>  & buying)
+        Session(SessionMode mode, SessionState state, const std::map<ConnectionIdType, Connection<ConnectionIdType>> & connections, const Selling & selling, const Buying<ConnectionIdType>  & buying)
             : mode(mode)
             , state(state)
+            , connections(connections)
             , selling(selling)
             , buying(buying) {
         }
@@ -208,6 +209,9 @@ namespace status {
 
         // Current state of session
         SessionState state;
+
+        // Connections
+        std::map<ConnectionIdType, Connection<ConnectionIdType>> connections;
 
         //// Substates
 

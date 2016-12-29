@@ -17,11 +17,10 @@
 namespace joystream {
 namespace extension {
 
-Plugin::Plugin(uint minimumMessageId,
-               libtorrent::alert_manager * alertManager,
-               libtorrent::aux::session_impl * session)
-    : _alertManager(alertManager)
-    , _session(session)
+Plugin::Plugin(const TransactionBroadcaster broadcaster,
+               uint minimumMessageId)
+    : _session(nullptr)
+    , _broadcaster(broadcaster)
     , _minimumMessageId(minimumMessageId)
     , _addedToSession(false) {
 }
@@ -36,23 +35,18 @@ boost::uint32_t Plugin::implemented_features() {
 
 boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent_handle const & h, void*) {
 
-    assert(_torrentPlugins.count(h.info_hash()) == 0);
+    assert(_plugins.count(h.info_hash()) == 0);
 
     // Create a torrent plugin
-    TorrentPlugin * rawTorrentPlugin = new TorrentPlugin(this,
-                                                         h,
-                                                         _minimumMessageId,
-                                                         _alertManager,
-                                                         TorrentPlugin::Policy(),
-                                                         TorrentPlugin::LibtorrentInteraction::None);
-
-    boost::shared_ptr<libtorrent::torrent_plugin> plugin(rawTorrentPlugin);
+    boost::shared_ptr<libtorrent::torrent_plugin> plugin(new TorrentPlugin(this,
+                                                                           h,
+                                                                           _broadcaster,
+                                                                           _minimumMessageId,
+                                                                           TorrentPlugin::Policy(),
+                                                                           TorrentPlugin::LibtorrentInteraction::None));
 
     // Storing weak reference to plugin
-    _torrentPlugins[h.info_hash()] = boost::static_pointer_cast<TorrentPlugin>(plugin);
-
-    // Send alert notification
-    _alertManager->emplace_alert<alert::TorrentPluginAdded>(h, rawTorrentPlugin->status());
+    _plugins[h.info_hash()] = boost::static_pointer_cast<TorrentPlugin>(plugin);
 
     return plugin;
 }
@@ -62,7 +56,6 @@ void Plugin::added(libtorrent::session_handle h) {
     std::clog << "Plugin added to session." << std::endl;
 
     _session = h.native_handle();
-    _alertManager = &h.native_handle()->alerts();
     _addedToSession = true;
 }
 
@@ -74,9 +67,9 @@ void Plugin::on_alert(libtorrent::alert const * a) {
         const libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
         // Piece is not relevant unless we have a seller for given torrent
-        auto it = _torrentPlugins.find(infoHash);
+        auto it = _plugins.find(infoHash);
 
-        if(it == _torrentPlugins.cend())
+        if(it == _plugins.cend())
             return;
 
         boost::shared_ptr<TorrentPlugin> plugin = it->second.lock();
@@ -87,7 +80,7 @@ void Plugin::on_alert(libtorrent::alert const * a) {
 
     if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a)) {
         const libtorrent::sha1_hash infoHash = p->handle.info_hash();
-        _torrentPlugins.erase(infoHash);
+        _plugins.erase(infoHash);
     }
 }
 
@@ -107,13 +100,26 @@ void Plugin::save_state(libtorrent::entry &) const {
 void Plugin::load_state(const libtorrent::bdecode_node &) {
 }
 
-const std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > & Plugin::torrentPlugins() const noexcept {
-    return _torrentPlugins;
+status::Plugin Plugin::status() const {
+
+    status::Plugin status;
+
+    // Get state of each plugin
+    for(auto mapping : _plugins) {
+
+        boost::shared_ptr<TorrentPlugin> plugin = mapping.second.lock();
+
+        assert(plugin);
+
+        status.plugins.insert(std::make_pair(mapping.first, plugin->status()));
+    }
+
+    return status;
 }
 
 void Plugin::processesRequestQueue() {
 
-    detail::RequestVariantVisitor visitor(this, _session, _alertManager);
+    detail::RequestVariantVisitor visitor(this);
 
     // Synchronized dispatching of requests
     _requestQueueMutex.lock();

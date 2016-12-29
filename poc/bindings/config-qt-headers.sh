@@ -5,6 +5,10 @@ rm -fr ./qt_headers
 spec=`qmake -query QMAKE_XSPEC`
 
 case "$spec" in
+    win32-g++)
+	mkdir ./qt_headers
+	ln -s `qmake -query QT_INSTALL_HEADERS`/QtCore ./qt_headers/QtCore
+    ;;
     macx-clang)
 	mkdir ./qt_headers
 	ln -s `qmake -query QT_INSTALL_LIBS`/QtCore.framework/Headers/ ./qt_headers/QtCore

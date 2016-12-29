@@ -48,7 +48,7 @@ namespace detail {
         void removed();
 
         // Result of validating piece received from this seller
-        bool pieceWasValid();
+        void pieceWasValid();
 
         // Result of validating piece received from this seller
         void pieceWasInvalid();

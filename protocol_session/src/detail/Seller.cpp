@@ -69,7 +69,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    bool Seller<ConnectionIdType>::pieceWasValid() {
+    void Seller<ConnectionIdType>::pieceWasValid() {
 
         assert(
                // when a polite seller removal happens, even though piece processing
@@ -84,13 +84,8 @@ namespace detail {
         _state = SellerState::waiting_to_be_assigned_piece;
 
         // Make payment if connection exists
-        if(_connection != nullptr) {
-
+        if(_connection != nullptr)
             _connection->processEvent(protocol_statemachine::event::SendPayment());
-
-            return true;
-        } else
-            return false;
     }
 
     template <class ConnectionIdType>

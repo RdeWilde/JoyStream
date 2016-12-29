@@ -14,6 +14,8 @@
 namespace joystream {
 namespace extension {
 
+// Broadcast a transaction associated with a given torrent
+typedef std::function<void(const libtorrent::sha1_hash &, const Coin::Transaction &)> TransactionBroadcaster;
 
 }
 }

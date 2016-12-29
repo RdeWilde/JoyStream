@@ -8,16 +8,11 @@
 #ifndef JOYSTREAM_CORE_PEER_HPP
 #define JOYSTREAM_CORE_PEER_HPP
 
-#include <core/PeerPlugin.hpp>
-
 #include <libtorrent/peer_info.hpp>
 #include <QObject>
 
-#include <boost/optional.hpp>
-
 namespace joystream {
 namespace core {
-
 
 /**
  * @brief Handle for peer on torrent
@@ -35,52 +30,41 @@ public:
      */
     static void registerMetaTypes();
 
-    Peer(const libtorrent::peer_info &,
-         PeerPlugin * peerPlugin);
-
-    static Peer * create(const libtorrent::peer_info &,
-                         const boost::optional<extension::status::PeerPlugin> & pluginStatus);
+    Peer(const libtorrent::peer_info &);
 
     ~Peer();
 
-    libtorrent::peer_info peerInformation() const noexcept;
+    libtorrent::tcp::endpoint endPoint() const noexcept;
 
-    /**
-     * @brief Returns whether peer plugin handle is set.
-     * @return whether peer plugin handle is set.
-     */
-    bool peerPluginSet() const noexcept;
+    std::string client();
 
-    /**
-     * @brief Returns peer plugin handle if present.
-     * @throws exception::HandleNotSet if peer plugin handle is not present, i.e. !isPeerPluginSet()
-     * @return peer plugin handle
-     */
-    PeerPlugin * peerPlugin();
+    boost::int64_t total_download() const noexcept;
+
+    boost::int64_t total_upload() const noexcept;
+
+    int payload_up_speed() const noexcept;
+
+    int payload_down_speed() const noexcept;
 
 signals:
 
-    // Dropped because peer_info not compatible with Qt.
-    // void peerInformationUpdated(const libtorrent::peer_info &);
+    void clientChanged(std::string & client);
 
-    void peerPluginAdded(PeerPlugin *);
+    void total_downloadChanged(boost::int64_t);
 
-    void peerPluginRemoved();
+    void total_upload(boost::int64_t);
+
+    void payload_up_speed(int);
+
+    void payload_down_speed(int);
 
 private:
 
-    friend struct detail::NodeImpl;
     friend class Torrent;
 
     void update(const libtorrent::peer_info & peerInformation);
 
-    void addPeerPlugin(const extension::status::PeerPlugin &);
-
-    void removePeerPlugin();
-
     libtorrent::peer_info _peerInformation;
-
-    std::unique_ptr<PeerPlugin> _peerPlugin;
 };
 
 }
