@@ -39,8 +39,6 @@ namespace detail {
     using ConnectionMap = std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *>;
 }
 
-    class SellingPolicy;
-    class BuyingPolicy;
     class TorrentPieceInformation;
     struct StartDownloadConnectionInformation;
     template <class ConnectionIdType>
@@ -89,7 +87,6 @@ namespace detail {
         void toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
                        const FullPieceArrived<ConnectionIdType> &,
                        const SentPayment<ConnectionIdType> &,
-                       const SignContract & signContract,
                        const protocol_wire::BuyerTerms &,
                        const TorrentPieceInformation &);
 

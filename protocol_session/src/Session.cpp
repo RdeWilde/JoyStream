@@ -164,7 +164,6 @@ namespace protocol_session {
     void Session<ConnectionIdType>::toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
                                               const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                               const SentPayment<ConnectionIdType> & sentPayment,
-                                              const SignContract & signContract,
                                               const protocol_wire::BuyerTerms & terms,
                                               const TorrentPieceInformation & information) {
 
@@ -208,7 +207,6 @@ namespace protocol_session {
                                                        removedConnection,
                                                        fullPieceArrived,
                                                        sentPayment,
-                                                       signContract,
                                                        terms,
                                                        information);
     }

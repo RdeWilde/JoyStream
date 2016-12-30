@@ -26,14 +26,12 @@ namespace detail {
                                      const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                      const SentPayment<ConnectionIdType> & sentPayment,
-                                     const SignContract & signContract,
                                      const protocol_wire::BuyerTerms & terms,
                                      const TorrentPieceInformation & information)
         : _session(session)
         , _removedConnection(removedConnection)
         , _fullPieceArrived(fullPieceArrived)
         , _sentPayment(sentPayment)
-        , _signContract(signContract)
         , _state(BuyingState::sending_invitations)
         , _terms(terms)
         , _numberOfMissingPieces(0)

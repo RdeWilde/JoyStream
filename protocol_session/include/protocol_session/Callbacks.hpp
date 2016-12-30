@@ -92,15 +92,6 @@ using SentPayment = std::function<void(const ConnectionIdType &,
                                        uint64_t totalAmountPaid,
                                        int pieceIndex)>;
 
-/**
-* @brief Completes contract by financing it, and adding change output if required.
-* @param tx contract transaction to be signed
-* @param feePrKb minimum satoshies per Kilobyte fee rate required
-* @throws exception::UnsufficientFunds could not sign contract
-* @return signed inputs
-*/
-typedef std::function<Coin::Transaction(const Coin::Transaction & tx, int64_t feePrKb)> SignContract;
-
 //// Selling
 
 // Notification that buyer with given connection ids has one outstanding payment

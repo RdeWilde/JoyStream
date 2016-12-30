@@ -44,7 +44,6 @@ public:
            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
            const FullPieceArrived<ConnectionIdType> &,
            const SentPayment<ConnectionIdType> &,
-           const SignContract &,
            const protocol_wire::BuyerTerms &,
            const TorrentPieceInformation &);
 
@@ -109,11 +108,6 @@ public:
     // Status of Buying
     status::Buying<ConnectionIdType> status() const;
 
-    //// Getters and setters
-
-    BuyingPolicy policy() const;
-    void setPolicy(const BuyingPolicy & policy);
-
     protocol_wire::BuyerTerms terms() const;
 
 private:
@@ -150,7 +144,6 @@ private:
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
     SentPayment<ConnectionIdType> _sentPayment;
-    SignContract _signContract;
 
     // State
     BuyingState _state;

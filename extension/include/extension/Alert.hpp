@@ -302,10 +302,8 @@ namespace alert {
 
         SessionToSellMode(libtorrent::aux::stack_allocator& alloc,
                           const libtorrent::torrent_handle & h,
-                          const protocol_session::SellingPolicy & policy,
                           const protocol_wire::SellerTerms & terms)
             : libtorrent::torrent_alert(alloc, h)
-            , policy(policy)
             , terms(terms) {}
 
         TORRENT_DEFINE_ALERT(SessionToSellMode, libtorrent::user_alert_id + 17)
@@ -314,7 +312,6 @@ namespace alert {
             return torrent_alert::message() + " session to sell mode";
         }
 
-        protocol_session::SellingPolicy policy;
         protocol_wire::SellerTerms terms;
     };
 
@@ -322,10 +319,8 @@ namespace alert {
 
         SessionToBuyMode(libtorrent::aux::stack_allocator& alloc,
                          const libtorrent::torrent_handle & h,
-                         const protocol_session::BuyingPolicy & policy,
                          const protocol_wire::BuyerTerms & terms)
             : libtorrent::torrent_alert(alloc, h)
-            , policy(policy)
             , terms(terms) {}
 
         TORRENT_DEFINE_ALERT(SessionToBuyMode, libtorrent::user_alert_id + 18)
@@ -334,7 +329,6 @@ namespace alert {
             return torrent_alert::message() + " session to buy mode";
         }
 
-        protocol_session::BuyingPolicy policy;
         protocol_wire::BuyerTerms terms;
     };
 

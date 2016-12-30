@@ -122,18 +122,10 @@ public:
     void toObserveMode();
 
     // Transition to sell mode
-    void toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
-                    const protocol_session::GenerateReceiveAddressesCallbackHandler &generateReceiveAddressesCallbackHandler,
-                    const protocol_session::SellingPolicy & policy,
-                    const protocol_wire::SellerTerms & terms);
+    void toSellMode(const protocol_wire::SellerTerms & terms);
 
     // Transition to buy mode
-    void toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
-                   const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
-                   const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
-                   const protocol_session::SignContract & signContract,
-                   const protocol_session::BuyingPolicy & policy,
-                   const protocol_wire::BuyerTerms & terms);
+    void toBuyMode(const protocol_wire::BuyerTerms & terms);
 
     // State of session
     protocol_session::SessionState sessionState() const;
@@ -177,7 +169,6 @@ private:
     /// Protocol session hooks
 
     protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
-    protocol_session::ContractConstructed contractConstructed();
     protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived();
     protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
     protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
