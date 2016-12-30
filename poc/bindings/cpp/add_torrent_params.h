@@ -20,7 +20,7 @@ class AddTorrentParamsWrap: public Nan::ObjectWrap {
       static Nan::Persistent<Function> constructor;
 
       static NAN_METHOD(NewInstance);
-      static NAN_METHOD(resume_data);
+      static NAN_GETTER(resume_data);
 
 };
 

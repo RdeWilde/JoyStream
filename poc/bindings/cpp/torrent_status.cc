@@ -6,16 +6,17 @@ Nan::Persistent<Function> TorrentStatusWrap::constructor;
 
 NAN_MODULE_INIT(TorrentStatusWrap::Init) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("TorrentStatusWrap").ToLocalChecked());
+  tpl->SetClassName(Nan::New("TorrentStatus").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  Nan::SetPrototypeMethod(tpl, "infoHash", info_hash);
-  Nan::SetPrototypeMethod(tpl, "state", state);
-  Nan::SetPrototypeMethod(tpl, "progress", progress);
+  Local<ObjectTemplate> inst = tpl->InstanceTemplate();
+  Nan::SetAccessor(inst, Nan::New("infoHash").ToLocalChecked(), TorrentStatusWrap::info_hash);
+  Nan::SetAccessor(inst, Nan::New("state").ToLocalChecked(), TorrentStatusWrap::state);
+  Nan::SetAccessor(inst, Nan::New("progress").ToLocalChecked(), TorrentStatusWrap::progress);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("TorrentStatusWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("TorrentStatus").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
 Local<Object> TorrentStatusWrap::New(libtorrent::torrent_status ts) {
@@ -36,22 +37,22 @@ NAN_METHOD(TorrentStatusWrap::NewInstance) {
   info.GetReturnValue().Set(info.This());
 };
 
-NAN_METHOD(TorrentStatusWrap::info_hash) {
+NAN_GETTER(TorrentStatusWrap::info_hash) {
 
     libtorrent::torrent_status* ts = TorrentStatusWrap::Unwrap(info.This());
 
     info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(ts->info_hash.to_string())).ToLocalChecked());
 };
 
-NAN_METHOD(TorrentStatusWrap::state) {
+NAN_GETTER(TorrentStatusWrap::state) {
 
     libtorrent::torrent_status* ts = TorrentStatusWrap::Unwrap(info.This());
 
     info.GetReturnValue().Set(Nan::New<Number>(ts->state));
 };
 
-NAN_METHOD(TorrentStatusWrap::progress) {
-  
+NAN_GETTER(TorrentStatusWrap::progress) {
+
     libtorrent::torrent_status* ts = TorrentStatusWrap::Unwrap(info.This());
 
     info.GetReturnValue().Set(Nan::New<Number>(ts->progress));

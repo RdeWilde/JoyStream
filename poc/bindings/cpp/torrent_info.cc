@@ -5,12 +5,12 @@ Nan::Persistent<v8::Function> TorrentInfoWrap::constructor;
 
 NAN_MODULE_INIT(TorrentInfoWrap::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("TorrentInfoWrap").ToLocalChecked());
+  tpl->SetClassName(Nan::New("TorrentInfo").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("TorrentInfoWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("TorrentInfo").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 Local<Object> TorrentInfoWrap::New(const libtorrent::torrent_info* ti) {
@@ -19,9 +19,7 @@ Local<Object> TorrentInfoWrap::New(const libtorrent::torrent_info* ti) {
     Local<Function> cons = Nan::New(constructor);
     Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
 
-    if (ti) {
-      Nan::ObjectWrap::Unwrap<TorrentInfoWrap>(obj.ToLocalChecked())->torrent_info_ = ti;
-    } 
+    Nan::ObjectWrap::Unwrap<TorrentInfoWrap>(obj.ToLocalChecked())->torrent_info_ = ti;
 
     return scope.Escape(obj.ToLocalChecked());
 };

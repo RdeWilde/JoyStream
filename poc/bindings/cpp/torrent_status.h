@@ -20,9 +20,9 @@ class TorrentStatusWrap: public Nan::ObjectWrap {
       static Nan::Persistent<Function> constructor;
 
       static NAN_METHOD(NewInstance);
-      static NAN_METHOD(info_hash);
-      static NAN_METHOD(state);
-      static NAN_METHOD(progress);
+      static NAN_GETTER(info_hash);
+      static NAN_GETTER(state);
+      static NAN_GETTER(progress);
 
 };
 

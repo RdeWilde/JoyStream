@@ -6,7 +6,7 @@ Nan::Persistent<Function> TorrentHandleWrap::constructor;
 
 NAN_MODULE_INIT(TorrentHandleWrap::Init) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("TorrentHandleWrap").ToLocalChecked());
+  tpl->SetClassName(Nan::New("TorrentHandle").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "getPeerInfo", get_peer_info);
@@ -92,7 +92,7 @@ NAN_MODULE_INIT(TorrentHandleWrap::Init) {
    Nan::SetPrototypeMethod(tpl, "torrentFile", torrent_file);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("TorrentHandleWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("TorrentHandle").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
 Local<Object> TorrentHandleWrap::New(libtorrent::torrent_handle th) {

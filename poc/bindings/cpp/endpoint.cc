@@ -6,13 +6,14 @@ Nan::Persistent<Function> EndpointWrap::constructor;
 
 NAN_MODULE_INIT(EndpointWrap::Init) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("EndpointWrap").ToLocalChecked());
+  tpl->SetClassName(Nan::New("Endpoint").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  Nan::SetPrototypeMethod(tpl, "address", address);
+  Local<ObjectTemplate> inst = tpl->InstanceTemplate();
+  Nan::SetAccessor(inst, Nan::New("address").ToLocalChecked(), EndpointWrap::address);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("EndpointWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("Endpoint").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
 Local<Object> EndpointWrap::New(libtorrent::tcp::endpoint ep) {
@@ -33,7 +34,7 @@ NAN_METHOD(EndpointWrap::NewInstance) {
   info.GetReturnValue().Set(info.This());
 };
 
-NAN_METHOD(EndpointWrap::address) {
+NAN_GETTER(EndpointWrap::address) {
   libtorrent::tcp::endpoint* ep = EndpointWrap::Unwrap(info.This());
   std::string address = ep->address().to_string();
 

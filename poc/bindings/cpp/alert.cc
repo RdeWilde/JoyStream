@@ -6,7 +6,7 @@ Nan::Persistent<Function> AlertWrap::constructor;
 
 NAN_MODULE_INIT(AlertWrap::Init) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("AlertWrap").ToLocalChecked());
+  tpl->SetClassName(Nan::New("Alert").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "what", what);
@@ -25,7 +25,7 @@ NAN_MODULE_INIT(AlertWrap::Init) {
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("AlertWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("Alert").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
 Local<Object> AlertWrap::New(const libtorrent::alert* a) {

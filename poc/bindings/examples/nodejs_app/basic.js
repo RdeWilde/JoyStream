@@ -21,7 +21,7 @@ node.addTorrent(0, 0, 'Sintel', null, '/home/lola/joystream/test/', '6a9759bffd5
       debug(err)
     } else {
       console.log('This has been called once the torrent is added')
-      
+
       node.removeTorrent('6a9759bffd5c0af65319979fb7832189f4f3c35d',
         function (err) {
           if (err) {

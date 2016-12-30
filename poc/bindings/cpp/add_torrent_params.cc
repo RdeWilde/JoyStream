@@ -6,13 +6,14 @@ Nan::Persistent<Function> AddTorrentParamsWrap::constructor;
 
 NAN_MODULE_INIT(AddTorrentParamsWrap::Init) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("AddTorrentParamsWrap").ToLocalChecked());
+  tpl->SetClassName(Nan::New("AddTorrentParams").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  Nan::SetPrototypeMethod(tpl, "resumeData", resume_data);
+  Local<ObjectTemplate> inst = tpl->InstanceTemplate();
+  Nan::SetAccessor(inst, Nan::New("resumeData").ToLocalChecked(), AddTorrentParamsWrap::resume_data);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("AddTorrentParamsWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("AddTorrentParams").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
 Local<Object> AddTorrentParamsWrap::New(const libtorrent::add_torrent_params& atp) {
@@ -34,7 +35,7 @@ NAN_METHOD(AddTorrentParamsWrap::NewInstance) {
   info.GetReturnValue().Set(info.This());
 };
 
-NAN_METHOD(AddTorrentParamsWrap::resume_data) {
+NAN_GETTER(AddTorrentParamsWrap::resume_data) {
 
     libtorrent::add_torrent_params* atp = AddTorrentParamsWrap::Unwrap(info.This());
 

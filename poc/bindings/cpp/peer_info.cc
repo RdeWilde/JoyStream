@@ -6,13 +6,14 @@ Nan::Persistent<Function> PeerInfoWrap::constructor;
 
 NAN_MODULE_INIT(PeerInfoWrap::Init) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("PeerInfoWrap").ToLocalChecked());
+  tpl->SetClassName(Nan::New("PeerInfo").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  Nan::SetPrototypeMethod(tpl, "ip", ip);
+  Local<ObjectTemplate> inst = tpl->InstanceTemplate();
+  Nan::SetAccessor(inst, Nan::New("ip").ToLocalChecked(), PeerInfoWrap::ip);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("PeerInfoWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("PeerInfo").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
 Local<Object> PeerInfoWrap::New(libtorrent::peer_info pi) {
@@ -33,7 +34,7 @@ NAN_METHOD(PeerInfoWrap::NewInstance) {
   info.GetReturnValue().Set(info.This());
 };
 
-NAN_METHOD(PeerInfoWrap::ip) {
+NAN_GETTER(PeerInfoWrap::ip) {
   libtorrent::peer_info* pi = PeerInfoWrap::Unwrap(info.This());
 
   info.GetReturnValue().Set(EndpointWrap::New(pi->ip));

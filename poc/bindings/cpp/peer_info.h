@@ -22,7 +22,7 @@ class PeerInfoWrap: public Nan::ObjectWrap {
       static Nan::Persistent<Function> constructor;
 
       static NAN_METHOD(NewInstance);
-      static NAN_METHOD(ip);
+      static NAN_GETTER(ip);
 };
 
 #endif

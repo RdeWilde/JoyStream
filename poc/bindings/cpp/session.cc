@@ -6,7 +6,7 @@ Nan::Persistent<v8::Function> SessionWrap::constructor;
 
 NAN_MODULE_INIT(SessionWrap::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("SessionWrap").ToLocalChecked());
+  tpl->SetClassName(Nan::New("Session").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "addTorrent", AddTorrent);
@@ -24,7 +24,7 @@ NAN_MODULE_INIT(SessionWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "dhtGetPeers", dht_get_peers);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("SessionWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("Session").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 libtorrent::sha1_hash SessionWrap::object_to_sha1_hash(v8::Local<v8::Value> infoHash) {

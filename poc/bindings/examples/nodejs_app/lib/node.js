@@ -1,4 +1,4 @@
-"use strict"
+'use strict'
 
 var NativeExtension = require('../../../')
 var debug = require('debug')('node')
@@ -30,7 +30,7 @@ class Node extends EventEmitter {
 
     constructor () {
       super()
-      this.session = new NativeExtension.SessionWrap()
+      this.session = new NativeExtension.Session()
       this.plugin = null
       this.torrents = new Map()
       this.torrentsBySecondaryHash = new Map()
@@ -41,13 +41,6 @@ class Node extends EventEmitter {
         for (var i in alerts) {
           this.process(alerts[i])
         }
-
-        /*while (alerts.length > 0) {
-          // shift remove and return the first alert in the array
-          var alert = alerts.shift()
-          console.log(alerts.length)
-          this.process(alert)
-        }*/
       }.bind(this), 1000)
     }
 
@@ -192,8 +185,7 @@ class Node extends EventEmitter {
         var timestamp = Date.now()
         var peers = alert.peers()
         for (var i in peers) {
-          var address = peers[i].address()
-          torrent.addJSPeerAtTimestamp(address, timestamp)
+          torrent.addJSPeerAtTimestamp(peers[i].address, timestamp)
           torrent.handle.connectPeer(peers[i])
           debug('Connection added')
         }
@@ -206,7 +198,7 @@ class Node extends EventEmitter {
       debug('Process listen_succeeded_alert')
 
       var endpoint = alert.endpoint()
-      this.emit('listenSucceededAlert', endpoint)
+      this.emit('listen_succeeded_alert', endpoint)
     }
 
     [_metadataReceivedAlert](alert) {
@@ -218,7 +210,7 @@ class Node extends EventEmitter {
 
       if (torrentInfo && torrent) {
         debug('Received Metadata for torrent')
-        torrent.emit('metadataReceivedAlert', torrentInfo)
+        torrent.emit('metadata_received_alert', torrentInfo)
       }
 
     }
@@ -233,7 +225,7 @@ class Node extends EventEmitter {
 
       if (!alert.error()) {
         var torrentHandle = alert.handle()
-        var resumeData = alert.params().resumeData()
+        var resumeData = alert.params().resumeData
 
         var torrent = this.torrents.get(torrentHandle.infoHash())
         // Verify if torrent not already in torrents list
@@ -248,7 +240,7 @@ class Node extends EventEmitter {
           // Add torrent to torrents map
           this.torrents.set(torrentHandle.infoHash(),torrent)
           // Emit event 'addTorrentAlert'
-          this.emit('addTorrentAlert', torrent)
+          this.emit('add_torrent_alert', torrent)
 
           // DHT stuff
           this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash(), torrentHandle.infoHash())
@@ -277,10 +269,10 @@ class Node extends EventEmitter {
       var status = alert.status()
 
       for (var i in status) {
-        var torrent = this.torrents.get(status[i].infoHash())
+        var torrent = this.torrents.get(status[i].infoHash)
 
         if (torrent) {
-          torrent.emit('stateUpdatedAlert', status[i].state(), status[i].progress())
+          torrent.emit('state_update_alert', status[i].state, status[i].progress)
         } else {
           debug('Torrent not found !')
         }
@@ -299,7 +291,7 @@ class Node extends EventEmitter {
        console.log(this.torrents)
 
        if (torrent) {
-         torrent.emit('torrentRemovedAlert')
+         torrent.emit('torrent_removed_alert')
        } else {
          debug('Torrent not found')
        }
@@ -314,7 +306,7 @@ class Node extends EventEmitter {
       if (torrent) {
         // emit alert that the torrent has been resumed
         debug('Torrent resumed')
-        torrent.emit('torrentResumedAlert')
+        torrent.emit('torrent_resumed_alert')
       } else {
         var err = 'Cannot find torrent to resume'
         debug(err)
@@ -345,7 +337,7 @@ class Node extends EventEmitter {
       if (torrent) {
         // emit alert that the torrent has been paused
         debug('Torrent paused')
-        torrent.emit('torrentPausedAlert')
+        torrent.emit('torrent_paused_alert')
       } else {
         var err = 'Cannot find torrent to pause'
         debug(err)
@@ -370,7 +362,7 @@ class Node extends EventEmitter {
 
       if (torrent) {
         for (var i in peersInfo) {
-          if (peersInfo[i].ip() == alert.ip()) {
+          if (peersInfo[i].ip == alert.ip()) {
             torrent.addPeer(peersInfo[i])
           }
         }
