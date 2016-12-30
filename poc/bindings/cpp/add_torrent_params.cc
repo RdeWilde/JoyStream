@@ -15,7 +15,7 @@ NAN_MODULE_INIT(AddTorrentParamsWrap::Init) {
   Nan::Set(target, Nan::New("AddTorrentParamsWrap").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 };
 
-Local<Object> AddTorrentParamsWrap::New(libtorrent::add_torrent_params atp) {
+Local<Object> AddTorrentParamsWrap::New(const libtorrent::add_torrent_params& atp) {
     Nan::EscapableHandleScope scope;
 
     Local<Function> cons = Nan::New(constructor);
@@ -24,14 +24,6 @@ Local<Object> AddTorrentParamsWrap::New(libtorrent::add_torrent_params atp) {
     Nan::ObjectWrap::Unwrap<AddTorrentParamsWrap>(obj.ToLocalChecked())->add_torrent_params_ = atp;
 
     return scope.Escape(obj.ToLocalChecked());
-};
-
-AddTorrentParamsWrap::AddTorrentParamsWrap() {
-
-};
-
-AddTorrentParamsWrap::~AddTorrentParamsWrap() {
-
 };
 
 NAN_METHOD(AddTorrentParamsWrap::NewInstance) {
