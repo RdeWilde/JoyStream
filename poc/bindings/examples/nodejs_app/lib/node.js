@@ -246,7 +246,6 @@ class Node extends EventEmitter {
           this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash(), torrentHandle.infoHash())
           this.session.dhtAnnounce(torrent.secondaryInfoHash(), this.session.listenPort())
 
-
         } else {
           torrent.resumeData = resumeData
         }
