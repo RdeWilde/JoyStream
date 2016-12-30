@@ -22,14 +22,12 @@ namespace extension {
     PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
                            const libtorrent::torrent_handle & torrent,
                            const libtorrent::peer_connection_handle & connection,
-                           const Policy & policy,
                            uint minimumMessageId,
                            libtorrent::alert_manager * alertManager)
         : _undead(false)
         , _plugin(plugin)
         , _torrent(torrent)
         , _connection(connection)
-        , _policy(policy)
         , _minimumMessageId(minimumMessageId)
         , _alertManager(alertManager)
         , _endPoint(connection.remote())

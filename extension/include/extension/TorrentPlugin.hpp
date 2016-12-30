@@ -31,14 +31,12 @@ public:
     struct Policy {
 
         Policy(bool banPeersWithPastMalformedExtendedMessage,
-               bool banPeersWithPastMisbehavior,
-               const PeerPlugin::Policy & peerPolicy)
+               bool banPeersWithPastMisbehavior)
             : banPeersWithPastMalformedExtendedMessage(banPeersWithPastMalformedExtendedMessage)
-            , banPeersWithPastMisbehavior(banPeersWithPastMisbehavior)
-            , peerPolicy(peerPolicy) {
+            , banPeersWithPastMisbehavior(banPeersWithPastMisbehavior) {
         }
 
-        Policy() : Policy(true, true, PeerPlugin::Policy()) { }
+        Policy() : Policy(true, true) { }
 
         // Should TorrenPlugin::new_connection accept a peer which
         // is known to have sent a malformed extended message before.
@@ -47,9 +45,6 @@ public:
         // Should TorrenPlugin::new_connection accept a peer which
         // is known to have misbehaved prior.
         bool banPeersWithPastMisbehavior;
-
-        // Policy for peer plugins
-        PeerPlugin::Policy peerPolicy;
     };
 
     // How this plugin shuold interact with libtorrent events
