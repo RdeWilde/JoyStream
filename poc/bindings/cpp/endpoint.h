@@ -16,11 +16,11 @@ class EndpointWrap: public Nan::ObjectWrap {
       };
 
     private:
+      libtorrent::tcp::endpoint endpoint_;
+      static Nan::Persistent<Function> constructor;
+
       static NAN_METHOD(NewInstance);
       static NAN_METHOD(address);
-
-      static Nan::Persistent<Function> constructor;
-      libtorrent::tcp::endpoint endpoint_;
 
 };
 

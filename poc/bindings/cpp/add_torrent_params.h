@@ -16,8 +16,8 @@ class AddTorrentParamsWrap: public Nan::ObjectWrap {
       };
 
     private:
-      static Nan::Persistent<Function> constructor;
       libtorrent::add_torrent_params add_torrent_params_;
+      static Nan::Persistent<Function> constructor;
 
       static NAN_METHOD(NewInstance);
       static NAN_METHOD(resume_data);

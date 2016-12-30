@@ -20,8 +20,8 @@ class TorrentHandleWrap : public Nan::ObjectWrap {
     };
 
   private:
-    static Nan::Persistent<v8::Function> constructor;
     libtorrent::torrent_handle th_;
+    static Nan::Persistent<v8::Function> constructor;
 
     static NAN_METHOD(NewInstance);
     static NAN_METHOD(get_peer_info);
@@ -75,9 +75,9 @@ class TorrentHandleWrap : public Nan::ObjectWrap {
     static NAN_METHOD(need_save_resume_data);
     static NAN_METHOD(force_reannounce);
 
-    #ifndef TORRENT_DISABLE_DHT
+  #ifndef TORRENT_DISABLE_DHT
     static NAN_METHOD(force_dht_announce);
-    #endif
+  #endif
 
     static NAN_METHOD(scrape_tracker);
     //static NAN_METHOD(name);

@@ -18,8 +18,8 @@ class PeerInfoWrap: public Nan::ObjectWrap {
       };
 
     private:
-      static Nan::Persistent<Function> constructor;
       libtorrent::peer_info peer_info_;
+      static Nan::Persistent<Function> constructor;
 
       static NAN_METHOD(NewInstance);
       static NAN_METHOD(ip);

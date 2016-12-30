@@ -27,8 +27,6 @@ Local<Object> EndpointWrap::New(libtorrent::tcp::endpoint ep) {
 };
 
 NAN_METHOD(EndpointWrap::NewInstance) {
-  Nan::HandleScope scope;
-
   EndpointWrap* obj = new EndpointWrap();
   obj->Wrap(info.This());
 
@@ -36,8 +34,6 @@ NAN_METHOD(EndpointWrap::NewInstance) {
 };
 
 NAN_METHOD(EndpointWrap::address) {
-  Nan::HandleScope scope;
-
   libtorrent::tcp::endpoint* ep = EndpointWrap::Unwrap(info.This());
   std::string address = ep->address().to_string();
 

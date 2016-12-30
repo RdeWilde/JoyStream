@@ -54,7 +54,6 @@ Local<Object> AlertWrap::New(const libtorrent::alert* a) {
 };*/
 
 NAN_METHOD(AlertWrap::NewInstance) {
-  Nan::HandleScope scope;
 
   AlertWrap* obj = new AlertWrap();
   obj->Wrap(info.This());
@@ -63,31 +62,26 @@ NAN_METHOD(AlertWrap::NewInstance) {
 };
 
 NAN_METHOD(AlertWrap::what) {
-    Nan::HandleScope scope;
 
     info.GetReturnValue().Set(Nan::New<String>(AlertWrap::Unwrap(info.This())->what()).ToLocalChecked());
 };
 
 NAN_METHOD(AlertWrap::type) {
-    Nan::HandleScope scope;
 
     info.GetReturnValue().Set(Nan::New<Integer>(AlertWrap::Unwrap(info.This())->type()));
 };
 
 NAN_METHOD(AlertWrap::message) {
-    Nan::HandleScope scope;
 
     info.GetReturnValue().Set(Nan::New<String>(AlertWrap::Unwrap(info.This())->message()).ToLocalChecked());
 };
 
 NAN_METHOD(AlertWrap::category) {
-    Nan::HandleScope scope;
 
     info.GetReturnValue().Set(Nan::New<Integer>(AlertWrap::Unwrap(info.This())->category()));
 };
 
 NAN_METHOD(AlertWrap::handle) {
-    Nan::HandleScope scope;
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
@@ -101,7 +95,6 @@ NAN_METHOD(AlertWrap::handle) {
 };
 
 NAN_METHOD(AlertWrap::error) {
-    Nan::HandleScope scope;
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
@@ -115,7 +108,6 @@ NAN_METHOD(AlertWrap::error) {
 };
 
 NAN_METHOD(AlertWrap::params) {
-    Nan::HandleScope scope;
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
@@ -129,7 +121,6 @@ NAN_METHOD(AlertWrap::params) {
 };
 
 NAN_METHOD(AlertWrap::info_hash) {
-    Nan::HandleScope scope;
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
@@ -152,7 +143,6 @@ NAN_METHOD(AlertWrap::info_hash) {
 };
 
 NAN_METHOD(AlertWrap::status) {
-    Nan::HandleScope scope;
 
     v8::Local<v8::Array> ret = Nan::New<v8::Array>();
 
@@ -171,7 +161,6 @@ NAN_METHOD(AlertWrap::status) {
 };
 
 NAN_METHOD(AlertWrap::peers) {
-    Nan::HandleScope scope;
 
     v8::Local<v8::Array> ret = Nan::New<v8::Array>();
 
@@ -189,7 +178,6 @@ NAN_METHOD(AlertWrap::peers) {
 };
 
 NAN_METHOD(AlertWrap::endpoint) {
-    Nan::HandleScope scope;
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
@@ -203,7 +191,6 @@ NAN_METHOD(AlertWrap::endpoint) {
 };
 
 NAN_METHOD(AlertWrap::ip) {
-    Nan::HandleScope scope;
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
@@ -217,7 +204,6 @@ NAN_METHOD(AlertWrap::ip) {
 };
 
 NAN_METHOD(AlertWrap::loaded_callback) {
-    Nan::HandleScope scope;
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 

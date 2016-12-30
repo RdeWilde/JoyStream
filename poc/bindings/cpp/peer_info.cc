@@ -27,8 +27,6 @@ Local<Object> PeerInfoWrap::New(libtorrent::peer_info pi) {
 };
 
 NAN_METHOD(PeerInfoWrap::NewInstance) {
-  Nan::HandleScope scope;
-
   PeerInfoWrap* obj = new PeerInfoWrap();
   obj->Wrap(info.This());
 
@@ -36,8 +34,6 @@ NAN_METHOD(PeerInfoWrap::NewInstance) {
 };
 
 NAN_METHOD(PeerInfoWrap::ip) {
-  Nan::HandleScope scope;
-
   libtorrent::peer_info* pi = PeerInfoWrap::Unwrap(info.This());
 
   info.GetReturnValue().Set(EndpointWrap::New(pi->ip));

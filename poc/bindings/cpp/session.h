@@ -15,8 +15,8 @@ class SessionWrap : public Nan::ObjectWrap {
     static libtorrent::sha1_hash object_to_sha1_hash(Local<Value> infoHash);
 
   private:
-    explicit SessionWrap();
-    ~SessionWrap();
+    Session session_;
+    static Nan::Persistent<v8::Function> constructor;
 
     static NAN_METHOD(New);
     static NAN_METHOD(AddTorrent);
@@ -33,8 +33,6 @@ class SessionWrap : public Nan::ObjectWrap {
     static NAN_METHOD(dht_announce);
     static NAN_METHOD(dht_get_peers);
 
-    static Nan::Persistent<v8::Function> constructor;
-    Session session_;
 };
 
 #endif

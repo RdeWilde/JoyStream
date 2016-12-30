@@ -29,7 +29,6 @@ Local<Object> TorrentStatusWrap::New(libtorrent::torrent_status ts) {
 };
 
 NAN_METHOD(TorrentStatusWrap::NewInstance) {
-  Nan::HandleScope scope;
 
   TorrentStatusWrap* obj = new TorrentStatusWrap();
   obj->Wrap(info.This());
@@ -38,7 +37,6 @@ NAN_METHOD(TorrentStatusWrap::NewInstance) {
 };
 
 NAN_METHOD(TorrentStatusWrap::info_hash) {
-    Nan::HandleScope scope;
 
     libtorrent::torrent_status* ts = TorrentStatusWrap::Unwrap(info.This());
 
@@ -46,7 +44,6 @@ NAN_METHOD(TorrentStatusWrap::info_hash) {
 };
 
 NAN_METHOD(TorrentStatusWrap::state) {
-    Nan::HandleScope scope;
 
     libtorrent::torrent_status* ts = TorrentStatusWrap::Unwrap(info.This());
 
@@ -54,8 +51,7 @@ NAN_METHOD(TorrentStatusWrap::state) {
 };
 
 NAN_METHOD(TorrentStatusWrap::progress) {
-    Nan::HandleScope scope;
-
+  
     libtorrent::torrent_status* ts = TorrentStatusWrap::Unwrap(info.This());
 
     info.GetReturnValue().Set(Nan::New<Number>(ts->progress));

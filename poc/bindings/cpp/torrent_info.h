@@ -2,6 +2,7 @@
 #define TORRENT_INFO_H
 
 #include <nan.h>
+#include <boost/optional.hpp>
 #include <libtorrent/torrent_info.hpp>
 
 using namespace v8;
@@ -16,8 +17,8 @@ class TorrentInfoWrap: public Nan::ObjectWrap {
       };
 
     private:
-      static Nan::Persistent<Function> constructor;
       const libtorrent::torrent_info* torrent_info_;
+      static Nan::Persistent<Function> constructor;
 
       static NAN_METHOD(NewInstance);
       /*static NAN_METHOD(remap_files);

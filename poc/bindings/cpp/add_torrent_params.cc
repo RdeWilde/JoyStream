@@ -27,7 +27,6 @@ Local<Object> AddTorrentParamsWrap::New(const libtorrent::add_torrent_params& at
 };
 
 NAN_METHOD(AddTorrentParamsWrap::NewInstance) {
-  Nan::HandleScope scope;
 
   AddTorrentParamsWrap* obj = new AddTorrentParamsWrap();
   obj->Wrap(info.This());
@@ -36,7 +35,6 @@ NAN_METHOD(AddTorrentParamsWrap::NewInstance) {
 };
 
 NAN_METHOD(AddTorrentParamsWrap::resume_data) {
-    Nan::HandleScope scope;
 
     libtorrent::add_torrent_params* atp = AddTorrentParamsWrap::Unwrap(info.This());
 
