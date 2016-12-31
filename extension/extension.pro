@@ -36,6 +36,7 @@ HEADERS += \
     include/extension/interface/PeerInterface.hpp \
     include/extension/interface/SessionInterface.hpp \
     include/extension/interface/TorrentInterface.hpp \
+    include/extension/Common.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
