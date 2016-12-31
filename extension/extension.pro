@@ -28,7 +28,6 @@ HEADERS += \
     include/extension/Alert.hpp \
     include/extension/Exception.hpp \
     include/extension/detail.hpp \
-    include/extension/Callbacks.hpp \
     include/extension/AlertManager.hpp \
     include/extension/Session.hpp \
     include/extension/Torrent.hpp \
