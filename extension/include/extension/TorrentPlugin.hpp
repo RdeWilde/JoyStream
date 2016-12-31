@@ -9,7 +9,6 @@
 #define JOYSTREAM_EXTENSION_TORRENTPLUGIN_HPP
 
 #include <extension/PeerPlugin.hpp>
-#include <extension/Callbacks.hpp>
 #include <protocol_session/protocol_session.hpp>
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
