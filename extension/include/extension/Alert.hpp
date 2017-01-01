@@ -606,7 +606,7 @@ namespace alert {
         TORRENT_DEFINE_ALERT(DownloadStarted, libtorrent::user_alert_id + 30)
         static const int static_category = alert::status_notification;
         virtual std::string message() const override {
-            return torrent_alert::message() + " updating session sell terms";
+            return torrent_alert::message() + " download started";
         }
 
         const Coin::Transaction contractTx;
