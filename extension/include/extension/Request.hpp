@@ -271,6 +271,30 @@ struct StartDownloading {
     SubroutineHandler handler;
 };
 
+struct StartUploading {
+
+    StartUploading() {}
+    StartUploading(const libtorrent::sha1_hash & infoHash,
+                   const libtorrent::tcp::endpoint & endPoint,
+                   const protocol_wire::BuyerTerms & terms,
+                   const Coin::KeyPair & contractKeyPair,
+                   const Coin::PubKeyHash & finalPkHash,
+                   const SubroutineHandler & handler)
+        : infoHash(infoHash)
+        , endPoint(endPoint)
+        , terms(terms)
+        , contractKeyPair(contractKeyPair)
+        , finalPkHash(finalPkHash)
+        , handler(handler) {}
+
+    const libtorrent::sha1_hash infoHash;
+    const libtorrent::tcp::endpoint endPoint;
+    const protocol_wire::BuyerTerms terms;
+    const Coin::KeyPair contractKeyPair;
+    const Coin::PubKeyHash finalPkHash;
+    SubroutineHandler handler;
+};
+
 /**
 struct ChangeDownloadLocation : public TorrentPluginRequest {
     typedef SubroutineResult<ChangeDownloadLocation> Result;

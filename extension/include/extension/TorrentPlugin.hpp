@@ -125,6 +125,12 @@ public:
     void startDownloading(const Coin::Transaction & contractTx,
                           const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap);
 
+    // See docs for protocol_session::startUploading
+    void startUploading(const libtorrent::tcp::endpoint & endPoint,
+                        const protocol_wire::BuyerTerms & terms,
+                        const Coin::KeyPair & contractKeyPair,
+                        const Coin::PubKeyHash & finalPkHash);
+
     // State of session
     protocol_session::SessionState sessionState() const;
 

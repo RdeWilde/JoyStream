@@ -411,6 +411,18 @@ void TorrentPlugin::startDownloading(const Coin::Transaction & contractTx,
     _alertManager->emplace_alert<alert::DownloadStarted>(_torrent, contractTx, peerToStartDownloadInformationMap);
 }
 
+void TorrentPlugin::startUploading(const libtorrent::tcp::endpoint & endPoint,
+                                   const protocol_wire::BuyerTerms & terms,
+                                   const Coin::KeyPair & contractKeyPair,
+                                   const Coin::PubKeyHash & finalPkHash) {
+
+    _session.startUploading(endPoint, terms, contractKeyPair, finalPkHash);
+
+    // Send notification
+    _alertManager->emplace_alert<alert::UploadStarted>(_torrent, endPoint, terms, contractKeyPair, finalPkHash);
+
+}
+
 std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
     return _peers;
 }

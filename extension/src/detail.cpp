@@ -256,6 +256,15 @@ void RequestVariantVisitor::operator()(const request::StartDownloading & r) {
     sendRequestResult(std::bind(r.handler, e));
 }
 
+void RequestVariantVisitor::operator()(const request::StartUploading & r) {
+
+    auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
+        plugin->startUploading(r.endPoint, r.terms, r.contractKeyPair, r.finalPkHash);
+    });
+
+    sendRequestResult(std::bind(r.handler, e));
+}
+
 std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorrent::sha1_hash & infoHash,
                                                                   const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const {
 

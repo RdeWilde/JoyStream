@@ -68,6 +68,7 @@ public:
     void operator()(const request::PauseTorrent & r);
     void operator()(const request::ResumeTorrent & r);
     void operator()(const request::StartDownloading & r);
+    void operator()(const request::StartUploading & r);
 
 private:
 

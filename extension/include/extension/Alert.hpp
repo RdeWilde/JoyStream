@@ -612,6 +612,32 @@ namespace alert {
         const Coin::Transaction contractTx;
         const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> peerToStartDownloadInformationMap;
     };
+
+    struct UploadStarted : public libtorrent::torrent_alert {
+
+        UploadStarted(libtorrent::aux::stack_allocator& alloc,
+                      const libtorrent::torrent_handle & h,
+                      const libtorrent::tcp::endpoint & endPoint,
+                      const protocol_wire::BuyerTerms & terms,
+                      const Coin::KeyPair & contractKeyPair,
+                      const Coin::PubKeyHash & finalPkHash)
+            : libtorrent::torrent_alert(alloc, h)
+            , endPoint(endPoint)
+            , terms(terms)
+            , contractKeyPair(contractKeyPair)
+            , finalPkHash(finalPkHash) {}
+
+        TORRENT_DEFINE_ALERT(DownloadStarted, libtorrent::user_alert_id + 31)
+        static const int static_category = alert::status_notification;
+        virtual std::string message() const override {
+            return torrent_alert::message() + " upload started";
+        }
+
+        const libtorrent::tcp::endpoint endPoint;
+        const protocol_wire::BuyerTerms terms;
+        const Coin::KeyPair contractKeyPair;
+        const Coin::PubKeyHash finalPkHash;
+    };
 }
 }
 }
