@@ -402,6 +402,15 @@ void TorrentPlugin::toBuyMode(const protocol_wire::BuyerTerms & terms) {
     _alertManager->emplace_alert<alert::SessionToBuyMode>(_torrent, terms);
 }
 
+void TorrentPlugin::startDownloading(const Coin::Transaction & contractTx,
+                                     const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap) {
+
+    _session.startDownloading(contractTx, peerToStartDownloadInformationMap);
+
+    // Send notification
+    _alertManager->emplace_alert<alert::DownloadStarted>(_torrent, contractTx, peerToStartDownloadInformationMap);
+}
+
 std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
     return _peers;
 }

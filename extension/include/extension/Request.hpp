@@ -252,6 +252,25 @@ struct ToBuyMode {
     SubroutineHandler handler;
 };
 
+struct StartDownloading {
+
+    StartDownloading() {}
+    StartDownloading(const libtorrent::sha1_hash & infoHash,
+                     const Coin::Transaction & contractTx,
+                     const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap,
+                     const SubroutineHandler & handler)
+        : infoHash(infoHash)
+        , contractTx(contractTx)
+        , peerToStartDownloadInformationMap(peerToStartDownloadInformationMap)
+        , handler(handler) {
+    }
+
+    libtorrent::sha1_hash infoHash;
+    const Coin::Transaction contractTx;
+    const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> peerToStartDownloadInformationMap;
+    SubroutineHandler handler;
+};
+
 /**
 struct ChangeDownloadLocation : public TorrentPluginRequest {
     typedef SubroutineResult<ChangeDownloadLocation> Result;

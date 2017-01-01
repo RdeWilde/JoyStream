@@ -11,6 +11,7 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <extension/Status.hpp>
+#include <extension/Common.hpp>
 #include <exception>
 
 /**
@@ -592,6 +593,25 @@ namespace alert {
         protocol_wire::BuyerTerms terms;
     };
 
+    struct DownloadStarted : public libtorrent::torrent_alert {
+
+        DownloadStarted(libtorrent::aux::stack_allocator& alloc,
+                        const libtorrent::torrent_handle & h,
+                        const Coin::Transaction & contractTx,
+                        const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap)
+            : libtorrent::torrent_alert(alloc, h)
+            , contractTx(contractTx)
+            , peerToStartDownloadInformationMap(peerToStartDownloadInformationMap) {}
+
+        TORRENT_DEFINE_ALERT(DownloadStarted, libtorrent::user_alert_id + 30)
+        static const int static_category = alert::status_notification;
+        virtual std::string message() const override {
+            return torrent_alert::message() + " updating session sell terms";
+        }
+
+        const Coin::Transaction contractTx;
+        const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> peerToStartDownloadInformationMap;
+    };
 }
 }
 }

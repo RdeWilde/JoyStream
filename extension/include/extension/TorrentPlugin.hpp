@@ -121,6 +121,10 @@ public:
     // Transition to buy mode
     void toBuyMode(const protocol_wire::BuyerTerms & terms);
 
+    // See docs for protocol_session::startDownloading
+    void startDownloading(const Coin::Transaction & contractTx,
+                          const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap);
+
     // State of session
     protocol_session::SessionState sessionState() const;
 
