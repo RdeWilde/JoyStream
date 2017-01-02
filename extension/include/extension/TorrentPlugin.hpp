@@ -76,8 +76,8 @@ public:
 
     TorrentPlugin(Plugin * plugin,
                   const libtorrent::torrent_handle & torrent,
-                  const TransactionBroadcaster broadcaster,
                   uint minimumMessageId,
+                  libtorrent::alert_manager * alertManager,
                   const Policy & policy,
                   LibtorrentInteraction libtorrentInteraction);
 
@@ -138,6 +138,12 @@ public:
     // State of session
     protocol_session::SessionState sessionState() const;
 
+    // ***TEMPORARY***
+    const protocol_session::Session<libtorrent::tcp::endpoint> & session() const noexcept;
+
+    // ***TEMPORARY***
+    std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > peers() const noexcept;
+
     /// Getters & setters
 
     status::TorrentPlugin status() const;
@@ -171,11 +177,13 @@ private:
     /// Protocol session hooks
 
     protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
-    protocol_session::BroadcastTransaction broadcastTransaction();
+    protocol_session::ContractConstructed contractConstructed();
     protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived();
     protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
     protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
     protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> anchorAnnounced();
+    protocol_session::ReceivedValidPayment<libtorrent::tcp::endpoint> receivedValidPayment();
+    protocol_session::SentPayment<libtorrent::tcp::endpoint> sentPayment();
 
     /// Members
 
@@ -187,12 +195,12 @@ private:
     // Torrent for this torrent_plugin
     libtorrent::torrent_handle _torrent;
 
-    // Broadcaster for transactions
-    TransactionBroadcaster _broadcaster;
-
     // Lowest all message id where libtorrent client can guarantee we will not
     // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
     const uint _minimumMessageId;
+
+    // Libtorrent alert manager
+    libtorrent::alert_manager * _alertManager;
 
     // Parametrised runtime behaviour
     Policy _policy;

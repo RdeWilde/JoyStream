@@ -39,6 +39,7 @@ public:
             const LoadPieceForBuyer<ConnectionIdType> &,
             const ClaimLastPayment<ConnectionIdType> &,
             const AnchorAnnounced<ConnectionIdType> &,
+            const ReceivedValidPayment<ConnectionIdType> &,
             const SellingPolicy &,
             const protocol_wire::SellerTerms &,
             int);
@@ -109,6 +110,7 @@ private:
     LoadPieceForBuyer<ConnectionIdType> _loadPieceForBuyer;
     ClaimLastPayment<ConnectionIdType> _claimLastPayment;
     AnchorAnnounced<ConnectionIdType> _anchorAnnounced;
+    ReceivedValidPayment<ConnectionIdType> _receivedValidPayment;
 
     // Controls behaviour of session
     SellingPolicy _policy;

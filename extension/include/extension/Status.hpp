@@ -13,6 +13,8 @@
 #include <libtorrent/socket.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
+#include <boost/optional.hpp>
+
 #include <map>
 
 namespace joystream {
@@ -25,10 +27,12 @@ namespace status {
 
         PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
                    const BEPSupportStatus & peerBEP10SupportStatus,
-                   const BEPSupportStatus & peerBitSwaprBEPSupportStatus)
+                   const BEPSupportStatus & peerBitSwaprBEPSupportStatus,
+                   const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connection)
             : endPoint(endPoint)
             , peerBEP10SupportStatus(peerBEP10SupportStatus)
-            , peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
+            , peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus)
+            , connection(connection) {
         }
 
         // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
@@ -40,6 +44,8 @@ namespace status {
         // Indicates whether peer supports BEP43 .. BitSwapr
         BEPSupportStatus peerBitSwaprBEPSupportStatus;
 
+        // *** TEMPORARY ***: Status of connection
+        boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> connection;
     };
 
     struct TorrentPlugin {
@@ -47,33 +53,18 @@ namespace status {
         TorrentPlugin() {}
 
         TorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                      const std::map<libtorrent::tcp::endpoint, PeerPlugin> & peers,
                       const protocol_session::status::Session<libtorrent::tcp::endpoint> & session)
             : infoHash(infoHash)
-            , peers(peers)
             , session(session) {
         }
 
         // Torrent info hash
         libtorrent::sha1_hash infoHash;
 
-        // Maps endpoint to peer plugin status
-        std::map<libtorrent::tcp::endpoint, PeerPlugin> peers;
-
         // Status of session
         protocol_session::status::Session<libtorrent::tcp::endpoint> session;
     };
 
-    struct Plugin {
-
-        Plugin() {}
-
-        Plugin(const std::map<libtorrent::sha1_hash, TorrentPlugin> & plugins)
-            : plugins(plugins) {
-        }
-
-        std::map<libtorrent::sha1_hash, TorrentPlugin> plugins;
-    };
 }
 }
 }

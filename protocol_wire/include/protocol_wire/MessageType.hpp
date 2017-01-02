@@ -19,8 +19,6 @@ namespace protocol_wire {
         sell,
         join_contract,
         joining_contract,
-        sign_refund,
-        refund_signed,
         ready,
         request_full_piece,
         full_piece,

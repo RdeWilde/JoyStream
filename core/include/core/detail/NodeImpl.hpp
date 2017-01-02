@@ -49,6 +49,9 @@ namespace alert {
 
 namespace core {
     class Torrent;
+    class TorrentPlugin;
+    class PeerPlugin;
+    class Peer;
 
 namespace detail {
 
@@ -58,6 +61,8 @@ struct NodeImpl {
     typedef std::function<void(const libtorrent::tcp::endpoint &)> StartedListening;
     typedef std::function<void(core::Torrent * torrent)> AddedTorrent;
     typedef std::function<void(const libtorrent::sha1_hash &)> RemovedTorrent;
+    typedef std::function<void(const std::map<libtorrent::sha1_hash, joystream::extension::status::TorrentPlugin>)> TorrentPluginStatusUpdate;
+    typedef std::function<void(const libtorrent::alert * )> AlertArrived;
 
     /// Callbacks provided by user on operations
     typedef std::function<void()> Paused;
@@ -66,7 +71,9 @@ struct NodeImpl {
              const boost::shared_ptr<extension::Plugin> & plugin,
              const StartedListening & startedListening,
              const AddedTorrent & addedTorrent,
-             const RemovedTorrent & removedTorrent);
+             const RemovedTorrent & removedTorrent,
+             const TorrentPluginStatusUpdate & torrentPluginStatusUpdate,
+             const AlertArrived & alertArrived);
 
     ~NodeImpl();
 
@@ -87,10 +94,7 @@ struct NodeImpl {
     void updateTorrentStatus() const;
 
     // Updates torrent plugin statuses
-    void updateTorrentPluginStatus() const;
-
-    // Updates peer statuses
-    void updatePeerStatus() const;
+    void postTorrentPluginStatusUpdates() const;
 
     // Port on which BitTorrent daemon listens
     unsigned short port() const;
@@ -124,7 +128,31 @@ struct NodeImpl {
 
     // Processing (plugin) alerts
     void process(const extension::alert::RequestResult * p);
-    void process(const extension::alert::PluginStatus * p);
+    void process(const extension::alert::TorrentPluginStatusUpdateAlert * p);
+    void process(const extension::alert::PeerPluginStatusUpdateAlert * p);
+    void process(const extension::alert::TorrentPluginAdded * p);
+    void process(const extension::alert::TorrentPluginRemoved * p);
+    void process(const extension::alert::PeerPluginAdded * p);
+    void process(const extension::alert::PeerPluginRemoved * p);
+    void process(const extension::alert::ConnectionAddedToSession * p);
+    void process(const extension::alert::ConnectionRemovedFromSession * p);
+    void process(const extension::alert::SessionStarted * p);
+    void process(const extension::alert::SessionPaused * p);
+    void process(const extension::alert::SessionStopped * p);
+    void process(const extension::alert::SessionToObserveMode * p);
+    void process(const extension::alert::SessionToSellMode * p);
+    void process(const extension::alert::SessionToBuyMode * p);
+    void process(const extension::alert::ValidPaymentReceived * p);
+    void process(const extension::alert::InvalidPaymentReceived * p);
+    void process(const extension::alert::BuyerTermsUpdated * p);
+    void process(const extension::alert::SellerTermsUpdated * p);
+    void process(const extension::alert::ContractConstructed * p);
+    void process(const extension::alert::SentPayment * p);
+    void process(const extension::alert::LastPaymentReceived * p);
+    void process(const extension::alert::InvalidPieceArrived * p);
+    void process(const extension::alert::ValidPieceArrived * p);
+
+    void process(const extension::alert::AnchorAnnounced * p);
 
     // Underlying libtorrent session
     std::unique_ptr<libtorrent::session> _session;
@@ -147,13 +175,25 @@ struct NodeImpl {
     StartedListening _startedListening;
     AddedTorrent _addedTorrent;
     RemovedTorrent _removedTorrent;
+    TorrentPluginStatusUpdate _torrentPluginStatusUpdate;
+    AlertArrived _alertArrived;
 
     void removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it);
+
+
+    /// TEMPORARY
+    /// Tries to recover corresponding object
+
+    core::Torrent * getTorrent(const libtorrent::sha1_hash &);
+    core::Peer * getPeer(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep);
+    core::TorrentPlugin * getTorrentPlugin(const libtorrent::sha1_hash & infoHash);
+    core::PeerPlugin * getPeerPlugin(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & ep);
 
 public slots:
     // Secondary hash for faster JS peer discovery
     void getPeersAllTorrentsSecondaryHash();
     void announceAllTorrentsSecondaryHash();
+
 };
 
 }
