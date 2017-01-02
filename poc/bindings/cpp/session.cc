@@ -123,7 +123,7 @@ NAN_METHOD(SessionWrap::listen_port) {
   info.GetReturnValue().Set(session_wrap->session_.s->listen_port());
 }
 
-NAN_METHOD(SessionWrap::PostTorrentUpdates) {
+NAN_METHOD(SessionWrap::post_torrent_updates) {
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
   session_wrap->session_.s->post_torrent_updates();

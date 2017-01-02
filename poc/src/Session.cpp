@@ -15,7 +15,7 @@ Session::Session() {
         fprintf(stderr, "failed to open listen socket: %s\n", ec.message().c_str());
     } else {
         // Create and install plugin
-        boost::shared_ptr<joystream::extension::Plugin> plugin(new joystream::extension::Plugin([](const libtorrent::sha1_hash &, const Coin::Transaction & tx) -> void {}, 60));
+        boost::shared_ptr<joystream::extension::Plugin> plugin(new joystream::extension::Plugin(60));
 
         // Add plugin extension
         s->add_extension(boost::static_pointer_cast<libtorrent::plugin>(plugin));
