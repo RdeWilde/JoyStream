@@ -139,13 +139,15 @@ void Test::paychan_one_to_one() {
 
     // Construct contract
     auto funding = std::make_shared<Coin::UnspentP2PKHOutput>(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source_amount);
-    Contract c(Coin::UnspentOutputSet({funding}));
+    ContractTransactionBuilder c;
+
+    c.setFunding(Coin::UnspentOutputSet({funding}));
 
     // Terms
     Coin::RelativeLockTime lockTime;
     uint64_t price = 8;
 
-    c.addCommitment(Commitment(amount_in_channel, payorContractKeyPair.pk(), payeeContractKeyPair.pk(), lockTime));
+    c.setCommitments(ContractTransactionBuilder::Commitments({Commitment(amount_in_channel, payorContractKeyPair.pk(), payeeContractKeyPair.pk(), lockTime)}));
 
     Coin::Payment change(change_amount, Coin::RedeemScriptHash());
     c.setChange(change);

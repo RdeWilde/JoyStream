@@ -44,14 +44,9 @@ namespace status {
 
     public:
 
-        struct Policy {
-
-        };
-
         PeerPlugin(TorrentPlugin * plugin,
                    const libtorrent::torrent_handle & torrent,
                    const libtorrent::peer_connection_handle & connection,
-                   const Policy & policy,
                    uint numberMessageIdsFrom,
                    libtorrent::alert_manager * alertManager);
 
@@ -198,9 +193,6 @@ namespace status {
 
         // Connection to peer for this plugin
         libtorrent::peer_connection_handle _connection;
-
-        // Policy governing runtime behaviour of plugin
-        Policy _policy;
 
         // Lowest all message id where libtorrent client can guarantee we will not
         // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)

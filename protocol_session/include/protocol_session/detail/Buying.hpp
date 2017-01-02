@@ -9,12 +9,10 @@
 #define JOYSTREAM_PROTOCOLSESSION_BUYING_HPP
 
 #include <protocol_session/Session.hpp>
-#include <protocol_session/BuyingPolicy.hpp>
 #include <protocol_session/BuyingState.hpp>
 #include <protocol_session/detail/Piece.hpp>
 #include <protocol_session/detail/Seller.hpp>
 #include <protocol_wire/protocol_wire.hpp>
-#include <common/UnspentOutputSet.hpp>
 #include <CoinCore/CoinNodeData.h>
 
 #include <vector>
@@ -26,6 +24,8 @@ namespace protocol_statemachine {
 namespace protocol_session {
 
 class TorrentPieceInformation;
+class ContractAnnouncement;
+enum class StartDownloadConnectionReadiness;
 
 namespace detail {
 
@@ -42,14 +42,8 @@ public:
 
     Buying(Session<ConnectionIdType> *,
            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-           const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
-           const GenerateReceiveAddressesCallbackHandler &,
-           const GenerateChangeAddressesCallbackHandler &,
-           const ContractConstructed &,
            const FullPieceArrived<ConnectionIdType> &,
            const SentPayment<ConnectionIdType> &,
-           const Coin::UnspentOutputSet &,
-           const BuyingPolicy &,
            const protocol_wire::BuyerTerms &,
            const TorrentPieceInformation &);
 
@@ -60,6 +54,10 @@ public:
 
     // Remove connection
     void removeConnection(const ConnectionIdType &);
+
+    // Transition to BuyingState::sending_invitations
+    void startDownloading(const Coin::Transaction & contractTx,
+                          const PeerToStartDownloadInformationMap<ConnectionIdType> & peerToStartDownloadInformationMap);
 
     // A valid piece was sent too us on given connection
     void validPieceReceivedOnConnection(const ConnectionIdType &, int index);
@@ -110,33 +108,9 @@ public:
     // Status of Buying
     status::Buying<ConnectionIdType> status() const;
 
-    //// Getters and setters
-
-    Coin::UnspentOutputSet funding() const;
-
-    BuyingPolicy policy() const;
-    void setPolicy(const BuyingPolicy & policy);
-
     protocol_wire::BuyerTerms terms() const;
 
 private:
-
-    //// Routines for initiation contract
-
-    // Whether downloading can begin
-    bool canToStartDownloading();
-
-    // Tries start downloading if possible
-    bool tryToStartDownloading();
-
-    // Pick an appropriate subset of connections as sellers
-    std::vector<detail::Connection<ConnectionIdType> *> selectSellers() const;
-
-    // Decide a distribution of funds among given sellers
-    std::vector<uint64_t> distributeFunds(const std::vector<protocol_wire::SellerTerms> &) const;
-
-    // Determine if there should be a change output, and if so, how much funds it should have
-    uint64_t determineChangeAmount(uint32_t numberOfSellers, uint64_t totalComitted, uint64_t contractFeePerKb, int numberOfInputs = 1) const;
 
     //// Assigning pieces
 
@@ -168,18 +142,8 @@ private:
 
     // Callback handlers
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
-    GenerateP2SHKeyPairCallbackHandler _generateP2SHKeyPair;
-    GenerateReceiveAddressesCallbackHandler _generateReceiveAddresses;
-    GenerateChangeAddressesCallbackHandler _generateChangeAddresses;
-    ContractConstructed _contractConstructed;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
     SentPayment<ConnectionIdType> _sentPayment;
-
-    // Funding for buyer
-    Coin::UnspentOutputSet _funding;
-
-    // Controls behaviour of session
-    BuyingPolicy _policy;
 
     // State
     BuyingState _state;
@@ -194,7 +158,7 @@ private:
     // NB** Must be stored, as signatures are non-deterministic
     // contributions to the TxId, and hence discarding them
     // ***When segwit is enforced, this will no longer be neccessary.***
-    Coin::Transaction _contractTx;
+    //Coin::Transaction _contractTx;
 
     // Pieces in torrent file
     std::vector<detail::Piece<ConnectionIdType>> _pieces;

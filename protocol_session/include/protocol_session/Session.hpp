@@ -13,6 +13,8 @@
 #include <protocol_session/SessionMode.hpp>
 #include <protocol_session/SessionState.hpp>
 
+#include <unordered_map>
+
 // ConnectionIdType: Type for identifying connections.
 // 1) must be possible to use as key in std::map
 // 2) must have std::string toString(const & ConnectionIdType);
@@ -37,9 +39,10 @@ namespace detail {
     using ConnectionMap = std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *>;
 }
 
-    class SellingPolicy;
-    class BuyingPolicy;
     class TorrentPieceInformation;
+    struct StartDownloadConnectionInformation;
+    template <class ConnectionIdType>
+    using PeerToStartDownloadInformationMap = std::unordered_map<ConnectionIdType, StartDownloadConnectionInformation>;
 
     template <class ConnectionIdType>
     class Session {
@@ -51,8 +54,9 @@ namespace detail {
          * @param terms Terms that buyer side will have
          * @param numberOfPieces Number of pieces to buy
          * @return minimum Funds (#satoshies) required for buyer, with given terms, to fund contract
-         */
+
         static int64_t minimumFundsRequiredAsBuyer(const protocol_wire::BuyerTerms & terms, int numberOfPieces);
+         */
 
         Session();
 
@@ -72,26 +76,17 @@ namespace detail {
 
         // Change session to sell mode
         void toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-                        const GenerateP2SHKeyPairCallbackHandler &,
-                        const GenerateReceiveAddressesCallbackHandler &,
                         const LoadPieceForBuyer<ConnectionIdType> &,
                         const ClaimLastPayment<ConnectionIdType> &,
                         const AnchorAnnounced<ConnectionIdType> &,
                         const ReceivedValidPayment<ConnectionIdType> & receivedValidPayment,
-                        const SellingPolicy &,
                         const protocol_wire::SellerTerms &,
                         int);
 
         // Change session to buy mode
         void toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-                       const GenerateP2SHKeyPairCallbackHandler &,
-                       const GenerateReceiveAddressesCallbackHandler &,
-                       const GenerateChangeAddressesCallbackHandler &,
-                       const ContractConstructed &,
                        const FullPieceArrived<ConnectionIdType> &,
                        const SentPayment<ConnectionIdType> &,
-                       const Coin::UnspentOutputSet &,
-                       const BuyingPolicy &,
                        const protocol_wire::BuyerTerms &,
                        const TorrentPieceInformation &);
 
@@ -144,6 +139,21 @@ namespace detail {
 
         //// Buying
 
+        /**
+         * @brief Start downloading from sellers.
+         *
+         * ...
+         *
+         * @param contractTx contract transaction
+         * @param peerToStartDownloadInformationMap ...
+         * @return void
+         * @throws exception::StateIncompatibleOperation if @c\ state() != SessionState::started \@c
+         * @throws exception::SessionModeNotSetException if @c\ mode() != SessionMode::buying \@c
+         * @throws exception::NoLongerSendingInvitations if invitations are no longer being sent in buying mode (_state != BuyingState::sending_invitations)
+         */
+        void startDownloading(const Coin::Transaction & contractTx,
+                              const PeerToStartDownloadInformationMap<ConnectionIdType> & peerToStartDownloadInformationMap);
+
         // A valid piece was sent too us on given connection
         void validPieceReceivedOnConnection(const ConnectionIdType &, int index);
 
@@ -158,6 +168,26 @@ namespace detail {
         void updateTerms(const protocol_wire::BuyerTerms &);
 
         //// Selling
+
+        /**
+         * @brief Start uploading.
+         *
+         * ...
+         *
+         * @param id identifier for connection to start uploading on
+         * @param terms terms that buyer offered, which must be confirmed to still hold
+         * @param contractKeyPair payment channel seller side commitment pair
+         * @param finalPkHash payment channel seller side settlement pubkeyhash
+         * @return void
+         * @throws exception::SessionModeNotSetException if ...
+         * @throws exception::ModeIncompatibleOperation if ...
+         * @throws exception::StateIncompatibleOperation if ...
+         * @throws exception::PeerNotReadyToStartUploading if ...
+         */
+        void startUploading(const ConnectionIdType & id,
+                            const protocol_wire::BuyerTerms & terms,
+                            const Coin::KeyPair & contractKeyPair,
+                            const Coin::PubKeyHash & finalPkHash);
 
         // Data for given piece has been loaded
         void pieceLoaded(const ConnectionIdType &, const protocol_wire::PieceData &, int);

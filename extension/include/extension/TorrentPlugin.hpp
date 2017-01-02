@@ -9,7 +9,6 @@
 #define JOYSTREAM_EXTENSION_TORRENTPLUGIN_HPP
 
 #include <extension/PeerPlugin.hpp>
-#include <extension/Callbacks.hpp>
 #include <protocol_session/protocol_session.hpp>
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -31,14 +30,12 @@ public:
     struct Policy {
 
         Policy(bool banPeersWithPastMalformedExtendedMessage,
-               bool banPeersWithPastMisbehavior,
-               const PeerPlugin::Policy & peerPolicy)
+               bool banPeersWithPastMisbehavior)
             : banPeersWithPastMalformedExtendedMessage(banPeersWithPastMalformedExtendedMessage)
-            , banPeersWithPastMisbehavior(banPeersWithPastMisbehavior)
-            , peerPolicy(peerPolicy) {
+            , banPeersWithPastMisbehavior(banPeersWithPastMisbehavior) {
         }
 
-        Policy() : Policy(true, true, PeerPlugin::Policy()) { }
+        Policy() : Policy(true, true) { }
 
         // Should TorrenPlugin::new_connection accept a peer which
         // is known to have sent a malformed extended message before.
@@ -47,9 +44,6 @@ public:
         // Should TorrenPlugin::new_connection accept a peer which
         // is known to have misbehaved prior.
         bool banPeersWithPastMisbehavior;
-
-        // Policy for peer plugins
-        PeerPlugin::Policy peerPolicy;
     };
 
     // How this plugin shuold interact with libtorrent events
@@ -122,18 +116,20 @@ public:
     void toObserveMode();
 
     // Transition to sell mode
-    void toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
-                    const protocol_session::GenerateReceiveAddressesCallbackHandler &generateReceiveAddressesCallbackHandler,
-                    const protocol_session::SellingPolicy & policy,
-                    const protocol_wire::SellerTerms & terms);
+    void toSellMode(const protocol_wire::SellerTerms & terms);
 
     // Transition to buy mode
-    void toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
-                   const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
-                   const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
-                   const Coin::UnspentOutputSet &funding,
-                   const protocol_session::BuyingPolicy & policy,
-                   const protocol_wire::BuyerTerms & terms);
+    void toBuyMode(const protocol_wire::BuyerTerms & terms);
+
+    // See docs for protocol_session::startDownloading
+    void startDownloading(const Coin::Transaction & contractTx,
+                          const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap);
+
+    // See docs for protocol_session::startUploading
+    void startUploading(const libtorrent::tcp::endpoint & endPoint,
+                        const protocol_wire::BuyerTerms & terms,
+                        const Coin::KeyPair & contractKeyPair,
+                        const Coin::PubKeyHash & finalPkHash);
 
     // State of session
     protocol_session::SessionState sessionState() const;
@@ -177,7 +173,6 @@ private:
     /// Protocol session hooks
 
     protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
-    protocol_session::ContractConstructed contractConstructed();
     protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived();
     protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
     protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();

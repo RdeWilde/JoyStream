@@ -10,16 +10,12 @@
 
 #include <protocol_session/PieceState.hpp>
 #include <protocol_session/SellerState.hpp>
-#include <protocol_session/BuyingPolicy.hpp>
 #include <protocol_session/BuyingState.hpp>
-#include <protocol_session/SellingPolicy.hpp>
 #include <protocol_session/SessionMode.hpp>
 #include <protocol_session/SessionState.hpp>
 #include <protocol_statemachine/protocol_statemachine.hpp>
 
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
-
-//#include <common/UnspentP2PKHOutput.hpp>
 
 #include <queue>
 
@@ -136,27 +132,17 @@ namespace status {
 
         Buying() {}
 
-        Buying(const Coin::UnspentOutputSet & funding,
-               const BuyingPolicy & policy,
-               const BuyingState state,
+        Buying(const BuyingState state,
                const protocol_wire::BuyerTerms & terms,
                const std::map<ConnectionIdType, Seller<ConnectionIdType>> & sellers,
-               const Coin::Transaction & contractTx,
+               //const Coin::Transaction & contractTx,
                const std::vector<Piece<ConnectionIdType>> & pieces)
-            : funding(funding)
-            , policy(policy)
-            , state(state)
+            : state(state)
             , terms(terms)
             , sellers(sellers)
-            , contractTx(contractTx)
+            //, contractTx(contractTx)
             , pieces(pieces) {
         }
-
-        // Funding for buyer
-        Coin::UnspentOutputSet funding;
-
-        // Controls behaviour of session
-        BuyingPolicy policy;
 
         // State
         BuyingState state;
@@ -168,7 +154,7 @@ namespace status {
         std::map<ConnectionIdType, Seller<ConnectionIdType>> sellers;
 
         // Contract transaction id
-        Coin::Transaction contractTx;
+        //Coin::Transaction contractTx;
 
         // Pieces in torrent file
         std::vector<Piece<ConnectionIdType>> pieces;
@@ -178,13 +164,9 @@ namespace status {
 
         Selling() {}
 
-        Selling(const SellingPolicy & policy,const protocol_wire::SellerTerms & terms)
-            : policy(policy)
-            , terms(terms) {
+        Selling(const protocol_wire::SellerTerms & terms)
+            : terms(terms) {
         }
-
-        // Controls behaviour of session
-        SellingPolicy policy;
 
         // Terms for selling
         protocol_wire::SellerTerms terms;

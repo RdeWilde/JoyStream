@@ -8,13 +8,17 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_EXCEPTIONS_HPP
 #define JOYSTREAM_PROTOCOLSESSION_EXCEPTIONS_HPP
 
+#include <protocol_session/common.hpp>
+
 #include <stdexcept>
 #include <string>
-#include <protocol_session/common.hpp>
+#include <vector>
 
 namespace joystream {
 namespace protocol_session {
 namespace exception {
+
+class CouldNotCompleteContract : public std::runtime_error {};
 
 template <class ConnectionIdType>
 class ConnectionAlreadyAddedException : public std::runtime_error {
@@ -137,6 +141,40 @@ public:
 private:
 
     int _actual, _expected;
+};
+
+class NoLongerSendingInvitations : public std::runtime_error {
+
+public:
+
+    NoLongerSendingInvitations()
+        : std::runtime_error("Session no longer sending invitations.") {
+    }
+
+};
+
+template <class ConnectionIdType>
+class PeersNotAllReadyToStartDownload : public std::runtime_error {
+
+public:
+
+    PeersNotAllReadyToStartDownload(const PeersNotReadyToStartDownloadingMap<ConnectionIdType> & map)
+        : std::runtime_error("Not all peers ready to start download.")
+        , peersNotReadyToStartDownloadingMap(map) {}
+
+    PeersNotReadyToStartDownloadingMap<ConnectionIdType> peersNotReadyToStartDownloadingMap;
+};
+
+class PeerNotReadyToStartUploading : public std::runtime_error {
+
+public:
+
+    PeerNotReadyToStartUploading(PeerNotReadyToStartUploadingCause cause)
+        : std::runtime_error("Peer is not ready to start uploading.")
+        , peerNotReadyToStartUploadingCause(cause) {
+    }
+
+    PeerNotReadyToStartUploadingCause peerNotReadyToStartUploadingCause;
 };
 
 }

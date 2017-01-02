@@ -65,8 +65,8 @@ private:
 template <class ConnectionIdType>
 using RemovedConnectionCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, DisconnectCause>;
 
-template <class ConnectionIdType>
-using GenerateKeyPairCallbackSlot = FunctionCallbackSlot<Coin::KeyPair, const P2SHScriptGeneratorFromPubKey&, const uchar_vector&>;
+//template <class ConnectionIdType>
+//using GenerateKeyPairCallbackSlot = FunctionCallbackSlot<Coin::KeyPair, const P2SHScriptGeneratorFromPubKey&, const uchar_vector&>;
 
 template <class ConnectionIdType>
 using GenerateReceiveAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
@@ -75,8 +75,6 @@ template <class ConnectionIdType>
 using GenerateChangeAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
 
 typedef SubroutineCallbackSlot<const protocol_wire::ExtendedMessagePayload *> SendMessageOnConnectionCallbackSlot;
-
-typedef FunctionCallbackSlot<bool, Coin::Transaction> BroadcastTransactionCallbackSlot;
 
 template <class ConnectionIdType>
 using FullPieceArrivedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, protocol_wire::PieceData, int>;
@@ -136,23 +134,16 @@ public:
 
     // Handlers for all calls with return types is required, as slots
     // use them to return respons
-    SessionSpy(const GenerateP2SHKeyPairCallbackHandler &,
-               const GenerateReceiveAddressesCallbackHandler &,
-               const GenerateChangeAddressesCallbackHandler &,
-               const BroadcastTransaction &,
-               Session<ConnectionIdType> *);
+    SessionSpy(Session<ConnectionIdType> *);
 
     ~SessionSpy();
 
     void toMonitoredObserveMode();
 
-    void toMonitoredSellMode(const SellingPolicy &,
-                             const protocol_wire::SellerTerms &,
+    void toMonitoredSellMode(const protocol_wire::SellerTerms &,
                              int);
 
-    void toMonitoredBuyMode(const Coin::UnspentOutputSet &,
-                            const BuyingPolicy &,
-                            const protocol_wire::BuyerTerms &,
+    void toMonitoredBuyMode(const protocol_wire::BuyerTerms &,
                             const TorrentPieceInformation &);
 
     // Returns spy for connection.
@@ -170,9 +161,6 @@ public:
     void reset();
 
     bool onlyCalledRemovedConnection() const;
-    bool onlyCalledGenerateKeyPairs() const;
-    bool onlyCalledGenerateReceiveAddresses() const;
-    bool onlyCalledGenerateChangeAddresses() const;
     bool onlyCalledBroadcastTransaction() const;
     bool onlyCalledFullPieceArrived() const;
     bool onlyCalledAnchorAnnounced() const;
@@ -181,12 +169,8 @@ public:
 
     //// General
     RemovedConnectionCallbackSlot<ConnectionIdType> removedConnectionCallbackSlot;
-    GenerateKeyPairCallbackSlot<ConnectionIdType> generateKeyPairCallbackSlot;
-    GenerateReceiveAddressesCallbackSlot<ConnectionIdType> generateReceiveAddressesCallbackSlot;
-    GenerateChangeAddressesCallbackSlot<ConnectionIdType> generateChangeAddressesCallbackSlot;
 
     //// Buying
-    BroadcastTransactionCallbackSlot broadcastTransactionCallbackSlot;
     FullPieceArrivedCallbackSlot<ConnectionIdType> fullPieceArrivedCallbackSlot;
 
     //// Selling
