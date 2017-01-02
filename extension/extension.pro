@@ -28,7 +28,6 @@ HEADERS += \
     include/extension/Alert.hpp \
     include/extension/Exception.hpp \
     include/extension/detail.hpp \
-    include/extension/Callbacks.hpp \
     include/extension/AlertManager.hpp \
     include/extension/Session.hpp \
     include/extension/Torrent.hpp \
@@ -37,6 +36,7 @@ HEADERS += \
     include/extension/interface/PeerInterface.hpp \
     include/extension/interface/SessionInterface.hpp \
     include/extension/interface/TorrentInterface.hpp \
+    include/extension/Common.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \

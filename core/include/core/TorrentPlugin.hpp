@@ -71,7 +71,7 @@ public:
     void toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
                    const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
                    const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
-                   const Coin::UnspentOutputSet & funding,
+                   const protocol_session::SignContract & signContract,
                    const protocol_session::BuyingPolicy & policy,
                    const protocol_wire::BuyerTerms & terms,
                    const extension::request::SubroutineHandler &);

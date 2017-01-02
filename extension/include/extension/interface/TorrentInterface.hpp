@@ -3,7 +3,7 @@
 
 namespace libtorrent {
     class sha1_hash;
-    class torrent_handle;
+    struct torrent_handle;
 }
 
 namespace joystream {

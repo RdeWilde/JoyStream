@@ -224,23 +224,14 @@ struct ToSellMode {
 
     ToSellMode() {}
     ToSellMode(const libtorrent::sha1_hash & infoHash,
-               const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
-               const protocol_session::GenerateReceiveAddressesCallbackHandler & genReceiveAddressesCallbackHandler,
-               const protocol_session::SellingPolicy & sellingPolicy,
                const protocol_wire::SellerTerms & terms,
                const SubroutineHandler & handler)
         : infoHash(infoHash)
-        , generateKeyPairCallbackHandler(generateKeyPairCallbackHandler)
-        , generateReceiveAddressesCallbackHandler(genReceiveAddressesCallbackHandler)
-        , sellingPolicy(sellingPolicy)
         , terms(terms)
         , handler(handler) {
     }
 
     libtorrent::sha1_hash infoHash;
-    protocol_session::GenerateP2SHKeyPairCallbackHandler generateKeyPairCallbackHandler;
-    protocol_session::GenerateReceiveAddressesCallbackHandler generateReceiveAddressesCallbackHandler;
-    protocol_session::SellingPolicy sellingPolicy;
     protocol_wire::SellerTerms terms;
     SubroutineHandler handler;
 };
@@ -249,30 +240,58 @@ struct ToBuyMode {
 
     ToBuyMode() {}
     ToBuyMode(const libtorrent::sha1_hash & infoHash,
-              const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
-              const protocol_session::GenerateReceiveAddressesCallbackHandler & genReceiveAddressesCallbackHandler,
-              const protocol_session::GenerateChangeAddressesCallbackHandler & genChangeAddressesCallbackHandler,
-              const Coin::UnspentOutputSet & funding,
-              const protocol_session::BuyingPolicy & policy,
               const protocol_wire::BuyerTerms & terms,
               const SubroutineHandler & handler)
         : infoHash(infoHash)
-        , generateKeyPairCallbackHandler(generateKeyPairCallbackHandler)
-        , generateReceiveAddressesCallbackHandler(genReceiveAddressesCallbackHandler)
-        , generateChangeAddressesCallbackHandler(genChangeAddressesCallbackHandler)
-        , funding(funding)
-        , policy(policy)
         , terms(terms)
         , handler(handler) {
     }
 
     libtorrent::sha1_hash infoHash;
-    protocol_session::GenerateP2SHKeyPairCallbackHandler generateKeyPairCallbackHandler;
-    protocol_session::GenerateReceiveAddressesCallbackHandler generateReceiveAddressesCallbackHandler;
-    protocol_session::GenerateChangeAddressesCallbackHandler generateChangeAddressesCallbackHandler;
-    Coin::UnspentOutputSet funding;
-    protocol_session::BuyingPolicy policy;
     protocol_wire::BuyerTerms terms;
+    SubroutineHandler handler;
+};
+
+struct StartDownloading {
+
+    StartDownloading() {}
+    StartDownloading(const libtorrent::sha1_hash & infoHash,
+                     const Coin::Transaction & contractTx,
+                     const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap,
+                     const SubroutineHandler & handler)
+        : infoHash(infoHash)
+        , contractTx(contractTx)
+        , peerToStartDownloadInformationMap(peerToStartDownloadInformationMap)
+        , handler(handler) {
+    }
+
+    libtorrent::sha1_hash infoHash;
+    const Coin::Transaction contractTx;
+    const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> peerToStartDownloadInformationMap;
+    SubroutineHandler handler;
+};
+
+struct StartUploading {
+
+    StartUploading() {}
+    StartUploading(const libtorrent::sha1_hash & infoHash,
+                   const libtorrent::tcp::endpoint & endPoint,
+                   const protocol_wire::BuyerTerms & terms,
+                   const Coin::KeyPair & contractKeyPair,
+                   const Coin::PubKeyHash & finalPkHash,
+                   const SubroutineHandler & handler)
+        : infoHash(infoHash)
+        , endPoint(endPoint)
+        , terms(terms)
+        , contractKeyPair(contractKeyPair)
+        , finalPkHash(finalPkHash)
+        , handler(handler) {}
+
+    const libtorrent::sha1_hash infoHash;
+    const libtorrent::tcp::endpoint endPoint;
+    const protocol_wire::BuyerTerms terms;
+    const Coin::KeyPair contractKeyPair;
+    const Coin::PubKeyHash finalPkHash;
     SubroutineHandler handler;
 };
 

@@ -17,6 +17,7 @@
 namespace joystream {
 namespace protocol_session {
 
+    /**
     template <class ConnectionIdType>
     int64_t Session<ConnectionIdType>::minimumFundsRequiredAsBuyer(const protocol_wire::BuyerTerms & terms, int numberOfPieces) {
 
@@ -33,10 +34,11 @@ namespace protocol_session {
         int64_t maxTotalOutput = outputPerContractOutput * terms.minNumberOfSellers();
 
         // Contract fee when *there is a change output*
-        uint64_t contractTxFeeWithChangeOutput = paymentchannel::Contract::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb());
+        uint64_t contractTxFeeWithChangeOutput = paymentchannel::ContractTransactionBuilder::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb());
 
         return maxTotalOutput + contractTxFeeWithChangeOutput;
     }
+    */
 
     template <class ConnectionIdType>
     Session<ConnectionIdType>::Session()
@@ -105,13 +107,10 @@ namespace protocol_session {
 
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                               const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
-                                               const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                                const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                                const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                                const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
                                                const ReceivedValidPayment<ConnectionIdType> & receivedValidPayment,
-                                               const SellingPolicy & policy,
                                                const protocol_wire::SellerTerms & terms,
                                                int MAX_PIECE_INDEX) {
 
@@ -153,27 +152,18 @@ namespace protocol_session {
         // Create and set selling state
         _selling = new detail::Selling<ConnectionIdType>(this,
                                                          removedConnection,
-                                                         generateP2SHKeyPair,
-                                                         generateReceiveAddresses,
                                                          loadPieceForBuyer,
                                                          claimLastPayment,
                                                          anchorAnnounced,
                                                          receivedValidPayment,
-                                                         policy,
                                                          terms,
                                                          MAX_PIECE_INDEX);
     }
 
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                              const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
-                                              const GenerateReceiveAddressesCallbackHandler & generateReceiveAddresses,
-                                              const GenerateChangeAddressesCallbackHandler & generateChangeAddresses,
-                                              const ContractConstructed & contractConstructed,
                                               const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                               const SentPayment<ConnectionIdType> & sentPayment,
-                                              const Coin::UnspentOutputSet & funding,
-                                              const BuyingPolicy & policy,
                                               const protocol_wire::BuyerTerms & terms,
                                               const TorrentPieceInformation & information) {
 
@@ -215,14 +205,8 @@ namespace protocol_session {
         // Create and set selling state
         _buying = new detail::Buying<ConnectionIdType>(this,
                                                        removedConnection,
-                                                       generateP2SHKeyPair,
-                                                       generateReceiveAddresses,
-                                                       generateChangeAddresses,
-                                                       contractConstructed,
                                                        fullPieceArrived,
                                                        sentPayment,
-                                                       funding,
-                                                       policy,
                                                        terms,
                                                        information);
     }
@@ -492,6 +476,44 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
+    void Session<ConnectionIdType>::startDownloading(const Coin::Transaction & contractTx, const PeerToStartDownloadInformationMap<ConnectionIdType> & peerToStartDownloadInformationMap) {
+
+        if(_state == SessionState::paused)
+            throw exception::StateIncompatibleOperation("cannot start downloading on a paused session.");
+
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+
+                _buying->startDownloading(contractTx, peerToStartDownloadInformationMap);
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            default:
+                assert(false);
+        }
+
+    }
+
+    template<class ConnectionIdType>
     void Session<ConnectionIdType>::validPieceReceivedOnConnection(const ConnectionIdType & id, int index) {
 
         switch(_mode) {
@@ -622,6 +644,44 @@ namespace protocol_session {
                 assert(false);
         }
 
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::startUploading(const ConnectionIdType & id,
+                                                   const protocol_wire::BuyerTerms & terms,
+                                                   const Coin::KeyPair & contractKeyPair,
+                                                   const Coin::PubKeyHash & finalPkHash) {
+
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                _selling->startUploading(id,
+                                         terms,
+                                         contractKeyPair,
+                                         finalPkHash);
+                break;
+
+            default:
+                assert(false);
+        }
     }
 
     template<class ConnectionIdType>
