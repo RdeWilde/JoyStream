@@ -13,8 +13,6 @@
 #include <protocol_session/Status.hpp>
 #include <protocol_session/Exceptions.hpp>
 #include <protocol_session/Callbacks.hpp>
-#include <protocol_session/SellingPolicy.hpp>
-#include <protocol_session/BuyingPolicy.hpp>
 #include <protocol_session/TorrentPieceInformation.hpp>
 #include <protocol_session/PieceInformation.hpp>
 

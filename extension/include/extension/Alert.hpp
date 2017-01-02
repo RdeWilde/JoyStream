@@ -11,6 +11,7 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <extension/Status.hpp>
+#include <extension/Common.hpp>
 #include <exception>
 
 /**
@@ -302,10 +303,8 @@ namespace alert {
 
         SessionToSellMode(libtorrent::aux::stack_allocator& alloc,
                           const libtorrent::torrent_handle & h,
-                          const protocol_session::SellingPolicy & policy,
                           const protocol_wire::SellerTerms & terms)
             : libtorrent::torrent_alert(alloc, h)
-            , policy(policy)
             , terms(terms) {}
 
         TORRENT_DEFINE_ALERT(SessionToSellMode, libtorrent::user_alert_id + 17)
@@ -314,7 +313,6 @@ namespace alert {
             return torrent_alert::message() + " session to sell mode";
         }
 
-        protocol_session::SellingPolicy policy;
         protocol_wire::SellerTerms terms;
     };
 
@@ -322,10 +320,8 @@ namespace alert {
 
         SessionToBuyMode(libtorrent::aux::stack_allocator& alloc,
                          const libtorrent::torrent_handle & h,
-                         const protocol_session::BuyingPolicy & policy,
                          const protocol_wire::BuyerTerms & terms)
             : libtorrent::torrent_alert(alloc, h)
-            , policy(policy)
             , terms(terms) {}
 
         TORRENT_DEFINE_ALERT(SessionToBuyMode, libtorrent::user_alert_id + 18)
@@ -334,7 +330,6 @@ namespace alert {
             return torrent_alert::message() + " session to buy mode";
         }
 
-        protocol_session::BuyingPolicy policy;
         protocol_wire::BuyerTerms terms;
     };
 
@@ -598,6 +593,51 @@ namespace alert {
         protocol_wire::BuyerTerms terms;
     };
 
+    struct DownloadStarted : public libtorrent::torrent_alert {
+
+        DownloadStarted(libtorrent::aux::stack_allocator& alloc,
+                        const libtorrent::torrent_handle & h,
+                        const Coin::Transaction & contractTx,
+                        const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap)
+            : libtorrent::torrent_alert(alloc, h)
+            , contractTx(contractTx)
+            , peerToStartDownloadInformationMap(peerToStartDownloadInformationMap) {}
+
+        TORRENT_DEFINE_ALERT(DownloadStarted, libtorrent::user_alert_id + 30)
+        static const int static_category = alert::status_notification;
+        virtual std::string message() const override {
+            return torrent_alert::message() + " download started";
+        }
+
+        const Coin::Transaction contractTx;
+        const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> peerToStartDownloadInformationMap;
+    };
+
+    struct UploadStarted : public libtorrent::torrent_alert {
+
+        UploadStarted(libtorrent::aux::stack_allocator& alloc,
+                      const libtorrent::torrent_handle & h,
+                      const libtorrent::tcp::endpoint & endPoint,
+                      const protocol_wire::BuyerTerms & terms,
+                      const Coin::KeyPair & contractKeyPair,
+                      const Coin::PubKeyHash & finalPkHash)
+            : libtorrent::torrent_alert(alloc, h)
+            , endPoint(endPoint)
+            , terms(terms)
+            , contractKeyPair(contractKeyPair)
+            , finalPkHash(finalPkHash) {}
+
+        TORRENT_DEFINE_ALERT(DownloadStarted, libtorrent::user_alert_id + 31)
+        static const int static_category = alert::status_notification;
+        virtual std::string message() const override {
+            return torrent_alert::message() + " upload started";
+        }
+
+        const libtorrent::tcp::endpoint endPoint;
+        const protocol_wire::BuyerTerms terms;
+        const Coin::KeyPair contractKeyPair;
+        const Coin::PubKeyHash finalPkHash;
+    };
 }
 }
 }

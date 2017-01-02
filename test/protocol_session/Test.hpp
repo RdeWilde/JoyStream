@@ -42,7 +42,7 @@ private slots:
     // Test sell mode transitions
     void selling_basic();
     void selling();
-    void selling_buyer_invited_with_bad_terms();
+    //void selling_buyer_invited_with_bad_terms();
     void selling_buyer_requested_invalid_piece();
     void selling_buyer_interrupted_payment();
     void selling_buyer_sent_invalid_payment();
@@ -52,7 +52,7 @@ private slots:
     void buying_basic();
     void buying();
     void buying_seller_has_interrupted_contract();
-    void buying_seller_servicing_piece_has_timed_out();
+    //void buying_seller_servicing_piece_has_timed_out();
     void buying_seller_sent_invalid_piece();
 
 private:
@@ -109,13 +109,11 @@ private:
     void toObserveMode();
 
     // Session to sell mode
-    void toSellMode(const SellingPolicy &,
-                    const protocol_wire::SellerTerms &,
+    void toSellMode(const protocol_wire::SellerTerms &,
                     int);
 
     // Session to buy mode
-    void toBuyMode(const BuyingPolicy &,
-                   const protocol_wire::BuyerTerms &,
+    void toBuyMode(const protocol_wire::BuyerTerms &,
                    const TorrentPieceInformation &);
 
     //// Pure assert subroutines: do not clear spy
@@ -163,7 +161,7 @@ private:
 
         ID id;
         protocol_wire::SellerTerms terms;
-        uint32_t index;
+        uint32_t sellerTermsIndex;
 
         ConnectionSpy<ID> * spy;
 
@@ -176,10 +174,10 @@ private:
 
         paymentchannel::Payee payee;
 
-        SellerPeer(ID id, protocol_wire::SellerTerms terms, uint32_t index)
+        SellerPeer(ID id, protocol_wire::SellerTerms terms, uint32_t sellerTermsIndex)
             : id(id)
             , terms(terms)
-            , index(index)
+            , sellerTermsIndex(sellerTermsIndex)
             , spy(nullptr) {
         }
 
@@ -253,6 +251,43 @@ private:
         }
 
     };
+
+    typedef std::pair<StartDownloadConnectionInformation, SellerPeer> BuyerSellerRelationship;
+
+    static Coin::Transaction simpleContract(const std::vector<BuyerSellerRelationship> & v) {
+
+        paymentchannel::ContractTransactionBuilder::Commitments commitments;
+
+        for(auto s : v) {
+
+            StartDownloadConnectionInformation inf = s.first;
+            SellerPeer peer = s.second;
+
+            paymentchannel::Commitment c(inf.value, inf.buyerContractKeyPair.pk(), peer.joiningContract.contractPk(), Coin::RelativeLockTime::fromTimeUnits(peer.terms.minLock()));
+
+            commitments.push_back(c);
+        }
+
+        paymentchannel::ContractTransactionBuilder builder;
+        builder.setCommitments(commitments);
+
+        return builder.transaction();
+    }
+
+    static PeerToStartDownloadInformationMap<ID> downloadInformationMap(const std::vector<BuyerSellerRelationship> & v) noexcept {
+
+        PeerToStartDownloadInformationMap<ID> map;
+
+        for(auto s : v) {
+
+            StartDownloadConnectionInformation inf = s.first;
+            SellerPeer peer = s.second;
+
+            map.insert(std::make_pair(peer.id, inf));
+        }
+
+        return map;
+    }
 
     void add(SellerPeer &);
 

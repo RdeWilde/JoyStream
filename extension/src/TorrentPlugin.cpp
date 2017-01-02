@@ -91,7 +91,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
     std::clog << "Installed peer plugin #" << _peers.size() << std::endl;
 
     // Create a new peer plugin
-    PeerPlugin * rawPeerPlugin = new PeerPlugin(this, _torrent, connection, _policy.peerPolicy, _minimumMessageId, _alertManager);
+    PeerPlugin * rawPeerPlugin = new PeerPlugin(this, _torrent, connection, _minimumMessageId, _alertManager);
 
     // Wrap for return to libtorrent
     boost::shared_ptr<PeerPlugin> plugin(rawPeerPlugin);
@@ -346,10 +346,7 @@ void TorrentPlugin::toObserveMode() {
     _alertManager->emplace_alert<alert::SessionToObserveMode>(_torrent);
 }
 
-void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
-                               const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
-                               const protocol_session::SellingPolicy & policy,
-                               const protocol_wire::SellerTerms & terms) {
+void TorrentPlugin::toSellMode(const protocol_wire::SellerTerms & terms) {
 
     // Should have been cleared before
     assert(_outstandingLoadPieceForBuyerCalls.empty());
@@ -369,27 +366,19 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallba
     int maxPieceIndex = torrentInfo.num_pieces() - 1;
 
     _session.toSellMode(removeConnection(),
-                        generateKeyPairCallbackHandler,
-                        generateReceiveAddressesCallbackHandler,
                         loadPieceForBuyer(),
                         claimLastPayment(),
                         anchorAnnounced(),
                         receivedValidPayment(),
-                        policy,
                         terms,
                         maxPieceIndex);
 
 
     // Send notification
-    _alertManager->emplace_alert<alert::SessionToSellMode>(_torrent, policy, terms);
+    _alertManager->emplace_alert<alert::SessionToSellMode>(_torrent, terms);
 }
 
-void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
-                              const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
-                              const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
-                              const protocol_session::SignContract & signContract,
-                              const protocol_session::BuyingPolicy & policy,
-                              const protocol_wire::BuyerTerms & terms) {
+void TorrentPlugin::toBuyMode(const protocol_wire::BuyerTerms & terms) {
 
     // Should have been cleared before
     assert(_outstandingFullPieceArrivedCalls.empty());
@@ -404,19 +393,34 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbac
     }
 
     _session.toBuyMode(removeConnection(),
-                       generateKeyPairCallbackHandler,
-                       generateReceiveAddressesCallbackHandler,
-                       generateChangeAddressesCallbackHandler,
-                       contractConstructed(),
                        fullPieceArrived(),
                        sentPayment(),
-                       signContract,
-                       policy,
                        terms,
                        torrentPieceInformation());
 
     // Send notification
-    _alertManager->emplace_alert<alert::SessionToBuyMode>(_torrent, policy, terms);
+    _alertManager->emplace_alert<alert::SessionToBuyMode>(_torrent, terms);
+}
+
+void TorrentPlugin::startDownloading(const Coin::Transaction & contractTx,
+                                     const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & peerToStartDownloadInformationMap) {
+
+    _session.startDownloading(contractTx, peerToStartDownloadInformationMap);
+
+    // Send notification
+    _alertManager->emplace_alert<alert::DownloadStarted>(_torrent, contractTx, peerToStartDownloadInformationMap);
+}
+
+void TorrentPlugin::startUploading(const libtorrent::tcp::endpoint & endPoint,
+                                   const protocol_wire::BuyerTerms & terms,
+                                   const Coin::KeyPair & contractKeyPair,
+                                   const Coin::PubKeyHash & finalPkHash) {
+
+    _session.startUploading(endPoint, terms, contractKeyPair, finalPkHash);
+
+    // Send notification
+    _alertManager->emplace_alert<alert::UploadStarted>(_torrent, endPoint, terms, contractKeyPair, finalPkHash);
+
 }
 
 std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
@@ -639,16 +643,6 @@ protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> To
         // Disconnect connection
         libtorrent::error_code ec; // <--- what to put here as cause
         this->drop(endPoint, ec);
-    };
-}
-
-protocol_session::ContractConstructed TorrentPlugin::contractConstructed() {
-
-    auto torrent = _torrent;
-    auto alertManager = _alertManager;
-
-    return [torrent, alertManager](const Coin::Transaction & tx) {
-        alertManager->emplace_alert<alert::ContractConstructed>(torrent, tx);
     };
 }
 

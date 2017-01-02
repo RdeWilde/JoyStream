@@ -71,10 +71,7 @@ void RequestVariantVisitor::operator()(const request::ToObserveMode & r) {
 void RequestVariantVisitor::operator()(const request::ToSellMode & r) {
 
     auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
-        plugin->toSellMode(r.generateKeyPairCallbackHandler,
-                           r.generateReceiveAddressesCallbackHandler,
-                           r.sellingPolicy,
-                           r.terms);
+        plugin->toSellMode(r.terms);
     });
 
     sendRequestResult(std::bind(r.handler, e));
@@ -83,12 +80,7 @@ void RequestVariantVisitor::operator()(const request::ToSellMode & r) {
 void RequestVariantVisitor::operator()(const request::ToBuyMode & r) {
 
     auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
-        plugin->toBuyMode(r.generateKeyPairCallbackHandler,
-                          r.generateReceiveAddressesCallbackHandler,
-                          r.generateChangeAddressesCallbackHandler,
-                          r.signContract,
-                          r.policy,
-                          r.terms);
+        plugin->toBuyMode(r.terms);
     });
 
     sendRequestResult(std::bind(r.handler, e));
@@ -253,6 +245,24 @@ void RequestVariantVisitor::operator()(const request::ResumeTorrent & r) {
 
     // Send back to user
     sendRequestResult(callback);
+}
+
+void RequestVariantVisitor::operator()(const request::StartDownloading & r) {
+
+    auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
+        plugin->startDownloading(r.contractTx, r.peerToStartDownloadInformationMap);
+    });
+
+    sendRequestResult(std::bind(r.handler, e));
+}
+
+void RequestVariantVisitor::operator()(const request::StartUploading & r) {
+
+    auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
+        plugin->startUploading(r.endPoint, r.terms, r.contractKeyPair, r.finalPkHash);
+    });
+
+    sendRequestResult(std::bind(r.handler, e));
 }
 
 std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorrent::sha1_hash & infoHash,

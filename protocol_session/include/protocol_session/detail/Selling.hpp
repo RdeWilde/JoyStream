@@ -9,7 +9,6 @@
 #define JOYSTREAM_PROTOCOL_SELLING_HPP
 
 #include <protocol_session/Session.hpp>
-#include <protocol_session/SellingPolicy.hpp>
 #include <protocol_wire/protocol_wire.hpp>
 
 namespace Coin {
@@ -34,13 +33,10 @@ public:
 
     Selling(Session<ConnectionIdType> *,
             const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-            const GenerateP2SHKeyPairCallbackHandler &,
-            const GenerateReceiveAddressesCallbackHandler &,
             const LoadPieceForBuyer<ConnectionIdType> &,
             const ClaimLastPayment<ConnectionIdType> &,
             const AnchorAnnounced<ConnectionIdType> &,
             const ReceivedValidPayment<ConnectionIdType> &,
-            const SellingPolicy &,
             const protocol_wire::SellerTerms &,
             int);
 
@@ -51,6 +47,12 @@ public:
 
     // Connection with given id is to be removed
     void removeConnection(const ConnectionIdType &);
+
+    // Start uploading
+    void startUploading(const ConnectionIdType & id,
+                        const protocol_wire::BuyerTerms & terms,
+                        const Coin::KeyPair & contractKeyPair,
+                        const Coin::PubKeyHash & finalPkHash);
 
     // Data for given piece has been loaded
     void pieceLoaded(const ConnectionIdType & id, const protocol_wire::PieceData &, int);
@@ -105,15 +107,10 @@ private:
 
     // Callback handlers
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
-    GenerateP2SHKeyPairCallbackHandler _generateP2SHKeyPair;
-    GenerateReceiveAddressesCallbackHandler _generateReceiveAddresses;
     LoadPieceForBuyer<ConnectionIdType> _loadPieceForBuyer;
     ClaimLastPayment<ConnectionIdType> _claimLastPayment;
     AnchorAnnounced<ConnectionIdType> _anchorAnnounced;
     ReceivedValidPayment<ConnectionIdType> _receivedValidPayment;
-
-    // Controls behaviour of session
-    SellingPolicy _policy;
 
     // Terms for selling
     protocol_wire::SellerTerms _terms;
@@ -123,22 +120,6 @@ private:
 
     // Prepare given connection for deletion due to given cause, returns next valid iterator (e.g. end)
     typename detail::ConnectionMap<ConnectionIdType>::const_iterator removeConnection(const ConnectionIdType &, DisconnectCause);
-
-    // Join if terms are good enough, buyer on given connection
-    // NB: Assumes in state protocol_statemachine::Invited
-    // Throws InvitedWithBadTerms.
-    void tryToJoin(detail::Connection<ConnectionIdType> *);
-
-    // Buyer invited us with up to date terms which
-    // are not good enough.
-    class InvitedWithBadTerms : public std::runtime_error {
-    public:
-
-        InvitedWithBadTerms()
-            : std::runtime_error(""){
-        }
-
-    };
 
     // Loads. .....
     // NB: Assumes in state protocol_statemachine::LoadingPiece

@@ -20,7 +20,7 @@ public:
     virtual void pause() = 0;
     virtual void resume() = 0;
 
-    virtual libtorrent::session_handle native_handle() = 0;
+    virtual libtorrent::session_handle native_handle() const = 0;
     virtual TorrentInterface* find(libtorrent::sha1_hash const &info_hash) const = 0;
     virtual TorrentInterface* add(libtorrent::add_torrent_params const &params) = 0;
 
