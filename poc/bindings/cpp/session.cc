@@ -9,17 +9,16 @@ NAN_MODULE_INIT(SessionWrap::Init) {
   tpl->SetClassName(Nan::New("Session").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  Nan::SetPrototypeMethod(tpl, "addTorrent", AddTorrent);
-  Nan::SetPrototypeMethod(tpl, "removeTorrent", RemoveTorrent);
-  Nan::SetPrototypeMethod(tpl, "listenPort", ListenPort);
-  Nan::SetPrototypeMethod(tpl, "postTorrentUpdates", PostTorrentUpdates);
-  Nan::SetPrototypeMethod(tpl, "pause", Pause);
-  Nan::SetPrototypeMethod(tpl, "isPaused", IsPaused);
-  Nan::SetPrototypeMethod(tpl, "resume", Resume);
-  Nan::SetPrototypeMethod(tpl, "findTorrent", FindTorrent);
-  Nan::SetPrototypeMethod(tpl, "popAlerts", PopAlerts);
-  Nan::SetPrototypeMethod(tpl, "setAlertNotify", SetAlertNotify);
-
+  Nan::SetPrototypeMethod(tpl, "addTorrent", add_torrent);
+  Nan::SetPrototypeMethod(tpl, "removeTorrent", remove_torrent);
+  Nan::SetPrototypeMethod(tpl, "listenPort", listen_port);
+  Nan::SetPrototypeMethod(tpl, "postTorrentUpdates", post_torrent_updates);
+  Nan::SetPrototypeMethod(tpl, "pause", pause);
+  Nan::SetPrototypeMethod(tpl, "isPaused", is_paused);
+  Nan::SetPrototypeMethod(tpl, "resume", resume);
+  Nan::SetPrototypeMethod(tpl, "findTorrent", find_torrent);
+  Nan::SetPrototypeMethod(tpl, "popAlerts", pop_alerts);
+  Nan::SetPrototypeMethod(tpl, "setAlertNotify", set_alert_notify);
   Nan::SetPrototypeMethod(tpl, "dhtAnnounce", dht_announce);
   Nan::SetPrototypeMethod(tpl, "dhtGetPeers", dht_get_peers);
 
@@ -57,7 +56,7 @@ NAN_METHOD(SessionWrap::New) {
   }
 }
 
-NAN_METHOD(SessionWrap::AddTorrent) {
+NAN_METHOD(SessionWrap::add_torrent) {
   if (info.Length() < 7) {
     Nan::ThrowTypeError("Wrong number of arguments");
     return;
@@ -102,7 +101,7 @@ NAN_METHOD(SessionWrap::AddTorrent) {
   }));
 }
 
-NAN_METHOD(SessionWrap::RemoveTorrent) {
+NAN_METHOD(SessionWrap::remove_torrent) {
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
   libtorrent::sha1_hash info_hash = object_to_sha1_hash(info[0]);
@@ -118,7 +117,7 @@ NAN_METHOD(SessionWrap::RemoveTorrent) {
   }));
 }
 
-NAN_METHOD(SessionWrap::ListenPort) {
+NAN_METHOD(SessionWrap::listen_port) {
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
   info.GetReturnValue().Set(session_wrap->session_.s->listen_port());
@@ -132,15 +131,32 @@ NAN_METHOD(SessionWrap::PostTorrentUpdates) {
   info.GetReturnValue().Set(Nan::Undefined());
 }
 
-NAN_METHOD(SessionWrap::Pause) {
+NAN_METHOD(SessionWrap::pause) {
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
+  // Pause libtorrent session
+  Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+  session_wrap->session_.plugin_->submit(joystream::extension::request::PauseLibtorrent([session_wrap, callback]() {
+
+    std::clog << "Libtorrent session paused" << std::endl;
+
+    // Stop all plugins
+    session_wrap->session_.plugin_->submit(joystream::extension::request::StopAllTorrentPlugins([callback]() {
+
+        std::clog << "All plugins stopped" << std::endl;
+
+        // Service user callback
+        v8::Local<v8::Value> argv[] = {};
+
+        callback->Call(0, argv);
+    }));
+  }));
   session_wrap->session_.s->pause();
 
   info.GetReturnValue().Set(Nan::Undefined());
 }
 
-NAN_METHOD(SessionWrap::IsPaused) {
+NAN_METHOD(SessionWrap::is_paused) {
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
   v8::Local<v8::Boolean> isPaused;
@@ -152,14 +168,14 @@ NAN_METHOD(SessionWrap::IsPaused) {
   info.GetReturnValue().Set(isPaused);
 }
 
-NAN_METHOD(SessionWrap::Resume) {
+NAN_METHOD(SessionWrap::resume) {
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
   session_wrap->session_.s->resume();
 
   info.GetReturnValue().Set(Nan::Undefined());
 }
 
-NAN_METHOD(SessionWrap::FindTorrent) {
+NAN_METHOD(SessionWrap::find_torrent) {
   libtorrent::torrent_handle th;
 
   libtorrent::sha1_hash info_hash;
@@ -168,14 +184,10 @@ NAN_METHOD(SessionWrap::FindTorrent) {
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
   th = session_wrap->session_.s->find_torrent(info_hash);
 
-  /*
-   * Not finished need to define TorrentHandleWrap
-   */
-
-  info.GetReturnValue().Set(Nan::Undefined());
+  info.GetReturnValue().Set(TorrentHandleWrap::New(th));
 }
 
-NAN_METHOD(SessionWrap::PopAlerts) {
+NAN_METHOD(SessionWrap::pop_alerts) {
   v8::Local<v8::Array> ret = Nan::New<v8::Array>();
 
   std::vector<libtorrent::alert*> alerts;
@@ -190,7 +202,7 @@ NAN_METHOD(SessionWrap::PopAlerts) {
   info.GetReturnValue().Set(ret);
 }
 
-NAN_METHOD(SessionWrap::SetAlertNotify) {
+NAN_METHOD(SessionWrap::set_alert_notify) {
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 

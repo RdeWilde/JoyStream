@@ -5,11 +5,9 @@ debug('Starting basic.js example')
 
 var node = new Node()
 
-node.pause()
-
-console.log(node.isPaused())
-
-node.resume()
+/*node.pause(() => {
+  console.log('Node paused')
+})*/
 
 console.log(node.isPaused())
 

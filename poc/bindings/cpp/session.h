@@ -19,17 +19,16 @@ class SessionWrap : public Nan::ObjectWrap {
     static Nan::Persistent<v8::Function> constructor;
 
     static NAN_METHOD(New);
-    static NAN_METHOD(AddTorrent);
-    static NAN_METHOD(RemoveTorrent);
-    static NAN_METHOD(ListenPort);
-    static NAN_METHOD(PostTorrentUpdates);
-    static NAN_METHOD(Pause);
-    static NAN_METHOD(IsPaused);
-    static NAN_METHOD(Resume);
-    static NAN_METHOD(FindTorrent);
-    static NAN_METHOD(PopAlerts);
-    static NAN_METHOD(SetAlertNotify);
-
+    static NAN_METHOD(add_torrent);
+    static NAN_METHOD(remove_torrent);
+    static NAN_METHOD(listen_port);
+    static NAN_METHOD(post_torrent_updates);
+    static NAN_METHOD(pause);
+    static NAN_METHOD(is_paused);
+    static NAN_METHOD(resume);
+    static NAN_METHOD(find_torrent);
+    static NAN_METHOD(pop_alerts);
+    static NAN_METHOD(set_alert_notify);
     static NAN_METHOD(dht_announce);
     static NAN_METHOD(dht_get_peers);
 
