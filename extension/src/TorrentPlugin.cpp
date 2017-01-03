@@ -174,8 +174,9 @@ void TorrentPlugin::on_piece_failed(int index) {
 
 void TorrentPlugin::tick() {
 
-    // Asynch processing in session
-    _session.tick();
+    // Asynch processing in session if its setup
+    if(_session.mode() != protocol_session::SessionMode::not_set)
+        _session.tick();
 }
 
 bool TorrentPlugin::on_resume() {
