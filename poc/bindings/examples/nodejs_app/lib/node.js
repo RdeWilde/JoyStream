@@ -26,6 +26,12 @@ const _pieceFinishedAlert = Symbol('pieceFinishedAlert')
 const _pluginStatus = Symbol('pluginStatus')
 const _requestResult = Symbol('requestResult')
 
+/*
+ * Class Node
+ * Manage the alerts and execute the differents request (add_torrent, buy_torrent,...)
+ * TODO: File too big. The alerts process should go in another class.
+ */
+
 class Node extends EventEmitter {
 
     constructor () {
@@ -327,7 +333,19 @@ class Node extends EventEmitter {
 
     [_saveResumeDataFailedAlert](alert) {
       debug('Process save_resume_data_failed_alert')
-      // Logic here
+
+      var torrentHandle = alert.handle()
+
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrent) {
+        // Save empty resume data in torrent, is required
+        // to trigger event signal
+        var resumeData = ''
+        torrent.setResumeDataGenerationResult(resumeData)
+      } else {
+        debug('Torrent not found !')
+      }
     }
 
     [_torrentPausedAlert](alert) {

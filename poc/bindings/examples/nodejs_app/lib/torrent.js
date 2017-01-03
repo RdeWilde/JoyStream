@@ -32,7 +32,8 @@ class Torrent extends EventEmitter {
   }
 
   setResumeDataGenerationResult (resumeData) {
-    // TODO
+    this.resumeData = resumeData
+    this.emit('resume_data_generation_completed', resumeData)
   }
 
 }
