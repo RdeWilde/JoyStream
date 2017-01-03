@@ -531,6 +531,9 @@ const protocol_session::Session<libtorrent::tcp::endpoint> & TorrentPlugin::sess
 
 void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
 
+    // quick fix: gaurd call to hasConnection
+    assert(_session.mode() != protocol_session::SessionMode::not_set);
+
     // we must know peer
     auto it = _peers.find(endPoint);
     assert(it != _peers.cend());
