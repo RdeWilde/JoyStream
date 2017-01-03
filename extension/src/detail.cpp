@@ -124,6 +124,10 @@ void RequestVariantVisitor::operator()(const request::PostPeerPluginStatusUpdate
 
     assert(torrentPlugin);
 
+    // ** quick fix, required to guard against ::connectionStatus calls below
+    if(torrentPeerPlugin.session() == protocol_session::SessionMode::not_set)
+        return;
+
     // Generate statuses for all peer plugins
     std::map<libtorrent::tcp::endpoint, status::PeerPlugin> statuses;
 
