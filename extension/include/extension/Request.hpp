@@ -266,8 +266,8 @@ struct StartDownloading {
     }
 
     libtorrent::sha1_hash infoHash;
-    const Coin::Transaction contractTx;
-    const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> peerToStartDownloadInformationMap;
+    Coin::Transaction contractTx;
+    protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> peerToStartDownloadInformationMap;
     SubroutineHandler handler;
 };
 
@@ -287,11 +287,11 @@ struct StartUploading {
         , finalPkHash(finalPkHash)
         , handler(handler) {}
 
-    const libtorrent::sha1_hash infoHash;
-    const libtorrent::tcp::endpoint endPoint;
-    const protocol_wire::BuyerTerms terms;
-    const Coin::KeyPair contractKeyPair;
-    const Coin::PubKeyHash finalPkHash;
+    libtorrent::sha1_hash infoHash;
+    libtorrent::tcp::endpoint endPoint;
+    protocol_wire::BuyerTerms terms;
+    Coin::KeyPair contractKeyPair;
+    Coin::PubKeyHash finalPkHash;
     SubroutineHandler handler;
 };
 

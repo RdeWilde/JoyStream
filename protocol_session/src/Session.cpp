@@ -388,8 +388,9 @@ namespace protocol_session {
     template<class ConnectionIdType>
     bool Session<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
 
-        if(_mode == SessionMode::not_set)
-            throw exception::SessionModeNotSetException();
+        // drop this
+        //if(_mode == SessionMode::not_set)
+        //    throw exception::SessionModeNotSetException();
 
         return _connections.find(id) != _connections.cend();
     }
