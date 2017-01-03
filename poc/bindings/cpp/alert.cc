@@ -216,3 +216,16 @@ NAN_METHOD(AlertWrap::loaded_callback) {
     }
     info.GetReturnValue().SetUndefined();
 };
+
+NAN_METHOD(AlertWrap::resume_data) {
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const libtorrent::save_resume_data_alert*>(a);
+
+    if (!casted) {
+      info.GetReturnValue().SetUndefined();
+    } else {
+      info.GetReturnValue().Set(EntryToValue(*casted->resume_data.get()));
+    }
+};

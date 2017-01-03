@@ -6,12 +6,17 @@
 #include "add_torrent_params.h"
 #include "endpoint.h"
 #include "peer_info.h"
+#include "bencode.h"
 #include <nan.h>
 
 // NativeExtension.cc represents the top level of the module.
 // C++ constructs that are exposed to javascript are exported here
 
 NAN_MODULE_INIT(InitAll) {
+
+  Nan::Set(target, Nan::New<v8::String>("BEncode").ToLocalChecked(),
+    Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
+
   PeerInfoWrap::Init(target);
   EndpointWrap::Init(target);
   AddTorrentParamsWrap::Init(target);

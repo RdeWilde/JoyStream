@@ -31,6 +31,10 @@ class Torrent extends EventEmitter {
     // TODO
   }
 
+  setResumeDataGenerationResult (resumeData) {
+    // TODO
+  }
+
 }
 
 module.exports = Torrent

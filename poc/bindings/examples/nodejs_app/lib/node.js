@@ -52,10 +52,6 @@ class Node extends EventEmitter {
       return this.session.isPaused()
     }
 
-    resume () {
-      this.session.resume()
-    }
-
     listenPort () {
       return this.session.listenPort()
     }
@@ -315,7 +311,18 @@ class Node extends EventEmitter {
 
     [_saveResumeDataAlert](alert) {
       debug('Process save_resume_data_alert')
-      // Logic here
+
+      var torrentHandle = alert.handle()
+
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrent) {
+        var resumeData = NativeExtension.BEncode(alert.resumeData)
+        torrent.setResumeDataGenerationResult(resumeData)
+      } else {
+        debug('Torrent not found !')
+      }
+
     }
 
     [_saveResumeDataFailedAlert](alert) {
