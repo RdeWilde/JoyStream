@@ -42,7 +42,8 @@ namespace extension {
     }
 
     PeerPlugin::~PeerPlugin() {
-        std::clog << "~PeerPlugin() called.";
+
+        std::clog << "~PeerPlugin() called." << std::endl;
 
         // Send removal notification
         _alertManager->emplace_alert<alert::PeerPluginRemoved>(_torrent, _endPoint, _standardHandshakePeerId);
@@ -96,7 +97,7 @@ namespace extension {
 
     void PeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
-        std::clog << "on_disconnect ["<< (_connection.is_outgoing() ? "outgoing" : "incoming") << "]:" << ec.message().c_str();
+        std::clog << "on_disconnect ["<< (_connection.is_outgoing() ? "outgoing" : "incoming") << "]:" << ec.message().c_str() << std::endl;
 
         // If connection is undead, then this callback should be ignored.
         if(_undead)
@@ -160,7 +161,7 @@ namespace extension {
         libtorrent::peer_info peerInfo;
         _connection.get_peer_info(peerInfo);
 
-        std::clog << "on_extension_handshake[" << peerInfo.client.c_str() << "]";
+        std::clog << "on_extension_handshake[" << peerInfo.client.c_str() << "]" << std::endl;
 
         // Check that BEP10 was actually supported, if it wasnt, then the peer is misbehaving
         if(_peerBEP10SupportStatus != BEPSupportStatus::supported) {
@@ -449,18 +450,18 @@ namespace extension {
         if(length != lengthOfExtendedMessagePayload) {
 
             // Output progress
-            std::clog << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length;
+            std::clog << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length << std::endl;
 
             // No other plugin should look at this
             return true;
 
         } else
-            std::clog << "on_extended(id =" << msg << ", length =" << length << ")";
+            std::clog << "on_extended(id =" << msg << ", length =" << length << ")" << std::endl;
 
         // Ignore message if peer has not successfully completed BEP43 handshake (yet, or perhaps never will)
         if(_peerPaymentBEPSupportStatus != BEPSupportStatus::supported) {
 
-            std::clog << "Received extended message despite BEP43 not supported, not for this plugin then, letting another plugin handle it.";
+            std::clog << "Received extended message despite BEP43 not supported, not for this plugin then, letting another plugin handle it." << std::endl;
 
             // Let next plugin handle message
             return false;
@@ -473,7 +474,7 @@ namespace extension {
             messageType = _peerMapping.messageType(msg);
         } catch(std::exception & e) {
 
-            std::clog << "Received extended message, but not with registered extended id, not for this plugin then, letting another plugin handle it.";
+            std::clog << "Received extended message, but not with registered extended id, not for this plugin then, letting another plugin handle it." << std::endl;
 
             // Not for us, Let next plugin handle message
             return false;
@@ -632,11 +633,11 @@ namespace extension {
 
         Q_ASSERT(written == extendedMessagePayloadLength);
 
-        std::clog << "SENT:" << joystream::protocol_wire::messageName(extendedMessagePayload->messageType()) << " = " << written << "bytes";
+        std::clog << "SENT:" << joystream::protocol_wire::messageName(extendedMessagePayload->messageType()) << " = " << written << "bytes" << std::endl;
 
         // If message was written properly buffer, then send buffer to peer
         if(stream.status() != QDataStream::Status::Ok)
-            std::clog << "Output stream in bad state after message write, message not sent.";
+            std::clog << "Output stream in bad state after message write, message not sent." << std::endl;
         else {
 
             // Get raw buffer
