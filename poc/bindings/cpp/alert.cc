@@ -222,15 +222,15 @@ NAN_METHOD(AlertWrap::resume_data) {
 NAN_METHOD(AlertWrap::statuses) {
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
-    auto casted = dynamic_cast<const libtorrent::TorrentPluginStatusUpdateAlert*>(a);
+    auto casted = dynamic_cast<const joystream::extension::alert::TorrentPluginStatusUpdateAlert*>(a);
     v8::Local<v8::Array> ret = Nan::New<v8::Array>();
 
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      for(auto m : casted->statuses)
-        ret->Set(ret->Length(), EndpointWrap::New(ep));
+      /*for(auto m : casted->statuses) {
+          ret->Set(ret->Length(), TorrentPluginWrap::New(ep));
+        }*/
       info.GetReturnValue().Set(ret);
-      info.GetReturnValue().Set(EntryToValue(*casted->resume_data.get()));
     }
 };

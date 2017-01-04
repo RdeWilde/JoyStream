@@ -194,8 +194,6 @@ NAN_METHOD(SessionWrap::pop_alerts) {
 
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
-  std::cout << "Pop_alerts" << std::endl;
-
   session_wrap->session_.s->pop_alerts(&alerts);
 
   for(const libtorrent::alert * alert : alerts)
