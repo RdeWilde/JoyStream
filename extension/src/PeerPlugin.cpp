@@ -45,7 +45,7 @@ namespace extension {
         std::clog << "~PeerPlugin() called.";
 
         // Send removal notification
-        _alertManager->emplace_alert<alert::PeerPluginRemoved>(_torrent, _endPoint, _connection.pid());
+        _alertManager->emplace_alert<alert::PeerPluginRemoved>(_torrent, _endPoint, _standardHandshakePeerId);
     }
 
     char const* PeerPlugin::type() const {
@@ -115,6 +115,9 @@ namespace extension {
     bool PeerPlugin::on_handshake(char const * reserved_bits) {
 
         assert(!_undead);
+
+        // Set standard peer id
+        _standardHandshakePeerId = _connection.pid();
 
         // The BEP10 docs say:
         // The bit selected for the extension protocol is bit 20 from
