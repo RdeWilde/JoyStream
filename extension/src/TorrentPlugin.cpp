@@ -100,14 +100,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
     _peers[endPoint] = boost::weak_ptr<PeerPlugin>(plugin);
 
     // Send alert notification
-
-    boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> connectionStatus;
-
-    try{
-        connectionStatus = _session.connectionStatus(endPoint);
-    } catch(...) {}
-
-    _alertManager->emplace_alert<alert::PeerPluginAdded>(_torrent, endPoint, connection.pid(), rawPeerPlugin->status(connectionStatus));
+    _alertManager->emplace_alert<alert::PeerPluginAdded>(_torrent, endPoint, connection.pid(), rawPeerPlugin->status(boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>>()));
 
     // Return pointer to plugin as required
     return plugin;
