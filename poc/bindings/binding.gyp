@@ -2,7 +2,19 @@
     "targets": [
         {
             "target_name": "NativeExtension",
-            "sources": [ "cpp/NativeExtension.cc", "cpp/functions.cc", "../src/Session.cpp" ],
+            "sources": [
+                "cpp/NativeExtension.cc",
+                "cpp/session.cc",
+                "cpp/torrent_handle.cc",
+                "cpp/torrent_status.cc",
+                "cpp/alert.cc",
+                "cpp/torrent_info.cc",
+                "cpp/add_torrent_params.cc",
+                "cpp/endpoint.cc",
+                "cpp/peer_info.cc",
+                "cpp/bencode.cc",
+                "../src/Session.cpp"
+                ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
             'cflags!': [ '-fno-exceptions', '-fno-rtti' ],
             'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ],

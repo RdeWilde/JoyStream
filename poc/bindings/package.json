@@ -13,6 +13,8 @@
     "node-gyp": "^1.0.3"
   },
   "dependencies": {
-    "bindings": "^1.2.1"
+    "bindings": "^1.2.1",
+    "debug": "^2.5.1",
+    "sha1": "^1.1.1"
   }
 }
