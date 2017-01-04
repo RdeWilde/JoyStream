@@ -13,6 +13,7 @@
                 "cpp/endpoint.cc",
                 "cpp/peer_info.cc",
                 "cpp/bencode.cc",
+                "cpp/torrent_plugin_status.cc",
                 "../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],

@@ -228,9 +228,12 @@ NAN_METHOD(AlertWrap::statuses) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      /*for(auto m : casted->statuses) {
-          ret->Set(ret->Length(), TorrentPluginWrap::New(ep));
-        }*/
+      for(auto m : casted->statuses) {
+          v8::Local<v8::Array> table = Nan::New<v8::Array>();
+          table->Set(table->Length(), Nan::New<String>(libtorrent::to_hex(m.first.to_string())).ToLocalChecked());
+          table->Set(table->Length(), TorrentPluginStatusWrap::New(m.second));
+          ret->Set(ret->Length(), table);
+        }
       info.GetReturnValue().Set(ret);
     }
 };

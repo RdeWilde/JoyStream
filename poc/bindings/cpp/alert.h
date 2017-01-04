@@ -7,6 +7,7 @@
 #include "add_torrent_params.h"
 #include "endpoint.h"
 #include "bencode.h"
+#include "torrent_plugin_status.h"
 #include <extension/Alert.hpp>
 
 using namespace v8;
