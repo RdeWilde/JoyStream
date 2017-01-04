@@ -27,7 +27,7 @@ Plugin::Plugin(uint minimumMessageId,
 }
 
 Plugin::~Plugin() {
-    std::clog << "~Plugin.";
+    std::clog << "~Plugin." << std::endl;
 }
 
 boost::uint32_t Plugin::implemented_features() {

@@ -227,6 +227,13 @@ namespace status {
         // Invariant: _sendUninstallMappingOnNextExtendedHandshake => Session is stopped
         bool _sendUninstallMappingOnNextExtendedHandshake;
 
+
+        // Peer id from standard handshake
+        // is available fr libtorrent::peer_connection_handle::pid(), however
+        // this cannot be called in ~PeerPlugin, where we need it to send
+        // peer_alert.
+        libtorrent::peer_id _standardHandshakePeerId;
+
         // Indicates whether peer supports BEP10
         BEPSupportStatus _peerBEP10SupportStatus;
 
