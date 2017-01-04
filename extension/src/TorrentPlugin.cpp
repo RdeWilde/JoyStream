@@ -44,7 +44,7 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin,
 
 TorrentPlugin::~TorrentPlugin() {
 
-    std::clog << "~TorrentPlugin()";
+    std::clog << "~TorrentPlugin()" << std::endl;
 
     // Send alert notification
     _alertManager->emplace_alert<alert::TorrentPluginRemoved>(_torrent, _infoHash);
@@ -60,9 +60,9 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
     // Get end point
     libtorrent::tcp::endpoint endPoint = connection.remote();
 
-    std::clog << "New"
-              << (connection.is_outgoing() ? "outgoing" : "incoming")
-              << "connection with"
+    std::clog << "New "
+              << (connection.is_outgoing() ? "outgoing " : "incoming ")
+              << "connection with "
               << libtorrent::print_endpoint(endPoint)
               << std::endl; // << "on " << _torrent->name().c_str();
 
@@ -100,14 +100,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
     _peers[endPoint] = boost::weak_ptr<PeerPlugin>(plugin);
 
     // Send alert notification
-
-    boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> connectionStatus;
-
-    try{
-        connectionStatus = _session.connectionStatus(endPoint);
-    } catch(...) {}
-
-    _alertManager->emplace_alert<alert::PeerPluginAdded>(_torrent, endPoint, connection.pid(), rawPeerPlugin->status(connectionStatus));
+    _alertManager->emplace_alert<alert::PeerPluginAdded>(_torrent, endPoint, connection.pid(), rawPeerPlugin->status(boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>>()));
 
     // Return pointer to plugin as required
     return plugin;
@@ -201,7 +194,7 @@ void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int 
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    std::clog << "Peer list extended with peer" << endPointString.c_str() << ": " << endPoint.port();
+    std::clog << "Peer list extended with peer" << endPointString.c_str() << ": " << endPoint.port() << std::endl;
 
     /**
     // Check if we know from before that peer does not have
@@ -250,12 +243,12 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
         // Make sure reading worked
         if(alert->ec) {
 
-            std::clog << "Failed reading piece" << alert->piece << "for" << libtorrent::print_address(endPoint.address()).c_str();
+            std::clog << "Failed reading piece" << alert->piece << "for" << libtorrent::print_address(endPoint.address()).c_str() << std::endl;
             assert(false);
 
         } else {
 
-            std::clog << "Read piece" << alert->piece << "for" << libtorrent::print_address(endPoint.address()).c_str();
+            std::clog << "Read piece" << alert->piece << "for" << libtorrent::print_address(endPoint.address()).c_str() << std::endl;
 
             // tell session
             _session.pieceLoaded(endPoint, protocol_wire::PieceData(alert->buffer, alert->size), alert->piece);
