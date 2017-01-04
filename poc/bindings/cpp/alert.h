@@ -61,6 +61,9 @@ class AlertWrap: public Nan::ObjectWrap {
       // save_resume_data_alert
       static NAN_METHOD(resume_data);
 
+      // TorrentPluginStatusUpdateAlert
+      static NAN_METHOD(statuses);
+
 
 };
 

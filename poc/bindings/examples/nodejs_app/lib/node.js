@@ -23,8 +23,30 @@ const _peerConnectAlert = Symbol('peerConnectAlert')
 const _peerDisconnectedAlert = Symbol('peerDisconnectedAlert')
 const _readPieceAlert = Symbol('readPieceAlert')
 const _pieceFinishedAlert = Symbol('pieceFinishedAlert')
-const _pluginStatus = Symbol('pluginStatus')
 const _requestResult = Symbol('requestResult')
+const _torrentPluginStatusUpdateAlert = Symbol('torrentPluginStatusUpdateAlert')
+const _peerPluginStatusUpdateAlert = Symbol('peerPluginStatusUpdateAlert')
+const _torrentPluginAdded = Symbol('torrentPluginAdded')
+const _torrentPluginRemoved = Symbol('torrentPluginRemoved')
+const _peerPluginAdded = Symbol('peerPluginAdded')
+const _peerPluginRemoved = Symbol('peerPluginRemoved')
+const _connectionAddedToSession = Symbol('connectionAddedToSession')
+const _connectionRemovedFromSession = Symbol('connectionRemovedFromSession')
+const _sessionStarted = Symbol('sessionStarted')
+const _sessionStopped = Symbol('sessionStopped')
+const _sessionPaused = Symbol('sessionPaused')
+const _sessionToObserveMode = Symbol('sessionToObserveMode')
+const _sessionToSellMode = Symbol('sessionToSellMode')
+const _sessionToBuyMode = Symbol('sessionToBuyMode')
+const _validPaymentReceived = Symbol('validPaymentReceived')
+const _invalidPaymentReceived = Symbol('invalidPaymentReceived')
+const _lastPaymentReceived = Symbol('lastPaymentReceived')
+const _sellerTermsUpdated = Symbol('sellerTermsUpdated')
+const _sentPayment = Symbol('sentPayment')
+const _contractConstructed = Symbol('contractConstructed')
+const _validPieceArrived = Symbol('validPieceArrived')
+const _invalidPieceArrived = Symbol('invalidPieceArrived')
+const _buyerTermsUpdated = Symbol('buyerTermsUpdated')
 
 /*
  * Class Node
@@ -71,6 +93,8 @@ class Node extends EventEmitter {
     }
 
     process (alert) {
+      debug('Alert ' + alert.what() + ' received !')
+
       switch (alert.type()) {
 
         // dht_get_peers_reply_alert
@@ -158,14 +182,124 @@ class Node extends EventEmitter {
           this[_pieceFinishedAlert](alert)
           break
 
-        // PluginStatus
+        // TorrentPluginStatusUpdateAlert
         case 10001:
-          this[_pluginStatus](alert)
+          this[_torrentPluginStatusUpdateAlert](alert)
+          break
+
+        // PeerPluginStatusUpdateAlert
+        case 10002:
+          this[_peerPluginStatusUpdateAlert](alert)
           break
 
         // RequestResult
-        case 10002:
+        case 10003:
           this[_requestResult](alert)
+          break
+
+        // TorrentPluginAdded
+        case 10005:
+          this[_torrentPluginAdded](alert)
+          break
+
+        // TorrentPluginRemoved
+        case 10006:
+          this[_torrentPluginRemoved](alert)
+          break
+
+        // PeerPluginAdded
+        case 10008:
+          this[_peerPluginAdded](alert)
+          break
+
+        // PeerPluginRemoved
+        case 10009:
+          this[_peerPluginRemoved](alert)
+          break
+
+        // ConnectionAddedToSession
+        case 100011:
+          this[_connectionAddedToSession](alert)
+          break
+
+          // ConnectionRemovedFromSession
+        case 100012:
+          this[_connectionRemovedFromSession](alert)
+          break
+
+        // SessionStarted
+        case 100013:
+          this[_sessionStarted](alert)
+          break
+
+        // SessionStopped
+        case 100014:
+          this[_sessionStopped](alert)
+          break
+
+        // SessionPaused
+        case 100015:
+          this[_sessionPaused](alert)
+          break
+
+        // SessionToObserveMode
+        case 100016:
+          this[_sessionToObserveMode](alert)
+          break
+
+        // SessionToSellMode
+        case 100017:
+          this[_sessionToSellMode](alert)
+          break
+
+        // SessionToBuyMode
+        case 100018:
+          this[_sessionToBuyMode](alert)
+          break
+
+        // ValidPaymentReceived
+        case 100019:
+          this[_validPaymentReceived](alert)
+          break
+
+        // InvalidPaymentReceived
+        case 100020:
+          this[_invalidPaymentReceived](alert)
+          break
+
+        // LastPaymentReceived
+        case 100023:
+          this[_lastPaymentReceived](alert)
+          break
+
+        // SellerTermsUpdated
+        case 100024:
+          this[_sellerTermsUpdated](alert)
+          break
+
+        // SentPayment
+        case 100025:
+          this[_sentPayment](alert)
+          break
+
+        // ContractConstructed
+        case 100026:
+          this[_contractConstructed](alert)
+          break
+
+        // ValidPieceArrived
+        case 100027:
+          this[_validPieceArrived](alert)
+          break
+
+        // InvalidPieceArrived
+        case 100028:
+          this[_invalidPieceArrived](alert)
+          break
+
+        // BuyerTermsUpdated
+        case 100029:
+          this[_buyerTermsUpdated](alert)
           break
 
         default:
@@ -179,8 +313,6 @@ class Node extends EventEmitter {
      */
 
     [_processDhtGetPeersReplyAlert](alert) {
-      debug('Process dht_get_peer_reply')
-
       var torrentSecondaryHash = this.torrentsBySecondaryHash.get(alert.infoHash())
       var torrent = this.torrents.get(torrentSecondaryHash)
       if (torrent) {
@@ -197,15 +329,11 @@ class Node extends EventEmitter {
     }
 
     [_listenSucceededAlert](alert) {
-      debug('Process listen_succeeded_alert')
-
       var endpoint = alert.endpoint()
       this.emit('listen_succeeded_alert', endpoint)
     }
 
     [_metadataReceivedAlert](alert) {
-      debug('Process metadata_received_alert')
-
       var torrentHandle = alert.handle()
       var torrentInfo = torrentHandle.torrentFile()
       var torrent = this.torrents.get(torrentHandle.infoHash())
@@ -218,13 +346,10 @@ class Node extends EventEmitter {
     }
 
     [_metadataFailedAlert](alert) {
-      debug('Metadata Failed Alert !')
       // what to do?
     }
 
     [_addTorrentAlert](alert) {
-      debug('Process add_torrent_alert')
-
       if (!alert.error()) {
         var torrentHandle = alert.handle()
         var resumeData = alert.params().resumeData
@@ -236,8 +361,6 @@ class Node extends EventEmitter {
           var torrent = new Torrent(torrentHandle,
                                     resumeData,
                                     this.plugin)
-
-          console.log(torrentHandle.infoHash())
 
           // Add torrent to torrents map
           this.torrents.set(torrentHandle.infoHash(),torrent)
@@ -259,14 +382,11 @@ class Node extends EventEmitter {
     }
 
     [_torrentFinishedAlert](alert) {
-      debug('Torrent finish alert !')
       // nothing to do?
       // Maybe emit an event ?
     }
 
     [_stateUpdateAlert](alert) {
-      debug('Process state_update_alert')
-
       var status = alert.status()
 
       for (var i in status) {
@@ -285,11 +405,7 @@ class Node extends EventEmitter {
        * NOTICE: Docs say p->handle may be invalid at this time - likely because this is a removal operation,
        * so we must use p->info_hash instead.
        */
-       debug('Process torrent_removed_alert')
-
        var torrent = this.torrents.get(alert.infoHash())
-
-       console.log(this.torrents)
 
        if (torrent) {
          torrent.emit('torrent_removed_alert')
@@ -299,8 +415,6 @@ class Node extends EventEmitter {
     }
 
     [_torrentResumedAlert](alert) {
-      debug('Process torrent_resumed_alert')
-
       var infoHash = alert.handle().infoHash()
       var torrent = this.torrents.get(infoHash)
 
@@ -316,8 +430,6 @@ class Node extends EventEmitter {
     }
 
     [_saveResumeDataAlert](alert) {
-      debug('Process save_resume_data_alert')
-
       var torrentHandle = alert.handle()
 
       var torrent = this.torrents.get(torrentHandle.infoHash())
@@ -332,8 +444,6 @@ class Node extends EventEmitter {
     }
 
     [_saveResumeDataFailedAlert](alert) {
-      debug('Process save_resume_data_failed_alert')
-
       var torrentHandle = alert.handle()
 
       var torrent = this.torrents.get(torrentHandle.infoHash())
@@ -349,8 +459,6 @@ class Node extends EventEmitter {
     }
 
     [_torrentPausedAlert](alert) {
-      debug('Process torrent_paused_alert')
-
       var infoHash = alert.handle().infoHash()
       var torrent = this.torrents.get(infoHash)
 
@@ -371,14 +479,10 @@ class Node extends EventEmitter {
     }
 
     [_torrentCheckedAlert](alert) {
-      debug('Process torrent_checked_alert')
        // Nothing to do ?
     }
 
     [_peerConnectAlert](alert) {
-
-      debug('Process peer_connect_alert')
-
       var torrentHandle = alert.handle()
       var peersInfo = torrentHandle.getPeerInfo()
 
@@ -397,9 +501,6 @@ class Node extends EventEmitter {
     }
 
     [_peerDisconnectedAlert](alert) {
-
-      debug('Process peer_disconnected_alert')
-
       var torrentHandle = alert.handle()
 
       var torrent = this.torrents.get(torrentHandle.infoHash())
@@ -412,27 +513,86 @@ class Node extends EventEmitter {
     }
 
     [_readPieceAlert](alert) {
-      debug('Process read_piece_alert')
-
       // Nothing todo here ?
     }
 
     [_pieceFinishedAlert](alert) {
-      debug('Process piece_finished_alert')
-
       // Nothing to do here ?
     }
 
-    [_pluginStatus](alert) {
-      debug('Process PluginStatus')
-      // Logic here
-    }
-
     [_requestResult](alert) {
-      debug('Process RequestResult')
       alert.loadedCallback()
     }
 
+    [_torrentPluginStatusUpdateAlert](alert) {
+      
+    }
+
+    [_peerPluginStatusUpdateAlert](alert) {
+    }
+
+    [_torrentPluginAdded](alert) {
+    }
+
+    [_torrentPluginRemoved](alert) {
+    }
+
+    [_peerPluginAdded](alert) {
+    }
+
+    [_peerPluginRemoved](alert) {
+    }
+
+    [_connectionAddedToSession](alert) {
+    }
+
+    [_connectionRemovedFromSession](alert) {
+    }
+
+    [_sessionStarted](alert) {
+    }
+
+    [_sessionPaused](alert) {
+    }
+
+    [_sessionStopped](alert) {
+    }
+
+    [_sessionToObserveMode](alert) {
+    }
+
+    [_sessionToSellMode](alert) {
+    }
+
+    [_sessionToBuyMode](alert) {
+    }
+
+    [_validPaymentReceived](alert) {
+    }
+
+    [_invalidPaymentReceived](alert) {
+    }
+
+    [_buyerTermsUpdated](alert) {
+    }
+
+    [_sellerTermsUpdated](alert) {
+    }
+
+    [_contractConstructed](alert) {
+    }
+
+    [_sentPayment](alert) {
+    }
+
+    [_lastPaymentReceived](alert) {
+    }
+
+    [_invalidPieceArrived](alert) {
+    }
+
+    [_validPieceArrived](alert) {
+    }
 }
 
 module.exports = Node

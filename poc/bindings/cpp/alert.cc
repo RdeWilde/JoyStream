@@ -42,17 +42,6 @@ Local<Object> AlertWrap::New(const libtorrent::alert* a) {
     return scope.Escape(obj.ToLocalChecked());
 };
 
-/*AlertWrap::AlertWrap() {
-  //alert_ = NULL;
-};*/
-
-/*AlertWrap::~AlertWrap() {
-  std::cout << "Destroy alert" << std::endl;
-  std::cout << alert_->type() << std::endl;
-  //if (alert_ != NULL)
-  //  delete alert_;
-};*/
-
 NAN_METHOD(AlertWrap::NewInstance) {
 
   AlertWrap* obj = new AlertWrap();
@@ -226,6 +215,22 @@ NAN_METHOD(AlertWrap::resume_data) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
+      info.GetReturnValue().Set(EntryToValue(*casted->resume_data.get()));
+    }
+};
+
+NAN_METHOD(AlertWrap::statuses) {
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+    auto casted = dynamic_cast<const libtorrent::TorrentPluginStatusUpdateAlert*>(a);
+    v8::Local<v8::Array> ret = Nan::New<v8::Array>();
+
+    if (!casted) {
+      info.GetReturnValue().SetUndefined();
+    } else {
+      for(auto m : casted->statuses)
+        ret->Set(ret->Length(), EndpointWrap::New(ep));
+      info.GetReturnValue().Set(ret);
       info.GetReturnValue().Set(EntryToValue(*casted->resume_data.get()));
     }
 };
