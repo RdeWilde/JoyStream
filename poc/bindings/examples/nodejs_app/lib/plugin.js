@@ -10,7 +10,7 @@ class Plugin extends EventEmitter {
   }
 
   update (status) {
-    this.emit('TorrentPluginStatusUpdateAlert', status)
+    this.emit('statusUpdated', status)
   }
 
 }

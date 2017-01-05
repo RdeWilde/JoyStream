@@ -531,7 +531,7 @@ class Node extends EventEmitter {
         var torrent = this.torrents.get(infoHash)
         torrent.plugin.update(torrentPluginStatus)
       }
-
+      this.emit('TorrentPluginStatusUpdateAlert', statuses)
     }
 
     [_peerPluginStatusUpdateAlert](alert) {
