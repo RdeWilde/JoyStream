@@ -14,11 +14,12 @@ CONFIG  += testcase
 QT      += core
 QT      += testlib
 
-HEADERS += \
-    Test.hpp
+SOURCES += main.cpp
 
-SOURCES += \
-    Test.cpp
+# GTest configs
+QMAKE_CXXFLAGS +=-pthread
+LIBS += -pthread
+LIBS += -lgtest
 
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/release/ -lcommon
