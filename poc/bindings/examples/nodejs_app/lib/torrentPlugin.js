@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events')
 
-class Plugin extends EventEmitter {
+class TorrentPlugin extends EventEmitter {
 
   constructor () {
     super()
@@ -15,4 +15,4 @@ class Plugin extends EventEmitter {
 
 }
 
-module.exports = Plugin
+module.exports = TorrentPlugin
