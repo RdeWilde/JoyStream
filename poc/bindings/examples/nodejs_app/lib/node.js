@@ -525,13 +525,13 @@ class Node extends EventEmitter {
     }
 
     [_torrentPluginStatusUpdateAlert](alert) {
-      var statuses = new Map(alert.statuses())
+      var statuses = alert.statuses()
 
       for (var [infoHash, torrentPluginStatus] of statuses) {
         var torrent = this.torrents.get(infoHash)
         torrent.plugin.update(torrentPluginStatus)
       }
-      this.emit('TorrentPluginStatusUpdateAlert', statuses) 
+      this.emit('TorrentPluginStatusUpdateAlert', statuses)
     }
 
     [_peerPluginStatusUpdateAlert](alert) {

@@ -223,17 +223,16 @@ NAN_METHOD(AlertWrap::statuses) {
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
     auto casted = dynamic_cast<const joystream::extension::alert::TorrentPluginStatusUpdateAlert*>(a);
-    v8::Local<v8::Array> ret = Nan::New<v8::Array>();
+    v8::Local<v8::Map> map =  v8::Map::New(v8::Isolate::GetCurrent());
 
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
       for(auto m : casted->statuses) {
-          v8::Local<v8::Array> table = Nan::New<v8::Array>();
-          table->Set(table->Length(), Nan::New<String>(libtorrent::to_hex(m.first.to_string())).ToLocalChecked());
-          table->Set(table->Length(), TorrentPluginStatusWrap::New(m.second));
-          ret->Set(ret->Length(), table);
+        map->Set(Nan::GetCurrentContext(),
+            Nan::New<String>(libtorrent::to_hex(m.first.to_string())).ToLocalChecked(),
+            TorrentPluginStatusWrap::New(m.second));
         }
-      info.GetReturnValue().Set(ret);
+      info.GetReturnValue().Set(map);
     }
 };
