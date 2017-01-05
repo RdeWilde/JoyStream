@@ -8,10 +8,13 @@
 #include "peer_info.h"
 #include "bencode.h"
 #include "torrent_plugin_status.h"
+#include <addon/common/Transaction.hpp>
 #include <nan.h>
 
 // NativeExtension.cc represents the top level of the module.
 // C++ constructs that are exposed to javascript are exported here
+
+NAN_MODULE_INIT(InitCommon);
 
 NAN_MODULE_INIT(InitAll) {
 
@@ -27,6 +30,8 @@ NAN_MODULE_INIT(InitAll) {
   TorrentInfoWrap::Init(target);
   TorrentStatusWrap::Init(target);
   SessionWrap::Init(target);
+
+  InitCommon(target);
 }
 
 NODE_MODULE(NativeExtension, InitAll)

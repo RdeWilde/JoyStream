@@ -14,6 +14,7 @@
                 "cpp/peer_info.cc",
                 "cpp/bencode.cc",
                 "cpp/torrent_plugin_status.cc",
+                "cpp/common/init.cpp", "cpp/common/Transaction.cpp",
                 "../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
@@ -21,6 +22,7 @@
             'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ],
             "include_dirs" : [
                 "<!(node -e \"require('nan')\")",
+                "cpp/include/",
                 "../include/",
                 "./qt_headers/",
                 "../../common/include",
