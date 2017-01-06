@@ -141,8 +141,13 @@ NAN_METHOD(SessionWrap::post_torrent_updates) {
 NAN_METHOD(SessionWrap::pause) {
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
 
+  std::shared_ptr<Nan::Callback> callback;
+
+  if(info.Length() > 0) {
+      callback.reset(new Nan::Callback(info[0].As<v8::Function>()));
+  }
+
   // Pause libtorrent session
-  Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
   session_wrap->session_.plugin_->submit(joystream::extension::request::PauseLibtorrent([session_wrap, callback]() {
 
     std::clog << "Libtorrent session paused" << std::endl;
@@ -153,12 +158,11 @@ NAN_METHOD(SessionWrap::pause) {
         std::clog << "All plugins stopped" << std::endl;
 
         // Service user callback
-        v8::Local<v8::Value> argv[] = {};
-
-        callback->Call(0, argv);
+        if(callback && !callback->IsEmpty()) {
+            callback->Call(0, {});
+        }
     }));
   }));
-  session_wrap->session_.s->pause();
 
   info.GetReturnValue().Set(Nan::Undefined());
 }
