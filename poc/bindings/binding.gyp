@@ -14,7 +14,7 @@
                 "cpp/peer_info.cc",
                 "cpp/bencode.cc",
                 "cpp/torrent_plugin_status.cc",
-                "cpp/common/init.cpp", "cpp/common/Transaction.cpp",
+                "cpp/common/init.cpp", "cpp/common/Transaction.cpp", "cpp/common/PrivateKey.cpp",
                 "cpp/util/buffers.cpp",
                 "../src/Session.cpp"
                 ],
