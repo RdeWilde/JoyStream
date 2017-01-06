@@ -6,12 +6,12 @@
 
 using namespace v8;
 
-class TorrentPluginStatusWrap: public Nan::ObjectWrap {
+class TorrentPluginStatus: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
       static Local<Object> New(const joystream::extension::status::TorrentPlugin& tp);
       static joystream::extension::status::TorrentPlugin* Unwrap(const Local<Object>& obj) {
-        TorrentPluginStatusWrap* tps = Nan::ObjectWrap::Unwrap<TorrentPluginStatusWrap>(obj);
+        TorrentPluginStatus* tps = Nan::ObjectWrap::Unwrap<TorrentPluginStatus>(obj);
         return &tps->torrent_plugin_status_;
       };
 

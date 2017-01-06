@@ -231,7 +231,7 @@ NAN_METHOD(AlertWrap::statuses) {
       for(auto m : casted->statuses) {
         map->Set(Nan::GetCurrentContext(),
             Nan::New<String>(libtorrent::to_hex(m.first.to_string())).ToLocalChecked(),
-            TorrentPluginStatusWrap::New(m.second));
+            TorrentPluginStatus::New(m.second));
         }
       info.GetReturnValue().Set(map);
     }

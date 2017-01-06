@@ -13,10 +13,10 @@
                 "cpp/endpoint.cc",
                 "cpp/peer_info.cc",
                 "cpp/bencode.cc",
-                "cpp/torrent_plugin_status.cc",
+                "cpp/extension/init.cpp","cpp/extension/TorrentPluginStatus.cpp",
                 "cpp/common/init.cpp", "cpp/common/Transaction.cpp", "cpp/common/PrivateKey.cpp",
-                "cpp/util/buffers.cpp",
-                "../src/Session.cpp"
+                "cpp/util/buffers.cpp",                
+				"../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
             'cflags!': [ '-fno-exceptions', '-fno-rtti' ],
