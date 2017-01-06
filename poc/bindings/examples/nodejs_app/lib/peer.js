@@ -6,6 +6,7 @@ class Peer extends EventEmitter {
 
   constructor () {
     super()
+    this.plugin = null
 
   }
 

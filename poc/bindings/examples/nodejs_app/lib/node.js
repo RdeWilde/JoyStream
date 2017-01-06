@@ -529,12 +529,28 @@ class Node extends EventEmitter {
 
       for (var [infoHash, torrentPluginStatus] of statuses) {
         var torrent = this.torrents.get(infoHash)
-        torrent.plugin.update(torrentPluginStatus)
+        //torrent.plugin.update(torrentPluginStatus)
+        torrent.plugin.emit('statusUpdated', torrentPluginStatus)
       }
       this.emit('TorrentPluginStatusUpdateAlert', statuses)
     }
 
     [_peerPluginStatusUpdateAlert](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var statuses = alert.statuses()
+
+      if (!torrent.plugin) {
+        debug('No plugin find')
+      } else {
+        torrent.plugin.emit('updatePeerPluginStatuses', statuses)
+        for (var [endpoint, peerPluginStatus] of statuses) {
+          var peer = torrent.peers.get(endpoint)
+          var peerPlugin = peer.plugin
+          peerPlugin.update(peerPluginStatus)
+        }
+      }
+
     }
 
     [_torrentPluginAdded](alert) {

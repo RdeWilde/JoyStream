@@ -10,6 +10,7 @@ class Torrent extends EventEmitter {
     this.handle = handle
     this.resumeData = resumeData
     this.plugin = plugin
+    this.peers = new Map()
     this.announcedJSPeersAtTimestamp = new Map()
   }
 
