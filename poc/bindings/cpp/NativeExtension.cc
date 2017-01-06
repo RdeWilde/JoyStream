@@ -13,6 +13,8 @@
 // NativeExtension.cc represents the top level of the module.
 // C++ constructs that are exposed to javascript are exported here
 
+NAN_MODULE_INIT(InitCommon);
+
 NAN_MODULE_INIT(InitAll) {
 
   Nan::Set(target, Nan::New<v8::String>("BEncode").ToLocalChecked(),
@@ -27,6 +29,8 @@ NAN_MODULE_INIT(InitAll) {
   TorrentInfoWrap::Init(target);
   TorrentStatusWrap::Init(target);
   SessionWrap::Init(target);
+
+  InitCommon(target);
 }
 
 NODE_MODULE(NativeExtension, InitAll)

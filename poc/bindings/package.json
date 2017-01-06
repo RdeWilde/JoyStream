@@ -5,7 +5,7 @@
     "postinstall" : "sh build_node_module.sh",
     "build-node": "sh build_node_module.sh",
     "build-electron" : "sh build_electron_module.sh",
-    "test": "mocha"
+    "test": "mocha --reporter spec --recursive"
   },
   "devDependencies": {
     "nan": "^2.0.5",
