@@ -7,6 +7,7 @@
 #include "add_torrent_params.h"
 #include "endpoint.h"
 #include "bencode.h"
+#include "torrent_plugin_status.h"
 #include <extension/Alert.hpp>
 
 using namespace v8;
@@ -60,6 +61,9 @@ class AlertWrap: public Nan::ObjectWrap {
 
       // save_resume_data_alert
       static NAN_METHOD(resume_data);
+
+      // TorrentPluginStatusUpdateAlert
+      static NAN_METHOD(statuses);
 
 
 };
