@@ -87,16 +87,19 @@ NAN_METHOD(SessionWrap::add_torrent) {
   Nan::Callback *callback = new Nan::Callback(info[6].As<v8::Function>());
   session_wrap->session_.plugin_->submit(joystream::extension::request::AddTorrent(params, [callback](libtorrent::error_code ec, libtorrent::torrent_handle th){
 
-    if (ec) {
-      Nan::ThrowError("Error !");
-    } else {
-      v8::Local<v8::Value> argv[] = {
-          Nan::Null()
-        , TorrentHandleWrap::New(th)
-      };
+    if(ec) {
+        v8::Local<v8::Value> argv[] = { Nan::New(ec.value()) };
 
-      callback->Call(2, argv);
+        callback->Call(1, argv);
+        return;
     }
+
+    v8::Local<v8::Value> argv[] = {
+        Nan::Null(),
+        TorrentHandleWrap::New(th)
+    };
+
+    callback->Call(2, argv);
 
   }));
 }
@@ -107,11 +110,15 @@ NAN_METHOD(SessionWrap::remove_torrent) {
   libtorrent::sha1_hash info_hash = object_to_sha1_hash(info[0]);
 
   Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
-  session_wrap->session_.plugin_->submit(joystream::extension::request::RemoveTorrent(info_hash, [callback](const std::exception_ptr &){
+  session_wrap->session_.plugin_->submit(joystream::extension::request::RemoveTorrent(info_hash, [callback](const std::exception_ptr &ex){
 
     v8::Local<v8::Value> argv[] = {
         Nan::Null()
     };
+
+    if(ex) {
+        argv[0] = Nan::New<v8::String>("Missing Torrent").ToLocalChecked();
+    }
 
     callback->Call(1, argv);
   }));
