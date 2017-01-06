@@ -1,4 +1,5 @@
 #include <addon/common/Transaction.hpp>
+#include <addon/util/buffers.hpp>
 
 Nan::Persistent<v8::Function> Transaction::constructor;
 
@@ -34,13 +35,11 @@ NAN_METHOD(Transaction::New) {
 
     if(info.Length() > 0){
         if(info[0]->IsUint8Array()) {
-            uchar_vector data((const unsigned char *)node::Buffer::Data(info[0]), node::Buffer::Length(info[0]));
-            obj->_tx.setSerialized(data);
+            obj->_tx.setSerialized(NodeBufferToUCharVector(info[0]));
         }
 
         if(info[0]->IsString()){
-            v8::String::Utf8Value hex(info[0]);
-            uchar_vector data = uchar_vector(std::string(*hex));
+            uchar_vector data = StringToUCharVector(info[0]);
             obj->_tx.setSerialized(data);
         }
     }
@@ -58,10 +57,7 @@ NAN_METHOD(Transaction::New) {
 NAN_METHOD(Transaction::ToBuffer) {
     Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
     auto data = transaction->_tx.getSerialized();
-    auto buf = Nan::NewBuffer(data.size()).ToLocalChecked();
-    auto pbuf = node::Buffer::Data(buf);
-    data.copyToArray((unsigned char*)pbuf);
-    info.GetReturnValue().Set(buf);
+    info.GetReturnValue().Set(UCharVectorToNodeBuffer(data));
 }
 
 NAN_METHOD(Transaction::GetVersion) {
@@ -77,10 +73,7 @@ NAN_METHOD(Transaction::GetLockTime) {
 NAN_METHOD(Transaction::GetHash) {
     Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
     auto data = transaction->_tx.hash();
-    auto buf = Nan::NewBuffer(data.size()).ToLocalChecked();
-    auto pbuf = node::Buffer::Data(buf);
-    data.copyToArray((unsigned char*)pbuf);
-    info.GetReturnValue().Set(buf);
+    info.GetReturnValue().Set(UCharVectorToNodeBuffer(data));
 }
 
 void Transaction::setTx(const Coin::Transaction &tx) {

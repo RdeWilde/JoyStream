@@ -15,6 +15,7 @@
                 "cpp/bencode.cc",
                 "cpp/torrent_plugin_status.cc",
                 "cpp/common/init.cpp", "cpp/common/Transaction.cpp",
+                "cpp/util/buffers.cpp",
                 "../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
