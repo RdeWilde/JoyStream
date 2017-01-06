@@ -3,18 +3,14 @@ var assert = require('assert');
 var Buffer = require('buffer').Buffer;
 
   describe('common', function() {
-    it('namespace exists', function(){
+    it('exports', function(){
       assert.equal(typeof nativeExtension.common, 'object');
+      assert.equal(typeof nativeExtension.common.Transaction, 'function');
+      assert.equal(typeof nativeExtension.common.PrivateKey, 'function');
     });
 
     describe('Transaction', function() {
-        var Tx;
-
-        it('constructor', function() {
-          assert.equal(typeof nativeExtension.common.Transaction, 'function');
-        })
-
-        Tx = nativeExtension.common.Transaction;
+        var Tx = nativeExtension.common.Transaction;
 
         it('toBuffer', function() {
             var tx1 = new Tx();
@@ -35,8 +31,19 @@ var Buffer = require('buffer').Buffer;
         })
     })
 
-    xit('PrivateKey', function() {
-        assert.equal(typeof nativeExtension.common.PrivateKey, 'function');
+    describe('PrivateKey', function() {
+        var PrivateKey = nativeExtension.common.PrivateKey;
+
+        it('generate', function(){
+            var sk = PrivateKey.generate()
+            assert(sk.valid())
+        })
+
+        it('toBuffer', function(){
+            var sk = PrivateKey.generate()
+            assert(sk.toBuffer().length, 32)
+        })
+
     })
 
     xit('KeyPair', function() {

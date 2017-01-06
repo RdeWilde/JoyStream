@@ -8,7 +8,6 @@
 #include "peer_info.h"
 #include "bencode.h"
 #include "torrent_plugin_status.h"
-#include <addon/common/Transaction.hpp>
 #include <nan.h>
 
 // NativeExtension.cc represents the top level of the module.

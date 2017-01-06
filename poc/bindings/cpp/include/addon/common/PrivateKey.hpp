@@ -18,6 +18,8 @@ class PrivateKey: public Nan::ObjectWrap {
 
       static NAN_METHOD(New);
       static NAN_METHOD(ToBuffer);
+      static NAN_METHOD(Generate);
+      static NAN_METHOD(Valid);
 
       void setPrivateKey(const Coin::PrivateKey&);
 

@@ -9,6 +9,9 @@ NAN_MODULE_INIT(PrivateKey::Init) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "toBuffer", ToBuffer);
+  Nan::SetPrototypeMethod(tpl, "valid", Valid);
+
+  Nan::SetMethod(tpl, "generate", Generate);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("PrivateKey").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
@@ -57,6 +60,16 @@ NAN_METHOD(PrivateKey::ToBuffer) {
     PrivateKey* privateKey = ObjectWrap::Unwrap<PrivateKey>(info.This());
     auto data = privateKey->_privateKey.toUCharVector();
     info.GetReturnValue().Set(UCharVectorToNodeBuffer(data));
+}
+
+NAN_METHOD(PrivateKey::Generate) {
+    auto sk = Coin::PrivateKey::generate();
+    info.GetReturnValue().Set(Make(sk));
+}
+
+NAN_METHOD(PrivateKey::Valid) {
+    PrivateKey* privateKey = ObjectWrap::Unwrap<PrivateKey>(info.This());
+    info.GetReturnValue().Set(Coin::PrivateKey::valid(privateKey->_privateKey));
 }
 
 void PrivateKey::setPrivateKey(const Coin::PrivateKey &sk) {
