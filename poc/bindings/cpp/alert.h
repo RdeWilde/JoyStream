@@ -8,6 +8,7 @@
 #include "endpoint.h"
 #include "bencode.h"
 #include <addon/extension/TorrentPluginStatus.hpp>
+#include <addon/extension/PeerPluginStatus.hpp>
 #include <extension/Alert.hpp>
 
 using namespace v8;

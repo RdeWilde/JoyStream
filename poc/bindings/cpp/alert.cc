@@ -22,6 +22,7 @@ NAN_MODULE_INIT(AlertWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "endpoint", endpoint);
   Nan::SetPrototypeMethod(tpl, "ip", ip);
   Nan::SetPrototypeMethod(tpl, "loadedCallback", loaded_callback);
+  Nan::SetPrototypeMethod(tpl, "statuses", statuses);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -222,17 +223,24 @@ NAN_METHOD(AlertWrap::resume_data) {
 NAN_METHOD(AlertWrap::statuses) {
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
-    auto casted = dynamic_cast<const joystream::extension::alert::TorrentPluginStatusUpdateAlert*>(a);
+    ;
     v8::Local<v8::Map> map =  v8::Map::New(v8::Isolate::GetCurrent());
 
-    if (!casted) {
-      info.GetReturnValue().SetUndefined();
-    } else {
+    if (auto casted = dynamic_cast<const joystream::extension::alert::TorrentPluginStatusUpdateAlert*>(a)) {
       for(auto m : casted->statuses) {
         map->Set(Nan::GetCurrentContext(),
             Nan::New<String>(libtorrent::to_hex(m.first.to_string())).ToLocalChecked(),
             TorrentPluginStatus::New(m.second));
         }
       info.GetReturnValue().Set(map);
+    } else if (auto casted = dynamic_cast<const joystream::extension::alert::PeerPluginStatusUpdateAlert*>(a)) {
+      for(auto m : casted->statuses) {
+        map->Set(Nan::GetCurrentContext(),
+            EndpointWrap::New(m.first),
+            PeerPluginStatus::New(m.second));
+        }
+      info.GetReturnValue().Set(map);
+    } else {
+      info.GetReturnValue().SetUndefined();
     }
 };
