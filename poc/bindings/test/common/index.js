@@ -4,9 +4,9 @@ var Buffer = require('buffer').Buffer;
 
   describe('common', function() {
     it('exports', function(){
-      assert.equal(typeof nativeExtension.common, 'object');
       assert.equal(typeof nativeExtension.common.Transaction, 'function');
       assert.equal(typeof nativeExtension.common.PrivateKey, 'function');
+      assert.equal(typeof nativeExtension.common.PubKeyHash, 'function');
     });
 
     describe('Transaction', function() {
@@ -34,23 +34,55 @@ var Buffer = require('buffer').Buffer;
     describe('PrivateKey', function() {
         var PrivateKey = nativeExtension.common.PrivateKey;
 
+        var hexKey = "01020405060708090A0B0C0D0E0F10111213141501020405060708090A0B0C0D";
+        assert.equal(hexKey.length, 64);
+
+        if('default constructor', function(){
+            var sk = new PrivateKey();
+            assert.equal(sk.toBuffer().length, 32);
+            assert.deepEqual(sk.toBuffer(), new Buffer(32));
+        })
+
+        if('construct from hex string', function(){
+            var sk = new PrivateKey(hexKey);
+            assert.equal(sk.toBuffer().length, 32);
+            assert.deepEqual(sk.toBuffer(), new Buffer(hexKey, 'hex'));
+        })
+
+        if('construct from buffer', function(){
+            var sk = new PrivateKey(new Buffer(hexKey, 'hex'));
+            assert.equal(sk.toBuffer().length, 32);
+            assert.deepEqual(sk.toBuffer(), new Buffer(hexKey, 'hex'));
+        })
+
         it('generate', function(){
             var sk = PrivateKey.generate()
             assert(sk.valid())
+            assert.equal(sk.toBuffer().length, 32)
         })
 
         it('toBuffer', function(){
             var sk = PrivateKey.generate()
-            assert(sk.toBuffer().length, 32)
+            assert.equal(sk.toBuffer().length, 32)
         })
 
     })
 
-    xit('KeyPair', function() {
-        assert.equal(typeof nativeExtension.common.KeyPair, 'function');
-    })
+    describe('PubKeyHash', function() {
+        var PubKeyHash = nativeExtension.common.PubKeyHash;
 
-    xit('PubKeyHash', function() {
-        assert.equal(typeof nativeExtension.common.PubKeyHash, 'function');
+        it('default constructor', function(){
+            var hash = new PubKeyHash();
+            assert.equal(hash.toBuffer().length, 20);
+        })
+
+        it('construct from buffer', function(){
+            var buf = new Buffer('01020405060708090A0B0C0D0E0F101112131415','hex');
+            assert.equal(buf.length, 20);
+
+            var hash = new PubKeyHash(buf);
+            assert.deepEqual(hash.toBuffer(), buf);
+        })
+
     })
   })

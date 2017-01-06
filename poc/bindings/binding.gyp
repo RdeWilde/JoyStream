@@ -23,6 +23,7 @@
                 "cpp/common/init.cpp",
                 "cpp/common/Transaction.cpp",
                 "cpp/common/PrivateKey.cpp",
+                "cpp/common/PubKeyHash.cpp",
                 # Protocol Session
                 "cpp/protocol_session/init.cpp",
                 "cpp/protocol_session/Connection.cpp",
@@ -30,7 +31,7 @@
                 "cpp/util/buffers.cpp",
                 "cpp/utils.cpp",
                 # Others
-				"../src/Session.cpp"
+		"../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
             'cflags!': [ '-fno-exceptions', '-fno-rtti' ],
