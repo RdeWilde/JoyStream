@@ -546,8 +546,11 @@ class Node extends EventEmitter {
         torrent.plugin.emit('updatePeerPluginStatuses', statuses)
         for (var [endpoint, peerPluginStatus] of statuses) {
           var peer = torrent.peers.get(endpoint)
-          var peerPlugin = peer.plugin
-          peerPlugin.update(peerPluginStatus)
+          if (peer) {
+            peer.plugin.update(peerPluginStatus)
+          } else {
+            debug('Peer not found !')
+          }
         }
       }
 
