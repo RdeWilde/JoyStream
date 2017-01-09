@@ -47,6 +47,7 @@ const _contractConstructed = Symbol('contractConstructed')
 const _validPieceArrived = Symbol('validPieceArrived')
 const _invalidPieceArrived = Symbol('invalidPieceArrived')
 const _buyerTermsUpdated = Symbol('buyerTermsUpdated')
+const _anchorAnnounced = Symbol('anchorAnnounced')
 
 /*
  * Class Node
@@ -300,6 +301,11 @@ class Node extends EventEmitter {
         // BuyerTermsUpdated
         case 100029:
           this[_buyerTermsUpdated](alert)
+          break
+
+        // AnchorAnnounced
+        case 10004:
+          this[_anchorAnnounced](alert)
           break
 
         default:
@@ -569,54 +575,131 @@ class Node extends EventEmitter {
     }
 
     [_connectionAddedToSession](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var peerPlugin = torrent.peers.get(alert.ip()).plugin
+      // TODO: Missing protocol_session::status::Connection wrapper
+      peerPlugin.emit('connectionAdded', alert.connectionStatus())
     }
 
     [_connectionRemovedFromSession](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var peer = torrent.peers.get(alert.ip())
+
+      peer.plugin.emit('connectionRemoved')
     }
 
     [_sessionStarted](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sessionStarted')
     }
 
     [_sessionPaused](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sessionPause')
     }
 
     [_sessionStopped](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sessionStopped')
     }
 
     [_sessionToObserveMode](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sessionToObserveMode')
     }
 
     [_sessionToSellMode](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('SessionToSellMode', alert)
     }
 
     [_sessionToBuyMode](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('SessionToBuyMode', alert)
     }
 
     [_validPaymentReceived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('validPaymentReceived', alert)
     }
 
     [_invalidPaymentReceived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('invalidPaymentReceived', alert)
     }
 
     [_buyerTermsUpdated](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('buyerTermsUpdated', alert)
     }
 
     [_sellerTermsUpdated](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sellerTermsUpdated', alert)
     }
 
     [_contractConstructed](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('contractConstructed', alert)
     }
 
     [_sentPayment](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sentPayment', alert)
     }
 
     [_lastPaymentReceived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('lastPaymentReceived', alert)
     }
 
     [_invalidPieceArrived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('invalidPieceArrived', alert)
     }
 
     [_validPieceArrived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('validPieceArrived', alert)
+    }
+
+    [_anchorAnnounced](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('AnchorAnnounced', alert)
     }
 }
 

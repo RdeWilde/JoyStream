@@ -23,6 +23,7 @@ NAN_MODULE_INIT(AlertWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "ip", ip);
   Nan::SetPrototypeMethod(tpl, "loadedCallback", loaded_callback);
   Nan::SetPrototypeMethod(tpl, "statuses", statuses);
+  Nan::SetPrototypeMethod(tpl, "connectionStatus", connection_status);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -184,12 +185,24 @@ NAN_METHOD(AlertWrap::ip) {
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
-    auto casted = dynamic_cast<const libtorrent::peer_connect_alert*>(a);
-
-    if (!casted) {
-      info.GetReturnValue().SetUndefined();
-    } else {
-      info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+    switch (a->type()) {
+      case 23: {
+          auto casted = dynamic_cast<const libtorrent::peer_connect_alert*>(a);
+          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+        }
+        break;
+      case 100011: {
+          auto casted = dynamic_cast<const joystream::extension::alert::ConnectionAddedToSession*>(a);
+          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+        }
+        break;
+      case 100012: {
+          auto casted = dynamic_cast<const joystream::extension::alert::ConnectionRemovedFromSession*>(a);
+          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+        }
+        break;
+      default:
+        info.GetReturnValue().SetUndefined();
     }
 };
 
@@ -243,4 +256,15 @@ NAN_METHOD(AlertWrap::statuses) {
     } else {
       info.GetReturnValue().SetUndefined();
     }
+};
+
+NAN_METHOD(AlertWrap::connection_status) {
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const joystream::extension::alert::ConnectionAddedToSession*>(a);
+
+    // TODO
+
+    info.GetReturnValue().SetUndefined();
 };

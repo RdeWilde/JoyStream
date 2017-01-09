@@ -66,6 +66,8 @@ class AlertWrap: public Nan::ObjectWrap {
       // TorrentPluginStatusUpdateAlert
       static NAN_METHOD(statuses);
 
+      // ConnectionAddedToSession
+      static NAN_METHOD(connection_status);
 
 };
 
