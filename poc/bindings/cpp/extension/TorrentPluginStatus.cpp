@@ -2,40 +2,47 @@
 
 using namespace v8;
 
-Nan::Persistent<Function> TorrentPluginStatus::constructor;
+namespace joystream {
+  namespace addon {
+    namespace extension {
 
-NAN_MODULE_INIT(TorrentPluginStatus::Init) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("TorrentPluginStatus").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+      Nan::Persistent<Function> TorrentPluginStatus::constructor;
 
-  Local<ObjectTemplate> inst = tpl->InstanceTemplate();
-  Nan::SetAccessor(inst, Nan::New("infoHash").ToLocalChecked(), TorrentPluginStatus::info_hash);
+      NAN_MODULE_INIT(TorrentPluginStatus::Init) {
+        Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
+        tpl->SetClassName(Nan::New("TorrentPluginStatus").ToLocalChecked());
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("TorrentPluginStatus").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
-};
+        Local<ObjectTemplate> inst = tpl->InstanceTemplate();
+        Nan::SetAccessor(inst, Nan::New("infoHash").ToLocalChecked(), TorrentPluginStatus::info_hash);
 
-Local<Object> TorrentPluginStatus::New(const joystream::extension::status::TorrentPlugin& tp) {
-    Nan::EscapableHandleScope scope;
+        constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
+        Nan::Set(target, Nan::New("TorrentPluginStatus").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+      };
 
-    Local<Function> cons = Nan::New(constructor);
-    Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
+      Local<Object> TorrentPluginStatus::New(const joystream::extension::status::TorrentPlugin& tp) {
+          Nan::EscapableHandleScope scope;
 
-    Nan::ObjectWrap::Unwrap<TorrentPluginStatus>(obj.ToLocalChecked())->torrent_plugin_status_ = tp;
+          Local<Function> cons = Nan::New(constructor);
+          Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
 
-    return scope.Escape(obj.ToLocalChecked());
-};
+          Nan::ObjectWrap::Unwrap<TorrentPluginStatus>(obj.ToLocalChecked())->torrent_plugin_status_ = tp;
 
-NAN_METHOD(TorrentPluginStatus::NewInstance) {
-  TorrentPluginStatus* obj = new TorrentPluginStatus();
-  obj->Wrap(info.This());
+          return scope.Escape(obj.ToLocalChecked());
+      };
 
-  info.GetReturnValue().Set(info.This());
-};
+      NAN_METHOD(TorrentPluginStatus::NewInstance) {
+        TorrentPluginStatus* obj = new TorrentPluginStatus();
+        obj->Wrap(info.This());
 
-NAN_GETTER(TorrentPluginStatus::info_hash) {
-  libtorrent::sha1_hash info_hash = TorrentPluginStatus::Unwrap(info.This())->infoHash;
+        info.GetReturnValue().Set(info.This());
+      };
 
-  info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(info_hash.to_string())).ToLocalChecked());
-};
+      NAN_GETTER(TorrentPluginStatus::info_hash) {
+        libtorrent::sha1_hash info_hash = TorrentPluginStatus::Unwrap(info.This())->infoHash;
+
+        info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(info_hash.to_string())).ToLocalChecked());
+      };
+    }
+  }
+}

@@ -230,14 +230,14 @@ NAN_METHOD(AlertWrap::statuses) {
       for(auto m : casted->statuses) {
         map->Set(Nan::GetCurrentContext(),
             Nan::New<String>(libtorrent::to_hex(m.first.to_string())).ToLocalChecked(),
-            TorrentPluginStatus::New(m.second));
+            joystream::addon::extension::TorrentPluginStatus::New(m.second));
         }
       info.GetReturnValue().Set(map);
     } else if (auto casted = dynamic_cast<const joystream::extension::alert::PeerPluginStatusUpdateAlert*>(a)) {
       for(auto m : casted->statuses) {
         map->Set(Nan::GetCurrentContext(),
             EndpointWrap::New(m.first),
-            PeerPluginStatus::New(m.second));
+            joystream::addon::extension::PeerPluginStatus::New(m.second));
         }
       info.GetReturnValue().Set(map);
     } else {

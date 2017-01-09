@@ -2,34 +2,41 @@
 
 using namespace v8;
 
-Nan::Persistent<Function> PeerPluginStatus::constructor;
+namespace joystream {
+  namespace addon {
+    namespace extension {
 
-NAN_MODULE_INIT(PeerPluginStatus::Init) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("PeerPluginStatus").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+      Nan::Persistent<Function> PeerPluginStatus::constructor;
 
-  /*Local<ObjectTemplate> inst = tpl->InstanceTemplate();
-  Nan::SetAccessor(inst, Nan::New("infoHash").ToLocalChecked(), PeerPluginStatus::info_hash);*/
+      NAN_MODULE_INIT(PeerPluginStatus::Init) {
+        Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
+        tpl->SetClassName(Nan::New("PeerPluginStatus").ToLocalChecked());
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("PeerPluginStatus").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
-};
+        /*Local<ObjectTemplate> inst = tpl->InstanceTemplate();
+        Nan::SetAccessor(inst, Nan::New("infoHash").ToLocalChecked(), PeerPluginStatus::info_hash);*/
 
-Local<Object> PeerPluginStatus::New(const joystream::extension::status::PeerPlugin& pp) {
-    Nan::EscapableHandleScope scope;
+        constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
+        Nan::Set(target, Nan::New("PeerPluginStatus").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+      };
 
-    Local<Function> cons = Nan::New(constructor);
-    Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
+      Local<Object> PeerPluginStatus::New(const joystream::extension::status::PeerPlugin& pp) {
+          Nan::EscapableHandleScope scope;
 
-    Nan::ObjectWrap::Unwrap<PeerPluginStatus>(obj.ToLocalChecked())->peer_plugin_status_ = pp;
+          Local<Function> cons = Nan::New(constructor);
+          Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
 
-    return scope.Escape(obj.ToLocalChecked());
-};
+          Nan::ObjectWrap::Unwrap<PeerPluginStatus>(obj.ToLocalChecked())->peer_plugin_status_ = pp;
 
-NAN_METHOD(PeerPluginStatus::NewInstance) {
-  PeerPluginStatus* obj = new PeerPluginStatus();
-  obj->Wrap(info.This());
+          return scope.Escape(obj.ToLocalChecked());
+      };
 
-  info.GetReturnValue().Set(info.This());
-};
+      NAN_METHOD(PeerPluginStatus::NewInstance) {
+        PeerPluginStatus* obj = new PeerPluginStatus();
+        obj->Wrap(info.This());
+
+        info.GetReturnValue().Set(info.This());
+      };
+    }
+  }
+}
