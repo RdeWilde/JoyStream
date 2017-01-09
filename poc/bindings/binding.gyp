@@ -4,6 +4,7 @@
             "target_name": "NativeExtension",
             "sources": [
                 "cpp/NativeExtension.cc",
+                # Libtorrent
                 "cpp/session.cc",
                 "cpp/torrent_handle.cc",
                 "cpp/torrent_status.cc",
@@ -13,9 +14,17 @@
                 "cpp/endpoint.cc",
                 "cpp/peer_info.cc",
                 "cpp/bencode.cc",
-                "cpp/extension/init.cpp","cpp/extension/TorrentPluginStatus.cpp", "cpp/extension/PeerPluginStatus.cpp",
-                "cpp/common/init.cpp", "cpp/common/Transaction.cpp", "cpp/common/PrivateKey.cpp",
+                # Extension
+                "cpp/extension/init.cpp",
+                "cpp/extension/TorrentPluginStatus.cpp",
+                "cpp/extension/PeerPluginStatus.cpp",
+                # Common
+                "cpp/common/init.cpp",
+                "cpp/common/Transaction.cpp",
+                "cpp/common/PrivateKey.cpp",
+                # Util
                 "cpp/util/buffers.cpp",
+                # Others
 				"../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
