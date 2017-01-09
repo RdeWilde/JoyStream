@@ -13,9 +13,9 @@
                 "cpp/endpoint.cc",
                 "cpp/peer_info.cc",
                 "cpp/bencode.cc",
-                "cpp/extension/init.cpp","cpp/extension/TorrentPluginStatus.cpp",
+                "cpp/extension/init.cpp","cpp/extension/TorrentPluginStatus.cpp", "cpp/extension/PeerPluginStatus.cpp",
                 "cpp/common/init.cpp", "cpp/common/Transaction.cpp", "cpp/common/PrivateKey.cpp",
-                "cpp/util/buffers.cpp",                
+                "cpp/util/buffers.cpp",
 				"../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],

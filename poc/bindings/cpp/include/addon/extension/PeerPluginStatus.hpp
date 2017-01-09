@@ -25,12 +25,8 @@ namespace joystream {
 
             static NAN_METHOD(NewInstance);
       };
-
-
     }
-
   }
-
 }
 
 #endif
