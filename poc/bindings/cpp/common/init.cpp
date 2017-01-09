@@ -8,7 +8,7 @@ NAN_MODULE_INIT(InitCommon) {
     auto common = Nan::New<v8::Object>();
     target->Set(Nan::New("common").ToLocalChecked(), common);
 
-    Transaction::Init(common);
-    PrivateKey::Init(common);
-    PubKeyHash::Init(common);
+    joystream::addon::common::Transaction::Init(common);
+    joystream::addon::common::PrivateKey::Init(common);
+    joystream::addon::common::PubKeyHash::Init(common);
 }

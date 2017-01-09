@@ -1,6 +1,10 @@
 #include <addon/common/PubKeyHash.hpp>
 #include <addon/util/buffers.hpp>
 
+namespace joystream {
+namespace addon {
+namespace common {
+
 Nan::Persistent<v8::Function> PubKeyHash::constructor;
 
 NAN_MODULE_INIT(PubKeyHash::Init) {
@@ -31,16 +35,9 @@ NAN_METHOD(PubKeyHash::New) {
   if (info.IsConstructCall()) {
     PubKeyHash *obj = new PubKeyHash();
 
-    if(info.Length() > 0){
-        if(info[0]->IsUint8Array()) {
-            Coin::PubKeyHash hash(NodeBufferToUCharVector(info[0]));
-            obj->setPubKeyHash(hash);
-        }
-
-        if(info[0]->IsString()){
-            Coin::PubKeyHash hash(StringToUCharVector(info[0]));
-            obj->setPubKeyHash(hash);
-        }
+    if(info.Length() > 0 && info[0]->IsUint8Array()){
+        Coin::PubKeyHash hash(util::NodeBufferToUCharVector(info[0]));
+        obj->setPubKeyHash(hash);
     }
 
     obj->Wrap(info.This());
@@ -60,9 +57,11 @@ NAN_METHOD(PubKeyHash::New) {
 NAN_METHOD(PubKeyHash::ToBuffer) {
     PubKeyHash* pubKeyHash = ObjectWrap::Unwrap<PubKeyHash>(info.This());
     auto data = pubKeyHash->_pubKeyHash.toUCharVector();
-    info.GetReturnValue().Set(UCharVectorToNodeBuffer(data));
+    info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
 }
 
 void PubKeyHash::setPubKeyHash(const Coin::PubKeyHash &hash) {
     _pubKeyHash = hash;
 }
+
+}}}

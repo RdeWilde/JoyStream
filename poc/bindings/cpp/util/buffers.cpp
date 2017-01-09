@@ -1,5 +1,9 @@
 #include <addon/util/buffers.hpp>
 
+namespace joystream {
+namespace addon {
+namespace util {
+
 uchar_vector NodeBufferToUCharVector(v8::Local<v8::Value> buffer) {
     return uchar_vector((const unsigned char *)node::Buffer::Data(buffer), node::Buffer::Length(buffer));
 }
@@ -17,3 +21,5 @@ v8::Local<v8::Value> UCharVectorToNodeBuffer(uchar_vector &data) {
     data.copyToArray((unsigned char*)pbuf);
     return scope.Escape(buf);
 }
+
+}}}

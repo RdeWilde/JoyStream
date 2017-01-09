@@ -1,6 +1,10 @@
 #include <addon/common/Transaction.hpp>
 #include <addon/util/buffers.hpp>
 
+namespace joystream {
+namespace addon {
+namespace common {
+
 Nan::Persistent<v8::Function> Transaction::constructor;
 
 NAN_MODULE_INIT(Transaction::Init) {
@@ -33,15 +37,8 @@ NAN_METHOD(Transaction::New) {
   if (info.IsConstructCall()) {
     Transaction *obj = new Transaction();
 
-    if(info.Length() > 0){
-        if(info[0]->IsUint8Array()) {
-            obj->_tx.setSerialized(NodeBufferToUCharVector(info[0]));
-        }
-
-        if(info[0]->IsString()){
-            uchar_vector data = StringToUCharVector(info[0]);
-            obj->_tx.setSerialized(data);
-        }
+    if(info.Length() > 0 && info[0]->IsUint8Array()){
+        obj->_tx.setSerialized(util::NodeBufferToUCharVector(info[0]));
     }
 
     obj->Wrap(info.This());
@@ -61,7 +58,7 @@ NAN_METHOD(Transaction::New) {
 NAN_METHOD(Transaction::ToBuffer) {
     Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
     auto data = transaction->_tx.getSerialized();
-    info.GetReturnValue().Set(UCharVectorToNodeBuffer(data));
+    info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
 }
 
 NAN_METHOD(Transaction::GetVersion) {
@@ -77,9 +74,11 @@ NAN_METHOD(Transaction::GetLockTime) {
 NAN_METHOD(Transaction::GetHash) {
     Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
     auto data = transaction->_tx.hash();
-    info.GetReturnValue().Set(UCharVectorToNodeBuffer(data));
+    info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
 }
 
 void Transaction::setTx(const Coin::Transaction &tx) {
     _tx = tx;
 }
+
+}}}

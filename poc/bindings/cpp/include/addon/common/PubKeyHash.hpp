@@ -4,15 +4,19 @@
 #include <nan.h>
 #include <common/PubKeyHash.hpp>
 
+namespace joystream {
+namespace addon {
+namespace common {
+
 class PubKeyHash: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
 
-      PubKeyHash();
-
       static v8::Local<v8::Object> Make(const Coin::PubKeyHash&);
 
     private:
+      PubKeyHash();
+
       Coin::PubKeyHash _pubKeyHash;
       static Nan::Persistent<v8::Function> constructor;
 
@@ -23,4 +27,5 @@ class PubKeyHash: public Nan::ObjectWrap {
 
 };
 
+}}}
 #endif

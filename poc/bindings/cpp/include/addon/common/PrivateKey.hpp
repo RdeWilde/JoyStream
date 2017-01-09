@@ -4,15 +4,19 @@
 #include <nan.h>
 #include <common/PrivateKey.hpp>
 
+namespace joystream {
+namespace addon {
+namespace common {
+
 class PrivateKey: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
 
-      PrivateKey();
-
       static v8::Local<v8::Object> Make(const Coin::PrivateKey&);
 
     private:
+      PrivateKey();
+
       Coin::PrivateKey _privateKey;
       static Nan::Persistent<v8::Function> constructor;
 
@@ -25,4 +29,5 @@ class PrivateKey: public Nan::ObjectWrap {
 
 };
 
+}}}
 #endif

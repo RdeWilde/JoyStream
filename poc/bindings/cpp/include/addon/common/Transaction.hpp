@@ -4,15 +4,19 @@
 #include <nan.h>
 #include <CoinCore/CoinNodeData.h>
 
+namespace joystream {
+namespace addon {
+namespace common {
+
 class Transaction: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
 
-      Transaction();
-
       static v8::Local<v8::Object> Make(const Coin::Transaction&);
 
     private:
+      Transaction();
+
       Coin::Transaction _tx;
       static Nan::Persistent<v8::Function> constructor;
 
@@ -26,4 +30,5 @@ class Transaction: public Nan::ObjectWrap {
 
 };
 
+}}}
 #endif

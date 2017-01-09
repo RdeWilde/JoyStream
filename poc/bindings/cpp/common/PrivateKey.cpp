@@ -1,6 +1,10 @@
 #include <addon/common/PrivateKey.hpp>
 #include <addon/util/buffers.hpp>
 
+namespace joystream {
+namespace addon {
+namespace common {
+
 Nan::Persistent<v8::Function> PrivateKey::constructor;
 
 NAN_MODULE_INIT(PrivateKey::Init) {
@@ -34,16 +38,9 @@ NAN_METHOD(PrivateKey::New) {
   if (info.IsConstructCall()) {
     PrivateKey *obj = new PrivateKey();
 
-    if(info.Length() > 0){
-        if(info[0]->IsUint8Array()) {
-            Coin::PrivateKey sk(NodeBufferToUCharVector(info[0]));
-            obj->setPrivateKey(sk);
-        }
-
-        if(info[0]->IsString()){
-            Coin::PrivateKey sk(StringToUCharVector(info[0]));
-            obj->setPrivateKey(sk);
-        }
+    if(info.Length() > 0 && info[0]->IsUint8Array()){
+        Coin::PrivateKey sk(util::NodeBufferToUCharVector(info[0]));
+        obj->setPrivateKey(sk);
     }
 
     obj->Wrap(info.This());
@@ -63,7 +60,7 @@ NAN_METHOD(PrivateKey::New) {
 NAN_METHOD(PrivateKey::ToBuffer) {
     PrivateKey* privateKey = ObjectWrap::Unwrap<PrivateKey>(info.This());
     auto data = privateKey->_privateKey.toUCharVector();
-    info.GetReturnValue().Set(UCharVectorToNodeBuffer(data));
+    info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
 }
 
 NAN_METHOD(PrivateKey::Generate) {
@@ -79,3 +76,5 @@ NAN_METHOD(PrivateKey::Valid) {
 void PrivateKey::setPrivateKey(const Coin::PrivateKey &sk) {
     _privateKey = sk;
 }
+
+}}}
