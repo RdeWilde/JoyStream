@@ -14,11 +14,16 @@ CONFIG  += testcase
 QT      += core
 QT      += testlib
 
-HEADERS += \
-    Test.hpp
+#HEADERS += \
+#    Test.hpp
 
 SOURCES += \
-    Test.cpp
+    main.cpp
+
+# GTest configs
+QMAKE_CXXFLAGS += -pthread
+LIBS += -pthread
+LIBS += -lgtest
 
 # protocol_wire ###################################################################################
 
