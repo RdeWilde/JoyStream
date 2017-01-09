@@ -2,6 +2,7 @@
 
 var sha1 = require('sha1')
 const EventEmitter = require('events')
+var Peer = require('./peer')
 
 class Torrent extends EventEmitter {
 
@@ -24,12 +25,20 @@ class Torrent extends EventEmitter {
     this.announcedJSPeersAtTimestamp.set(address, timestamp)
   }
 
-  addPeer(ip) {
-    // TODO
+  addPeer(peerInfo) {
+
+    if (!this.peers.get(peerInfo.ip)) {
+      var peer = new Peer(peerInfo)
+      this.peers.set(peerInfo.ip, peer)
+
+      this.emit('peerAdded', peer)
+    } else {
+      debug('Is already in peers.')
+    }
   }
 
-  removePeer(ip) {
-    // TODO
+  removePeer(peerInfo) {
+    
   }
 
   setResumeDataGenerationResult (resumeData) {
