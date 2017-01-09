@@ -1,5 +1,6 @@
 #include <nan.h>
 #include <addon/extension/TorrentPluginStatus.hpp>
+#include <addon/extension/PeerPluginStatus.hpp>
 
 NAN_MODULE_INIT(InitExtension) {
 
