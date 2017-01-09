@@ -39,6 +39,11 @@ NAN_METHOD(PrivateKey::New) {
     PrivateKey *obj = new PrivateKey();
 
     if(info.Length() > 0 && info[0]->IsUint8Array()){
+        if(node::Buffer::Length(info[0]) != PRIVATE_KEY_BYTE_LENGTH) {
+            Nan::ThrowTypeError("Invalid Buffer Length");
+            info.GetReturnValue().SetUndefined();
+            return;
+        }
         Coin::PrivateKey sk(util::NodeBufferToUCharVector(info[0]));
         obj->setPrivateKey(sk);
     }

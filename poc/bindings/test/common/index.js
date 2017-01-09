@@ -37,22 +37,22 @@ var Buffer = require('buffer').Buffer;
         var hexKey = "01020405060708090A0B0C0D0E0F10111213141501020405060708090A0B0C0D";
         assert.equal(hexKey.length, 64);
 
-        if('default constructor', function(){
+        it('default constructor', function(){
             var sk = new PrivateKey();
             assert.equal(sk.toBuffer().length, 32);
-            assert.deepEqual(sk.toBuffer(), new Buffer(32));
+            assert.deepEqual(sk.toBuffer(), new Buffer(32).fill(0));
         })
 
-        if('construct from hex string', function(){
-            var sk = new PrivateKey(hexKey);
-            assert.equal(sk.toBuffer().length, 32);
-            assert.deepEqual(sk.toBuffer(), new Buffer(hexKey, 'hex'));
-        })
-
-        if('construct from buffer', function(){
+        it('construct from buffer', function(){
             var sk = new PrivateKey(new Buffer(hexKey, 'hex'));
             assert.equal(sk.toBuffer().length, 32);
             assert.deepEqual(sk.toBuffer(), new Buffer(hexKey, 'hex'));
+        })
+
+        it('constructor throws if buffer not correct size', function(){
+            assert.throws(function(){
+                new PrivateKey(new Buffer(100));
+            }, TypeError);
         })
 
         it('generate', function(){
