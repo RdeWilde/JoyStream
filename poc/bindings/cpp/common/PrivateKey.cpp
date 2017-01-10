@@ -38,12 +38,17 @@ NAN_METHOD(PrivateKey::New) {
   if (info.IsConstructCall()) {
     PrivateKey *obj = new PrivateKey();
 
-    if(info.Length() > 0 && info[0]->IsUint8Array()){
+    if(info.Length() > 0){
+        // If argument is provided, it must be a buffer
+        if(!info[0]->IsUint8Array()) {
+            Nan::ThrowTypeError("Argument must be a buffer");
+            return;
+        }
+
         try {
             obj->_privateKey = Coin::PrivateKey(util::NodeBufferToUCharVector(info[0]));
         } catch (const std::exception &ex) {
             Nan::ThrowTypeError(ex.what());
-            info.GetReturnValue().SetUndefined();
             return;
         }
     }

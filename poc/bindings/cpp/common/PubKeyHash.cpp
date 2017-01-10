@@ -35,12 +35,17 @@ NAN_METHOD(PubKeyHash::New) {
   if (info.IsConstructCall()) {
     PubKeyHash *obj = new PubKeyHash();
 
-    if(info.Length() > 0 && info[0]->IsUint8Array()){
+    if(info.Length() > 0){
+        // If argument is provided, it must be a buffer
+        if(!info[0]->IsUint8Array()) {
+            Nan::ThrowTypeError("Argument must be a buffer");
+            return;
+        }
+
         try {
             obj->_pubKeyHash = Coin::PubKeyHash(util::NodeBufferToUCharVector(info[0]));
         } catch (const std::exception &ex) {
             Nan::ThrowTypeError(ex.what());
-            info.GetReturnValue().SetUndefined();
             return;
         }
     }

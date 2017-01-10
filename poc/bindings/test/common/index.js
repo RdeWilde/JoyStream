@@ -55,6 +55,12 @@ var Buffer = require('buffer').Buffer;
             }, TypeError);
         })
 
+        it('constructor throws if argument not a buffer', function(){
+            assert.throws(function(){
+                new PrivateKey("string");
+            }, TypeError)
+        })
+
         it('generate', function(){
             var sk = PrivateKey.generate()
             assert(sk.valid())
@@ -82,6 +88,18 @@ var Buffer = require('buffer').Buffer;
 
             var hash = new PubKeyHash(buf);
             assert.deepEqual(hash.toBuffer(), buf);
+        })
+
+        it('constructor throws if buffer not correct size', function(){
+            assert.throws(function(){
+                new PubKeyHash(new Buffer(100));
+            }, TypeError);
+        })
+
+        it('constructor throws if argument not a buffer', function(){
+            assert.throws(function(){
+                new PubKeyHash("string");
+            }, TypeError)
         })
 
     })

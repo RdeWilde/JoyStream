@@ -37,7 +37,13 @@ NAN_METHOD(Transaction::New) {
   if (info.IsConstructCall()) {
     Transaction *obj = new Transaction();
 
-    if(info.Length() > 0 && info[0]->IsUint8Array()){
+    if(info.Length() > 0){
+        // If argument is provided, it must be a buffer
+        if(!info[0]->IsUint8Array()) {
+            Nan::ThrowTypeError("Argument must be a buffer");
+            return;
+        }
+
         obj->_tx.setSerialized(util::NodeBufferToUCharVector(info[0]));
     }
 
