@@ -2,6 +2,7 @@
 #include <addon/common/Transaction.hpp>
 #include <addon/common/PrivateKey.hpp>
 #include <addon/common/PubKeyHash.hpp>
+#include <addon/common/PublicKey.hpp>
 
 NAN_MODULE_INIT(InitCommon) {
     // name spacing object
@@ -11,4 +12,5 @@ NAN_MODULE_INIT(InitCommon) {
     joystream::addon::common::Transaction::Init(common);
     joystream::addon::common::PrivateKey::Init(common);
     joystream::addon::common::PubKeyHash::Init(common);
+    joystream::addon::common::PublicKey::Init(common);
 }

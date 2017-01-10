@@ -7,6 +7,7 @@ var Buffer = require('buffer').Buffer;
       assert.equal(typeof nativeExtension.common.Transaction, 'function');
       assert.equal(typeof nativeExtension.common.PrivateKey, 'function');
       assert.equal(typeof nativeExtension.common.PubKeyHash, 'function');
+      assert.equal(typeof nativeExtension.common.PublicKey, 'function');
     });
 
     describe('Transaction', function() {
@@ -71,7 +72,6 @@ var Buffer = require('buffer').Buffer;
             var sk = PrivateKey.generate()
             assert.equal(sk.toBuffer().length, 32)
         })
-
     })
 
     describe('PubKeyHash', function() {
@@ -101,6 +101,26 @@ var Buffer = require('buffer').Buffer;
                 new PubKeyHash("string");
             }, TypeError)
         })
+    })
 
+    describe('PublicKey', function(){
+        var PublicKey = nativeExtension.common.PublicKey;
+
+        it('default constructor', function(){
+            var pk = new PublicKey();
+            assert.equal(pk.toBuffer().length, 33);
+        })
+
+        it('constructor throws if buffer not correct size', function(){
+            assert.throws(function(){
+                new PublicKey(new Buffer(100));
+            }, TypeError);
+        })
+
+        it('constructor throws if argument not a buffer', function(){
+            assert.throws(function(){
+                new PublicKey("string");
+            }, TypeError)
+        })
     })
   })
