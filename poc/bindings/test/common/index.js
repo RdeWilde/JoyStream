@@ -8,6 +8,7 @@ var Buffer = require('buffer').Buffer;
       assert.equal(typeof nativeExtension.common.PrivateKey, 'function');
       assert.equal(typeof nativeExtension.common.PubKeyHash, 'function');
       assert.equal(typeof nativeExtension.common.PublicKey, 'function');
+      assert.equal(typeof nativeExtension.common.OutPoint, 'function');
     });
 
     describe('Transaction', function() {
@@ -121,6 +122,14 @@ var Buffer = require('buffer').Buffer;
             assert.throws(function(){
                 new PublicKey("string");
             }, TypeError)
+        })
+    })
+
+    describe('OutPoint', function(){
+        var OutPoint = nativeExtension.common.OutPoint;
+
+        it('default constructor', function(){
+            var op = new OutPoint();
         })
     })
   })

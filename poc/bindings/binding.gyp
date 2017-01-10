@@ -25,6 +25,7 @@
                 "cpp/common/PrivateKey.cpp",
                 "cpp/common/PubKeyHash.cpp",
                 "cpp/common/PublicKey.cpp",
+                "cpp/common/OutPoint.cpp",
                 # Protocol Session
                 "cpp/protocol_session/init.cpp",
                 "cpp/protocol_session/Connection.cpp",
