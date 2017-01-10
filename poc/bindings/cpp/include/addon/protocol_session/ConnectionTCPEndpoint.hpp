@@ -14,7 +14,7 @@ namespace joystream {
             static NAN_MODULE_INIT(Init);
             static v8::Local<v8::Object> New(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
             static joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>* Unwrap(const v8::Local<v8::Object>& obj) {
-              ConnectionTCPEndpoint* c = Nan::ObjectWrap::Unwrap<Connection>(obj);
+              ConnectionTCPEndpoint* c = Nan::ObjectWrap::Unwrap<ConnectionTCPEndpoint>(obj);
               return &c->connection_;
             };
 

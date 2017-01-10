@@ -28,7 +28,7 @@ namespace joystream {
       };
 
       NAN_METHOD(ConnectionTCPEndpoint::NewInstance) {
-        ConnectionTCPEndpoint* obj = new Connection();
+        ConnectionTCPEndpoint* obj = new ConnectionTCPEndpoint();
         obj->Wrap(info.This());
 
         info.GetReturnValue().Set(info.This());

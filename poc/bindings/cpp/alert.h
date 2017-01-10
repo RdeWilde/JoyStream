@@ -9,7 +9,7 @@
 #include "bencode.h"
 #include <addon/extension/TorrentPluginStatus.hpp>
 #include <addon/extension/PeerPluginStatus.hpp>
-#include <addon/protocol_session/Connection.hpp>
+#include <addon/protocol_session/ConnectionTCPEndpoint.hpp>
 #include <extension/Alert.hpp>
 
 using namespace v8;

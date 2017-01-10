@@ -10,14 +10,14 @@ using namespace v8;
 class TorrentInfoWrap: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
-      static Local<Object> New(const libtorrent::torrent_info* ti);
+      static Local<Object> New(boost::shared_ptr<const libtorrent::torrent_info> ti);
       static const libtorrent::torrent_info* Unwrap(const Local<Object>& obj) {
         TorrentInfoWrap* ti = Nan::ObjectWrap::Unwrap<TorrentInfoWrap>(obj);
-        return ti->torrent_info_;
+        return ti->torrent_info_.get();
       };
 
     private:
-      const libtorrent::torrent_info* torrent_info_;
+      boost::shared_ptr<const libtorrent::torrent_info> torrent_info_;
       static Nan::Persistent<Function> constructor;
 
       static NAN_METHOD(NewInstance);
