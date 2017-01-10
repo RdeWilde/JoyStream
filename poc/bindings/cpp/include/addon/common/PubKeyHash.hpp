@@ -13,6 +13,7 @@ class PubKeyHash: public Nan::ObjectWrap {
       static NAN_MODULE_INIT(Init);
 
       static v8::Local<v8::Object> NewInstance(const Coin::PubKeyHash&);
+      static bool IsInstance(v8::Object&);
 
       Coin::PubKeyHash pubKeyHash() const;
 

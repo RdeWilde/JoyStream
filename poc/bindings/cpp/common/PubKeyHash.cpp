@@ -27,6 +27,10 @@ v8::Local<v8::Object> PubKeyHash::NewInstance(const Coin::PubKeyHash &hash) {
     return scope.Escape(instance);
 }
 
+bool PubKeyHash::IsInstance(v8::Object &obj) {
+    return obj.GetPrototype() == constructor;
+}
+
 Coin::PubKeyHash PubKeyHash::pubKeyHash() const {
     return _pubKeyHash;
 }

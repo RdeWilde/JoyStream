@@ -13,6 +13,7 @@ class Transaction: public Nan::ObjectWrap {
       static NAN_MODULE_INIT(Init);
 
       static v8::Local<v8::Object> NewInstance(const Coin::Transaction&);
+      static bool IsInstance(v8::Object&);
 
       Coin::Transaction transaction() const;
 

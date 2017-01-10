@@ -29,6 +29,10 @@ v8::Local<v8::Object> Transaction::NewInstance(const Coin::Transaction &tx) {
     return scope.Escape(instance);
 }
 
+bool Transaction::IsInstance(v8::Object &obj) {
+    return obj.GetPrototype() == constructor;
+}
+
 Coin::Transaction Transaction::transaction() const {
     return _tx;
 }

@@ -30,6 +30,10 @@ v8::Local<v8::Object> PrivateKey::NewInstance(const Coin::PrivateKey &sk) {
     return scope.Escape(instance);
 }
 
+bool PrivateKey::IsInstance(v8::Object &obj) {
+    return obj.GetPrototype() == constructor;
+}
+
 Coin::PrivateKey PrivateKey::privateKey() const {
     return _privateKey;
 }
