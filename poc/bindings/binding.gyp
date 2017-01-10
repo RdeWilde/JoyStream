@@ -22,6 +22,9 @@
                 "cpp/common/init.cpp",
                 "cpp/common/Transaction.cpp",
                 "cpp/common/PrivateKey.cpp",
+                # Protocol Session
+                "cpp/protocol_session/init.cpp",
+                "cpp/protocol_session/ConnectionTCPEndpoint.cpp",
                 # Util
                 "cpp/util/buffers.cpp",
                 # Others

@@ -559,7 +559,6 @@ class Node extends EventEmitter {
           }
         }
       }
-
     }
 
     [_torrentPluginAdded](alert) {
