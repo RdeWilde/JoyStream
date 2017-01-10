@@ -33,6 +33,10 @@ v8::Local<v8::Object> Transaction::NewInstance(const Coin::Transaction &tx) {
     return scope.Escape(instance);
 }
 
+Coin::Transaction Transaction::transaction() const {
+    return _tx;
+}
+
 NAN_METHOD(Transaction::New) {
   if (info.IsConstructCall()) {
     Transaction *obj = new Transaction();

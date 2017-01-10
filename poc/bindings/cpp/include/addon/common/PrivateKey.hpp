@@ -14,6 +14,8 @@ class PrivateKey: public Nan::ObjectWrap {
 
       static v8::Local<v8::Object> NewInstance(const Coin::PrivateKey&);
 
+      Coin::PrivateKey privateKey() const;
+
     private:
       PrivateKey();
 

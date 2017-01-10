@@ -34,6 +34,10 @@ v8::Local<v8::Object> PrivateKey::NewInstance(const Coin::PrivateKey &sk) {
     return scope.Escape(instance);
 }
 
+Coin::PrivateKey PrivateKey::privateKey() const {
+    return _privateKey;
+}
+
 NAN_METHOD(PrivateKey::New) {
   if (info.IsConstructCall()) {
     PrivateKey *obj = new PrivateKey();

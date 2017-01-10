@@ -14,6 +14,8 @@ class PubKeyHash: public Nan::ObjectWrap {
 
       static v8::Local<v8::Object> NewInstance(const Coin::PubKeyHash&);
 
+      Coin::PubKeyHash pubKeyHash() const;
+
     private:
       PubKeyHash();
 

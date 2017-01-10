@@ -14,6 +14,8 @@ class Transaction: public Nan::ObjectWrap {
 
       static v8::Local<v8::Object> NewInstance(const Coin::Transaction&);
 
+      Coin::Transaction transaction() const;
+
     private:
       Transaction();
 
