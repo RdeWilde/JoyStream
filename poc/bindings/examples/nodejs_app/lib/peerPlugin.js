@@ -4,9 +4,9 @@ const EventEmitter = require('events')
 
 class PeerPlugin extends EventEmitter {
 
-  constructor () {
+  constructor (status) {
     super()
-    this.status = null
+    this.status = status
 
   }
 

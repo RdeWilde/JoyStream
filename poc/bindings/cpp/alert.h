@@ -70,6 +70,13 @@ class AlertWrap: public Nan::ObjectWrap {
       // ConnectionAddedToSession
       static NAN_METHOD(connection_status);
 
+      // TorrentPluginAdded
+      static NAN_METHOD(torrent_plugin_status);
+
+      // PeerPluginAdded
+      static NAN_METHOD(peer_plugin_status);
+
+
 };
 
 #endif

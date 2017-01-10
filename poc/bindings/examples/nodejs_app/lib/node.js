@@ -562,22 +562,69 @@ class Node extends EventEmitter {
     }
 
     [_torrentPluginAdded](alert) {
+      var torrentHandle = alert.torrentHandle()
+
+      if (this.torrents.has(torrentHandle.infoHash())) {
+        debug('Torrent already creates')
+      } else {
+        var torrent = new Torrent(torrentHandle, '', this.plugin)
+        this.torrents.set(torrentHandle.infoHash(), torrent)
+        this.emit('addedTorrent', torrent)
+        torrent.addTorrentPlugin(alert.torrentPluginStatus())
+      }
     }
 
     [_torrentPluginRemoved](alert) {
+      var torrentHandle = alert.torrentHandle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrent) {
+        if (torrent.torrentPlugin) {
+          torrent.removeTorrentPlugin()
+        }
+      } else {
+        debug('Torrent not found')
+      }
     }
 
     [_peerPluginAdded](alert) {
+      var torrentHandle = alert.torrentHandle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var peer = torrent.peers.get(alert.ip())
+
+      if (peer) {
+        if (!peer.peerPlugin) {
+          peer.addPeerPlugin(alert.status())
+        } else {
+          debug('PeerPlugin already initialized')
+        }
+      } else {
+        debug('Peer not found !')
+      }
+
     }
 
     [_peerPluginRemoved](alert) {
+      var torrentHandle = alert.torrentHandle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var peer = torrent.peers.get(alert.ip())
+
+      if (peer) {
+        if (!peer.peerPlugin) {
+          peer.removePeerPlugin()
+        } else {
+          debug('PeerPlugin already initialized')
+        }
+      } else {
+        debug('Peer not found !')
+      }
     }
 
     [_connectionAddedToSession](alert) {
       var torrentHandle = alert.handle()
       var torrent = this.torrents.get(torrentHandle.infoHash())
       var peerPlugin = torrent.peers.get(alert.ip()).plugin
-      // TODO: Missing protocol_session::status::Connection wrapper
+
       peerPlugin.emit('connectionAdded', alert.connectionStatus())
     }
 

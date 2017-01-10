@@ -11,6 +11,7 @@ class Torrent extends EventEmitter {
     this.handle = handle
     this.resumeData = resumeData
     this.plugin = plugin
+    this.torrentPlugin = null
     this.peers = new Map()
     this.announcedJSPeersAtTimestamp = new Map()
   }
@@ -49,6 +50,24 @@ class Torrent extends EventEmitter {
   setResumeDataGenerationResult (resumeData) {
     this.resumeData = resumeData
     this.emit('resume_data_generation_completed', resumeData)
+  }
+
+  addTorrentPlugin (torrentPluginStatus) {
+    if (this.torrentPlugin) {
+      debug('This torrent already have a torrentPlugin')
+    } else {
+      var torrentPlugin = new TorrentPlugin(torrentPluginStatus, this.plugin)
+      this.emit('torrentPluginAdded', torrentPlugin)
+    }
+  }
+
+  removeTorrentPlugin () {
+    if (this.torrentPlugin) {
+      this.torrentPlugin = null
+      this.emit('torrentPluginRemoved')
+    } else {
+      debug('Cannot remove torrentPlugin because undefined')
+    }
   }
 
 }
