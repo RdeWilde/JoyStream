@@ -36,14 +36,14 @@ NAN_METHOD(PubKeyHash::New) {
     PubKeyHash *obj = new PubKeyHash();
 
     if(info.Length() > 0 && info[0]->IsUint8Array()){
-        if(node::Buffer::Length(info[0]) != PUBKEY_HASH_BYTE_LENGTH) {
-            Nan::ThrowTypeError("Invalid Buffer Length");
+        try {
+            Coin::PubKeyHash hash(util::NodeBufferToUCharVector(info[0]));
+            obj->setPubKeyHash(hash);
+        } catch (const std::exception &ex) {
+            Nan::ThrowTypeError(ex.what());
             info.GetReturnValue().SetUndefined();
             return;
         }
-
-        Coin::PubKeyHash hash(util::NodeBufferToUCharVector(info[0]));
-        obj->setPubKeyHash(hash);
     }
 
     obj->Wrap(info.This());
