@@ -12,7 +12,7 @@ class Transaction: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
 
-      static v8::Local<v8::Object> Make(const Coin::Transaction&);
+      static v8::Local<v8::Object> NewInstance(const Coin::Transaction&);
 
     private:
       Transaction();

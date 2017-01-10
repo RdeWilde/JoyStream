@@ -12,7 +12,7 @@ class PubKeyHash: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
 
-      static v8::Local<v8::Object> Make(const Coin::PubKeyHash&);
+      static v8::Local<v8::Object> NewInstance(const Coin::PubKeyHash&);
 
     private:
       PubKeyHash();

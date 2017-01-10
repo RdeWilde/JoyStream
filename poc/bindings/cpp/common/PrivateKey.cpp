@@ -25,7 +25,7 @@ PrivateKey::PrivateKey(){
 
 }
 
-v8::Local<v8::Object> PrivateKey::Make(const Coin::PrivateKey &sk) {
+v8::Local<v8::Object> PrivateKey::NewInstance(const Coin::PrivateKey &sk) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
@@ -71,7 +71,7 @@ NAN_METHOD(PrivateKey::ToBuffer) {
 
 NAN_METHOD(PrivateKey::Generate) {
     auto sk = Coin::PrivateKey::generate();
-    info.GetReturnValue().Set(Make(sk));
+    info.GetReturnValue().Set(NewInstance(sk));
 }
 
 NAN_METHOD(PrivateKey::Valid) {

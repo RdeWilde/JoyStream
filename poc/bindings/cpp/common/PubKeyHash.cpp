@@ -22,7 +22,7 @@ PubKeyHash::PubKeyHash(){
 
 }
 
-v8::Local<v8::Object> PubKeyHash::Make(const Coin::PubKeyHash &hash) {
+v8::Local<v8::Object> PubKeyHash::NewInstance(const Coin::PubKeyHash &hash) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();

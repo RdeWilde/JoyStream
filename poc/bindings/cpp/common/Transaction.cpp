@@ -24,7 +24,7 @@ Transaction::Transaction(){
 
 }
 
-v8::Local<v8::Object> Transaction::Make(const Coin::Transaction &tx) {
+v8::Local<v8::Object> Transaction::NewInstance(const Coin::Transaction &tx) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
