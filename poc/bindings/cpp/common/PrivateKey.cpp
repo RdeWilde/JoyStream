@@ -21,16 +21,12 @@ NAN_MODULE_INIT(PrivateKey::Init) {
   Nan::Set(target, Nan::New("PrivateKey").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-PrivateKey::PrivateKey(){
-
-}
-
 v8::Local<v8::Object> PrivateKey::NewInstance(const Coin::PrivateKey &sk) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
     PrivateKey* privateKey = ObjectWrap::Unwrap<PrivateKey>(instance);
-    privateKey->setPrivateKey(sk);
+    privateKey->_privateKey = sk;
     return scope.Escape(instance);
 }
 
@@ -44,8 +40,7 @@ NAN_METHOD(PrivateKey::New) {
 
     if(info.Length() > 0 && info[0]->IsUint8Array()){
         try {
-            Coin::PrivateKey sk(util::NodeBufferToUCharVector(info[0]));
-            obj->setPrivateKey(sk);
+            obj->_privateKey = Coin::PrivateKey(util::NodeBufferToUCharVector(info[0]));
         } catch (const std::exception &ex) {
             Nan::ThrowTypeError(ex.what());
             info.GetReturnValue().SetUndefined();
@@ -81,10 +76,6 @@ NAN_METHOD(PrivateKey::Generate) {
 NAN_METHOD(PrivateKey::Valid) {
     PrivateKey* privateKey = ObjectWrap::Unwrap<PrivateKey>(info.This());
     info.GetReturnValue().Set(Coin::PrivateKey::valid(privateKey->_privateKey));
-}
-
-void PrivateKey::setPrivateKey(const Coin::PrivateKey &sk) {
-    _privateKey = sk;
 }
 
 }}}

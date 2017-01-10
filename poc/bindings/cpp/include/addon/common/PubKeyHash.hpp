@@ -17,15 +17,11 @@ class PubKeyHash: public Nan::ObjectWrap {
       Coin::PubKeyHash pubKeyHash() const;
 
     private:
-      PubKeyHash();
-
       Coin::PubKeyHash _pubKeyHash;
       static Nan::Persistent<v8::Function> constructor;
 
       static NAN_METHOD(New);
       static NAN_METHOD(ToBuffer);
-
-      void setPubKeyHash(const Coin::PubKeyHash&);
 
 };
 

@@ -17,8 +17,6 @@ class PrivateKey: public Nan::ObjectWrap {
       Coin::PrivateKey privateKey() const;
 
     private:
-      PrivateKey();
-
       Coin::PrivateKey _privateKey;
       static Nan::Persistent<v8::Function> constructor;
 
@@ -26,8 +24,6 @@ class PrivateKey: public Nan::ObjectWrap {
       static NAN_METHOD(ToBuffer);
       static NAN_METHOD(Generate);
       static NAN_METHOD(Valid);
-
-      void setPrivateKey(const Coin::PrivateKey&);
 
 };
 

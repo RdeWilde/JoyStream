@@ -18,16 +18,12 @@ NAN_MODULE_INIT(PubKeyHash::Init) {
   Nan::Set(target, Nan::New("PubKeyHash").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-PubKeyHash::PubKeyHash(){
-
-}
-
 v8::Local<v8::Object> PubKeyHash::NewInstance(const Coin::PubKeyHash &hash) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
     PubKeyHash* pubKeyHash = ObjectWrap::Unwrap<PubKeyHash>(instance);
-    pubKeyHash->setPubKeyHash(hash);
+    pubKeyHash->_pubKeyHash = hash;
     return scope.Escape(instance);
 }
 
@@ -41,8 +37,7 @@ NAN_METHOD(PubKeyHash::New) {
 
     if(info.Length() > 0 && info[0]->IsUint8Array()){
         try {
-            Coin::PubKeyHash hash(util::NodeBufferToUCharVector(info[0]));
-            obj->setPubKeyHash(hash);
+            obj->_pubKeyHash = Coin::PubKeyHash(util::NodeBufferToUCharVector(info[0]));
         } catch (const std::exception &ex) {
             Nan::ThrowTypeError(ex.what());
             info.GetReturnValue().SetUndefined();
@@ -68,10 +63,6 @@ NAN_METHOD(PubKeyHash::ToBuffer) {
     PubKeyHash* pubKeyHash = ObjectWrap::Unwrap<PubKeyHash>(info.This());
     auto data = pubKeyHash->_pubKeyHash.toUCharVector();
     info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
-}
-
-void PubKeyHash::setPubKeyHash(const Coin::PubKeyHash &hash) {
-    _pubKeyHash = hash;
 }
 
 }}}

@@ -17,7 +17,6 @@ class Transaction: public Nan::ObjectWrap {
       Coin::Transaction transaction() const;
 
     private:
-      Transaction();
 
       Coin::Transaction _tx;
       static Nan::Persistent<v8::Function> constructor;
@@ -27,8 +26,6 @@ class Transaction: public Nan::ObjectWrap {
       static NAN_METHOD(GetVersion);
       static NAN_METHOD(GetLockTime);
       static NAN_METHOD(GetHash);
-
-      void setTx(const Coin::Transaction&);
 
 };
 

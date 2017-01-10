@@ -20,16 +20,12 @@ NAN_MODULE_INIT(Transaction::Init) {
   Nan::Set(target, Nan::New("Transaction").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-Transaction::Transaction(){
-
-}
-
 v8::Local<v8::Object> Transaction::NewInstance(const Coin::Transaction &tx) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
     Transaction* transaction = ObjectWrap::Unwrap<Transaction>(instance);
-    transaction->setTx(tx);
+    transaction->_tx = tx;
     return scope.Escape(instance);
 }
 
@@ -79,10 +75,6 @@ NAN_METHOD(Transaction::GetHash) {
     Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
     auto data = transaction->_tx.hash();
     info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
-}
-
-void Transaction::setTx(const Coin::Transaction &tx) {
-    _tx = tx;
 }
 
 }}}
