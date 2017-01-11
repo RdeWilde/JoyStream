@@ -298,11 +298,12 @@ TEST(commonTest, P2SHMultisigScriptSig)
 
 /**
  * FIXME: Call to the UCharArray ctor causes a segfault.
- *
+ */
 TEST(commonTest, BIP39)
 {
     // Test Vectors from
     // https://github.com/trezor/python-mnemonic/blob/master/vectors.json
+    /*
     {
         Coin::Entropy entropy(std::string("00000000000000000000000000000000"));
         EXPECT_STREQ(entropy.getHex().c_str(), "00000000000000000000000000000000");
@@ -316,14 +317,16 @@ TEST(commonTest, BIP39)
         EXPECT_STREQ(entropy.mnemonic().c_str(), "legal winner thank year wave sausage worth useful legal winner thank yellow");
         EXPECT_STREQ(entropy.seed("TREZOR").toHex().c_str(),  "2e8905819b8723fe2c1d161860e5ee1830318dbf49a83bd451cfb8440c28bd6fa457fe1296106559a3c80937a1c1069be3a3a5bd381ee6260e8d9739fce1f607");
     }
+    */
     {
+        //Coin::Entropy entropy(std::string("8080808080808080"));
         Coin::Entropy entropy(std::string("80808080808080808080808080808080"));
-        //EXPECT_STREQ(entropy.getHex().c_str(), "80808080808080808080808080808080");
-        //EXPECT_STREQ(entropy.mnemonic().c_str(), "letter advice cage absurd amount doctor acoustic avoid letter advice cage above");
-        //EXPECT_STREQ(entropy.seed("TREZOR").toHex().c_str(), "d71de856f81a8acc65e6fc851a38d4d7ec216fd0796d0a6827a3ad6ed5511a30fa280f12eb2e47ed2ac03b5c462a0358d18d69fe4f985ec81778c1b370b652a8");
+        EXPECT_STREQ(entropy.getHex().c_str(), "80808080808080808080808080808080");
+        EXPECT_STREQ(entropy.mnemonic().c_str(), "letter advice cage absurd amount doctor acoustic avoid letter advice cage above");
+        EXPECT_STREQ(entropy.seed("TREZOR").toHex().c_str(), "d71de856f81a8acc65e6fc851a38d4d7ec216fd0796d0a6827a3ad6ed5511a30fa280f12eb2e47ed2ac03b5c462a0358d18d69fe4f985ec81778c1b370b652a8");
     }
 }
-*/
+/**/
 
 TEST(commonTest, TimeRelativeLockTimeEncoding)
 {
