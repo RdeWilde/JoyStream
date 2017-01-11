@@ -9,7 +9,7 @@ namespace joystream {
   namespace addon {
     namespace protocol_session {
 
-      class ConnectionTCPEndpoint: public Nan::ObjectWrap {
+      class Connection: public Nan::ObjectWrap {
           public:
             static NAN_MODULE_INIT(Init);
             static v8::Local<v8::Object> NewInstance(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);

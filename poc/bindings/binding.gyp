@@ -24,7 +24,7 @@
                 "cpp/common/PrivateKey.cpp",
                 # Protocol Session
                 "cpp/protocol_session/init.cpp",
-                "cpp/protocol_session/ConnectionTCPEndpoint.cpp",
+                "cpp/protocol_session/Connection.cpp",
                 # Util
                 "cpp/util/buffers.cpp",
                 # Others
