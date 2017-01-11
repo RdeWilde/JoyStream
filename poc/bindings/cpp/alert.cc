@@ -269,7 +269,7 @@ NAN_METHOD(AlertWrap::connection_status) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      info.GetReturnValue().Set(joystream::addon::protocol_session::ConnectionTCPEndpoint::New(casted->status));
+      info.GetReturnValue().Set(joystream::addon::protocol_session::ConnectionTCPEndpoint::NewInstance(casted->status));
     }
 
     info.GetReturnValue().SetUndefined();

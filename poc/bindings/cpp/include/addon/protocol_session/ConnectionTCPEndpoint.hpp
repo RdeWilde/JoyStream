@@ -12,17 +12,13 @@ namespace joystream {
       class ConnectionTCPEndpoint: public Nan::ObjectWrap {
           public:
             static NAN_MODULE_INIT(Init);
-            static v8::Local<v8::Object> New(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
-            static joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>* Unwrap(const v8::Local<v8::Object>& obj) {
-              ConnectionTCPEndpoint* c = Nan::ObjectWrap::Unwrap<ConnectionTCPEndpoint>(obj);
-              return &c->connection_;
-            };
+            static v8::Local<v8::Object> NewInstance(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
 
           private:
             joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint> connection_;
             static Nan::Persistent<v8::Function> constructor;
 
-            static NAN_METHOD(NewInstance);
+            static NAN_METHOD(New);
 
       };
     }
