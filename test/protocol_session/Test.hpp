@@ -60,7 +60,7 @@ private:
     //// NB: None of these routines can return values, as they use QTest macroes which dont return this value.
 
     // Variable shared across all units tests
-    Coin::Network network;
+    //Coin::Network network;
     Session<ID> * session;
     SessionSpy<ID> * spy;
 
