@@ -4,8 +4,6 @@
 #include <nan.h>
 #include <extension/Status.hpp>
 
-using namespace v8;
-
 namespace joystream {
   namespace addon {
     namespace extension {
@@ -13,17 +11,13 @@ namespace joystream {
       class TorrentPluginStatus: public Nan::ObjectWrap {
           public:
             static NAN_MODULE_INIT(Init);
-            static Local<Object> New(const joystream::extension::status::TorrentPlugin& tp);
-            static joystream::extension::status::TorrentPlugin* Unwrap(const Local<Object>& obj) {
-              TorrentPluginStatus* tps = Nan::ObjectWrap::Unwrap<TorrentPluginStatus>(obj);
-              return &tps->torrent_plugin_status_;
-            };
+            static v8::Local<v8::Object> NewInstance(const joystream::extension::status::TorrentPlugin& tp);
 
           private:
             joystream::extension::status::TorrentPlugin torrent_plugin_status_;
-            static Nan::Persistent<Function> constructor;
+            static Nan::Persistent<v8::Function> constructor;
 
-            static NAN_METHOD(NewInstance);
+            static NAN_METHOD(New);
             static NAN_GETTER(info_hash);
 
       };

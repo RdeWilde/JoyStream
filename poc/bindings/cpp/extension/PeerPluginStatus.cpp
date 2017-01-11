@@ -13,7 +13,7 @@ namespace joystream {
 
         constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
         Nan::Set(target, Nan::New("PeerPluginStatus").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
-      };
+      }
 
       v8::Local<v8::Object> PeerPluginStatus::NewInstance(const joystream::extension::status::PeerPlugin& pp) {
           Nan::EscapableHandleScope scope;
@@ -24,7 +24,7 @@ namespace joystream {
           Nan::ObjectWrap::Unwrap<PeerPluginStatus>(obj.ToLocalChecked())->peer_plugin_status_ = pp;
 
           return scope.Escape(obj.ToLocalChecked());
-      };
+      }
 
       NAN_METHOD(PeerPluginStatus::New) {
         if (info.IsConstructCall()) {
@@ -35,8 +35,7 @@ namespace joystream {
           v8::Local<v8::Function> cons = Nan::New(constructor);
           info.GetReturnValue().Set(cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked());
         }
-
-      };
+      }
     }
   }
 }
