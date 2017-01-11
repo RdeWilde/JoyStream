@@ -54,3 +54,20 @@ var Buffer = require('buffer').Buffer;
         assert.equal(typeof nativeExtension.common.PubKeyHash, 'function');
     })
   })
+
+  describe('Extension', function() {
+
+    it('exports', function(){
+      assert.equal(typeof nativeExtension.BuyerTerms, 'BuyerTerms');
+    });
+
+    describe('BuyerTerms', function() {
+
+        var terms = new nativeExtension.BuyerTerms(0,0,0,0);
+
+        it('maxPrice', function() {
+            assert.equal(terms.maxPrice(), 0);
+        })
+    })
+
+  })

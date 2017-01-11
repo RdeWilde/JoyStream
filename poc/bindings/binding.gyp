@@ -19,6 +19,8 @@
                 "cpp/extension/init.cpp",
                 "cpp/extension/TorrentPluginStatus.cpp",
                 "cpp/extension/PeerPluginStatus.cpp",
+                "cpp/BuyerTerms.cpp",
+                "cpp/SellerTerms.cpp",
                 # Common
                 "cpp/common/init.cpp",
                 "cpp/common/Transaction.cpp",

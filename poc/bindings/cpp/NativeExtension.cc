@@ -7,6 +7,9 @@
 #include "endpoint.h"
 #include "peer_info.h"
 #include "bencode.h"
+#include "torrent_plugin_status.h"
+#include "SellerTerms.hpp"
+#include "BuyerTerms.hpp"
 #include <nan.h>
 
 // NativeExtension.cc represents the top level of the module.
@@ -20,6 +23,11 @@ NAN_MODULE_INIT(InitAll) {
   Nan::Set(target, Nan::New<v8::String>("BEncode").ToLocalChecked(),
     Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
 
+
+  joystream::node_addon::SellerTerms::Init(target);
+  joystream::node_addon::BuyerTerms::Init(target);
+
+  TorrentPluginStatusWrap::Init(target);
   PeerInfoWrap::Init(target);
   EndpointWrap::Init(target);
   AddTorrentParamsWrap::Init(target);
