@@ -252,7 +252,7 @@ NAN_METHOD(AlertWrap::statuses) {
       for(auto m : casted->statuses) {
         map->Set(Nan::GetCurrentContext(),
             EndpointWrap::New(m.first),
-            joystream::addon::extension::PeerPluginStatus::New(m.second));
+            joystream::addon::extension::PeerPluginStatus::NewInstance(m.second));
         }
       info.GetReturnValue().Set(map);
     } else {
@@ -299,7 +299,7 @@ NAN_METHOD(AlertWrap::peer_plugin_status) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      info.GetReturnValue().Set(joystream::addon::extension::PeerPluginStatus::New(casted->status));
+      info.GetReturnValue().Set(joystream::addon::extension::PeerPluginStatus::NewInstance(casted->status));
     }
 
     info.GetReturnValue().SetUndefined();
