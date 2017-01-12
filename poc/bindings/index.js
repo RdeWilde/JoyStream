@@ -1,2 +1,5 @@
-var NativeExtension = require('bindings')('NativeExtension');
-module.exports = NativeExtension;
+var Node = require('./lib/node')
+
+module.exports = {
+  Node
+}
