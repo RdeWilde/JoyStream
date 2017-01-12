@@ -3,9 +3,13 @@
   <head>
     <meta charset="UTF-8">
     <title>Joystream</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
   </head>
   <body>
     <div id="root"></div>
+    <!-- Show all the logs in the Developper tool console -->
+    <script type="application/javascript">localStorage.debug = '*,-electron-compile:*,-babel'</script>
+    <!-- Main applictaion in React -->
     <script src="./index.js" type="application/javascript"></script>
   </body>
 </html>

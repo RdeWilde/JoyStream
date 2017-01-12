@@ -38,7 +38,7 @@ class Torrent extends EventEmitter {
     }
   }
 
-  removePeer(ip) {
+  removePeer(peerInfo) {
     if (this.peers.get(peerInfo.ip)) {
       this.peers.delete(peerInfo.ip)
       this.emit('peerRemoved', ip)
