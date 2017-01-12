@@ -2,6 +2,7 @@
 
 var sha1 = require('sha1')
 const EventEmitter = require('events')
+var Peer = require('./peer')
 
 class Torrent extends EventEmitter {
 
@@ -10,6 +11,8 @@ class Torrent extends EventEmitter {
     this.handle = handle
     this.resumeData = resumeData
     this.plugin = plugin
+    this.torrentPlugin = null
+    this.peers = new Map()
     this.announcedJSPeersAtTimestamp = new Map()
   }
 
@@ -23,17 +26,48 @@ class Torrent extends EventEmitter {
     this.announcedJSPeersAtTimestamp.set(address, timestamp)
   }
 
-  addPeer(ip) {
-    // TODO
+  addPeer(peerInfo) {
+
+    if (!this.peers.get(peerInfo.ip)) {
+      var peer = new Peer(peerInfo)
+      this.peers.set(peerInfo.ip, peer)
+
+      this.emit('peerAdded', peer)
+    } else {
+      debug('Is already in peers.')
+    }
   }
 
   removePeer(ip) {
-    // TODO
+    if (this.peers.get(peerInfo.ip)) {
+      this.peers.delete(peerInfo.ip)
+      this.emit('peerRemoved', ip)
+    } else {
+      debug('Not in peers list')
+    }
   }
 
   setResumeDataGenerationResult (resumeData) {
     this.resumeData = resumeData
     this.emit('resume_data_generation_completed', resumeData)
+  }
+
+  addTorrentPlugin (torrentPluginStatus) {
+    if (this.torrentPlugin) {
+      debug('This torrent already have a torrentPlugin')
+    } else {
+      var torrentPlugin = new TorrentPlugin(torrentPluginStatus, this.plugin)
+      this.emit('torrentPluginAdded', torrentPlugin)
+    }
+  }
+
+  removeTorrentPlugin () {
+    if (this.torrentPlugin) {
+      this.torrentPlugin = null
+      this.emit('torrentPluginRemoved')
+    } else {
+      debug('Cannot remove torrentPlugin because undefined')
+    }
   }
 
 }

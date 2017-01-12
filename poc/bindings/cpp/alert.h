@@ -7,7 +7,9 @@
 #include "add_torrent_params.h"
 #include "endpoint.h"
 #include "bencode.h"
-#include "torrent_plugin_status.h"
+#include <addon/extension/TorrentPluginStatus.hpp>
+#include <addon/extension/PeerPluginStatus.hpp>
+#include <addon/protocol_session/Connection.hpp>
 #include <extension/Alert.hpp>
 
 using namespace v8;
@@ -64,6 +66,15 @@ class AlertWrap: public Nan::ObjectWrap {
 
       // TorrentPluginStatusUpdateAlert
       static NAN_METHOD(statuses);
+
+      // ConnectionAddedToSession
+      static NAN_METHOD(connection_status);
+
+      // TorrentPluginAdded
+      static NAN_METHOD(torrent_plugin_status);
+
+      // PeerPluginAdded
+      static NAN_METHOD(peer_plugin_status);
 
 
 };

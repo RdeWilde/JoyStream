@@ -22,6 +22,10 @@ NAN_MODULE_INIT(AlertWrap::Init) {
   Nan::SetPrototypeMethod(tpl, "endpoint", endpoint);
   Nan::SetPrototypeMethod(tpl, "ip", ip);
   Nan::SetPrototypeMethod(tpl, "loadedCallback", loaded_callback);
+  Nan::SetPrototypeMethod(tpl, "statuses", statuses);
+  Nan::SetPrototypeMethod(tpl, "connectionStatus", connection_status);
+  Nan::SetPrototypeMethod(tpl, "torrentPluginsStatus", torrent_plugin_status);
+  Nan::SetPrototypeMethod(tpl, "peerPluginsStatus", peer_plugin_status);
 
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -183,12 +187,24 @@ NAN_METHOD(AlertWrap::ip) {
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
 
-    auto casted = dynamic_cast<const libtorrent::peer_connect_alert*>(a);
-
-    if (!casted) {
-      info.GetReturnValue().SetUndefined();
-    } else {
-      info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+    switch (a->type()) {
+      case 23: {
+          auto casted = dynamic_cast<const libtorrent::peer_connect_alert*>(a);
+          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+        }
+        break;
+      case 100011: {
+          auto casted = dynamic_cast<const joystream::extension::alert::ConnectionAddedToSession*>(a);
+          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+        }
+        break;
+      case 100012: {
+          auto casted = dynamic_cast<const joystream::extension::alert::ConnectionRemovedFromSession*>(a);
+          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+        }
+        break;
+      default:
+        info.GetReturnValue().SetUndefined();
     }
 };
 
@@ -222,17 +238,69 @@ NAN_METHOD(AlertWrap::resume_data) {
 NAN_METHOD(AlertWrap::statuses) {
 
     const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
-    auto casted = dynamic_cast<const joystream::extension::alert::TorrentPluginStatusUpdateAlert*>(a);
+    ;
     v8::Local<v8::Map> map =  v8::Map::New(v8::Isolate::GetCurrent());
+
+    if (auto casted = dynamic_cast<const joystream::extension::alert::TorrentPluginStatusUpdateAlert*>(a)) {
+      for(auto m : casted->statuses) {
+        map->Set(Nan::GetCurrentContext(),
+            Nan::New<String>(libtorrent::to_hex(m.first.to_string())).ToLocalChecked(),
+            joystream::addon::extension::TorrentPluginStatus::NewInstance(m.second));
+        }
+      info.GetReturnValue().Set(map);
+    } else if (auto casted = dynamic_cast<const joystream::extension::alert::PeerPluginStatusUpdateAlert*>(a)) {
+      for(auto m : casted->statuses) {
+        map->Set(Nan::GetCurrentContext(),
+            EndpointWrap::New(m.first),
+            joystream::addon::extension::PeerPluginStatus::NewInstance(m.second));
+        }
+      info.GetReturnValue().Set(map);
+    } else {
+      info.GetReturnValue().SetUndefined();
+    }
+};
+
+NAN_METHOD(AlertWrap::connection_status) {
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const joystream::extension::alert::ConnectionAddedToSession*>(a);
 
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      for(auto m : casted->statuses) {
-        map->Set(Nan::GetCurrentContext(),
-            Nan::New<String>(libtorrent::to_hex(m.first.to_string())).ToLocalChecked(),
-            TorrentPluginStatusWrap::New(m.second));
-        }
-      info.GetReturnValue().Set(map);
+      info.GetReturnValue().Set(joystream::addon::protocol_session::Connection::NewInstance(casted->status));
     }
+
+    info.GetReturnValue().SetUndefined();
+};
+
+NAN_METHOD(AlertWrap::torrent_plugin_status) {
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const joystream::extension::alert::TorrentPluginAdded*>(a);
+
+    if (!casted) {
+      info.GetReturnValue().SetUndefined();
+    } else {
+      info.GetReturnValue().Set(joystream::addon::extension::TorrentPluginStatus::NewInstance(casted->status));
+    }
+
+    info.GetReturnValue().SetUndefined();
+};
+
+NAN_METHOD(AlertWrap::peer_plugin_status) {
+
+    const libtorrent::alert* a = AlertWrap::Unwrap(info.This());
+
+    auto casted = dynamic_cast<const joystream::extension::alert::PeerPluginAdded*>(a);
+
+    if (!casted) {
+      info.GetReturnValue().SetUndefined();
+    } else {
+      info.GetReturnValue().Set(joystream::addon::extension::PeerPluginStatus::NewInstance(casted->status));
+    }
+
+    info.GetReturnValue().SetUndefined();
 };

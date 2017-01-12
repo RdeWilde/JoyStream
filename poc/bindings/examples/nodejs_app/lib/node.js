@@ -47,6 +47,7 @@ const _contractConstructed = Symbol('contractConstructed')
 const _validPieceArrived = Symbol('validPieceArrived')
 const _invalidPieceArrived = Symbol('invalidPieceArrived')
 const _buyerTermsUpdated = Symbol('buyerTermsUpdated')
+const _anchorAnnounced = Symbol('anchorAnnounced')
 
 /*
  * Class Node
@@ -302,6 +303,11 @@ class Node extends EventEmitter {
           this[_buyerTermsUpdated](alert)
           break
 
+        // AnchorAnnounced
+        case 10004:
+          this[_anchorAnnounced](alert)
+          break
+
         default:
           debug('Alert ' + alert.what() + ' ignored')
           break
@@ -529,75 +535,217 @@ class Node extends EventEmitter {
 
       for (var [infoHash, torrentPluginStatus] of statuses) {
         var torrent = this.torrents.get(infoHash)
-        torrent.plugin.update(torrentPluginStatus)
+        //torrent.plugin.update(torrentPluginStatus)
+        torrent.plugin.emit('statusUpdated', torrentPluginStatus)
       }
       this.emit('TorrentPluginStatusUpdateAlert', statuses)
     }
 
     [_peerPluginStatusUpdateAlert](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var statuses = alert.statuses()
+
+      if (!torrent.plugin) {
+        debug('No plugin find')
+      } else {
+        torrent.plugin.emit('updatePeerPluginStatuses', statuses)
+        for (var [endpoint, peerPluginStatus] of statuses) {
+          var peer = torrent.peers.get(endpoint)
+          if (peer) {
+            peer.plugin.update(peerPluginStatus)
+          } else {
+            debug('Peer not found !')
+          }
+        }
+      }
     }
 
     [_torrentPluginAdded](alert) {
+      var torrentHandle = alert.torrentHandle()
+
+      if (this.torrents.has(torrentHandle.infoHash())) {
+        debug('Torrent already creates')
+      } else {
+        var torrent = new Torrent(torrentHandle, '', this.plugin)
+        this.torrents.set(torrentHandle.infoHash(), torrent)
+        this.emit('addedTorrent', torrent)
+        torrent.addTorrentPlugin(alert.torrentPluginStatus())
+      }
     }
 
     [_torrentPluginRemoved](alert) {
+      var torrentHandle = alert.torrentHandle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrent) {
+        if (torrent.torrentPlugin) {
+          torrent.removeTorrentPlugin()
+        }
+      } else {
+        debug('Torrent not found')
+      }
     }
 
     [_peerPluginAdded](alert) {
+      var torrentHandle = alert.torrentHandle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var peer = torrent.peers.get(alert.ip())
+
+      if (peer) {
+        if (!peer.peerPlugin) {
+          peer.addPeerPlugin(alert.status())
+        } else {
+          debug('PeerPlugin already initialized')
+        }
+      } else {
+        debug('Peer not found !')
+      }
+
     }
 
     [_peerPluginRemoved](alert) {
+      var torrentHandle = alert.torrentHandle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var peer = torrent.peers.get(alert.ip())
+
+      if (peer) {
+        if (!peer.peerPlugin) {
+          peer.removePeerPlugin()
+        } else {
+          debug('PeerPlugin already initialized')
+        }
+      } else {
+        debug('Peer not found !')
+      }
     }
 
     [_connectionAddedToSession](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var peerPlugin = torrent.peers.get(alert.ip()).plugin
+
+      peerPlugin.emit('connectionAdded', alert.connectionStatus())
     }
 
     [_connectionRemovedFromSession](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+      var peer = torrent.peers.get(alert.ip())
+
+      peer.plugin.emit('connectionRemoved')
     }
 
     [_sessionStarted](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sessionStarted')
     }
 
     [_sessionPaused](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sessionPause')
     }
 
     [_sessionStopped](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sessionStopped')
     }
 
     [_sessionToObserveMode](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sessionToObserveMode')
     }
 
     [_sessionToSellMode](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('SessionToSellMode', alert)
     }
 
     [_sessionToBuyMode](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('SessionToBuyMode', alert)
     }
 
     [_validPaymentReceived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('validPaymentReceived', alert)
     }
 
     [_invalidPaymentReceived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('invalidPaymentReceived', alert)
     }
 
     [_buyerTermsUpdated](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('buyerTermsUpdated', alert)
     }
 
     [_sellerTermsUpdated](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sellerTermsUpdated', alert)
     }
 
     [_contractConstructed](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('contractConstructed', alert)
     }
 
     [_sentPayment](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('sentPayment', alert)
     }
 
     [_lastPaymentReceived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('lastPaymentReceived', alert)
     }
 
     [_invalidPieceArrived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('invalidPieceArrived', alert)
     }
 
     [_validPieceArrived](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('validPieceArrived', alert)
+    }
+
+    [_anchorAnnounced](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      torrent.plugin.emit('AnchorAnnounced', alert)
     }
 }
 
