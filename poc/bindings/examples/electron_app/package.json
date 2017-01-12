@@ -1,22 +1,23 @@
 {
-  "name": "electron-quick-start",
-  "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "name": "joystream-demo",
+  "version": "0.0.0",
+  "description": "A minimal Joystream application in electron",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "DEBUG=* LD_LIBRARY_PATH=/home/lola/Qt/5.7/gcc_64/lib electron ."
   },
-  "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
+    "Joystream",
     "demo"
   ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "author": "Me",
+  "license": "MIT",
   "devDependencies": {
-    "electron": "^1.4.1"
+    "electron": "^1.4.1",
+    "electron-prebuilt-compile": "^1.4.14"
+  },
+  "dependencies": {
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2"
   }
 }
