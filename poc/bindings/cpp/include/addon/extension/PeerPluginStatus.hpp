@@ -5,22 +5,21 @@
 #include <extension/Status.hpp>
 
 namespace joystream {
-  namespace addon {
-    namespace extension {
+namespace addon {
+namespace extension {
 
-      class PeerPluginStatus: public Nan::ObjectWrap {
-          public:
-            static NAN_MODULE_INIT(Init);
-            static v8::Local<v8::Object> NewInstance(const joystream::extension::status::PeerPlugin& pp);
+class PeerPluginStatus: public Nan::ObjectWrap {
+  public:
+    static NAN_MODULE_INIT(Init);
+    static v8::Local<v8::Object> NewInstance(const joystream::extension::status::PeerPlugin& pp);
 
-          private:
-            joystream::extension::status::PeerPlugin peer_plugin_status_;
-            static Nan::Persistent<v8::Function> constructor;
+  private:
+    joystream::extension::status::PeerPlugin peer_plugin_status_;
+    static Nan::Persistent<v8::Function> constructor;
 
-            static NAN_METHOD(New);
-      };
-    }
-  }
-}
+    static NAN_METHOD(New);
+};
 
+
+}}}
 #endif

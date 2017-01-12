@@ -6,23 +6,21 @@
 #include <libtorrent/socket.hpp>
 
 namespace joystream {
-  namespace addon {
-    namespace protocol_session {
+namespace addon {
+namespace protocol_session {
 
-      class Connection: public Nan::ObjectWrap {
-          public:
-            static NAN_MODULE_INIT(Init);
-            static v8::Local<v8::Object> NewInstance(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
+class Connection: public Nan::ObjectWrap {
+  public:
+    static NAN_MODULE_INIT(Init);
+    static v8::Local<v8::Object> NewInstance(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
 
-          private:
-            joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint> connection_;
-            static Nan::Persistent<v8::Function> constructor;
+  private:
+    joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint> connection_;
+    static Nan::Persistent<v8::Function> constructor;
 
-            static NAN_METHOD(New);
+    static NAN_METHOD(New);
 
-      };
-    }
-  }
-}
+};
 
+}}}
 #endif
