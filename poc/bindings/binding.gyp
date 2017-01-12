@@ -6,6 +6,7 @@
                 "cpp/address.cpp",
                 "cpp/NativeExtension.cc",
                 # Libtorrent
+				"cpp/Alert.cpp",
                 "cpp/info_hash.cpp",
                 "cpp/session.cc",
                 "cpp/torrent_handle.cc",
