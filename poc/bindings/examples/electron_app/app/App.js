@@ -13,7 +13,7 @@ class App extends Component {
     this.torrentAdded = this.torrentAdded.bind(this)
 
     this.state = {
-      torrents: []
+      torrents: new Map()
     }
   }
 
@@ -38,11 +38,32 @@ class App extends Component {
       debug(err)
     } else {
       debug('This has been called once the torrent is added')
-      this.setState({torrents: Array.from(node.torrents)})
+      this.setState({torrents: node.torrents})
     }
   }
 
   render () {
+    let rows = [];
+
+    this.state.torrents.forEach((torrent, infoHash) => {
+      var torrentHandle = torrent.handle
+      var torrentInfo = torrentHandle.torrentFile()
+      if (!torrentInfo) {
+        // torrent_info not yet set need to come from peers
+        torrent.on('metadata_received_alert', (torrentInfo) => {
+          this.forceUpdate()
+        })
+      } else {
+        rows.push(
+          <tr>
+            <td>{torrentInfo.name()}</td>
+            <td>13 Mb</td>
+            <td>13%</td>
+            <td>Good</td>
+          </tr>)
+      }
+    })
+
     return (
       <div className="container">
         <h1>Joystream</h1>
@@ -60,32 +81,7 @@ class App extends Component {
             </tr>
           </thead>
           <tbody>
-            {this.state.torrents.map((torrent, i) => {
-              // torrent = [infoHash, Torrent]
-              var torrentHandle = torrent[1].handle
-              var torrentInfo = torrentHandle.torrentFile()
-              if (!torrentInfo) {
-                // torrent_info not yet set need to come from peers
-                torrent[1].on('metadata_received_alert', (torrentInfo) => {
-                  console.log(torrent.info)
-                })
-                return (
-                  <tr id={torrent[0]}>
-                    <td>Nan</td>
-                    <td>Nan</td>
-                    <td>Nan</td>
-                    <td>Nan</td>
-                  </tr>)
-              } else {
-                return (
-                  <tr>
-                    <th>1</th>
-                    <td>13 Mb</td>
-                    <td>13%</td>
-                    <td>Good</td>
-                  </tr>)
-              }
-            })}
+            { rows }
           </tbody>
         </table>
       </div>
