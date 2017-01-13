@@ -9,7 +9,7 @@
 using namespace joystream::protocol_wire;
 
 template <class MESSAGE_TYPE>
-MESSAGE_TYPE TEST_READ_AND_WRITE_FROM_STREAM(MESSAGE_TYPE msg)
+MESSAGE_TYPE writeAndReadFromStream(MESSAGE_TYPE msg)
 {
     const std::string raw(msg.length(), 0);
     std::stringbuf msgBuf(raw);
@@ -27,11 +27,11 @@ TEST(protocol_wire_test, buy)
 {
     BuyerTerms terms(2,4,5,6);
     Buy m(terms);
-    Buy cmp = TEST_READ_AND_WRITE_FROM_STREAM<Buy>(m);
+    Buy m2 = writeAndReadFromStream<Buy>(m);
 
     EXPECT_EQ(terms, m.terms());
     EXPECT_EQ(MessageType::buy, m.messageType());
-    EXPECT_EQ(m, cmp);
+    EXPECT_EQ(m, m2);
 }
 
 TEST(protocol_wire_test, sell)
@@ -40,12 +40,12 @@ TEST(protocol_wire_test, sell)
     SellerTerms terms(2,4,5,6,7);
     uint32_t index = 44;
     Sell m(terms, index);
-    Sell cmp = TEST_READ_AND_WRITE_FROM_STREAM<Sell>(m);
+    Sell m2 = writeAndReadFromStream<Sell>(m);
 
     EXPECT_EQ(terms, m.terms());
     EXPECT_EQ(index, m.index());
     EXPECT_EQ(MessageType::sell, m.messageType());
-    EXPECT_EQ(m, cmp);
+    EXPECT_EQ(m, m2);
 }
 
 TEST(protocol_wire_test, fullPiece)
@@ -57,7 +57,7 @@ TEST(protocol_wire_test, fullPiece)
     EXPECT_EQ(MessageType::full_piece, m.messageType());
 
     // Can't use macro
-    //TEST_READ_AND_WRITE_FROM_STREAM(m, FullPiece)
+    //writeAndReadFromStream(m, FullPiece)
 
     const std::string raw(m.length(), 0);
     std::stringbuf msgBuf(raw);
@@ -75,11 +75,11 @@ TEST(protocol_wire_test, joinContract)
 {
     uint32_t index = 32;
     JoinContract m(index);
-    JoinContract cmp = TEST_READ_AND_WRITE_FROM_STREAM<JoinContract>(m);
+    JoinContract m2 = writeAndReadFromStream<JoinContract>(m);
 
     EXPECT_EQ(index, m.index());
     EXPECT_EQ(MessageType::join_contract, m.messageType());
-    EXPECT_EQ(m, cmp);
+    EXPECT_EQ(m, m2);
 }
 
 TEST(protocol_wire_test, joiningContract)
@@ -88,12 +88,12 @@ TEST(protocol_wire_test, joiningContract)
     Coin::PubKeyHash finalPkHash(uchar_vector("31149292f8ba11da4aeb833f6cd8ae0650a82340"));
 
     JoiningContract m(contractPk, finalPkHash);
-    JoiningContract cmp = TEST_READ_AND_WRITE_FROM_STREAM<JoiningContract>(m);
+    JoiningContract m2 = writeAndReadFromStream<JoiningContract>(m);
 
     EXPECT_EQ(m.contractPk(), contractPk);
     EXPECT_EQ(m.finalPkHash(), finalPkHash);
     EXPECT_EQ(m.messageType(), MessageType::joining_contract);
-    EXPECT_EQ(m, cmp);
+    EXPECT_EQ(m, m2);
 }
 
 TEST(protocol_wire_test, payment)
@@ -105,7 +105,7 @@ TEST(protocol_wire_test, payment)
     EXPECT_EQ(m.messageType(), MessageType::payment);
 
     // Can't use macro
-    //TEST_READ_AND_WRITE_FROM_STREAM<Payment>(m);
+    //writeAndReadFromStream<Payment>(m);
 
     const std::string raw(m.length(), 0);
     std::stringbuf msgBuf(raw);
@@ -128,7 +128,7 @@ TEST(protocol_wire_test, ready)
     Coin::PubKeyHash finalPkHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
 
     Ready m(value, anchor, contractPk, finalPkHash);
-    Ready cmp = TEST_READ_AND_WRITE_FROM_STREAM<Ready>(m);
+    Ready m2 = writeAndReadFromStream<Ready>(m);
 
     EXPECT_EQ(m.value(), value);
     EXPECT_EQ(m.anchor(), anchor);
@@ -136,18 +136,18 @@ TEST(protocol_wire_test, ready)
     EXPECT_EQ(m.finalPkHash(), finalPkHash);
 
     EXPECT_EQ(m.messageType(), MessageType::ready);
-    EXPECT_EQ(m, cmp);
+    EXPECT_EQ(m, m2);
 }
 
 TEST(protocol_wire_test, requestFullPiece)
 {
     int pieceIndex = 89;
     RequestFullPiece m(pieceIndex);
-    RequestFullPiece cmp = TEST_READ_AND_WRITE_FROM_STREAM<RequestFullPiece>(m);
+    RequestFullPiece m2 = writeAndReadFromStream<RequestFullPiece>(m);
 
     EXPECT_EQ(m.pieceIndex(), pieceIndex);
     EXPECT_EQ(m.messageType(), MessageType::request_full_piece);
-    EXPECT_EQ(m, cmp);
+    EXPECT_EQ(m, m2);
 }
 
 int main(int argc, char *argv[])
