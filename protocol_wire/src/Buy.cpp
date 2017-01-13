@@ -46,5 +46,9 @@ namespace protocol_wire {
         _terms = terms;
     }
 
+    std::ostream& operator<<(std::ostream &os, const Buy &obj)
+    {
+        return os << "Buyer Terms = " << obj.terms();
+    }
 }
 }

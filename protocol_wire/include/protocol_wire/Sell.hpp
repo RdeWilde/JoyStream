@@ -43,6 +43,8 @@ namespace protocol_wire {
         uint32_t index() const;
         void setIndex(uint32_t index);
 
+        // Overload << operator for easiness in debugging GTest output
+        friend std::ostream& operator<<(std::ostream &os, const Sell &obj);
     private:
 
         // Sales terms

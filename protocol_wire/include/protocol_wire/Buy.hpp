@@ -42,6 +42,9 @@ namespace protocol_wire {
         BuyerTerms terms() const;
         void setTerms(const BuyerTerms &);
 
+        // Overload the << operator for easiness in debugging with GTest
+        friend std::ostream& operator<<(std::ostream &os, const Buy &obj);
+
     private:
 
         // Buyer terms

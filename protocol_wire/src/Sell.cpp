@@ -56,5 +56,10 @@ namespace protocol_wire {
     void Sell::setIndex(uint32_t index) {
         _index = index;
     }
+
+    std::ostream& operator<<(std::ostream &os, const Sell &obj)
+    {
+        return os << "Sales terms = " << obj.terms() << "\tTerms index = " << obj.index();
+    }
 }
 }
