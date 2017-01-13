@@ -9,6 +9,7 @@ NAN_MODULE_INIT(TorrentInfo::Init) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "name", name);
+  Nan::SetPrototypeMethod(tpl, "totalSize", total_size);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("TorrentInfo").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
@@ -41,4 +42,11 @@ NAN_METHOD(TorrentInfo::NewInstance) {
 NAN_METHOD(TorrentInfoWrap::name) {
 
     info.GetReturnValue().Set(Nan::New<v8::String>(TorrentInfoWrap::Unwrap(info.This())->name()).ToLocalChecked());
+}
+
+NAN_METHOD(TorrentInfoWrap::total_size) {
+
+    std::int64_t total_size = TorrentInfoWrap::Unwrap(info.This())->total_size();
+
+    info.GetReturnValue().Set(Nan::New<v8::Number>(total_size));
 }

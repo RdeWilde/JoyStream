@@ -57,7 +57,7 @@ class App extends Component {
         rows.push(
           <tr>
             <td>{torrentInfo.name()}</td>
-            <td>13 Mb</td>
+            <td>{Number(torrentInfo.totalSize() / 1000000).toFixed(2)} Mb</td>
             <td>13%</td>
             <td>Good</td>
           </tr>)

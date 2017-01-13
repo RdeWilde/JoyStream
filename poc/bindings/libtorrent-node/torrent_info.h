@@ -32,6 +32,8 @@ class TorrentInfoWrap: public Nan::ObjectWrap {
 
       static NAN_METHOD(NewInstance);
       static NAN_METHOD(name);
+      static NAN_METHOD(total_size);
+
 };
 
 #endif // LIBTORRENT_NODE_TORRENT_INFO_HPP
