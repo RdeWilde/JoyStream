@@ -22,7 +22,6 @@ NAN_MODULE_INIT(TorrentHandle::Init) {
   Nan::SetPrototypeMethod(tpl, "addHttpSeed", add_http_seed);
    Nan::SetPrototypeMethod(tpl, "removeHttpSeed", remove_http_seed);
    Nan::SetPrototypeMethod(tpl, "httpSeeds", http_seeds);
-   //Nan::SetPrototypeMethod(tpl, "get_torrent_info", get_torrent_info);
    Nan::SetPrototypeMethod(tpl, "setMetadata", set_metadata);
    Nan::SetPrototypeMethod(tpl, "isValid", is_valid);
    //Nan::SetPrototypeMethod(tpl, "has_metadata", has_metadata);
@@ -65,7 +64,6 @@ NAN_MODULE_INIT(TorrentHandle::Init) {
 #endif
 
    Nan::SetPrototypeMethod(tpl, "scrapeTracker", scrape_tracker);
-   //Nan::SetPrototypeMethod(tpl, "name", name);
    Nan::SetPrototypeMethod(tpl, "setUploadMode", set_upload_mode);
    Nan::SetPrototypeMethod(tpl, "setShareMode", set_share_mode);
    Nan::SetPrototypeMethod(tpl, "flushCache", flush_cache);
@@ -292,16 +290,7 @@ NAN_METHOD(TorrentHandle::http_seeds) {
     RETURN_VOID;
 };
 
-/*NAN_METHOD(TorrentHandle::get_torrent_info) {
-    Nan::HandleScope scope;
-
-    libtorrent::torrent_info ti = TorrentHandle::Unwrap(info.This())->get_torrent_info();
-
-    info.GetReturnValue().Set(TorrentInfo::New(ti));
-};*/
-
-NAN_METHOD(TorrentHandle::set_metadata) {
-
+NAN_METHOD(TorrentHandleWrap::set_metadata) {
     std::string md(*Nan::Utf8String(info[0]));
 
     TorrentHandle::Unwrap(info.This())->set_metadata(md.c_str(), md.size());
@@ -597,14 +586,7 @@ NAN_METHOD(TorrentHandle::scrape_tracker) {
     RETURN_VOID;
 };
 
-/*NAN_METHOD(TorrentHandle::name) {
-    Nan::HandleScope scope;
-
-    info.GetReturnValue().Set(Nan::New<String>(TorrentHandle::Unwrap(info.This())->name()).ToLocalChecked());
-};*/
-
-NAN_METHOD(TorrentHandle::set_upload_mode) {
-
+NAN_METHOD(TorrentHandleWrap::set_upload_mode) {
     TorrentHandle::Unwrap(info.This())->set_upload_mode(info[0]->BooleanValue());
 
     RETURN_VOID;
