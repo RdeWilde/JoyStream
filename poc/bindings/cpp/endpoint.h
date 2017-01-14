@@ -21,6 +21,7 @@ class EndpointWrap: public Nan::ObjectWrap {
 
       static NAN_METHOD(NewInstance);
       static NAN_GETTER(address);
+      static NAN_GETTER(port);
 
 };
 

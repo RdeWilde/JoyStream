@@ -11,6 +11,7 @@ NAN_MODULE_INIT(EndpointWrap::Init) {
 
   Local<ObjectTemplate> inst = tpl->InstanceTemplate();
   Nan::SetAccessor(inst, Nan::New("address").ToLocalChecked(), EndpointWrap::address);
+  Nan::SetAccessor(inst, Nan::New("port").ToLocalChecked(), EndpointWrap::port);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("Endpoint").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
@@ -39,4 +40,11 @@ NAN_GETTER(EndpointWrap::address) {
   std::string address = ep->address().to_string();
 
   info.GetReturnValue().Set(Nan::New<String>(address).ToLocalChecked());
+};
+
+NAN_GETTER(EndpointWrap::port) {
+  libtorrent::tcp::endpoint* ep = EndpointWrap::Unwrap(info.This());
+  unsigned short port = ep->port();
+
+  info.GetReturnValue().Set(Nan::New<Number>(port));
 };
