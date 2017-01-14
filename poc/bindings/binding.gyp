@@ -3,9 +3,6 @@
         {
             "target_name": "NativeExtension",
             "sources": [
-                "cpp/TorrentAddedAlert.cpp",
-				"cpp/address.cpp",
-                "cpp/TorrentAlert.cpp",
                 "cpp/Alert.cpp",
                 "cpp/NativeExtension.cc",
                 # Libtorrent
