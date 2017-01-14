@@ -27,7 +27,7 @@ class TorrentHandle : public Nan::ObjectWrap {
     static NAN_METHOD(get_peer_info);
     //static NAN_METHOD(status);
     static NAN_METHOD(get_download_queue);
-    //static NAN_METHOD(file_progress);
+    static NAN_METHOD(file_progress);
     //static NAN_METHOD(trackers);
     //static NAN_METHOD(replace_trackers);
     //static NAN_METHOD(add_tracker);

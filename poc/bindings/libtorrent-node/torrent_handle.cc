@@ -12,7 +12,7 @@ NAN_MODULE_INIT(TorrentHandle::Init) {
   Nan::SetPrototypeMethod(tpl, "getPeerInfo", get_peer_info);
   //Nan::SetPrototypeMethod(tpl, "status", status);
   Nan::SetPrototypeMethod(tpl, "getDownloadQueue", get_download_queue);
-  //Nan::SetPrototypeMethod(tpl, "fileProgress", file_progress);
+  Nan::SetPrototypeMethod(tpl, "fileProgress", file_progress);
   //Nan::SetPrototypeMethod(tpl, "trackers", trackers);
   //Nan::SetPrototypeMethod(tpl, "replaceTrackers", replace_trackers);
   //Nan::SetPrototypeMethod(tpl, "addTracker", add_tracker);
@@ -190,20 +190,19 @@ NAN_METHOD(TorrentHandle::get_download_queue) {
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
     std::vector<libtorrent::size_type> res;
 
-    res.reserve(th->get_torrent_info().num_files());
+    res.reserve(th->torrent_file()->num_files());
 
-    Local<Array> ret = Nan::New<Array>();
+    v8::Local<v8::Array> ret = Nan::New<v8::Array>();
 
-    if (info.Length() == 1)
-        th->file_progress(res, info[0]->IntegerValue());
-    else
-        th->file_progress(res);
+    // Only calculate file progress at piece granularity. Cheaper.
+    th->file_progress(res, libtorrent::torrent_handle::piece_granularity);
 
-    for (std::vector<libtorrent::size_type>::iterator i(res.begin()), e(res.end()); i != e; ++i)
-        ret->Set(ret->Length(), Nan::New<Number>(*i));
+    for (std::vector<std::int64_t>::iterator i(res.begin()), e(res.end()); i != e; ++i) {
+      ret->Set(ret->Length(), Nan::New<v8::Number>(*i));
+    }
 
     info.GetReturnValue().Set(ret);
-};*/
+};
 
 /*NAN_METHOD(TorrentHandle::trackers) {
     std::vector<libtorrent::announce_entry> const res = TorrentHandle::Unwrap(info.This())->trackers();

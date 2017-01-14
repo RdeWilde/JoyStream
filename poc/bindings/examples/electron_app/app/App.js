@@ -48,12 +48,16 @@ class App extends Component {
     this.state.torrents.forEach((torrent, infoHash) => {
       var torrentHandle = torrent.handle
       var torrentInfo = torrentHandle.torrentFile()
+
       if (!torrentInfo) {
         // torrent_info not yet set need to come from peers
         torrent.on('metadata_received_alert', (torrentInfo) => {
           this.forceUpdate()
         })
       } else {
+
+        console.log(torrentHandle.fileProgress())
+
         rows.push(
           <tr>
             <td>{torrentInfo.name()}</td>
