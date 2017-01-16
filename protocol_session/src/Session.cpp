@@ -979,7 +979,7 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    typename std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *>::const_iterator Session<ConnectionIdType>::destroyConnection(const ConnectionIdType & id) {
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator Session<ConnectionIdType>::destroyConnection(const ConnectionIdType & id) {
 
         // Get iterator pointing at connection in map
         auto itr = _connections.find(id);
