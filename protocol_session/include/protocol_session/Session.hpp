@@ -34,15 +34,9 @@ namespace detail {
 
     template <class ConnectionIdType>
     class Observing;
-
-    template <class ConnectionIdType>
-    using ConnectionMap = std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *>;
 }
 
     class TorrentPieceInformation;
-    struct StartDownloadConnectionInformation;
-    template <class ConnectionIdType>
-    using PeerToStartDownloadInformationMap = std::unordered_map<ConnectionIdType, StartDownloadConnectionInformation>;
 
     template <class ConnectionIdType>
     class Session {
