@@ -14,22 +14,52 @@ var Buffer = require('buffer').Buffer;
     describe('Transaction', function() {
         var Tx = nativeExtension.common.Transaction;
 
-        it('toBuffer', function() {
-            var tx1 = new Tx();
-            assert(typeof tx1.toBuffer, 'function');
-            var buf = tx1.toBuffer();
-            var tx2 = new Tx(buf);
-            assert.deepEqual(buf, tx2.toBuffer());
+        it('fromObject', function() {
+            //smallest possible transaction data
+            // version:4bytes, inputs: 1 bytes, outputs:1 byte, locktime: 4bytes
+            var buf = new Buffer(10).fill(0);
+            var tx1 = new Tx({
+                tx: buf
+            })
+
+            assert(tx1 instanceof Tx);
+
+            assert(tx1.tx instanceof Buffer);
+            assert.deepEqual(tx1.tx, buf);
+
+            // modifying original buffer does not affect our copy
+            buf.fill(1);
+            assert.notDeepEqual(tx1.tx, buf);
         })
 
-        it('version', function(){
-            var tx = new Tx();
-            assert.equal(1, tx.version());
+        it('throws TypeError when missing argument', function(){
+            assert.throws(function(){
+                new Tx();
+            }, TypeError)
         })
 
-        it('locktime', function(){
-            var tx = new Tx();
-            assert.equal(0, tx.locktime());
+        it('throws TypeError on invalid argument', function(){
+            assert.throws(function(){
+                new Tx({});
+            }, TypeError)
+        })
+
+        it('throws TypeError on invalid transaction data', function(){
+            assert.throws(function(){
+                new Tx({
+                    tx: new Buffer(2).fill(0)
+                });
+            }, TypeError)
+        })
+
+        it('make a copy', function(){
+            var buf = new Buffer(10).fill(0);
+            var tx1 = new Tx({
+                tx: buf
+            })
+
+            var tx2 = new Tx(tx1);
+            assert.deepEqual(tx1, tx2);
         })
     })
 

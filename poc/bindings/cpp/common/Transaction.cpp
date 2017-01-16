@@ -4,55 +4,73 @@
 namespace joystream {
 namespace addon {
 namespace common {
+namespace Transaction {
 
-Nan::Persistent<v8::Function> Transaction::constructor;
+static Nan::Persistent<v8::Function> constructor;
 
-NAN_MODULE_INIT(Transaction::Init) {
+NAN_MODULE_INIT(Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("Transaction").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-  Nan::SetPrototypeMethod(tpl, "toBuffer", ToBuffer);
-  Nan::SetPrototypeMethod(tpl, "version", GetVersion);
-  Nan::SetPrototypeMethod(tpl, "locktime", GetLockTime);
-
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("Transaction").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-v8::Local<v8::Object> Transaction::NewInstance(const Coin::Transaction &tx) {
+/*  
+    { 
+      'tx' : Buffer  // serialized transaction
+    }
+*/
+v8::Local<v8::Value> toObject(const Coin::Transaction &tx) {
+    Nan::EscapableHandleScope scope;
+    auto data = tx.getSerialized();
+    auto buffer = util::UCharVectorToNodeBuffer(data);
+    auto obj = Nan::New<v8::Object>();
+    Nan::Set(obj, Nan::New("tx").ToLocalChecked(), buffer);
+    return scope.Escape(obj);
+}
+
+Coin::Transaction fromObject(const v8::Local<v8::Value>& value) {
+    Nan::HandleScope scope;
+    auto obj = Nan::To<v8::Object>(value);
+    auto buf = Nan::Get(obj.ToLocalChecked(), Nan::New("tx").ToLocalChecked()).ToLocalChecked();
+    if(!buf->IsUint8Array()) {
+        throw std::runtime_error("Invalid Transaction Object");
+    }
+    return Coin::Transaction(util::NodeBufferToUCharVector(buf));
+}
+
+v8::Local<v8::Object> NewInstance(const Coin::Transaction &tx) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-    auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
-    Transaction* transaction = ObjectWrap::Unwrap<Transaction>(instance);
-    transaction->_tx = tx;
+    auto value = toObject(tx);
+    const int argc = 1;
+    v8::Local<v8::Value> argv[argc] = {value};
+    auto instance = cons->NewInstance(Nan::GetCurrentContext(), argc, argv).ToLocalChecked();
     return scope.Escape(instance);
 }
 
-bool Transaction::IsInstance(v8::Object &obj) {
-    return obj.GetPrototype() == constructor;
-}
+NAN_METHOD(New) {
+  if(info.Length() != 1) {
+      Nan::ThrowTypeError("Argument Required");
+      return;
+  }
 
-Coin::Transaction Transaction::transaction() const {
-    return _tx;
-}
-
-NAN_METHOD(Transaction::New) {
   if (info.IsConstructCall()) {
-    Transaction *obj = new Transaction();
 
-    if(info.Length() > 0){
-        // If argument is provided, it must be a buffer
-        if(!info[0]->IsUint8Array()) {
-            Nan::ThrowTypeError("Argument must be a buffer");
-            return;
-        }
-
-        obj->_tx.setSerialized(util::NodeBufferToUCharVector(info[0]));
+    try {
+        fromObject(info[0]);
+        auto tx = Nan::Get(Nan::To<v8::Object>(info[0]).ToLocalChecked(), Nan::New("tx").ToLocalChecked())
+                    .ToLocalChecked();
+        // copy the buffer
+        auto buf = Nan::CopyBuffer(node::Buffer::Data(tx), node::Buffer::Length(tx));
+        Nan::Set(info.This(), Nan::New("tx").ToLocalChecked(), buf.ToLocalChecked());
+    } catch(std::exception &e) {
+        Nan::ThrowTypeError(e.what());
     }
 
-    obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
+    
   } else {
     v8::Local<v8::Function> cons = Nan::New(constructor);
     if(info.Length() > 0) {
@@ -65,26 +83,10 @@ NAN_METHOD(Transaction::New) {
   }
 }
 
-NAN_METHOD(Transaction::ToBuffer) {
-    Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
-    auto data = transaction->_tx.getSerialized();
-    info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
+bool IsInstance(v8::Object &obj) {
+    return obj.GetPrototype() == constructor;
 }
 
-NAN_METHOD(Transaction::GetVersion) {
-    Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
-    info.GetReturnValue().Set(transaction->_tx.version);
-}
-
-NAN_METHOD(Transaction::GetLockTime) {
-    Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
-    info.GetReturnValue().Set(transaction->_tx.lockTime);
-}
-
-NAN_METHOD(Transaction::GetHash) {
-    Transaction* transaction = ObjectWrap::Unwrap<Transaction>(info.This());
-    auto data = transaction->_tx.hash();
-    info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
 }
 
 }}}

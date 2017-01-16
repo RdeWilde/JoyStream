@@ -7,28 +7,16 @@
 namespace joystream {
 namespace addon {
 namespace common {
+namespace Transaction {
 
-class Transaction: public Nan::ObjectWrap {
-    public:
-      static NAN_MODULE_INIT(Init);
+      NAN_MODULE_INIT(Init);
 
-      static v8::Local<v8::Object> NewInstance(const Coin::Transaction&);
-      static bool IsInstance(v8::Object&);
-
-      Coin::Transaction transaction() const;
-
-    private:
-
-      Coin::Transaction _tx;
-      static Nan::Persistent<v8::Function> constructor;
-
-      static NAN_METHOD(New);
-      static NAN_METHOD(ToBuffer);
-      static NAN_METHOD(GetVersion);
-      static NAN_METHOD(GetLockTime);
-      static NAN_METHOD(GetHash);
-
-};
+      v8::Local<v8::Object> NewInstance(const Coin::Transaction&);
+      v8::Local<v8::Value> toObject(const Coin::Transaction &tx);
+      Coin::Transaction fromObject(const v8::Local<v8::Value>& value);
+      bool IsInstance(v8::Object &obj);
+      NAN_METHOD(New);
+}
 
 }}}
 #endif
