@@ -12,26 +12,75 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 
-#define SET_INT(o, key, value) o->Set(Nan::New(key).ToLocalChecked(), Nan::New(value));
-#define SET_STR(o, key, value) o->Set(Nan::New(key).ToLocalChecked(), Nan::New(value).ToLocalChecked());
-#define SET_OBJ(o, key, value) o->Set(Nan::New(key).ToLocalChecked(), value);
+/// Do we perhaps need to move these macroes at some point?
+#define SET_INT(o, key, value) Nan::Set(o, Nan::New(key).ToLocalChecked(), Nan::New(value));
+#define SET_STR(o, key, value) Nan::Set(o, Nan::New(key).ToLocalChecked(), Nan::New(value).ToLocalChecked());
+#define SET_OBJ(o, key, value) Nan::Set(o, Nan::New(key).ToLocalChecked(), value);
 
 namespace joystream {
 namespace node_addon {
 
-void Init() {
+#define SET_ALERT_TYPE(o, alert_name) SET_INT(o, #alert_name, libtorrent::alert_name::type);
 
-  // some type macro to recover what type of alert it is
-  // categories
-  // ....
+NAN_MODULE_INIT(InitAlertTypes) {
 
-  // enums to support
+  v8::Local<v8::ObjectTemplate> tpl = Nan::New<v8::ObjectTemplate>();
 
-  // libtorrent::static_category
-  // libtorrent::socket_type_t
-  // operation_t
-  // error_code
-  // close_reason_t
+  // do we need some sort of EscapableHandleScope ?????
+
+  //SET_INT(alert_types, "torrent_checked_alert", libtorrent::torrent_checked_alert::type)
+  SET_ALERT_TYPE(alert_types, torrent_checked_alert)
+
+  //SET_ALERT_TYPE(alert_types, torrent_checked_alert)
+  //SET_ALERT_TYPE(alert_types, torrent_checked_alert)
+  //SET_ALERT_TYPE(alert_types, torrent_checked_alert)
+
+  Nan::Set(target, Nan::New("alert_types").ToLocalChecked(), alert_types);
+}
+
+//#define SET_NOTIFICATION(o, notification_name) SET_INT();
+
+NAN_MODULE_INIT(InitCategoryTypes) {
+
+
+
+  //SET_NOTIFICATION(o, error_notification)
+
+/**
+      error_notification            = 0x1,
+			peer_notification             = 0x2,
+			port_mapping_notification     = 0x4,
+			storage_notification          = 0x8,
+			tracker_notification          = 0x10,
+			debug_notification            = 0x20,
+			status_notification           = 0x40,
+			progress_notification         = 0x80,
+			ip_block_notification         = 0x100,
+			performance_warning           = 0x200,
+			dht_notification              = 0x400,
+			stats_notification            = 0x800,
+#ifndef TORRENT_NO_DEPRECATE
+			rss_notification              = 0x1000,
+#endif
+			session_log_notification      = 0x2000,
+			torrent_log_notification      = 0x4000,
+			peer_log_notification         = 0x8000,
+			incoming_request_notification = 0x10000,
+			dht_log_notification          = 0x20000,
+			dht_operation_notification    = 0x40000,
+			port_mapping_log_notification = 0x80000,
+			picker_log_notification       = 0x100000,
+			all_categories = 0x7fffffff
+*/
+}
+
+NAN_MODULE_INIT(InitSocketTypes) {
+/**
+  enum class socket_type_t : std::uint8_t
+	{
+		tcp, tcp_ssl, udp, i2p, socks5, utp_ssl
+	};
+  */
 
 }
 

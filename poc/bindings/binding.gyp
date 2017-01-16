@@ -3,6 +3,7 @@
         {
             "target_name": "NativeExtension",
             "sources": [
+                "cpp/plugin_alert_to_object_converter.cpp",
                 "cpp/Alert.cpp",
                 "cpp/NativeExtension.cc",
                 # Libtorrent
