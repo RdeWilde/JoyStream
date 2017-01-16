@@ -6,6 +6,7 @@
 
 using namespace v8;
 
+
 class EndpointWrap: public Nan::ObjectWrap {
     public:
       static NAN_MODULE_INIT(Init);
