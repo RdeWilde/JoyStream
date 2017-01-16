@@ -73,8 +73,8 @@ class Node extends EventEmitter {
       }.bind(this), 1000)
     }
 
-    pause () {
-      this.session.pause()
+    pause (callback) {
+      this.session.pause(callback)
     }
 
     isPaused () {
