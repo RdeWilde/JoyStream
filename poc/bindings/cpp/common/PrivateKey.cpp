@@ -7,6 +7,10 @@ namespace common {
 
 Nan::Persistent<v8::Function> PrivateKey::constructor;
 
+PrivateKey::PrivateKey(const Coin::PrivateKey& sk)
+    : _privateKey(sk)
+    {}
+
 NAN_MODULE_INIT(PrivateKey::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PrivateKey").ToLocalChecked());
@@ -40,8 +44,7 @@ Coin::PrivateKey PrivateKey::privateKey() const {
 
 NAN_METHOD(PrivateKey::New) {
   if (info.IsConstructCall()) {
-    PrivateKey *obj = new PrivateKey();
-
+    Coin::PrivateKey sk;
     if(info.Length() > 0){
         // If argument is provided, it must be a buffer
         if(!info[0]->IsUint8Array()) {
@@ -50,13 +53,14 @@ NAN_METHOD(PrivateKey::New) {
         }
 
         try {
-            obj->_privateKey = Coin::PrivateKey(util::NodeBufferToUCharVector(info[0]));
+            sk = Coin::PrivateKey(util::NodeBufferToUCharVector(info[0]));
         } catch (const std::exception &ex) {
             Nan::ThrowTypeError(ex.what());
             return;
         }
     }
-
+    
+    auto obj = new PrivateKey(sk);
     obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
   } else {

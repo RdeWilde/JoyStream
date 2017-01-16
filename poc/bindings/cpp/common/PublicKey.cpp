@@ -7,6 +7,10 @@ namespace common {
 
 Nan::Persistent<v8::Function> PublicKey::constructor;
 
+PublicKey::PublicKey(const Coin::PublicKey& pk)
+    : _publicKey(pk)
+    {}
+
 NAN_MODULE_INIT(PublicKey::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PublicKey").ToLocalChecked());
@@ -37,7 +41,7 @@ Coin::PublicKey PublicKey::publicKey() const {
 
 NAN_METHOD(PublicKey::New) {
   if (info.IsConstructCall()) {
-    PublicKey *obj = new PublicKey();
+    Coin::PublicKey pk;
 
     if(info.Length() > 0){
         // If argument is provided, it must be a buffer
@@ -47,13 +51,14 @@ NAN_METHOD(PublicKey::New) {
         }
 
         try {
-            obj->_publicKey = Coin::PublicKey(util::NodeBufferToUCharVector(info[0]));
+            pk = Coin::PublicKey(util::NodeBufferToUCharVector(info[0]));
         } catch (const std::exception &ex) {
             Nan::ThrowTypeError(ex.what());
             return;
         }
     }
 
+    auto obj = new PublicKey(pk);
     obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
   } else {

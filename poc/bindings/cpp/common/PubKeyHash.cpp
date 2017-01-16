@@ -7,6 +7,10 @@ namespace common {
 
 Nan::Persistent<v8::Function> PubKeyHash::constructor;
 
+PubKeyHash::PubKeyHash(const Coin::PubKeyHash& hash)
+    : _pubKeyHash(hash)
+    {}
+
 NAN_MODULE_INIT(PubKeyHash::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PubKeyHash").ToLocalChecked());
@@ -37,7 +41,7 @@ Coin::PubKeyHash PubKeyHash::pubKeyHash() const {
 
 NAN_METHOD(PubKeyHash::New) {
   if (info.IsConstructCall()) {
-    PubKeyHash *obj = new PubKeyHash();
+    Coin::PubKeyHash hash;
 
     if(info.Length() > 0){
         // If argument is provided, it must be a buffer
@@ -47,13 +51,14 @@ NAN_METHOD(PubKeyHash::New) {
         }
 
         try {
-            obj->_pubKeyHash = Coin::PubKeyHash(util::NodeBufferToUCharVector(info[0]));
+            hash = Coin::PubKeyHash(util::NodeBufferToUCharVector(info[0]));
         } catch (const std::exception &ex) {
             Nan::ThrowTypeError(ex.what());
             return;
         }
     }
-
+    
+    auto obj = new PubKeyHash(hash);
     obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
   } else {

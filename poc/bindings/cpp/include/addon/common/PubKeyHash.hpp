@@ -10,6 +10,8 @@ namespace common {
 
 class PubKeyHash: public Nan::ObjectWrap {
     public:
+      PubKeyHash(const Coin::PubKeyHash&);
+
       static NAN_MODULE_INIT(Init);
 
       static v8::Local<v8::Object> NewInstance(const Coin::PubKeyHash&);

@@ -10,6 +10,8 @@ namespace common {
 
 class PublicKey: public Nan::ObjectWrap {
     public:
+      PublicKey(const Coin::PublicKey&);
+
       static NAN_MODULE_INIT(Init);
 
       static v8::Local<v8::Object> NewInstance(const Coin::PublicKey&);
