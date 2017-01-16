@@ -126,36 +126,36 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms &) {
+    void Selling<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);
 
         // Connection must be live
-        assert(_session->hasConnection(id));
+        //assert(_session->hasConnection(id));
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::invitedToOutdatedContract(const ConnectionIdType & id) {
+    void Selling<ConnectionIdType>::invitedToOutdatedContract(const ConnectionIdType &) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);
 
         // Connection must be live
-        assert(_session->hasConnection(id));
+        //assert(_session->hasConnection(id));
 
         // Nothing to do
         // NB** in the future we may want to keep track of how often this happens
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::invitedToJoinContract(const ConnectionIdType & id) {
+    void Selling<ConnectionIdType>::invitedToJoinContract(const ConnectionIdType &) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);
 
         // Connection must be live
-        assert(_session->hasConnection(id));
+        //assert(_session->hasConnection(id));
 
         //** TODO: Add calback for this event later **
     }

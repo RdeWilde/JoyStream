@@ -200,17 +200,11 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
+    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType &) {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
-        assert(_session->hasConnection(id));
-
-        /**
-        if(_session->_state == SessionState::started &&
-           _state == BuyingState::sending_invitations)
-            startDownloading();
-        */
+        //assert(_session->hasConnection(id));
     }
 
     template <class ConnectionIdType>
@@ -219,10 +213,6 @@ namespace detail {
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
         assert(_session->hasConnection(id));
-
-        // Get reference to seller corresponding connection
-        auto itr = _sellers.find(id);
-        assert(itr != _sellers.cend());
 
         // Remove connection
         removeConnection(id, DisconnectCause::seller_has_interrupted_contract);
@@ -562,10 +552,7 @@ namespace detail {
                                                                            inf.value));
 
             // Assign the first piece to this peer
-            bool assigned = tryToAssignAndRequestPiece(_sellers[id]);
-
-            // Unless there are more peers than unassigned pieces this should always work
-            assert(assigned);
+            tryToAssignAndRequestPiece(_sellers[id]);
         }
 
         /////////////////////////

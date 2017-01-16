@@ -19,8 +19,8 @@ namespace protocol_session {
 }}
 
 Test::Test()
-    : network(Coin::Network::testnet3)
-    , session(nullptr)
+    : //network(Coin::Network::testnet3)
+    session(nullptr)
     , spy(nullptr) {
 }
 
@@ -886,8 +886,7 @@ void Test::firstStart() {
 
 void Test::stop() {
 
-    SessionMode mode = session->mode();
-    assert(mode != SessionMode::not_set);
+    assert(session->mode() != SessionMode::not_set);
 
     // Get all connections present before stop
     std::set<ID> presentBeforeStop = session->connectionIds();
