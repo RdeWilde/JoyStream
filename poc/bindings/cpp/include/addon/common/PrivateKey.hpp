@@ -8,26 +8,16 @@ namespace joystream {
 namespace addon {
 namespace common {
 
-class PrivateKey: public Nan::ObjectWrap {
-    public:
-      PrivateKey(const Coin::PrivateKey&);
-      static NAN_MODULE_INIT(Init);
+namespace PrivateKey {
 
-      static v8::Local<v8::Object> NewInstance(const Coin::PrivateKey&);
-      static bool IsInstance(v8::Object&);
+      NAN_MODULE_INIT(Init);
 
-      Coin::PrivateKey privateKey() const;
-
-    private:
-      Coin::PrivateKey _privateKey;
-      static Nan::Persistent<v8::Function> constructor;
-
-      static NAN_METHOD(New);
-      static NAN_METHOD(ToBuffer);
-      static NAN_METHOD(Generate);
-      static NAN_METHOD(Valid);
-
-};
+      v8::Local<v8::Object> NewInstance(const Coin::PrivateKey&);
+      v8::Local<v8::Value> toObject(const Coin::PrivateKey &tx);
+      Coin::PrivateKey fromObject(const v8::Local<v8::Value>& value);
+      bool IsInstance(v8::Object &obj);
+      NAN_METHOD(New);
+}
 
 }}}
 #endif

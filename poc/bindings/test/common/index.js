@@ -67,42 +67,43 @@ var Buffer = require('buffer').Buffer;
         var PrivateKey = nativeExtension.common.PrivateKey;
 
         var hexKey = "01020405060708090A0B0C0D0E0F10111213141501020405060708090A0B0C0D";
-        assert.equal(hexKey.length, 64);
+        assert.equal(hexKey.length, 64)
 
-        it('default constructor', function(){
-            var sk = new PrivateKey();
-            assert.equal(sk.toBuffer().length, 32);
-            assert.deepEqual(sk.toBuffer(), new Buffer(32).fill(0));
+        it('fromObject', function(){
+            var sk = new PrivateKey({
+                sk: new Buffer(hexKey, 'hex')
+            });
+
+            assert(sk instanceof PrivateKey)
+            assert(sk.sk instanceof Buffer)
+
+            assert.equal(sk.sk.length, 32)
+            assert.deepEqual(sk.sk, new Buffer(hexKey, 'hex'))
         })
 
-        it('construct from buffer', function(){
-            var sk = new PrivateKey(new Buffer(hexKey, 'hex'));
-            assert.equal(sk.toBuffer().length, 32);
-            assert.deepEqual(sk.toBuffer(), new Buffer(hexKey, 'hex'));
-        })
-
-        it('constructor throws if buffer not correct size', function(){
+        it('throws TypeError if buffer not correct size', function(){
             assert.throws(function(){
-                new PrivateKey(new Buffer(100));
+                new PrivateKey({
+                    sk: new Buffer(100)
+                })
             }, TypeError);
         })
 
-        it('constructor throws if argument not a buffer', function(){
+        it('throws TypeError on invalid argument', function(){
             assert.throws(function(){
-                new PrivateKey("string");
-            }, TypeError)
+                new PrivateKey({
+                    sk: "notabuffer"
+                })
+            }, TypeError);
         })
 
         it('generate', function(){
             var sk = PrivateKey.generate()
-            assert(sk.valid())
-            assert.equal(sk.toBuffer().length, 32)
+            assert(sk instanceof PrivateKey)
+            assert(sk.sk instanceof Buffer)
+            assert.equal(sk.sk.length, 32)
         })
 
-        it('toBuffer', function(){
-            var sk = PrivateKey.generate()
-            assert.equal(sk.toBuffer().length, 32)
-        })
     })
 
     describe('PubKeyHash', function() {
