@@ -109,51 +109,82 @@ var Buffer = require('buffer').Buffer;
     describe('PubKeyHash', function() {
         var PubKeyHash = nativeExtension.common.PubKeyHash;
 
-        it('default constructor', function(){
-            var hash = new PubKeyHash();
-            assert.equal(hash.toBuffer().length, 20);
-        })
-
-        it('construct from buffer', function(){
+        it('fromObject', function(){
             var buf = new Buffer('01020405060708090A0B0C0D0E0F101112131415','hex');
-            assert.equal(buf.length, 20);
+            assert.equal(buf.length, 20)
 
-            var hash = new PubKeyHash(buf);
-            assert.deepEqual(hash.toBuffer(), buf);
+            var hash = new PubKeyHash({
+                hash: buf
+            })
+
+            assert(hash instanceof PubKeyHash)
+            assert(hash.hash instanceof Buffer)
+            assert.deepEqual(hash.hash, buf)
         })
 
-        it('constructor throws if buffer not correct size', function(){
+        it('throws TypeError when missing argument', function(){
             assert.throws(function(){
-                new PubKeyHash(new Buffer(100));
-            }, TypeError);
+                new PubKeyHash();
+            }, TypeError)
         })
 
-        it('constructor throws if argument not a buffer', function(){
+        it('throws TypeError if buffer not correct size', function(){
             assert.throws(function(){
-                new PubKeyHash("string");
+                new PubKeyHash({
+                    sk: new Buffer(100)
+                })
+            }, TypeError)
+        })
+
+        it('throws TypeError on invalid argument', function(){
+            assert.throws(function(){
+                new PubKeyHash({
+                    sk: "notabuffer"
+                })
             }, TypeError)
         })
     })
 
     describe('PublicKey', function(){
         var PublicKey = nativeExtension.common.PublicKey;
+        
+        // just a random valid public key
+        var pubKey = new Buffer("03897cdec980767acd0c39ff17287cab606ab6d53851d942eb3fcfa5fff05494ad", "hex")
 
-        it('default constructor', function(){
-            var pk = new PublicKey();
-            assert.equal(pk.toBuffer().length, 33);
+        it('fromObject', function(){
+            var pk = new PublicKey({
+                pk: pubKey
+            });
+
+            assert(pk instanceof PublicKey)
+            assert(pk.pk instanceof Buffer)
+
+            assert.equal(pk.pk.length, 33)
+            assert.deepEqual(pk.pk, pubKey)
         })
 
-        it('constructor throws if buffer not correct size', function(){
+        it('throws TypeError when missing argument', function(){
             assert.throws(function(){
-                new PublicKey(new Buffer(100));
-            }, TypeError);
-        })
-
-        it('constructor throws if argument not a buffer', function(){
-            assert.throws(function(){
-                new PublicKey("string");
+                new PublicKey();
             }, TypeError)
         })
+
+        it('throws TypeError if buffer not correct size', function(){
+            assert.throws(function(){
+                new PublicKey({
+                    pk: new Buffer(100)
+                })
+            }, TypeError)
+        })
+
+        it('throws TypeError on invalid argument', function(){
+            assert.throws(function(){
+                new PublicKey({
+                    wrongname: "notabuffer"
+                })
+            }, TypeError)
+        })
+
     })
 
     describe('OutPoint', function(){

@@ -1,82 +1,89 @@
 #include <addon/common/PublicKey.hpp>
+#include <common/PrivateKey.hpp>
+#include <addon/util/helpers.hpp>
 #include <addon/util/buffers.hpp>
 
 namespace joystream {
 namespace addon {
 namespace common {
 
-Nan::Persistent<v8::Function> PublicKey::constructor;
+namespace PublicKey {
 
-PublicKey::PublicKey(const Coin::PublicKey& pk)
-    : _publicKey(pk)
-    {}
+static Nan::Persistent<v8::Function> constructor;
 
-NAN_MODULE_INIT(PublicKey::Init) {
+const std::string VALUE_KEY("pk");
+
+NAN_MODULE_INIT(Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PublicKey").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-  Nan::SetPrototypeMethod(tpl, "toBuffer", ToBuffer);
-
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("PublicKey").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-v8::Local<v8::Object> PublicKey::NewInstance(const Coin::PublicKey &pk) {
+/*  
+    { 
+      'pk' : Buffer  // serialized PublicKey
+    }
+*/
+v8::Local<v8::Value> toObject(const Coin::PublicKey &sk) {
+    Nan::EscapableHandleScope scope;
+    uchar_vector data = sk.toUCharVector();
+    auto obj = util::UCharVectorToObject(data, VALUE_KEY);
+    return scope.Escape(obj);
+}
+
+Coin::PublicKey fromObject(const v8::Local<v8::Value>& value) {
+    return util::GetNativeTypeFromBufferByKey<Coin::PublicKey>(value, VALUE_KEY);
+}
+
+v8::Local<v8::Object> NewInstance(const Coin::PublicKey &sk) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-    auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
-    PublicKey* publicKey = ObjectWrap::Unwrap<PublicKey>(instance);
-    publicKey->_publicKey = pk;
+    auto value = toObject(sk);
+    auto instance = cons->NewInstance(Nan::GetCurrentContext(), 1, &value).ToLocalChecked();
     return scope.Escape(instance);
 }
 
-bool PublicKey::IsInstance(v8::Object &obj) {
-    return obj.GetPrototype() == constructor;
-}
+NAN_METHOD(New) {
+  if(info.Length() == 0) {
+      Nan::ThrowTypeError("Argument Required");
+      return;
+  }
 
-Coin::PublicKey PublicKey::publicKey() const {
-    return _publicKey;
-}
+  // == Use new constructor guard macro here ==
 
-NAN_METHOD(PublicKey::New) {
   if (info.IsConstructCall()) {
-    Coin::PublicKey pk;
 
-    if(info.Length() > 0){
-        // If argument is provided, it must be a buffer
-        if(!info[0]->IsUint8Array()) {
-            Nan::ThrowTypeError("Argument must be a buffer");
-            return;
-        }
+    try {
+        auto sk = fromObject(info[0]);
+        
+        auto buf = util::GetBufferByKey(info[0], VALUE_KEY);
+        // copy the buffer
+        auto bufcopy = Nan::CopyBuffer(node::Buffer::Data(buf), node::Buffer::Length(buf));
+        Nan::Set(info.This(), Nan::New(VALUE_KEY).ToLocalChecked(), bufcopy.ToLocalChecked());
 
-        try {
-            pk = Coin::PublicKey(util::NodeBufferToUCharVector(info[0]));
-        } catch (const std::exception &ex) {
-            Nan::ThrowTypeError(ex.what());
-            return;
-        }
+    } catch(std::exception &e) {
+        Nan::ThrowTypeError(e.what());
     }
 
-    auto obj = new PublicKey(pk);
-    obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
+    
   } else {
     v8::Local<v8::Function> cons = Nan::New(constructor);
     if(info.Length() > 0) {
-        const int argc = 1;
-        v8::Local<v8::Value> argv[argc] = {info[0]};
-        info.GetReturnValue().Set(cons->NewInstance(Nan::GetCurrentContext(), argc, argv).ToLocalChecked());
-        return;
+      const int argc = 1;
+      v8::Local<v8::Value> argv[argc] = {info[0]};
+      info.GetReturnValue().Set(cons->NewInstance(Nan::GetCurrentContext(), argc, argv).ToLocalChecked());
+      return;
     }
     info.GetReturnValue().Set(cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked());
   }
 }
 
-NAN_METHOD(PublicKey::ToBuffer) {
-    PublicKey* publicKey = ObjectWrap::Unwrap<PublicKey>(info.This());
-    auto data = publicKey->_publicKey.toUCharVector();
-    info.GetReturnValue().Set(util::UCharVectorToNodeBuffer(data));
+bool IsInstance(v8::Object &obj) {
+    return obj.GetPrototype() == constructor;
+}
+
 }
 
 }}}
