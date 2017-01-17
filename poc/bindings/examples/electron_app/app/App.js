@@ -48,6 +48,7 @@ class App extends Component {
     this.state.torrents.forEach((torrent, infoHash) => {
       var torrentHandle = torrent.handle
       var torrentInfo = torrentHandle.torrentFile()
+      var status = torrentHandle.status()
 
       if (!torrentInfo) {
         // torrent_info not yet set need to come from peers
@@ -56,14 +57,51 @@ class App extends Component {
         })
       } else {
 
-        console.log(torrentHandle.fileProgress())
+        torrent.on('state_update_alert', (state, progress) => {
+          this.forceUpdate()
+        })
+
+        torrent.on('torrent_finished_alert', () =>{
+          this.forceUpdate()  
+        })
+
+        var statusText;
+
+        switch(status.state) {
+          case 0:
+            statusText = 'Queued for checking'
+            break
+          case 1:
+            statusText = 'Checking files'
+            break
+          case 2:
+            statusText = 'Downloading metadata'
+            break
+          case 3:
+            statusText = 'Downloading'
+            break
+          case 4:
+            statusText = 'Finished'
+            break
+          case 5:
+            statusText = 'Seeding'
+            break
+          case 6:
+            statusText = 'Allocating'
+            break
+          case 6:
+            statusText = 'Checking resume data'
+            break
+          default:
+            statusText = 'Unknown'
+        }
 
         rows.push(
           <tr>
             <td>{torrentInfo.name()}</td>
             <td>{Number(torrentInfo.totalSize() / 1000000).toFixed(2)} Mb</td>
-            <td>13%</td>
-            <td>Good</td>
+            <td>{Number(status.progress*100).toFixed(0)}%</td>
+            <td>{statusText}</td>
           </tr>)
       }
     })

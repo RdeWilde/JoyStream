@@ -13,6 +13,7 @@ const _metadataFailedAlert = Symbol('metadataFailedAlert')
 const _addTorrentAlert = Symbol('addTorrentAlert')
 const _torrentFinishedAlert = Symbol('torrentFinishedAlert')
 const _stateUpdateAlert = Symbol('stateUpdateAlert')
+const _stateChangedAlert = Symbol('stateChangedAlert')
 const _torrentRemovedAlert = Symbol('torrentRemovedAlert')
 const _torrentResumedAlert = Symbol('torrentResumedAlert')
 const _saveResumeDataAlert = Symbol('saveResumeDataAlert')
@@ -140,6 +141,12 @@ class Node extends EventEmitter {
         case 68:
           this[_stateUpdateAlert](alert)
           break
+
+        // state_changed_alert
+        case 10:
+          this[_stateChangedAlert](alert)
+          break
+
 
         // torrent_removed_alert
         case 4:
@@ -397,8 +404,16 @@ class Node extends EventEmitter {
     }
 
     [_torrentFinishedAlert](alert) {
-      // nothing to do?
-      // Maybe emit an event ?
+      var torrentHandle = alert.handle()
+
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrent) {
+        torrent.emit('torrent_finished_alert')
+      } else {
+        debug('Torrent not found')
+      }
+
     }
 
     [_stateUpdateAlert](alert) {
@@ -413,6 +428,18 @@ class Node extends EventEmitter {
           debug('Torrent not found !')
         }
       }
+    }
+
+    [_stateChangedAlert](alert) {
+      var torrentHandle = alert.handle()
+      var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      if (torrent) {
+        torrent.emit('state_changed_alert')
+      } else {
+        debug('Torrent not found')
+      }
+
     }
 
     [_torrentRemovedAlert](alert) {
