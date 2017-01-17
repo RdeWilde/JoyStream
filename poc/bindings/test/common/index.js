@@ -9,6 +9,7 @@ var Buffer = require('buffer').Buffer;
       assert.equal(typeof nativeExtension.common.PubKeyHash, 'function');
       assert.equal(typeof nativeExtension.common.PublicKey, 'function');
       assert.equal(typeof nativeExtension.common.OutPoint, 'function');
+      assert.equal(typeof nativeExtension.common.TransactionId, 'function');
     });
 
     describe('Transaction', function() {
@@ -180,6 +181,48 @@ var Buffer = require('buffer').Buffer;
         it('throws TypeError on invalid argument', function(){
             assert.throws(function(){
                 new PublicKey({
+                    wrongname: "notabuffer"
+                })
+            }, TypeError)
+        })
+
+    })
+
+    describe('TransactionId', function(){
+        var TxId = nativeExtension.common.TransactionId;
+        
+        // just a random valid public key
+        var id = new Buffer(32);
+
+        it('fromObject', function(){
+            var txid = new TxId({
+                txid: id
+            });
+
+            assert(txid instanceof TxId)
+            assert(txid.txid instanceof Buffer)
+
+            assert.equal(txid.txid.length, 32)
+            assert.deepEqual(txid.txid, id)
+        })
+
+        it('throws TypeError when missing argument', function(){
+            assert.throws(function(){
+                new TxId();
+            }, TypeError)
+        })
+
+        it('throws TypeError if buffer not correct size', function(){
+            assert.throws(function(){
+                new TxId({
+                    pk: new Buffer(100)
+                })
+            }, TypeError)
+        })
+
+        it('throws TypeError on invalid argument', function(){
+            assert.throws(function(){
+                new TxId({
                     wrongname: "notabuffer"
                 })
             }, TypeError)

@@ -3,6 +3,7 @@
 #include <addon/common/PrivateKey.hpp>
 #include <addon/common/PubKeyHash.hpp>
 #include <addon/common/PublicKey.hpp>
+#include <addon/common/TransactionId.hpp>
 #include <addon/common/OutPoint.hpp>
 
 NAN_MODULE_INIT(InitCommon) {
@@ -14,5 +15,6 @@ NAN_MODULE_INIT(InitCommon) {
     joystream::addon::common::PrivateKey::Init(common);
     joystream::addon::common::PubKeyHash::Init(common);
     joystream::addon::common::PublicKey::Init(common);
+    joystream::addon::common::TransactionId::Init(common);
     joystream::addon::common::OutPoint::Init(common);
 }
