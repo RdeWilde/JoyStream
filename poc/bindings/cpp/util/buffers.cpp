@@ -18,6 +18,8 @@ v8::Local<v8::Value> UCharVectorToNodeBuffer(uchar_vector &data) {
     Nan::EscapableHandleScope scope;
     auto buf = Nan::NewBuffer(data.size()).ToLocalChecked();
     auto pbuf = node::Buffer::Data(buf);
+    //copyToArray should really have been marked const since it doesn't modify s_frk_state
+    //to allow us to also pass in a const arg to UCharVectorToNodeBuffer
     data.copyToArray((unsigned char*)pbuf);
     return scope.Escape(buf);
 }

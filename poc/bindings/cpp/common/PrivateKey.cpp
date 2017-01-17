@@ -1,4 +1,5 @@
 #include <addon/common/PrivateKey.hpp>
+#include <addon/util/helpers.hpp>
 #include <addon/util/buffers.hpp>
 
 namespace joystream {
@@ -9,7 +10,7 @@ namespace PrivateKey {
 
 static Nan::Persistent<v8::Function> constructor;
 
-NAN_METHOD(Generate);
+const std::string VALUE_KEY("sk");
 
 NAN_MODULE_INIT(Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
@@ -26,30 +27,20 @@ NAN_MODULE_INIT(Init) {
 */
 v8::Local<v8::Value> toObject(const Coin::PrivateKey &sk) {
     Nan::EscapableHandleScope scope;
-    auto data = sk.toUCharVector();
-    auto buffer = util::UCharVectorToNodeBuffer(data);
-    auto obj = Nan::New<v8::Object>();
-    Nan::Set(obj, Nan::New("sk").ToLocalChecked(), buffer);
+    uchar_vector data = sk.toUCharVector();
+    auto obj = UCharVectorToObject(data, VALUE_KEY);
     return scope.Escape(obj);
 }
 
 Coin::PrivateKey fromObject(const v8::Local<v8::Value>& value) {
-    Nan::HandleScope scope;
-    auto obj = Nan::To<v8::Object>(value);
-    auto buf = Nan::Get(obj.ToLocalChecked(), Nan::New("sk").ToLocalChecked()).ToLocalChecked();
-    if(!buf->IsUint8Array()) {
-        throw std::runtime_error("Invalid PrivateKey Object");
-    }
-    return Coin::PrivateKey(util::NodeBufferToUCharVector(buf));
+    return GetNativeTypeFromBufferByKey<Coin::PrivateKey>(value, VALUE_KEY);
 }
 
 v8::Local<v8::Object> NewInstance(const Coin::PrivateKey &sk) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     auto value = toObject(sk);
-    const int argc = 1;
-    v8::Local<v8::Value> argv[argc] = {value};
-    auto instance = cons->NewInstance(Nan::GetCurrentContext(), argc, argv).ToLocalChecked();
+    auto instance = cons->NewInstance(Nan::GetCurrentContext(), 1, &value).ToLocalChecked();
     return scope.Escape(instance);
 }
 
@@ -62,12 +53,13 @@ NAN_METHOD(New) {
   if (info.IsConstructCall()) {
 
     try {
-        fromObject(info[0]);
-        auto sk = Nan::Get(Nan::To<v8::Object>(info[0]).ToLocalChecked(), Nan::New("sk").ToLocalChecked())
-                    .ToLocalChecked();
+        auto sk = fromObject(info[0]);
+        
+        auto buf = GetBufferByKey(info[0], VALUE_KEY);
         // copy the buffer
-        auto buf = Nan::CopyBuffer(node::Buffer::Data(sk), node::Buffer::Length(sk));
-        Nan::Set(info.This(), Nan::New("sk").ToLocalChecked(), buf.ToLocalChecked());
+        auto bufcopy = Nan::CopyBuffer(node::Buffer::Data(buf), node::Buffer::Length(buf));
+        Nan::Set(info.This(), Nan::New(VALUE_KEY).ToLocalChecked(), bufcopy.ToLocalChecked());
+
     } catch(std::exception &e) {
         Nan::ThrowTypeError(e.what());
     }
