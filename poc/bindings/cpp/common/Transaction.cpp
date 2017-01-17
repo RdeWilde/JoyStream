@@ -1,5 +1,6 @@
 #include <addon/common/Transaction.hpp>
 #include <addon/util/buffers.hpp>
+#include <addon/util/helpers.hpp>
 
 namespace joystream {
 namespace addon {
@@ -8,10 +9,11 @@ namespace Transaction {
 
 static Nan::Persistent<v8::Function> constructor;
 
+const std::string VALUE_KEY("tx");
+
 NAN_MODULE_INIT(Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("Transaction").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("Transaction").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
@@ -24,29 +26,19 @@ NAN_MODULE_INIT(Init) {
 v8::Local<v8::Value> toObject(const Coin::Transaction &tx) {
     Nan::EscapableHandleScope scope;
     auto data = tx.getSerialized();
-    auto buffer = util::UCharVectorToNodeBuffer(data);
-    auto obj = Nan::New<v8::Object>();
-    Nan::Set(obj, Nan::New("tx").ToLocalChecked(), buffer);
+    auto obj = util::UCharVectorToObject(data, VALUE_KEY);
     return scope.Escape(obj);
 }
 
 Coin::Transaction fromObject(const v8::Local<v8::Value>& value) {
-    Nan::HandleScope scope;
-    auto obj = Nan::To<v8::Object>(value);
-    auto buf = Nan::Get(obj.ToLocalChecked(), Nan::New("tx").ToLocalChecked()).ToLocalChecked();
-    if(!buf->IsUint8Array()) {
-        throw std::runtime_error("Invalid Transaction Object");
-    }
-    return Coin::Transaction(util::NodeBufferToUCharVector(buf));
+    return util::GetNativeTypeFromBufferByKey<Coin::Transaction>(value, VALUE_KEY);
 }
 
 v8::Local<v8::Object> NewInstance(const Coin::Transaction &tx) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     auto value = toObject(tx);
-    const int argc = 1;
-    v8::Local<v8::Value> argv[argc] = {value};
-    auto instance = cons->NewInstance(Nan::GetCurrentContext(), argc, argv).ToLocalChecked();
+    auto instance = cons->NewInstance(Nan::GetCurrentContext(), 1, &value).ToLocalChecked();
     return scope.Escape(instance);
 }
 
@@ -56,15 +48,16 @@ NAN_METHOD(New) {
       return;
   }
 
+  // == Use new constructor guard macro here ==
+
   if (info.IsConstructCall()) {
 
     try {
         fromObject(info[0]);
-        auto tx = Nan::Get(Nan::To<v8::Object>(info[0]).ToLocalChecked(), Nan::New("tx").ToLocalChecked())
-                    .ToLocalChecked();
+        auto buf = util::GetBufferByKey(info[0], VALUE_KEY);
         // copy the buffer
-        auto buf = Nan::CopyBuffer(node::Buffer::Data(tx), node::Buffer::Length(tx));
-        Nan::Set(info.This(), Nan::New("tx").ToLocalChecked(), buf.ToLocalChecked());
+        auto bufcopy = Nan::CopyBuffer(node::Buffer::Data(buf), node::Buffer::Length(buf));
+        Nan::Set(info.This(), Nan::New(VALUE_KEY).ToLocalChecked(), bufcopy.ToLocalChecked());
     } catch(std::exception &e) {
         Nan::ThrowTypeError(e.what());
     }

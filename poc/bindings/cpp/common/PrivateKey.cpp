@@ -15,7 +15,6 @@ const std::string VALUE_KEY("sk");
 NAN_MODULE_INIT(Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PrivateKey").ToLocalChecked());
-
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("PrivateKey").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
@@ -28,12 +27,12 @@ NAN_MODULE_INIT(Init) {
 v8::Local<v8::Value> toObject(const Coin::PrivateKey &sk) {
     Nan::EscapableHandleScope scope;
     uchar_vector data = sk.toUCharVector();
-    auto obj = UCharVectorToObject(data, VALUE_KEY);
+    auto obj = util::UCharVectorToObject(data, VALUE_KEY);
     return scope.Escape(obj);
 }
 
 Coin::PrivateKey fromObject(const v8::Local<v8::Value>& value) {
-    return GetNativeTypeFromBufferByKey<Coin::PrivateKey>(value, VALUE_KEY);
+    return util::GetNativeTypeFromBufferByKey<Coin::PrivateKey>(value, VALUE_KEY);
 }
 
 v8::Local<v8::Object> NewInstance(const Coin::PrivateKey &sk) {
@@ -50,12 +49,14 @@ NAN_METHOD(New) {
       return;
   }
 
+  // == Use new constructor guard macro here ==
+
   if (info.IsConstructCall()) {
 
     try {
         auto sk = fromObject(info[0]);
         
-        auto buf = GetBufferByKey(info[0], VALUE_KEY);
+        auto buf = util::GetBufferByKey(info[0], VALUE_KEY);
         // copy the buffer
         auto bufcopy = Nan::CopyBuffer(node::Buffer::Data(buf), node::Buffer::Length(buf));
         Nan::Set(info.This(), Nan::New(VALUE_KEY).ToLocalChecked(), bufcopy.ToLocalChecked());
