@@ -1,46 +1,28 @@
 #include <addon/common/OutPoint.hpp>
+#include <addon/common/TransactionId.hpp>
 
 namespace joystream {
 namespace addon {
 namespace common {
+namespace OutPoint {
 
-Nan::Persistent<v8::Function> OutPoint::constructor;
-
-NAN_MODULE_INIT(OutPoint::Init) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("OutPoint").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("OutPoint").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
-}
-
-v8::Local<v8::Object> OutPoint::NewInstance(const Coin::typesafeOutPoint &outpoint) {
+v8::Local<v8::Value> toObject(const Coin::typesafeOutPoint &outpoint) {
     Nan::EscapableHandleScope scope;
-    v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-    auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
-    OutPoint* op = ObjectWrap::Unwrap<OutPoint>(instance);
-    op->_outpoint = outpoint;
-    return scope.Escape(instance);
+    auto txid = TransactionId::toObject(outpoint.transactionId());
+    auto index = outpoint.index();
+    auto obj = Nan::New<v8::Object>();
+    Nan::Set(obj, Nan::New("txid").ToLocalChecked(), txid);
+    Nan::Set(obj, Nan::New("index").ToLocalChecked(), Nan::New(index));
+    return scope.Escape(obj);
 }
 
-bool OutPoint::IsInstance(v8::Object &obj) {
-    return obj.GetPrototype() == constructor;
+Coin::typesafeOutPoint fromObject(const v8::Local<v8::Value>& value) {
+    auto obj = Nan::To<v8::Object>(value).ToLocalChecked();
+    auto txidObj = Nan::Get(obj, Nan::New("txid").ToLocalChecked()).ToLocalChecked();
+    auto index = Nan::Get(obj, Nan::New("index").ToLocalChecked()).ToLocalChecked();
+    auto txid = TransactionId::fromObject(txidObj);
+    return Coin::typesafeOutPoint(txid, index->IntegerValue());
 }
 
-Coin::typesafeOutPoint OutPoint::outpoint() const {
-    return _outpoint;
 }
-
-NAN_METHOD(OutPoint::New) {
-  if (info.IsConstructCall()) {
-    OutPoint *obj = new OutPoint();
-    obj->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
-  } else {
-    v8::Local<v8::Function> cons = Nan::New(constructor);
-    info.GetReturnValue().Set(cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked());
-  }
-}
-
 }}}

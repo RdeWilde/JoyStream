@@ -8,7 +8,6 @@ var Buffer = require('buffer').Buffer;
       assert.equal(typeof nativeExtension.common.PrivateKey, 'function');
       assert.equal(typeof nativeExtension.common.PubKeyHash, 'function');
       assert.equal(typeof nativeExtension.common.PublicKey, 'function');
-      assert.equal(typeof nativeExtension.common.OutPoint, 'function');
       assert.equal(typeof nativeExtension.common.TransactionId, 'function');
     });
 
@@ -191,7 +190,7 @@ var Buffer = require('buffer').Buffer;
     describe('TransactionId', function(){
         var TxId = nativeExtension.common.TransactionId;
         
-        // just a random valid public key
+        // just a random txid
         var id = new Buffer(32);
 
         it('fromObject', function(){
@@ -230,11 +229,4 @@ var Buffer = require('buffer').Buffer;
 
     })
 
-    describe('OutPoint', function(){
-        var OutPoint = nativeExtension.common.OutPoint;
-
-        it('default constructor', function(){
-            var op = new OutPoint();
-        })
-    })
   })

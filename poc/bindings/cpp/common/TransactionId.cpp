@@ -36,10 +36,10 @@ Coin::TransactionId fromObject(const v8::Local<v8::Value>& value) {
     return Coin::TransactionId::fromRPCByteOrder(data);
 }
 
-v8::Local<v8::Object> NewInstance(const Coin::TransactionId &tx) {
+v8::Local<v8::Object> NewInstance(const Coin::TransactionId &txid) {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-    auto value = toObject(tx);
+    auto value = toObject(txid);
     auto instance = cons->NewInstance(Nan::GetCurrentContext(), 1, &value).ToLocalChecked();
     return scope.Escape(instance);
 }

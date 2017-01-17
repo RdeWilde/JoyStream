@@ -16,5 +16,4 @@ NAN_MODULE_INIT(InitCommon) {
     joystream::addon::common::PubKeyHash::Init(common);
     joystream::addon::common::PublicKey::Init(common);
     joystream::addon::common::TransactionId::Init(common);
-    joystream::addon::common::OutPoint::Init(common);
 }

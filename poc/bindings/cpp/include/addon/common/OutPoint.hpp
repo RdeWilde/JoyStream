@@ -7,23 +7,12 @@
 namespace joystream {
 namespace addon {
 namespace common {
+namespace OutPoint {
 
-class OutPoint: public Nan::ObjectWrap {
-    public:
-      static NAN_MODULE_INIT(Init);
+      v8::Local<v8::Value> toObject(const Coin::typesafeOutPoint &op);
+      Coin::typesafeOutPoint fromObject(const v8::Local<v8::Value>& value);
 
-      static v8::Local<v8::Object> NewInstance(const Coin::typesafeOutPoint&);
-      static bool IsInstance(v8::Object&);
-
-      Coin::typesafeOutPoint outpoint() const;
-
-    private:
-      Coin::typesafeOutPoint _outpoint;
-      static Nan::Persistent<v8::Function> constructor;
-
-      static NAN_METHOD(New);
-
-};
+}
 
 }}}
 #endif
