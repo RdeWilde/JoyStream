@@ -86,7 +86,7 @@ var Buffer = require('buffer').Buffer;
                 new PrivateKey({
                     sk: new Buffer(100)
                 })
-            }, TypeError);
+            }, TypeError)
         })
 
         it('throws TypeError on invalid argument', function(){
@@ -94,11 +94,11 @@ var Buffer = require('buffer').Buffer;
                 new PrivateKey({
                     sk: "notabuffer"
                 })
-            }, TypeError);
+            }, TypeError)
         })
 
-        it('generate', function(){
-            var sk = PrivateKey.generate()
+        it('generates new key if no argument provided', function(){
+            var sk = new PrivateKey();
             assert(sk instanceof PrivateKey)
             assert(sk.sk instanceof Buffer)
             assert.equal(sk.sk.length, 32)

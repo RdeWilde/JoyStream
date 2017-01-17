@@ -14,8 +14,7 @@ NAN_METHOD(Generate);
 NAN_MODULE_INIT(Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PrivateKey").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetMethod(tpl, "generate", Generate);
+
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("PrivateKey").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
@@ -55,8 +54,8 @@ v8::Local<v8::Object> NewInstance(const Coin::PrivateKey &sk) {
 }
 
 NAN_METHOD(New) {
-  if(info.Length() != 1) {
-      Nan::ThrowTypeError("Argument Required");
+  if(info.Length() == 0) {
+      info.GetReturnValue().Set(NewInstance());
       return;
   }
 
@@ -89,11 +88,6 @@ NAN_METHOD(New) {
 
 bool IsInstance(v8::Object &obj) {
     return obj.GetPrototype() == constructor;
-}
-
-NAN_METHOD(Generate) {
-    auto sk = Coin::PrivateKey::generate();
-    info.GetReturnValue().Set(NewInstance(sk));
 }
 
 }
