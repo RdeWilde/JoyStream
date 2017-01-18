@@ -5,14 +5,15 @@
             "sources": [
                 "cpp/NativeExtension.cc",
                 # Libtorrent
+                "cpp/info_hash.cpp",
                 "cpp/session.cc",
                 "cpp/torrent_handle.cc",
                 "cpp/torrent_status.cc",
                 "cpp/alert.cc",
                 "cpp/torrent_info.cc",
                 "cpp/add_torrent_params.cc",
-                "cpp/endpoint.cc",
-                "cpp/peer_info.cc",
+                "cpp/endpoint.cpp",
+                "cpp/peer_info.cpp",
                 "cpp/bencode.cc",
                 # Extension
                 "cpp/extension/init.cpp",
