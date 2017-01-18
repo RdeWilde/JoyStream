@@ -20,7 +20,7 @@
                 "cpp/extension/TorrentPluginStatus.cpp",
                 "cpp/extension/PeerPluginStatus.cpp",
                 # Common
-                "cpp/common/init.cpp",
+                #"cpp/common/init.cpp",
                 "cpp/common/Transaction.cpp",
                 "cpp/common/PrivateKey.cpp",
                 "cpp/common/PubKeyHash.cpp",

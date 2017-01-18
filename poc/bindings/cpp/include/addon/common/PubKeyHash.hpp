@@ -7,17 +7,10 @@
 namespace joystream {
 namespace addon {
 namespace common {
-namespace PubKeyHash {
+namespace pubkeyhash {
 
-      NAN_MODULE_INIT(Init);
+v8::Local<v8::Value> toValue(const Coin::PubKeyHash &);
+Coin::PubKeyHash fromValue(const v8::Local<v8::Value>&);
 
-      v8::Local<v8::Object> NewInstance(const Coin::PubKeyHash&);
-      v8::Local<v8::Value> toObject(const Coin::PubKeyHash &tx);
-      Coin::PubKeyHash fromObject(const v8::Local<v8::Value>& value);
-      bool IsInstance(v8::Object &obj);
-      NAN_METHOD(New);
-
-}
-
-}}}
+}}}}
 #endif

@@ -4,25 +4,29 @@
 namespace joystream {
 namespace addon {
 namespace common {
-namespace OutPoint {
-
-v8::Local<v8::Value> toObject(const Coin::typesafeOutPoint &outpoint) {
+namespace outpoint {
+/*
+    {
+        txid: TransactionId,
+        index: number  // index
+    }
+*/
+v8::Local<v8::Value> toValue(const Coin::typesafeOutPoint &op) {
     Nan::EscapableHandleScope scope;
-    auto txid = TransactionId::toObject(outpoint.transactionId());
-    auto index = outpoint.index();
+    auto txid = transactionid::toValue(op.transactionId());
+    auto index = op.index();
     auto obj = Nan::New<v8::Object>();
     Nan::Set(obj, Nan::New("txid").ToLocalChecked(), txid);
     Nan::Set(obj, Nan::New("index").ToLocalChecked(), Nan::New(index));
     return scope.Escape(obj);
 }
 
-Coin::typesafeOutPoint fromObject(const v8::Local<v8::Value>& value) {
+Coin::typesafeOutPoint fromValue(const v8::Local<v8::Value>& value) {
     auto obj = Nan::To<v8::Object>(value).ToLocalChecked();
     auto txidObj = Nan::Get(obj, Nan::New("txid").ToLocalChecked()).ToLocalChecked();
     auto index = Nan::Get(obj, Nan::New("index").ToLocalChecked()).ToLocalChecked();
-    auto txid = TransactionId::fromObject(txidObj);
+    auto txid = transactionid::fromValue(txidObj);
     return Coin::typesafeOutPoint(txid, index->IntegerValue());
 }
 
-}
-}}}
+}}}}

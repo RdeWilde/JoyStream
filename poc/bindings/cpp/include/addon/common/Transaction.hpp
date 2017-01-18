@@ -7,16 +7,10 @@
 namespace joystream {
 namespace addon {
 namespace common {
-namespace Transaction {
+namespace transaction {
 
-      NAN_MODULE_INIT(Init);
+v8::Local<v8::Value> toValue(const Coin::Transaction &);
+Coin::Transaction fromValue(const v8::Local<v8::Value>&);
 
-      v8::Local<v8::Object> NewInstance(const Coin::Transaction&);
-      v8::Local<v8::Value> toObject(const Coin::Transaction &tx);
-      Coin::Transaction fromObject(const v8::Local<v8::Value>& value);
-      bool IsInstance(v8::Object &obj);
-      NAN_METHOD(New);
-}
-
-}}}
+}}}}
 #endif

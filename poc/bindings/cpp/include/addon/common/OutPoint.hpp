@@ -7,12 +7,10 @@
 namespace joystream {
 namespace addon {
 namespace common {
-namespace OutPoint {
+namespace outpoint {
 
-      v8::Local<v8::Value> toObject(const Coin::typesafeOutPoint &op);
-      Coin::typesafeOutPoint fromObject(const v8::Local<v8::Value>& value);
+v8::Local<v8::Value> toValue(const Coin::typesafeOutPoint &);
+Coin::typesafeOutPoint fromValue(const v8::Local<v8::Value>&);
 
-}
-
-}}}
+}}}}
 #endif
