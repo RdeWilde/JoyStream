@@ -1,29 +1,32 @@
-#ifndef ENDPOINT_H
-#define ENDPOINT_H
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, Januar 16 2017
+ */
+
+#ifndef JOYSTREAM_NODE_ADDON_ENDPOINT_HPP
+#define JOYSTREAM_NODE_ADDON_ENDPOINT_HPP
 
 #include <nan.h>
-#include <libtorrent/socket.hpp>
+#include <libtorrent/socket.hpp> // cannot forward declare libtorrent::tcp::endpoint
 
-using namespace v8;
+namespace joystream {
+namespace node_addon {
+namespace endpoint {
 
+  /**
+   * Endpoint is encoded as
+   * {
+   *  address : { see address for format },
+   *  port : { Number }
+   * }
+   */
 
-class EndpointWrap: public Nan::ObjectWrap {
-    public:
-      static NAN_MODULE_INIT(Init);
-      static Local<Object> New(libtorrent::tcp::endpoint ep);
-      static libtorrent::tcp::endpoint* Unwrap(const Local<Object>& obj) {
-        EndpointWrap* ep = Nan::ObjectWrap::Unwrap<EndpointWrap>(obj);
-        return &ep->endpoint_;
-      };
+  v8::Local<v8::Object> toObject(const libtorrent::tcp::endpoint & e);
+  libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o);
+}
+}
+}
 
-    private:
-      libtorrent::tcp::endpoint endpoint_;
-      static Nan::Persistent<Function> constructor;
-
-      static NAN_METHOD(NewInstance);
-      static NAN_GETTER(address);
-      static NAN_GETTER(port);
-
-};
-
-#endif
+#endif // JOYSTREAM_NODE_ADDON_ENDPOINT_HPP

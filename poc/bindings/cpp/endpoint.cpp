@@ -1,50 +1,44 @@
-#include "endpoint.h"
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, Januar 16 2017
+ */
 
-using namespace v8;
+#include "endpoint.hpp"
+#include "address.hpp"
+#include "utils.hpp"
 
-Nan::Persistent<Function> EndpointWrap::constructor;
+#define ENDPOINT_ADDRESS_KEY "address"
+#define ENDPOINT_PORT_KEY "port"
 
-NAN_MODULE_INIT(EndpointWrap::Init) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(NewInstance);
-  tpl->SetClassName(Nan::New("Endpoint").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+namespace joystream {
+namespace node_addon {
+namespace endpoint {
 
-  Local<ObjectTemplate> inst = tpl->InstanceTemplate();
-  Nan::SetAccessor(inst, Nan::New("address").ToLocalChecked(), EndpointWrap::address);
-  Nan::SetAccessor(inst, Nan::New("port").ToLocalChecked(), EndpointWrap::port);
-
-  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("Endpoint").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
-};
-
-Local<Object> EndpointWrap::New(libtorrent::tcp::endpoint ep) {
+v8::Local<v8::Object> toObject(const libtorrent::tcp::endpoint & ep) {
     Nan::EscapableHandleScope scope;
 
-    Local<Function> cons = Nan::New(constructor);
-    Nan::MaybeLocal<Object> obj = cons->NewInstance(Nan::GetCurrentContext());
+    v8::Local<v8::Object> endPointObject = Nan::New(); //v8::Object::New();
 
-    Nan::ObjectWrap::Unwrap<EndpointWrap>(obj.ToLocalChecked())->endpoint_ = ep;
+    SET_OBJ(o, ENDPOINT_ADDRESS_KEY, address::toObject(ep.address));
+    SET_UINT32(o, ENDPOINT_PORT_KEY, ep.port);
 
-    return scope.Escape(obj.ToLocalChecked());
-};
+    return scope.Escape(endPointObject);
+}
 
-NAN_METHOD(EndpointWrap::NewInstance) {
-  EndpointWrap* obj = new EndpointWrap();
-  obj->Wrap(info.This());
+libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o) {
 
-  info.GetReturnValue().Set(info.This());
-};
+  v8::Local<v8::Value> addressValue = GET_VAL(o, ENDPOINT_ADDRESS_KEY);
+  libtorrent::address a = address::fromObject(addressValue);
 
-NAN_GETTER(EndpointWrap::address) {
-  libtorrent::tcp::endpoint* ep = EndpointWrap::Unwrap(info.This());
-  std::string address = ep->address().to_string();
+  uint32_t port = GET_UINT32(o, ENDPOINT_PORT_KEY);
 
-  info.GetReturnValue().Set(Nan::New<String>(address).ToLocalChecked());
-};
+  return libtorrent::tcp::endpoint()
 
-NAN_GETTER(EndpointWrap::port) {
-  libtorrent::tcp::endpoint* ep = EndpointWrap::Unwrap(info.This());
-  unsigned short port = ep->port();
 
-  info.GetReturnValue().Set(Nan::New<Number>(port));
-};
+}
+
+}
+}
+}
