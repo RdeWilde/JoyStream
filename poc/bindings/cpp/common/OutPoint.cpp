@@ -1,5 +1,6 @@
 #include <addon/common/OutPoint.hpp>
 #include <addon/common/TransactionId.hpp>
+#include <utils.hpp>
 
 namespace joystream {
 namespace addon {
@@ -16,17 +17,17 @@ v8::Local<v8::Value> toValue(const Coin::typesafeOutPoint &op) {
     auto txid = transactionid::toValue(op.transactionId());
     auto index = op.index();
     auto obj = Nan::New<v8::Object>();
-    Nan::Set(obj, Nan::New("txid").ToLocalChecked(), txid);
-    Nan::Set(obj, Nan::New("index").ToLocalChecked(), Nan::New(index));
+    SET_VAL(obj, "txid", txid);
+    SET_INT32(obj, "index", index);
     return scope.Escape(obj);
 }
 
 Coin::typesafeOutPoint fromValue(const v8::Local<v8::Value>& value) {
     auto obj = Nan::To<v8::Object>(value).ToLocalChecked();
-    auto txidObj = Nan::Get(obj, Nan::New("txid").ToLocalChecked()).ToLocalChecked();
-    auto index = Nan::Get(obj, Nan::New("index").ToLocalChecked()).ToLocalChecked();
+    auto txidObj = GET_VAL(obj, "txid");
+    auto index = GET_INT32(obj, "index");
     auto txid = transactionid::fromValue(txidObj);
-    return Coin::typesafeOutPoint(txid, index->IntegerValue());
+    return Coin::typesafeOutPoint(txid, index);
 }
 
 }}}}
