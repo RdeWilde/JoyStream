@@ -11,6 +11,7 @@ class App extends Component {
     this.addTorrent = this.addTorrent.bind(this)
     this.addTorrentFile = this.addTorrentFile.bind(this)
     this.torrentAdded = this.torrentAdded.bind(this)
+    this.buyTorrent = this.buyTorrent.bind(this)
 
     this.state = {
       torrents: new Map()
@@ -27,7 +28,17 @@ class App extends Component {
 
   addTorrent () {
     node.addTorrent(0, 0,
-      'Sintel', null,
+      '', null,
+      '/home/lola/joystream/test/',
+      'd59e6da0de8f5382f067e07375c262f15570a8f1',
+      this.torrentAdded)
+
+    // Buy
+  }
+
+  addTorrent () {
+    node.addTorrent(0, 0,
+      '306497171', null,
       '/home/lola/joystream/test/',
       '6a9759bffd5c0af65319979fb7832189f4f3c35d',
       this.torrentAdded)
@@ -62,7 +73,7 @@ class App extends Component {
         })
 
         torrent.on('torrent_finished_alert', () =>{
-          this.forceUpdate()  
+          this.forceUpdate()
         })
 
         var statusText;
@@ -110,7 +121,11 @@ class App extends Component {
       <div className="container">
         <h1>Joystream</h1>
         <br/>
-        <a href="#" onClick={this.addTorrent} > Add a torrent </a> <a href="#" onClick={this.addTorrentFile} > Add a torrent with torrent file </a>
+        <a href="#" onClick={this.addTorrent} > Add a torrent </a>
+        <br/>
+        <a href="#" onClick={this.buyTorrent} > Buy a torrent </a>
+        <br/>
+        <a href="#" onClick={this.addTorrentFile} > Add a torrent with torrent file </a>
         <br/>
         <br/>
         <table className="table">

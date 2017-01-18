@@ -14,6 +14,7 @@
     "node-gyp": "^1.0.3"
   },
   "dependencies": {
+    "bcoin": "git+https://git@github.com/bcoin-org/bcoin.git",
     "bindings": "^1.2.1",
     "debug": "^2.5.1",
     "sha1": "^1.1.1"

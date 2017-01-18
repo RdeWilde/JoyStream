@@ -3,8 +3,8 @@
 var NativeExtension = require('../')
 var debug = require('debug')('node')
 const EventEmitter = require('events')
-
-var Torrent = require('./torrent')
+const Torrent = require('./torrent')
+const bcoin = require('bcoin').set('testnet')
 
 const _processDhtGetPeersReplyAlert = Symbol('processDhtGetPeersReplyAlert')
 const _listenSucceededAlert = Symbol('listenSucceededAlert')
