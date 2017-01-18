@@ -3,6 +3,7 @@
         {
             "target_name": "NativeExtension",
             "sources": [
+                "cpp/address.cpp",
                 "cpp/NativeExtension.cc",
                 # Libtorrent
                 "cpp/session.cc",
