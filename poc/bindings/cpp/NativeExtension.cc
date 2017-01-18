@@ -3,7 +3,6 @@
 #include "torrent_handle.h"
 #include "torrent_info.h"
 #include "torrent_status.h"
-#include "add_torrent_params.h"
 #include "endpoint.h"
 #include "peer_info.h"
 #include "bencode.h"
@@ -22,7 +21,6 @@ NAN_MODULE_INIT(InitAll) {
 
   PeerInfoWrap::Init(target);
   EndpointWrap::Init(target);
-  AddTorrentParamsWrap::Init(target);
   AlertWrap::Init(target);
   TorrentHandleWrap::Init(target);
   TorrentInfoWrap::Init(target);

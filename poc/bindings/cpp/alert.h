@@ -4,7 +4,7 @@
 #include <nan.h>
 #include "torrent_handle.h"
 #include "torrent_status.h"
-#include "add_torrent_params.h"
+#include "add_torrent_params.hpp"
 #include "endpoint.h"
 #include "bencode.h"
 #include <addon/extension/TorrentPluginStatus.hpp>

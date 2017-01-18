@@ -5,6 +5,9 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
 
+ #ifndef JOYSTREAM_NODE_ADDON_UTILS_HPP
+ #define JOYSTREAM_NODE_ADDON_UTILS_HPP
+
 #include <nan.h>
 
 /**
@@ -151,3 +154,5 @@ std::string To(const v8::Local<v8::Value> & val) {
 
 // @return {std::string}
 #define GET_STD_STRING(o, key)    (To<std::string>(GET_VAL(o, key)))
+
+#endif

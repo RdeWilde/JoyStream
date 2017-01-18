@@ -109,7 +109,7 @@ NAN_METHOD(AlertWrap::params) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      info.GetReturnValue().Set(AddTorrentParamsWrap::New(casted->params));
+      info.GetReturnValue().Set(joystream::node_addon::add_torrent_params::toObject(casted->params));
     }
 };
 
@@ -190,6 +190,11 @@ NAN_METHOD(AlertWrap::ip) {
     switch (a->type()) {
       case 23: {
           auto casted = dynamic_cast<const libtorrent::peer_connect_alert*>(a);
+          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+        }
+        break;
+      case 24: {
+          auto casted = dynamic_cast<const libtorrent::peer_disconnected_alert*>(a);
           info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
         }
         break;

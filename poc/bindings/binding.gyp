@@ -11,7 +11,7 @@
                 "cpp/torrent_status.cc",
                 "cpp/alert.cc",
                 "cpp/torrent_info.cc",
-                "cpp/add_torrent_params.cc",
+                "cpp/add_torrent_params.cpp",
                 "cpp/endpoint.cc",
                 "cpp/peer_info.cc",
                 "cpp/bencode.cc",
