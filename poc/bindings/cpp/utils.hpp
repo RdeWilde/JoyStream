@@ -21,7 +21,7 @@
 #define NEW_OPERATOR_GUARD(info, ctr) \
 if(!info.IsConstructCall()) { \
   std::vector<v8::Local<v8::Value>> argv; \
-  for(int i = 0;i < info.Length();i) \
+  for(int i = 0;i < info.Length();i++) \
     argv.push_back(info[i]); \
   v8::Local<v8::Function> cons = Nan::New(ctr); \
   info.GetReturnValue().Set(cons->NewInstance(Nan::GetCurrentContext(), info.Length(), &argv[0]).ToLocalChecked()); \
