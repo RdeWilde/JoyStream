@@ -30,10 +30,11 @@ v8::Local<v8::Object> createObject(const protocol_wire::SellerTerms & terms) {
   SET_NUMBER(o, MIN_CONTRACT_FEE_PER_KB_KEY, terms.minContractFeePerKb());
   SET_NUMBER(o, SETTLEMENT_FEE_KEY, terms.settlementFee());
 
+  return o;
 }
 
 protocol_wire::SellerTerms fromObject(const v8::Local<v8::Object> & o) {
-  
+
   return protocol_wire::SellerTerms(GET_INT64(o, MIN_PRICE_KEY),
                                     GET_UINT32(o, MIN_LOCK_KEY),
                                     GET_UINT32(o, MAX_NUMBER_OF_SELLERS_KEY),
