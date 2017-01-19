@@ -4,7 +4,7 @@
 #include <nan.h>
 
 namespace Coin {
-    TransactionId;
+    class TransactionId;
 }
 
 namespace joystream {

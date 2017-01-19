@@ -1,6 +1,6 @@
 #include <common/PublicKey.hpp>
-#include <addon/util/buffers.hpp>
-#include <addon/common/PublicKey.hpp>
+#include "buffers.hpp"
+#include "PublicKey.hpp"
 
 namespace joystream {
 namespace node {

@@ -1,5 +1,5 @@
-#include <addon/util/buffers.hpp>
-#include <addon/common/PubKeyHash.hpp>
+#include "buffers.hpp"
+#include "PubKeyHash.hpp"
 
 namespace joystream {
 namespace node {

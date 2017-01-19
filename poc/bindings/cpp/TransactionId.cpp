@@ -1,6 +1,6 @@
 #include <common/TransactionId.hpp>
-#include <addon/util/buffers.hpp>
-#include <addon/common/TransactionId.hpp>
+#include "buffers.hpp"
+#include "TransactionId.hpp"
 
 namespace joystream {
 namespace node {

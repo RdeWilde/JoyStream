@@ -1,6 +1,6 @@
 #include <CoinCore/CoinNodeData.h>
-#include <addon/util/buffers.hpp>
-#include <addon/common/Transaction.hpp>
+#include "buffers.hpp"
+#include "Transaction.hpp"
 
 namespace joystream {
 namespace node {

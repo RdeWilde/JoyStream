@@ -1,4 +1,4 @@
-#include <addon/util/buffers.hpp>
+#include "buffers.hpp"
 
 namespace joystream {
 namespace node {

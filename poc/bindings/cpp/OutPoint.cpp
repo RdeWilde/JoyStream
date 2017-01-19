@@ -1,7 +1,7 @@
 #include <common/typesafeOutPoint.hpp>
-#include <addon/common/OutPoint.hpp>
-#include <addon/common/TransactionId.hpp>
-#include <utils.hpp>
+#include "OutPoint.hpp"
+#include "TransactionId.hpp"
+#include "utils.hpp"
 
 namespace joystream {
 namespace node {

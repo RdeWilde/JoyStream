@@ -1,6 +1,6 @@
 #include <common/PrivateKey.hpp>
-#include <addon/util/buffers.hpp>
-#include <addon/common/PrivateKey.hpp>
+#include "buffers.hpp"
+#include "PrivateKey.hpp"
 
 namespace joystream {
 namespace node {
