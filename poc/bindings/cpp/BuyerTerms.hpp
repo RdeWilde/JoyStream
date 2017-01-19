@@ -17,10 +17,10 @@ namespace protocol_wire {
 namespace node {
 namespace BuyerTerms {
 
-  const static char * MAX_PRICE_KEY = "maxPrice";
-  const static char * MAX_LOCK_KEY = "maxLock";
-  const static char * MIN_NUMBER_OF_SELLERS_KEY = "minNumberOfSellers";
-  const static char * MAX_CONTRACT_FEE_PER_KB_KEY = "maxContractFeePerKb";
+  const static char * MAX_PRICE_KEY = "maxPrice",
+                    * MAX_LOCK_KEY = "maxLock",
+                    * MIN_NUMBER_OF_SELLERS_KEY = "minNumberOfSellers",
+                    * MAX_CONTRACT_FEE_PER_KB_KEY = "maxContractFeePerKb";
 
   /**
    * Encoding o
