@@ -15,6 +15,7 @@ namespace protocol_wire {
   class BuyerTerms;
 }
 namespace node {
+namespace BuyerTerms {
 
   const static char * MAX_PRICE_KEY = "maxPrice";
   const static char * MAX_LOCK_KEY = "maxLock";
@@ -32,6 +33,7 @@ namespace node {
   v8::Local<v8::Object> createObject(const protocol_wire::BuyerTerms & terms);
   protocol_wire::BuyerTerms fromObject(const v8::Local<v8::Object> & o);
 
+}
 }
 }
 
