@@ -6,96 +6,50 @@
  */
 
 #include "BuyerTerms.hpp"
-#include "util.hpp"
+#include "utils.hpp"
+
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
-namespace node_addon {
+namespace node {
 
-Nan::Persistent<v8::Function> BuyerTerms::constructor;
+v8::Local<v8::Object> createObject(const protocol_wire::BuyerTerms & terms) {
 
-NAN_MODULE_INIT(BuyerTerms::Init) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("BuyerTerms").ToLocalChecked());
+  v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-  v8::Local<v8::ObjectTemplate> t = tpl->InstanceTemplate();
-  t->SetInternalFieldCount(1);
-
-  Nan::SetAccessor(t, Nan::New("maxPrice").ToLocalChecked(), BuyerTerms::maxPrice);
-  Nan::SetAccessor(t, Nan::New("maxLock").ToLocalChecked(), BuyerTerms::maxLock);
-  Nan::SetAccessor(t, Nan::New("minNumberOfSellers").ToLocalChecked(), BuyerTerms::minNumberOfSellers);
-  Nan::SetAccessor(t, Nan::New("maxContractFeePerKb").ToLocalChecked(), BuyerTerms::maxContractFeePerKb);
-
-  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("BuyerTerms").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  SET_NUMBER(o, MAX_PRICE_KEY, terms.maxPrice());
+  SET_UINT32(o, MAX_LOCK_KEY, terms.maxLock());
+  SET_UINT32(o, MIN_NUMBER_OF_SELLERS_KEY, terms.minNumberOfSellers());
+  SET_NUMBER(o, MAX_CONTRACT_FEE_PER_KB_KEY, terms.maxContractFeePerKb());
+  
 }
 
-v8::Local<v8::Object> BuyerTerms::NewInstance(const protocol_wire::BuyerTerms & terms) {
-    Nan::EscapableHandleScope scope;
-
-    v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-    auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
-    
-    ObjectWrap::Unwrap<BuyerTerms>(instance)->_terms = terms;
-    return scope.Escape(instance);
-}
-
-BuyerTerms::BuyerTerms(const protocol_wire::BuyerTerms & terms)
-  : _terms(terms) {
-}
-
-NAN_METHOD(BuyerTerms::New) {
-
-  NEW_OPERATOR_GUARD(info, constructor)
+protocol_wire::BuyerTerms fromObject(const v8::Local<v8::Object> & o) {
 
   protocol_wire::BuyerTerms terms;
 
-  if(info.Length() == 0);
-    // we allow this case
-  else if(info.Length() == 4) {
-
-    // I was unable to find any proper documentation on what
-    // is returned if we dont actally have integers here?
-    // we would want to catch any implicit conversion and
+  try {
 
     // Desired type: quint64
-    terms.setMaxPrice(info[0]->IntegerValue());
+    terms.setMaxPrice(GET_INT64(o, MAX_PRICE_KEY));
 
     // Desired type: uint16_t
-    terms.setMaxLock(info[1]->IntegerValue());
+    terms.setMaxLock(GET_UINT32(o, MAX_LOCK_KEY));
 
     // Desired type: quint32
-    terms.setMinNumberOfSellers(info[2]->IntegerValue());
+    terms.setMinNumberOfSellers(GET_UINT32(o, MIN_NUMBER_OF_SELLERS_KEY));
 
     // Desired type: quint64
-    terms.setMaxContractFeePerKb(info[3]->IntegerValue());
+    terms.setMaxContractFeePerKb(GET_INT64(o, MAX_CONTRACT_FEE_PER_KB_KEY));
 
-  } else // Is this a reasonable approach?
-    Nan::ThrowError("Invalid number of arguments: 4 or 0 required");
+  } catch (const std::runtime_error & e) {
 
-  // Create
-  (new BuyerTerms(terms))->Wrap(info.This());
+    std::string errorString = std::string("Could not construct buyer terms from given arguments: ") + e.what();
 
-  info.GetReturnValue().Set(info.This());
-}
+    Nan::ThrowError(Nan::New(errorString).ToLocalChecked());
+  }
 
-NAN_GETTER(BuyerTerms::maxPrice) {
-    auto data = ObjectWrap::Unwrap<BuyerTerms>(info.This())->_terms.maxPrice();
-    info.GetReturnValue().Set(Nan::New<v8::Number>(data));
-}
-
-NAN_GETTER(BuyerTerms::maxLock) {
-  auto data = ObjectWrap::Unwrap<BuyerTerms>(info.This())->_terms.maxLock();
-  info.GetReturnValue().Set(Nan::New<v8::Number>(data));
-}
-
-NAN_GETTER(BuyerTerms::minNumberOfSellers) {
-  auto data = ObjectWrap::Unwrap<BuyerTerms>(info.This())->_terms.minNumberOfSellers();
-  info.GetReturnValue().Set(Nan::New<v8::Number>(data));
-}
-
-NAN_GETTER(BuyerTerms::maxContractFeePerKb) {
-  auto data = ObjectWrap::Unwrap<BuyerTerms>(info.This())->_terms.maxContractFeePerKb();
-  info.GetReturnValue().Set(Nan::New<v8::Number>(data));
+  return terms;
 }
 
 }

@@ -5,39 +5,34 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 9 2017
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_BUYERTERMS_HPP
-#define JOYSTREAM_NODE_ADDON_BUYERTERMS_HPP
+#ifndef JOYSTREAM_NODE_BUYERTERMS_HPP
+#define JOYSTREAM_NODE_BUYERTERMS_HPP
 
 #include <nan.h>
-#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
-namespace node_addon {
+namespace protocol_wire {
+  class BuyerTerms;
+}
+namespace node {
 
-class BuyerTerms: public Nan::ObjectWrap {
+  const static char * MAX_PRICE_KEY = "maxPrice";
+  const static char * MAX_LOCK_KEY = "maxLock";
+  const static char * MIN_NUMBER_OF_SELLERS_KEY = "minNumberOfSellers";
+  const static char * MAX_CONTRACT_FEE_PER_KB_KEY = "maxContractFeePerKb";
 
-    public:
+  /**
+   * Encoding o
+   * {Number} o.maxPric - maximum unit price in sats.
+   * {Number} o.maxLock - maximum lock time in seconds.
+   * {Number} o.minNumberOfSellers - min. number of sellers.
+   * {Number} o.maxContractFeePerKb - max. pr. Kb contract tx fee in stats.
+   */
 
-      static NAN_MODULE_INIT(Init);
-      static v8::Local<v8::Object> NewInstance(const protocol_wire::BuyerTerms & terms);
-
-    private:
-
-      BuyerTerms(const protocol_wire::BuyerTerms & terms);
-
-      protocol_wire::BuyerTerms _terms;
-
-      static Nan::Persistent<v8::Function> constructor;
-      static NAN_METHOD(New);
-
-      static NAN_GETTER(maxPrice);
-      static NAN_GETTER(maxLock);
-      static NAN_GETTER(minNumberOfSellers);
-      static NAN_GETTER(maxContractFeePerKb);
-
-};
+  v8::Local<v8::Object> createObject(const protocol_wire::BuyerTerms & terms);
+  protocol_wire::BuyerTerms fromObject(const v8::Local<v8::Object> & o);
 
 }
 }
 
-#endif
+#endif // JOYSTREAM_NODE_BUYERTERMS_HPP
