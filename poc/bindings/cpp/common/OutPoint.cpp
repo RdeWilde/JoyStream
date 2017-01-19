@@ -13,13 +13,12 @@ namespace outpoint {
     }
 */
 v8::Local<v8::Value> toValue(const Coin::typesafeOutPoint &op) {
-    Nan::EscapableHandleScope scope;
     auto txid = transactionid::toValue(op.transactionId());
     auto index = op.index();
     auto obj = Nan::New<v8::Object>();
     SET_VAL(obj, "txid", txid);
     SET_INT32(obj, "index", index);
-    return scope.Escape(obj);
+    return obj;
 }
 
 Coin::typesafeOutPoint fromValue(const v8::Local<v8::Value>& value) {

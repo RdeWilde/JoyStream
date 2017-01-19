@@ -11,10 +11,9 @@ namespace common {
 
 template<class T>
 v8::Local<v8::Value> UCharVectorBasedToV8Value(const T &t) {
-    Nan::EscapableHandleScope scope;
     uchar_vector data = t.toUCharVector();
     auto buf = util::UCharVectorToNodeBuffer(data);
-    return scope.Escape(buf);
+    return buf;
 }
 
 template<class T>

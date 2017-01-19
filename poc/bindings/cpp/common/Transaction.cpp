@@ -7,10 +7,9 @@ namespace common {
 namespace transaction {
 
 v8::Local<v8::Value> toValue(const Coin::Transaction &tx) {
-    Nan::EscapableHandleScope scope;
     auto data = tx.getSerialized();
     auto buf = util::UCharVectorToNodeBuffer(data);
-    return scope.Escape(buf);
+    return buf;
 }
 
 Coin::Transaction fromValue(const v8::Local<v8::Value>& value) {
