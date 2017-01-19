@@ -32,30 +32,10 @@ v8::Local<v8::Object> createObject(const protocol_wire::BuyerTerms & terms) {
 
 protocol_wire::BuyerTerms fromObject(const v8::Local<v8::Object> & o) {
 
-  protocol_wire::BuyerTerms terms;
-
-  try {
-
-    // Desired type: quint64
-    terms.setMaxPrice(GET_INT64(o, MAX_PRICE_KEY));
-
-    // Desired type: uint16_t
-    terms.setMaxLock(GET_UINT32(o, MAX_LOCK_KEY));
-
-    // Desired type: quint32
-    terms.setMinNumberOfSellers(GET_UINT32(o, MIN_NUMBER_OF_SELLERS_KEY));
-
-    // Desired type: quint64
-    terms.setMaxContractFeePerKb(GET_INT64(o, MAX_CONTRACT_FEE_PER_KB_KEY));
-
-  } catch (const std::runtime_error & e) {
-
-    std::string errorString = std::string("Could not construct buyer terms from given arguments: ") + e.what();
-
-    Nan::ThrowError(Nan::New(errorString).ToLocalChecked());
-  }
-
-  return terms;
+  return protocol_wire::BuyerTerms(GET_INT64(o, MAX_PRICE_KEY),
+                                   GET_UINT32(o, MAX_LOCK_KEY),
+                                   GET_UINT32(o, MIN_NUMBER_OF_SELLERS_KEY),
+                                   GET_INT64(o, MAX_CONTRACT_FEE_PER_KB_KEY));
 }
 
 }
