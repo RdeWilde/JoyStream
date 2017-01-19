@@ -15,12 +15,11 @@ namespace node {
 namespace address {
 
 v8::Local<v8::Value> toObject(const libtorrent::address & a) {
-    Nan::EscapableHandleScope scope;
 
     std::string addressString = libtorrent::print_address(a);
-    v8::Local<v8::String> uncheckedV8AddressString = Nan::New<v8::String>(addressString).ToLocalChecked();
+    v8::Local<v8::String> v = Nan::New<v8::String>(addressString).ToLocalChecked();
 
-    return scope.Escape(uncheckedV8AddressString);
+    return v;
 }
 
 libtorrent::address fromObject(const v8::Local<v8::Value> & o) {

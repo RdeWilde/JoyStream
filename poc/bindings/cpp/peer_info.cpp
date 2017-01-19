@@ -14,13 +14,12 @@ namespace node {
 namespace peer_info {
 
 v8::Local<v8::Object> toObject(const libtorrent::peer_info & pi) {
-    Nan::EscapableHandleScope scope;
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
     SET_VAL(o, IP_KEY, endpoint::toObject(pi.ip));
 
-    return scope.Escape(o);
+    return o;
 }
 
 }}}

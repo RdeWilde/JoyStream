@@ -13,11 +13,9 @@ namespace node {
 namespace info_hash {
 
 v8::Local<v8::Value> toObject(const libtorrent::sha1_hash & h) {
-  Nan::EscapableHandleScope scope;
-
   v8::Local<v8::String> localHexString = Nan::New(h.to_string()).ToLocalChecked();
 
-  return scope.Escape(localHexString);
+  return localHexString;
 }
 
 libtorrent::sha1_hash sha1FromHex(const std::string & hex) {

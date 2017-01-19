@@ -25,7 +25,6 @@ namespace node {
 namespace add_torrent_params {
 
 v8::Local<v8::Object> toObject(const libtorrent::add_torrent_params & atp) {
-    Nan::EscapableHandleScope scope;
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
@@ -38,7 +37,7 @@ v8::Local<v8::Object> toObject(const libtorrent::add_torrent_params & atp) {
     SET_INT32(o, UPLOAD_LIMIT_KEY, atp.upload_limit);
     SET_INT32(o, DOWNLOAD_LIMIT_KEY, atp.download_limit);
 
-    return scope.Escape(o);
+    return o;
 }
 
 libtorrent::add_torrent_params fromObject(const v8::Local<v8::Object> & o) {
