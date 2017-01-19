@@ -28,6 +28,7 @@
                 "cpp/protocol_session/Connection.cpp",
                 # Util
                 "cpp/util/buffers.cpp",
+                "cpp/utils.cpp",
                 # Others
 				"../src/Session.cpp"
                 ],
@@ -37,6 +38,7 @@
             "include_dirs" : [
                 "<!(node -e \"require('nan')\")",
                 "cpp/include/",
+                "cpp/",
                 "../include/",
                 "./qt_headers/",
                 "../../common/include",
