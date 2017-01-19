@@ -8,8 +8,19 @@ namespace joystream {
 namespace node {
 namespace pubkeyhash {
 
-v8::Local<v8::Value> toValue(const Coin::PubKeyHash &);
-Coin::PubKeyHash fromValue(const v8::Local<v8::Value>&);
+    /* @brief Creates node Buffer representing a raw Coin::PubKeyHash
+     * @param {const Coin::PubKeyHash&}
+     * @return {v8::Local<v8::Value>} node Buffer
+     * @throws
+     */
+    v8::Local<v8::Value> toValue(const Coin::PubKeyHash &);
+
+     /* @brief Converts a raw pubkeyhash from a node buffer to Coin::PubKeyHash
+      * @param {v8::Local<v8::Value>} node Buffer
+      * @return {Coin::PubKeyHash}
+      * @throws std::runtime_error if conversion fails
+      */
+     Coin::PubKeyHash fromValue(const v8::Local<v8::Value>&);
 
 }}}
 #endif
