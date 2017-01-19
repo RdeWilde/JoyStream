@@ -1,9 +1,11 @@
-#ifndef JOYSTREAM_NODE_ADDON_COMMON_PRIVATEKEY_HPP
-#define JOYSTREAM_NODE_ADDON_COMMON_PRIVATEKEY_HPP
+#ifndef JOYSTREAM_NODE_PRIVATEKEY_HPP
+#define JOYSTREAM_NODE_PRIVATEKEY_HPP
 
 #include <nan.h>
-#include <common/PrivateKey.hpp>
 
+namespace Coin {
+    class PrivateKey;
+}
 namespace joystream {
 namespace addon {
 namespace common {

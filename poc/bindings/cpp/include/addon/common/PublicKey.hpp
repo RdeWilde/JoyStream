@@ -1,8 +1,11 @@
-#ifndef JOYSTREAM_NODE_ADDON_COMMON_PUBLICKEY_HPP
-#define JOYSTREAM_NODE_ADDON_COMMON_PUBLICKEY_HPP
+#ifndef JOYSTREAM_NODE_PUBLICKEY_HPP
+#define JOYSTREAM_NODE_PUBLICKEY_HPP
 
 #include <nan.h>
-#include <common/PublicKey.hpp>
+
+namespace Coin {
+    class PublicKey;
+}
 
 namespace joystream {
 namespace addon {

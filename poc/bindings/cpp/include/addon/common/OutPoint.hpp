@@ -1,16 +1,32 @@
-#ifndef JOYSTREAM_NODE_ADDON_COMMON_OUTPOINT_HPP
-#define JOYSTREAM_NODE_ADDON_COMMON_OUTPOINT_HPP
+#ifndef JOYSTREAM_NODE_OUTPOINT_HPP
+#define JOYSTREAM_NODE_OUTPOINT_HPP
 
 #include <nan.h>
-#include <common/typesafeOutPoint.hpp>
+
+namespace Coin {
+    class typesafeOutPoint;
+}
 
 namespace joystream {
-namespace addon {
-namespace common {
+namespace node {
 namespace outpoint {
 
-v8::Local<v8::Value> toValue(const Coin::typesafeOutPoint &);
-Coin::typesafeOutPoint fromValue(const v8::Local<v8::Value>&);
+    /** Creates JavaScript Object representing a Coin::typesafeOutPoint
+      * {
+      *   txid: Buffer,  // from transactionid::toValue
+      *   index: Number
+      * }
+    */
+    v8::Local<v8::Value> toValue(const Coin::typesafeOutPoint &);
 
-}}}}
+    /* Converts a JavaScript Object to a native Coin::typesafeOutPoint
+     * Expects an object of the form:
+     * {
+     *   txid: Buffer,
+     *   index: Number
+     * }
+     */
+    Coin::typesafeOutPoint fromValue(const v8::Local<v8::Value>&);
+
+}}}
 #endif
