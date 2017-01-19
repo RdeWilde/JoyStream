@@ -16,11 +16,14 @@ namespace LibtorrentInteraction {
 
   NAN_MODULE_INIT(Init) {
 
-    SET_LIBTORRENT_INTERACTION(target, extension::TorrentPlugin::LibtorrentInteraction::None);
-    SET_LIBTORRENT_INTERACTION(target, extension::TorrentPlugin::LibtorrentInteraction::BlockUploading);
-    SET_LIBTORRENT_INTERACTION(target, extension::TorrentPlugin::LibtorrentInteraction::BlockDownloading);
-    SET_LIBTORRENT_INTERACTION(target, extension::TorrentPlugin::LibtorrentInteraction::BlockUploadingAndDownloading);
+    v8::Local<v8::Object> object = Nan::New<v8::Object>();
 
+    SET_LIBTORRENT_INTERACTION(object, extension::TorrentPlugin::LibtorrentInteraction::None);
+    SET_LIBTORRENT_INTERACTION(object, extension::TorrentPlugin::LibtorrentInteraction::BlockUploading);
+    SET_LIBTORRENT_INTERACTION(object, extension::TorrentPlugin::LibtorrentInteraction::BlockDownloading);
+    SET_LIBTORRENT_INTERACTION(object, extension::TorrentPlugin::LibtorrentInteraction::BlockUploadingAndDownloading);
+
+    SET_VAL(target, "LibtorrentInteraction", object);
   }
 
   v8::Local<v8::Value> createValue(extension::TorrentPlugin::LibtorrentInteraction interaction) {
