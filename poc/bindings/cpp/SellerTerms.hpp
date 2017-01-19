@@ -5,40 +5,39 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 11 2017
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_SELLERTERMS_HPP
-#define JOYSTREAM_NODE_ADDON_SELLERTERMS_HPP
+#ifndef JOYSTREAM_NODE_SELLERTERMS_HPP
+#define JOYSTREAM_NODE_SELLERTERMS_HPP
 
 #include <nan.h>
 #include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
-namespace node_addon {
+namespace protocol_wire {
+  class SellerTerms;
+}
+namespace node {
+namespace SellerTerms {
 
-class SellerTerms: public Nan::ObjectWrap {
+  const static char * MIN_PRICE_KEY = "minPrice",
+                    * MIN_LOCK_KEY = "minLock",
+                    * MAX_NUMBER_OF_SELLERS_KEY = "maxNumberOfSellers",
+                    * MIN_CONTRACT_FEE_PER_KB_KEY = "minContractFeePerKb",
+                    * SETTLEMENT_FEE_KEY = "settlementFee";
 
-    public:
+  /**
+   * Encoding o
+   * {Number} o.minPrice - min. unit price in sats.
+   * {Number} o.minLock - min. lock time in seconds.
+   * {Number} o.maxNumberOfSellers - max. number of sellers.
+   * {Number} o.minContractFeePerKb - min. pr. Kb contract tx fee in sats.
+   * {Number} o.settlementFee - (total) settlement tx fee in sats.
+   */
 
-      static NAN_MODULE_INIT(Init);
-      static v8::Local<v8::Object> NewInstance(const protocol_wire::SellerTerms & terms);
-
-    private:
-
-      SellerTerms(const protocol_wire::SellerTerms & terms);
-
-      protocol_wire::SellerTerms _terms;
-
-      static Nan::Persistent<v8::Function> constructor;
-      static NAN_METHOD(New);
-
-      static NAN_GETTER(minPrice);
-      static NAN_GETTER(minLock);
-      static NAN_GETTER(maxSellers);
-      static NAN_GETTER(minContractFeePerKb);
-      static NAN_GETTER(settlementFee);
-
-};
+  v8::Local<v8::Object> createObject(const protocol_wire::SellerTerms & terms);
+  protocol_wire::SellerTerms fromObject(const v8::Local<v8::Object> & o);
 
 }
 }
+}
 
-#endif
+#endif // JOYSTREAM_NODE_SELLERTERMS_HPP

@@ -6,106 +6,56 @@
  */
 
 #include "SellerTerms.hpp"
-#include "util.hpp"
+#include "utils.hpp"
+
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
-namespace node_addon {
+namespace node {
+namespace SellerTerms {
 
-Nan::Persistent<v8::Function> SellerTerms::constructor;
+v8::Local<v8::Object> createObject(const protocol_wire::SellerTerms & terms) {
 
-NAN_MODULE_INIT(SellerTerms::Init) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("SellerTerms").ToLocalChecked());
+  v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-  v8::Local<v8::ObjectTemplate> t = tpl->InstanceTemplate();
-  t->SetInternalFieldCount(1);
-
-  Nan::SetAccessor(t, Nan::New("minPrice").ToLocalChecked(), SellerTerms::minPrice);
-  Nan::SetAccessor(t, Nan::New("minLock").ToLocalChecked(), SellerTerms::minLock);
-  Nan::SetAccessor(t, Nan::New("maxSellers").ToLocalChecked(), SellerTerms::maxSellers);
-  Nan::SetAccessor(t, Nan::New("minContractFeePerKb").ToLocalChecked(), SellerTerms::minContractFeePerKb);
-  Nan::SetAccessor(t, Nan::New("settlementFee").ToLocalChecked(), SellerTerms::settlementFee);
-
-  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("SellerTerms").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  SET_NUMBER(o, MIN_PRICE_KEY, terms.minPrice());
+  SET_UINT32(o, MIN_LOCK_KEY, terms.minLock());
+  SET_UINT32(o, MAX_NUMBER_OF_SELLERS_KEY, terms.maxSellers());
+  SET_NUMBER(o, MIN_CONTRACT_FEE_PER_KB_KEY, terms.minContractFeePerKb());
+  SET_NUMBER(o, SETTLEMENT_FEE_KEY, terms.settlementFee());
 }
 
-v8::Local<v8::Object> SellerTerms::NewInstance(const protocol_wire::SellerTerms & terms) {
-    Nan::EscapableHandleScope scope;
-
-    v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-    auto instance = cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
-
-    ObjectWrap::Unwrap<SellerTerms>(instance)->_terms = terms;
-    return scope.Escape(instance);
-}
-
-SellerTerms::SellerTerms(const protocol_wire::SellerTerms & terms)
-  : _terms(terms) {
-}
-
-NAN_METHOD(SellerTerms::New) {
-
-  NEW_OPERATOR_GUARD(info, constructor)
+protocol_wire::SellerTerms fromObject(const v8::Local<v8::Object> & o) {
 
   protocol_wire::SellerTerms terms;
 
-  if(info.Length() == 0);
-    // we allow this case
-  else if(info.Length() == 5) {
-
-    // I was unable to find any proper documentation on what
-    // is returned if we dont actally have integers here?
-    // we would want to catch any implicit conversion and
+  try {
 
     // Desired type: quint64
-    terms.setMinPrice(info[0]->IntegerValue());
+    terms.setMinPrice(GET_INT64(o, MIN_PRICE_KEY));
 
     // Desired type: uint16_t
-    terms.setMinLock(info[1]->IntegerValue());
+    terms.setMinLock(GET_UINT32(o, MIN_LOCK_KEY));
 
     // Desired type: quint32
-    terms.setMaxSellers(info[2]->IntegerValue());
+    terms.setMaxSellers(GET_UINT32(o, MAX_NUMBER_OF_SELLERS_KEY));
 
     // Desired type: quint64
-    terms.setMinContractFeePerKb(info[3]->IntegerValue());
+    terms.setMinContractFeePerKb(GET_INT64(o, MIN_CONTRACT_FEE_PER_KB_KEY));
 
     // Desired type: quint64
-    terms.setSettlementFee(info[4]->IntegerValue());
+    terms.setSettlementFee(GET_INT64(o, SETTLEMENT_FEE_KEY));
 
-  } else // Is this a reasonable approach?
-    Nan::ThrowError("Invalid number of arguments: 5 or 0 required");
+  } catch (const std::runtime_error & e) {
 
-  // Create
-  (new SellerTerms(terms))->Wrap(info.This());
+      std::string errorString = std::string("Could not construct seller terms from given arguments: ") + e.what();
 
-  info.GetReturnValue().Set(info.This());
+      Nan::ThrowError(Nan::New(errorString).ToLocalChecked());
+  }
+
+  return terms;
 }
 
-NAN_GETTER(SellerTerms::minPrice) {
-    auto data = ObjectWrap::Unwrap<SellerTerms>(info.This())->_terms.minPrice();
-    info.GetReturnValue().Set(Nan::New<v8::Number>(data));
 }
-
-NAN_GETTER(SellerTerms::minLock) {
-  auto data = ObjectWrap::Unwrap<SellerTerms>(info.This())->_terms.minLock();
-  info.GetReturnValue().Set(Nan::New<v8::Number>(data));
-}
-
-NAN_GETTER(SellerTerms::maxSellers) {
-  auto data = ObjectWrap::Unwrap<SellerTerms>(info.This())->_terms.maxSellers();
-  info.GetReturnValue().Set(Nan::New<v8::Number>(data));
-}
-
-NAN_GETTER(SellerTerms::minContractFeePerKb) {
-  auto data = ObjectWrap::Unwrap<SellerTerms>(info.This())->_terms.minContractFeePerKb();
-  info.GetReturnValue().Set(Nan::New<v8::Number>(data));
-}
-
-NAN_GETTER(SellerTerms::settlementFee) {
-  auto data = ObjectWrap::Unwrap<SellerTerms>(info.This())->_terms.settlementFee();
-  info.GetReturnValue().Set(Nan::New<v8::Number>(data));
-}
-
 }
 }
