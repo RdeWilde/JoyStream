@@ -10,7 +10,7 @@
 #include "endpoint.hpp"
 #include "peer_info.hpp"
 
-class TorrentHandleWrap : public Nan::ObjectWrap {
+class TorrentHandle : public Nan::ObjectWrap {
   public:
     static NAN_MODULE_INIT(Init);
     static v8::Local<v8::Object> New(libtorrent::torrent_handle th);
