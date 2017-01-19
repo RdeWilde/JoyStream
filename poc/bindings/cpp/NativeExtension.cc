@@ -17,8 +17,8 @@ NAN_MODULE_INIT(InitAll) {
     Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
 
   AlertWrap::Init(target);
-  TorrentHandleWrap::Init(target);
-  TorrentInfoWrap::Init(target);
+  TorrentHandle::Init(target);
+  TorrentInfo::Init(target);
   SessionWrap::Init(target);
 
   InitCommon(target);

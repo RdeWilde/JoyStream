@@ -83,7 +83,7 @@ NAN_METHOD(AlertWrap::handle) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      info.GetReturnValue().Set(TorrentHandleWrap::New(casted->handle));
+      info.GetReturnValue().Set(TorrentHandle::New(casted->handle));
     }
 };
 

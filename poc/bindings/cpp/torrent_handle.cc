@@ -297,7 +297,7 @@ NAN_METHOD(TorrentHandle::http_seeds) {
 
     libtorrent::torrent_info ti = TorrentHandle::Unwrap(info.This())->get_torrent_info();
 
-    info.GetReturnValue().Set(TorrentInfoWrap::New(ti));
+    info.GetReturnValue().Set(TorrentInfo::New(ti));
 };*/
 
 NAN_METHOD(TorrentHandle::set_metadata) {
@@ -813,7 +813,7 @@ NAN_METHOD(TorrentHandle::torrent_file) {
     boost::shared_ptr<const libtorrent::torrent_info> torrent_info = th->torrent_file();
 
     if (torrent_info.get()) {
-      info.GetReturnValue().Set(TorrentInfoWrap::New(torrent_info));
+      info.GetReturnValue().Set(TorrentInfo::New(torrent_info));
     } else {
       info.GetReturnValue().SetUndefined();
     }

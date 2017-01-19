@@ -6,6 +6,7 @@
  */
 
 #include "torrent_status.hpp"
+#include "state_t.hpp"
 
 #define INFO_HASH_KEY "infoHash"
 #define STATE_KEY "state"
@@ -19,7 +20,7 @@ v8::Local<v8::Object> toObject(const libtorrent::torrent_status & ts) {
   v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
   SET_VAL(o, INFO_HASH_KEY, info_hash::toObject(ts.info_hash));
-  SET_UINT32(o, STATE_KEY, ts.state);
+  SET_VAL(o, STATE_KEY, state_t::createValue(ts.state));
   SET_DOUBLE(o, PROGRESS_KEY, ts.progress);
 
   return o;
