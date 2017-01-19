@@ -1,5 +1,10 @@
 include(gmock.pri)
 
+TARGET = extension-test
+TEMPLATE = app
+
+CONFIG  += c++11
+
 INCLUDEPATH += $$PWD/include
 INCLUDEPATH += $$PWD/../../extension/include
 
