@@ -4,6 +4,8 @@
  * Proprietary and confidential
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
+#ifndef JOYSTREAM_NODE_ADDON_UTILS_HPP
+#define JOYSTREAM_NODE_ADDON_UTILS_HPP
 
  #ifndef JOYSTREAM_NODE_ADDON_UTILS_HPP
  #define JOYSTREAM_NODE_ADDON_UTILS_HPP
@@ -71,10 +73,7 @@ if(!info.IsConstructCall()) { \
  * @param v v8 string
  * @return standard string
  */
-std::string toString(const v8::Local<v8::String> & v) {
-  v8::String::Utf8Value value(v);
-  return std::string(*value);
-}
+std::string toString(const v8::Local<v8::String> & v);
 
 /**
  * @brief Get value from object with given key name.
@@ -83,15 +82,7 @@ std::string toString(const v8::Local<v8::String> & v) {
  * @throws std::runtime_error if key could not be recovered
  * @return v8::Local<v8::Value> value
  */
-v8::Local<v8::Value> GetValue(const v8::Local<v8::Object> & o, const std::string & keyName) {
-
-  Nan::MaybeLocal<v8::Value> uncheckedValue = Nan::Get(o, Nan::New(keyName).ToLocalChecked());
-
-  if(uncheckedValue.IsEmpty())
-    throw std::runtime_error(std::string("Could not get value for key ") + keyName);
-  else
-    return uncheckedValue.ToLocalChecked();
-}
+v8::Local<v8::Value> GetValue(const v8::Local<v8::Object> & o, const std::string & keyName);
 
 /**
  * @brief Convert value to given native type instance
@@ -117,16 +108,7 @@ T To(const v8::Local<v8::Value> & val) {
 
 // We have to specialize for std::string, as To returns MaybeLocal, not Maybe as above.
 template<>
-std::string To(const v8::Local<v8::Value> & val) {
-
-  // V8 type conversion
-  Nan::MaybeLocal<v8::String> uncheckedString = Nan::To<v8::String>(val);
-
-  if(uncheckedString.IsEmpty())
-    throw std::runtime_error(std::string("Value not valid string"));
-  else
-    toString(uncheckedString.ToLocalChecked());
-}
+std::string To(const v8::Local<v8::Value> & val);
 
 /**
  * Object getters.
