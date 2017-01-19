@@ -2,17 +2,17 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, Januar 17 2017
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 17 2017
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_ADDRESS_HPP
-#define JOYSTREAM_NODE_ADDON_ADDRESS_HPP
+#ifndef LIBTORRENT_NODE_ADDRESS_HPP
+#define LIBTORRENT_NODE_ADDRESS_HPP
 
 #include <nan.h>
 #include <libtorrent/address.hpp> // cannot forward declare libtorrent::address
 
-namespace joystream {
-namespace node_addon {
+namespace libtorrent {
+namespace node {
 namespace address {
 
   // Address is encoded as a string in dotted decimal format.
@@ -20,8 +20,6 @@ namespace address {
   v8::Local<v8::Value> toObject(const libtorrent::address & a);
   libtorrent::address fromObject(const v8::Local<v8::Value> & o);
 
-}
-}
-}
+}}}
 
-#endif // JOYSTREAM_NODE_ADDON_ADDRESS_HPP
+#endif // LIBTORRENT_NODE_ADDRESS_HPP

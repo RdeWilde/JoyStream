@@ -2,8 +2,6 @@
 #include "alert.h"
 #include "torrent_handle.h"
 #include "torrent_info.h"
-#include "torrent_status.h"
-#include "endpoint.h"
 #include "bencode.h"
 #include <nan.h>
 
@@ -18,11 +16,9 @@ NAN_MODULE_INIT(InitAll) {
   Nan::Set(target, Nan::New<v8::String>("BEncode").ToLocalChecked(),
     Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
 
-  EndpointWrap::Init(target);
   AlertWrap::Init(target);
   TorrentHandleWrap::Init(target);
   TorrentInfoWrap::Init(target);
-  TorrentStatusWrap::Init(target);
   SessionWrap::Init(target);
 
   InitCommon(target);

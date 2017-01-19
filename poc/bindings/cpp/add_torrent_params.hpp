@@ -5,8 +5,8 @@
  * Written by Lola Rigaut-Luczak <rllola80@gmail.com>, January 18 2017
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_ADD_TORRENT_PARAMS_HPP
-#define JOYSTREAM_NODE_ADDON_ADD_TORRENT_PARAMS_HPP
+#ifndef LIBTORRENT_NODE_ADD_TORRENT_PARAMS_HPP
+#define LIBTORRENT_NODE_ADD_TORRENT_PARAMS_HPP
 
 #include <nan.h>
 #include <libtorrent/add_torrent_params.hpp>
@@ -21,11 +21,7 @@
 //
 
 namespace libtorrent {
-  struct add_torrent_params;
-}
-
-namespace joystream {
-namespace node_addon {
+namespace node {
 namespace add_torrent_params {
 
   /**
@@ -47,4 +43,4 @@ namespace add_torrent_params {
 
 }}}
 
-#endif
+#endif // LIBTORRENT_NODE_ADD_TORRENT_PARAMS_HPP

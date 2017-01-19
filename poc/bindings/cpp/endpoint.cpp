@@ -2,43 +2,45 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, Januar 16 2017
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 16 2017
  */
 
 #include "endpoint.hpp"
 #include "address.hpp"
 #include "utils.hpp"
 
-#define ENDPOINT_ADDRESS_KEY "address"
-#define ENDPOINT_PORT_KEY "port"
+#define ADDRESS_KEY "address"
+#define PORT_KEY "key"
 
-namespace joystream {
-namespace node_addon {
+namespace libtorrent {
+namespace node {
 namespace endpoint {
-
+  
 v8::Local<v8::Object> toObject(const libtorrent::tcp::endpoint & ep) {
     Nan::EscapableHandleScope scope;
 
-    v8::Local<v8::Object> endPointObject = Nan::New(); //v8::Object::New();
+    v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    SET_OBJ(o, ENDPOINT_ADDRESS_KEY, address::toObject(ep.address));
-    SET_UINT32(o, ENDPOINT_PORT_KEY, ep.port);
+    SET_VAL(o, ADDRESS_KEY, libtorrent::node::address::toObject(ep.address()));
+    SET_UINT32(o, PORT_KEY, ep.port());
 
-    return scope.Escape(endPointObject);
+    return scope.Escape(o);
 }
 
 libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o) {
 
-  v8::Local<v8::Value> addressValue = GET_VAL(o, ENDPOINT_ADDRESS_KEY);
+  libtorrent::tcp::endpoint endpoint;
+
+  v8::Local<v8::Value> addressValue = GET_VAL(o, ADDRESS_KEY);
+
   libtorrent::address a = address::fromObject(addressValue);
+  uint32_t port = GET_UINT32(o, PORT_KEY);
 
-  uint32_t port = GET_UINT32(o, ENDPOINT_PORT_KEY);
+  endpoint.address(a);
+  endpoint.port(port);
 
-  return libtorrent::tcp::endpoint()
-
+  return endpoint;
 
 }
 
-}
-}
-}
+}}}

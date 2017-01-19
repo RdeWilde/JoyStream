@@ -109,7 +109,7 @@ NAN_METHOD(AlertWrap::params) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      info.GetReturnValue().Set(joystream::node_addon::add_torrent_params::toObject(casted->params));
+      info.GetReturnValue().Set(libtorrent::node::add_torrent_params::toObject(casted->params));
     }
 };
 
@@ -147,7 +147,7 @@ NAN_METHOD(AlertWrap::status) {
       info.GetReturnValue().SetUndefined();
     } else {
       for(const libtorrent::torrent_status ts : casted->status)
-        ret->Set(ret->Length(), TorrentStatusWrap::New(ts));
+        ret->Set(ret->Length(), libtorrent::node::torrent_status::toObject(ts));
       info.GetReturnValue().Set(ret);
     }
 
@@ -165,7 +165,7 @@ NAN_METHOD(AlertWrap::peers) {
       info.GetReturnValue().SetUndefined();
     } else {
       for(const libtorrent::tcp::endpoint ep : casted->peers())
-        ret->Set(ret->Length(), EndpointWrap::New(ep));
+        ret->Set(ret->Length(), libtorrent::node::endpoint::toObject(ep));
       info.GetReturnValue().Set(ret);
     }
 };
@@ -179,7 +179,7 @@ NAN_METHOD(AlertWrap::endpoint) {
     if (!casted) {
       info.GetReturnValue().SetUndefined();
     } else {
-      info.GetReturnValue().Set(EndpointWrap::New(casted->endpoint));
+      info.GetReturnValue().Set(libtorrent::node::endpoint::toObject(casted->endpoint));
     }
 };
 
@@ -190,22 +190,22 @@ NAN_METHOD(AlertWrap::ip) {
     switch (a->type()) {
       case 23: {
           auto casted = dynamic_cast<const libtorrent::peer_connect_alert*>(a);
-          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+          info.GetReturnValue().Set(libtorrent::node::endpoint::toObject(casted->ip));
         }
         break;
       case 24: {
           auto casted = dynamic_cast<const libtorrent::peer_disconnected_alert*>(a);
-          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+          info.GetReturnValue().Set(libtorrent::node::endpoint::toObject(casted->ip));
         }
         break;
       case 100011: {
           auto casted = dynamic_cast<const joystream::extension::alert::ConnectionAddedToSession*>(a);
-          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+          info.GetReturnValue().Set(libtorrent::node::endpoint::toObject(casted->ip));
         }
         break;
       case 100012: {
           auto casted = dynamic_cast<const joystream::extension::alert::ConnectionRemovedFromSession*>(a);
-          info.GetReturnValue().Set(EndpointWrap::New(casted->ip));
+          info.GetReturnValue().Set(libtorrent::node::endpoint::toObject(casted->ip));
         }
         break;
       default:
@@ -256,7 +256,7 @@ NAN_METHOD(AlertWrap::statuses) {
     } else if (auto casted = dynamic_cast<const joystream::extension::alert::PeerPluginStatusUpdateAlert*>(a)) {
       for(auto m : casted->statuses) {
         map->Set(Nan::GetCurrentContext(),
-            EndpointWrap::New(m.first),
+            libtorrent::node::endpoint::toObject(m.first),
             joystream::addon::extension::PeerPluginStatus::NewInstance(m.second));
         }
       info.GetReturnValue().Set(map);

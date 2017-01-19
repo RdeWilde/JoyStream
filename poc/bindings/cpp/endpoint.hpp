@@ -5,14 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, Januar 16 2017
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_ENDPOINT_HPP
-#define JOYSTREAM_NODE_ADDON_ENDPOINT_HPP
+#ifndef LIBTORRENT_NODE_ENDPOINT_HPP
+#define LIBTORRENT_NODE_ENDPOINT_HPP
 
 #include <nan.h>
 #include <libtorrent/socket.hpp> // cannot forward declare libtorrent::tcp::endpoint
 
-namespace joystream {
-namespace node_addon {
+namespace libtorrent {
+namespace node {
 namespace endpoint {
 
   /**
@@ -25,8 +25,7 @@ namespace endpoint {
 
   v8::Local<v8::Object> toObject(const libtorrent::tcp::endpoint & e);
   libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o);
-}
-}
-}
 
-#endif // JOYSTREAM_NODE_ADDON_ENDPOINT_HPP
+}}}
+
+#endif // LIBTORRENT_NODE_ENDPOINT_HPP

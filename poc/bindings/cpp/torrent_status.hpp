@@ -5,17 +5,19 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, Januar 16 2017
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_TORRENT_STATUS_HPP
-#define JOYSTREAM_NODE_ADDON_TORRENT_STATUS_HPP
+#ifndef LIBTORRENT_NODE_TORRENT_STATUS_HPP
+#define LIBTORRENT_NODE_TORRENT_STATUS_HPP
 
 #include <nan.h>
+#include <libtorrent/torrent_status.hpp>
+
+#include "utils.hpp"
+#include "info_hash.hpp"
 
 namespace libtorrent {
   struct torrent_status;
-}
 
-namespace joystream {
-namespace node_addon {
+namespace node {
 namespace torrent_status {
 
   // Something about symbols? ...export state_t....
@@ -32,8 +34,6 @@ namespace torrent_status {
  v8::Local<v8::Object> toObject(const libtorrent::torrent_status & s);
  libtorrent::torrent_status fromObject(const v8::Local<v8::Object> & o);
 
-}
-}
-}
+}}}
 
-#endif // JOYSTREAM_NODE_ADDON_TORRENT_STATUS_HPP
+#endif // LIBTORRENT_NODE_TORRENT_STATUS_HPP

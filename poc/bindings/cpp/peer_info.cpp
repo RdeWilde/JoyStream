@@ -7,20 +7,20 @@
 
 #include "peer_info.hpp"
 
-#define ADD_TORRENT_PARAMS_IP_KEY "ip"
+#define IP_KEY "ip"
 
-namespace joystream {
-namespace node_addon {
+namespace libtorrent {
+namespace node {
 namespace peer_info {
 
 v8::Local<v8::Object> toObject(const libtorrent::peer_info & pi) {
     Nan::EscapableHandleScope scope;
 
-    v8::Local<v8::Object> PeerInfoObject = Nan::New<v8::Object>();
+    v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    SET_VAL(PeerInfoObject, ADD_TORRENT_PARAMS_IP_KEY, EndpointWrap::New(pi.ip)
-);
-    return scope.Escape(PeerInfoObject);
+    SET_VAL(o, IP_KEY, endpoint::toObject(pi.ip));
+
+    return scope.Escape(o);
 }
 
 }}}

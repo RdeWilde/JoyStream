@@ -10,17 +10,17 @@
 
 #include <libtorrent/socket_io.hpp>
 
-namespace joystream {
-namespace node_addon {
+namespace libtorrent {
+namespace node {
 namespace address {
 
 v8::Local<v8::Value> toObject(const libtorrent::address & a) {
     Nan::EscapableHandleScope scope;
 
     std::string addressString = libtorrent::print_address(a);
-    Nan::MaybeLocal<v8::String> uncheckedV8AddressString = Nan::New(addressString);
+    v8::Local<v8::String> uncheckedV8AddressString = Nan::New<v8::String>(addressString).ToLocalChecked();
 
-    return scope.Escape(uncheckedV8AddressString.ToLocalChecked());
+    return scope.Escape(uncheckedV8AddressString);
 }
 
 libtorrent::address fromObject(const v8::Local<v8::Value> & o) {
@@ -36,6 +36,4 @@ libtorrent::address fromObject(const v8::Local<v8::Value> & o) {
     return a;
 }
 
-}
-}
-}
+}}}

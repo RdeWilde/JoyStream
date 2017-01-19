@@ -5,17 +5,17 @@
  * Written by Lola Rigaut-Luczak <rllola80@gmail.com>, January 18 2017
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_PEER_INFO_H
-#define JOYSTREAM_NODE_ADDON_PEER_INFO_H
+#ifndef LIBTORRENT_NODE_PEER_INFO_HPP
+#define LIBTORRENT_NODE_PEER_INFO_HPP
 
 #include <nan.h>
 #include <libtorrent/peer_info.hpp>
 
-#include "endpoint.h"
+#include "endpoint.hpp"
 #include "utils.hpp"
 
-namespace joystream {
-namespace node_addon {
+namespace libtorrent {
+namespace node {
 namespace peer_info {
 
 /**
@@ -28,4 +28,4 @@ v8::Local<v8::Object> toObject(const libtorrent::peer_info & pi);
 
 }}}
 
-#endif
+#endif // LIBTORRENT_NODE_PEER_INFO_HPP

@@ -5,17 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, Januar 16 2017
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_INFO_HASH_HPP
-#define JOYSTREAM_NODE_ADDON_INFO_HASH_HPP
+#ifndef LIBTORRENT_NODE_INFO_HASH_HPP
+#define LIBTORRENT_NODE_INFO_HASH_HPP
 
 #include <nan.h>
+#include <libtorrent/sha1_hash.hpp>
 
 namespace libtorrent {
-  struct info_hash; // cannot forward declare
-}
-
-namespace joystream {
-namespace node_addon {
+namespace node {
 namespace info_hash {
 
   /**
@@ -25,8 +22,6 @@ namespace info_hash {
  v8::Local<v8::Value> toObject(const libtorrent::sha1_hash & h);
  libtorrent::sha1_hash fromObject(const v8::Local<v8::Value> & o);
 
-}
-}
-}
+}}}
 
-#endif // JOYSTREAM_NODE_ADDON_INFO_HASH_HPP
+#endif // LIBTORRENT_NODE_INFO_HASH_HPP

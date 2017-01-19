@@ -7,25 +7,28 @@
 
 #include "torrent_status.hpp"
 
-#include <libtorrent/torrent_status.hpp>
+#define INFO_HASH_KEY "infoHash"
+#define STATE_KEY "state"
+#define PROGRESS_KEY "progress"
 
-
-namespace joystream {
-namespace node_addon {
+namespace libtorrent {
+namespace node {
 namespace torrent_status {
 
-v8::Local<v8::Object> toObject(const libtorrent::torrent_status & s) {
+v8::Local<v8::Object> toObject(const libtorrent::torrent_status & ts) {
+  Nan::EscapableHandleScope scope;
 
-  //info.GetReturnValue().Set(Nan::New<Number>(ts->progress));
-  //info.GetReturnValue().Set(Nan::New<Number>(ts->state));
-  //info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(ts->info_hash.to_string())).ToLocalChecked());
+  v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
+  SET_VAL(o, INFO_HASH_KEY, info_hash::toObject(ts.info_hash));
+  SET_UINT32(o, STATE_KEY, ts.state);
+  SET_DOUBLE(o, PROGRESS_KEY, ts.progress);
+
+  return scope.Escape(o);
 }
 
 libtorrent::torrent_status fromObject(const v8::Local<v8::Object> & o) {
 
 }
 
-}
-}
-}
+}}}
