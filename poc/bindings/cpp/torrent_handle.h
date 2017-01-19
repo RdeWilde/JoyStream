@@ -15,7 +15,7 @@ class TorrentHandle : public Nan::ObjectWrap {
     static NAN_MODULE_INIT(Init);
     static v8::Local<v8::Object> New(libtorrent::torrent_handle th);
     static libtorrent::torrent_handle* Unwrap(const v8::Local<v8::Object>& obj) {
-      TorrentHandleWrap* th = Nan::ObjectWrap::Unwrap<TorrentHandleWrap>(obj);
+      TorrentHandle* th = Nan::ObjectWrap::Unwrap<TorrentHandle>(obj);
       return &th->th_;
     };
 
