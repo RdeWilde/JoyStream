@@ -18,12 +18,6 @@ namespace protocol_wire {
 namespace node {
 namespace SellerTerms {
 
-  const static char * MIN_PRICE_KEY = "minPrice",
-                    * MIN_LOCK_KEY = "minLock",
-                    * MAX_NUMBER_OF_SELLERS_KEY = "maxNumberOfSellers",
-                    * MIN_CONTRACT_FEE_PER_KB_KEY = "minContractFeePerKb",
-                    * SETTLEMENT_FEE_KEY = "settlementFee";
-
   /**
    * Encoding o
    * {Number} o.minPrice - min. unit price in sats.

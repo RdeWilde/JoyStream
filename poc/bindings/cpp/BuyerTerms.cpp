@@ -10,6 +10,11 @@
 
 #include <protocol_wire/protocol_wire.hpp>
 
+#define MAX_PRICE_KEY "maxPrice"
+#define MAX_LOCK_KEY "maxLock"
+#define MIN_NUMBER_OF_SELLERS_KEY "minNumberOfSellers"
+#define MAX_CONTRACT_FEE_PER_KB_KEY "maxContractFeePerKb"
+
 namespace joystream {
 namespace node {
 namespace BuyerTerms {

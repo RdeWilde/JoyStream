@@ -17,11 +17,6 @@ namespace protocol_wire {
 namespace node {
 namespace BuyerTerms {
 
-  const static char * MAX_PRICE_KEY = "maxPrice",
-                    * MAX_LOCK_KEY = "maxLock",
-                    * MIN_NUMBER_OF_SELLERS_KEY = "minNumberOfSellers",
-                    * MAX_CONTRACT_FEE_PER_KB_KEY = "maxContractFeePerKb";
-
   /**
    * Encoding o
    * {Number} o.maxPric - maximum unit price in sats.
