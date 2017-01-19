@@ -10,7 +10,7 @@ v8::Local<v8::Value> toValue(const Coin::PubKeyHash &hash) {
 }
 
 Coin::PubKeyHash fromValue(const v8::Local<v8::Value>& value) {
-    return fromV8ValueToUCharVectorBased<Coin::PubKeyHash>(value);
+    return V8ValueToUCharVectorBased<Coin::PubKeyHash>(value);
 }
 
 }}}

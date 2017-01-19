@@ -22,7 +22,7 @@ v8::Local<v8::Value> toValue(const Coin::typesafeOutPoint &op) {
 
 Coin::typesafeOutPoint fromValue(const v8::Local<v8::Value>& value) {
     if(!value->IsObject()){
-        throw std::runtime_error("value not an Object");
+        throw std::runtime_error("argument not an Object");
     }
     auto obj = Nan::To<v8::Object>(value).ToLocalChecked();
     auto txidObj = GET_VAL(obj, TXID_KEY);

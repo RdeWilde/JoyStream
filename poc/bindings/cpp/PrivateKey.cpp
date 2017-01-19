@@ -11,7 +11,7 @@ v8::Local<v8::Value> toValue(const Coin::PrivateKey &sk) {
 }
 
 Coin::PrivateKey fromValue(const v8::Local<v8::Value>& value) {
-    return fromV8ValueToUCharVectorBased<Coin::PrivateKey>(value);
+    return V8ValueToUCharVectorBased<Coin::PrivateKey>(value);
 }
 
 }}}

@@ -13,7 +13,7 @@ v8::Local<v8::Value> toValue(const Coin::Transaction &tx) {
 }
 
 Coin::Transaction fromValue(const v8::Local<v8::Value>& value) {
-    return fromV8ValueToUCharVectorBased<Coin::Transaction>(value);
+    return V8ValueToUCharVectorBased<Coin::Transaction>(value);
 }
 
 }}}

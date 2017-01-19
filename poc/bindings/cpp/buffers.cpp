@@ -4,10 +4,16 @@ namespace joystream {
 namespace node {
 
 uchar_vector NodeBufferToUCharVector(v8::Local<v8::Value> buffer) {
+    if(!buffer->IsUint8Array()){
+        throw std::runtime_error("argument is not a node buffer");
+    }
     return uchar_vector((const unsigned char *)::node::Buffer::Data(buffer), ::node::Buffer::Length(buffer));
 }
 
 uchar_vector StringToUCharVector(v8::Local<v8::Value> hex) {
+    if(!hex->IsString()){
+        throw std::runtime_error("argument is not a string");
+    }
     v8::String::Utf8Value value(hex);
     uchar_vector data = uchar_vector(std::string(*value));
     return data;
