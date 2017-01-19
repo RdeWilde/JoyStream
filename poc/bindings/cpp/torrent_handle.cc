@@ -127,7 +127,7 @@ NAN_METHOD(TorrentHandleWrap::get_peer_info) {
     Local<Array> ret = Nan::New<Array>();
 
     for(libtorrent::peer_info i : res)
-      ret->Set(ret->Length(), PeerInfoWrap::New(i));
+      ret->Set(ret->Length(), joystream::node_addon::peer_info::toObject(i));
 
     info.GetReturnValue().Set(ret);
 };

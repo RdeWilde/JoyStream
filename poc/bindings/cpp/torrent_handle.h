@@ -8,7 +8,7 @@
 
 #include "torrent_info.h"
 #include "endpoint.h"
-#include "peer_info.h"
+#include "peer_info.hpp"
 
 class TorrentHandleWrap : public Nan::ObjectWrap {
   public:
