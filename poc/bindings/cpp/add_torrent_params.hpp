@@ -36,7 +36,7 @@ namespace add_torrent_params {
    *  save_path : { String },
    *  info_hash : { see sha1_hash format },
    *  url : { String },
-   *  resume_data : { String },
+   *  resume_data :  { String },
    *  upload_limit : { Number },
    *  download_limit : { Number }
    * }
