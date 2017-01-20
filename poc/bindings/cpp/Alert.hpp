@@ -105,25 +105,9 @@ namespace libtorrent {
     struct peer_log_alert; // todo
     struct incoming_request_alert; // todo
     struct picker_log_alert; // todo
-}
 
-namespace joystream {
-namespace node_addon {
-
-/**
- *
- */
-static NAN_MODULE_INIT(InitAlertTypes);
-
-/**
- *
- */
-static NAN_MODULE_INIT(InitCategoryTypes);
-
-/**
- *
- */
-static NAN_MODULE_INIT(InitSocketTypes)
+namespace node {
+namespace alert_types {
 
 /**
  * Routines for converting libtorrent alerts to javascript
@@ -133,14 +117,6 @@ static NAN_MODULE_INIT(InitSocketTypes)
  * we rather copy all member data into the javascript objects, since
  * only data members are present in alerts.
  */
-
-/**
-#define TO_OBJECT(alert_name) void toObject(const libtorrent::alert_name &, v8::Local<v8::Object> & o)
-TO_OBJECT(alert)
-TO_OBJECT(torrent_alert)
-TO_OBJECT(peer_alert)
-TO_OBJECT(dht_get_peers_reply_alert)
-*/
 
 // Abstract (base) alerts
 void toObject(const libtorrent::alert &, v8::Local<v8::Object> & o);
@@ -170,5 +146,4 @@ void toObject(const libtorrent::piece_finished_alert &, v8::Local<v8::Object> & 
 void toObject(const libtorrent::peer_connect_alert &, v8::Local<v8::Object> & o);
 void toObject(const libtorrent::peer_disconnected_alert &, v8::Local<v8::Object> & o);
 
-}
-}
+}}}
