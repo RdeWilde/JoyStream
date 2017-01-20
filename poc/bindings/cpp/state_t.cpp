@@ -42,7 +42,7 @@ namespace state_t {
       case libtorrent::torrent_status::state_t::allocating: return Nan::New(6);
       case libtorrent::torrent_status::state_t::checking_resume_data: return Nan::New(7);
       default:
-        assert(false);
+        Nan::ThrowError("Could not encode torrent_status::state_t: invalid state");
     }
 
   }
@@ -61,7 +61,7 @@ namespace state_t {
       case 6: return libtorrent::torrent_status::state_t::allocating;
       case 7: return libtorrent::torrent_status::state_t::checking_resume_data;
       default:
-        assert(false);
+        Nan::ThrowError("Could not decode torrent_status::state_t: invalid encoding value");
     }
 
   }
