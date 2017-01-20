@@ -27,7 +27,7 @@ namespace state_t {
     SET_STATE_T(object, libtorrent::torrent_status::state_t::allocating);
     SET_STATE_T(object, libtorrent::torrent_status::state_t::checking_resume_data);
 
-    SET_VAL(target, "StateT", object);
+    SET_VAL(target, "TorrentState", object);
   }
 
   v8::Local<v8::Value> createValue(libtorrent::torrent_status::state_t state) {
