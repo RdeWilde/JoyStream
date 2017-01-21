@@ -8,8 +8,7 @@ namespace Coin {
 }
 
 namespace joystream {
-namespace addon {
-namespace common {
+namespace node {
 namespace publickey {
 
     /* @brief Creates node Buffer representing a raw Coin::PublicKey
@@ -25,5 +24,5 @@ namespace publickey {
       * @throws std::runtime_error if conversion fails
       */
      Coin::PublicKey fromValue(const v8::Local<v8::Value>&);
-}}}}
+}}}
 #endif
