@@ -7,8 +7,7 @@ namespace Coin {
     class PrivateKey;
 }
 namespace joystream {
-namespace addon {
-namespace common {
+namespace node {
 namespace privatekey {
 
      /* @brief Creates node Buffer representing a raw Coin::PrivateKey
@@ -25,5 +24,5 @@ namespace privatekey {
        */
       Coin::PrivateKey fromValue(const v8::Local<v8::Value>&);
 
-}}}}
+}}}
 #endif
