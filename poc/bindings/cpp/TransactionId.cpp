@@ -6,7 +6,7 @@ namespace joystream {
 namespace node {
 namespace transactionid {
 
-// Buffer - rpc byteorder
+
 v8::Local<v8::Value> toValue(const Coin::TransactionId &id) {
     return UCharVectorBasedToV8Value<Coin::TransactionId>(id);
 }

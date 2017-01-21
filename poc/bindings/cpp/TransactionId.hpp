@@ -12,13 +12,14 @@ namespace node {
 namespace transactionid {
 
     /* @brief Creates node Buffer representing a raw Coin::TransactionId
+     * encoded in rpc byteorder
      * @param {const Coin::TransactionId&}
      * @return {v8::Local<v8::Value>} node Buffer
      * @throws
      */
     v8::Local<v8::Value> toValue(const Coin::TransactionId &);
 
-     /* @brief Converts a raw transaction id (in rpc byte order)
+     /* @brief Converts a raw transaction id (encoded in rpc byteorder)
       * from a node buffer to Coin::TransactionId
       * @param {v8::Local<v8::Value>} node Buffer
       * @return {Coin::TransactionId}
