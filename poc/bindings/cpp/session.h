@@ -4,6 +4,7 @@
 #include <nan.h>
 #include "alert.h"
 #include "torrent_handle.h"
+#include "plugin.hpp" //
 #include <iostream>
 //#include <extension/extension.hpp>
 #include <joystream_libtorrent_session/Session.hpp>
@@ -16,6 +17,11 @@ class SessionWrap : public Nan::ObjectWrap {
 
   private:
     Session session_;
+
+    // Alert converters associated with installed plugins
+    // Is populated by add_extension calls
+    std::vector<libtorrent::node::plugin::converter> _converters;
+
     static Nan::Persistent<v8::Function> constructor;
 
     static NAN_METHOD(New);
@@ -27,6 +33,7 @@ class SessionWrap : public Nan::ObjectWrap {
     static NAN_METHOD(is_paused);
     static NAN_METHOD(resume);
     static NAN_METHOD(find_torrent);
+    static NAM_METHOD(add_extension);
     static NAN_METHOD(pop_alerts);
     static NAN_METHOD(set_alert_notify);
     static NAN_METHOD(dht_announce);

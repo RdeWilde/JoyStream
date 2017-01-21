@@ -1,4 +1,5 @@
 #include "session.h"
+#include "plugin.hpp"
 
 // Wrapper Impl
 
@@ -196,6 +197,21 @@ NAN_METHOD(SessionWrap::find_torrent) {
   th = session_wrap->session_.s->find_torrent(info_hash);
 
   info.GetReturnValue().Set(TorrentHandleWrap::New(th));
+}
+
+NAM_METHOD(SessionWrap::add_extension) {
+
+  // Recover the plugin binding
+  ARGUMENTS_REQUIRE_INSTANCE(0, libtorrent::node::plugin, p)
+
+  // Recover session binding
+  SessionWrap * session = THIS(SessionWrap);
+
+  // Add underlying plugin to underlying session
+  session->session_.add_extension(p->getPlugin());
+
+  // Get alert converter for plugin, and add it to list of converters.
+  session->_converters.push_back(p->getConverter())
 }
 
 NAN_METHOD(SessionWrap::pop_alerts) {
