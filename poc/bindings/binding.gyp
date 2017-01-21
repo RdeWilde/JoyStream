@@ -20,17 +20,20 @@
                 "cpp/extension/TorrentPluginStatus.cpp",
                 "cpp/extension/PeerPluginStatus.cpp",
                 # Common
-                "cpp/common/init.cpp",
-                "cpp/common/Transaction.cpp",
-                "cpp/common/PrivateKey.cpp",
+                "cpp/Transaction.cpp",
+                "cpp/PrivateKey.cpp",
+                "cpp/PubKeyHash.cpp",
+                "cpp/PublicKey.cpp",
+                "cpp/OutPoint.cpp",
+                "cpp/TransactionId.cpp",
                 # Protocol Session
                 "cpp/protocol_session/init.cpp",
                 "cpp/protocol_session/Connection.cpp",
                 # Util
-                "cpp/util/buffers.cpp",
+                "cpp/buffers.cpp",
                 "cpp/utils.cpp",
                 # Others
-				"../src/Session.cpp"
+                "../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
             'cflags!': [ '-fno-exceptions', '-fno-rtti' ],
