@@ -16,6 +16,7 @@
                 "cpp/endpoint.cpp",
                 "cpp/peer_info.cpp",
                 "cpp/bencode.cc",
+                "cpp/state_t.cpp",
                 # Extension
                 "cpp/extension/init.cpp",
                 "cpp/extension/TorrentPluginStatus.cpp",

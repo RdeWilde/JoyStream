@@ -8,6 +8,8 @@
 #include "state_t.hpp"
 #include "utils.hpp"
 
+#include <stdexcept>
+
 namespace libtorrent {
 namespace node {
 namespace state_t {
@@ -18,7 +20,7 @@ namespace state_t {
 
     v8::Local<v8::Object> object = Nan::New<v8::Object>();
 
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::queued_for_checking);
+    SET_STATE_T(object, libtorrent::torrent_status::state_t::unused_enum_for_backwards_compatibility);
     SET_STATE_T(object, libtorrent::torrent_status::state_t::checking_files);
     SET_STATE_T(object, libtorrent::torrent_status::state_t::downloading_metadata);
     SET_STATE_T(object, libtorrent::torrent_status::state_t::downloading);
@@ -33,7 +35,7 @@ namespace state_t {
   v8::Local<v8::Value> createValue(libtorrent::torrent_status::state_t state) {
 
     switch(state) {
-      case libtorrent::torrent_status::state_t::queued_for_checking: return Nan::New(0);
+      case libtorrent::torrent_status::state_t::unused_enum_for_backwards_compatibility: return Nan::New(0);
       case libtorrent::torrent_status::state_t::checking_files: return Nan::New(1);
       case libtorrent::torrent_status::state_t::downloading_metadata: return Nan::New(2);
       case libtorrent::torrent_status::state_t::downloading: return Nan::New(3);
@@ -52,7 +54,7 @@ namespace state_t {
     uint32_t value = To<uint32_t>(v);
 
     switch(value) {
-      case 0: return libtorrent::torrent_status::state_t::queued_for_checking;
+      case 0: return libtorrent::torrent_status::state_t::unused_enum_for_backwards_compatibility;
       case 1: return libtorrent::torrent_status::state_t::checking_files;
       case 2: return libtorrent::torrent_status::state_t::downloading_metadata;
       case 3: return libtorrent::torrent_status::state_t::downloading;
@@ -61,7 +63,7 @@ namespace state_t {
       case 6: return libtorrent::torrent_status::state_t::allocating;
       case 7: return libtorrent::torrent_status::state_t::checking_resume_data;
       default:
-        throw "Could not decode torrent_status::state_t: invalid encoding value";
+        throw std::runtime_error("Could not decode torrent_status::state_t: invalid encoding value");
 
     }
 
