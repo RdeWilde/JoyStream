@@ -7,7 +7,8 @@
 
 #include "Alert.hpp"
 #include "torrent_handle.h"
-#include "endpoint.h"
+#include "endpoint.hpp"
+#include "info_hash.hpp"
 #include "utils.hpp"
 
 #include <chrono>
@@ -27,6 +28,14 @@
 #define PID_KEY "pid"
 #define TRACKER_URL_KEY "trackerURL"
 #define INFO_HASH_KEY "infoHash"
+#define SIZE_KEY "size"
+#define NEW_NAME_KEY "newName"
+#define STATE_KEY "state"
+#define PREV_STATE_KEY "prevState"
+#define TIMES_IN_ROW_KEY "timesInRow"
+#define STATUS_CODE_KEY "statusCode"
+#define ERROR_MESSAGE_KEY "errorMessage"
+
 
 namespace joystream {
 namespace node {
@@ -76,19 +85,94 @@ v8::Local<v8::Object> toObject(const libtorrent::tracker_alert & a) {
  *
  * * * * * * * * * * * */
 
- v8::Local<v8::Object> toObject(const libtorrent::torrent_added_alert final & a) {
+ v8::Local<v8::Object> toObject(const libtorrent::torrent_added_alert & a) {
    v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
    return o;
  }
 
- v8::Local<v8::Object> toObject(const libtorrent::torrent_removed_alert final & a) {
+ v8::Local<v8::Object> toObject(const libtorrent::torrent_removed_alert & a) {
    v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-   SET_VAL(o, INFO_HASH_KEY, a.info_hash)
+   SET_VAL(o, INFO_HASH_KEY, info_hash::toObject(a.info_hash))
 
    return o;
  }
+
+ v8::Local<v8::Object> toObject(const libtorrent::read_piece_alert & a) {
+   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
+
+   // error_code const error;
+   // boost::shared_array<char> const buffer;
+   // piece_index_t const piece;
+   SET_INT32(o, SIZE_KEY, a.size());
+
+   return o;
+ }
+
+ v8::Local<v8::Object> toObject(const libtorrent::file_completed_alert & a) {
+   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
+
+   //	file_index_t const index;
+
+   return o;
+ }
+
+v8::Local<v8::Object> toObject(const libtorrent::file_renamed_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
+
+  SET_CONST_CHAR(o, NEW_NAME_KEY, a.new_name());
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::file_rename_failed_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
+
+  // file_index_t const index;
+  // error_code const error;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::performance_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
+
+	// performance_warning_t const warning_code;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::state_changed_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
+
+  SET_VAL(o, STATE_KEY, state_t::toObject(a.state));
+  SET_VAL(o, PREV_STATE_KEY, state_t::toObject(a.prev_state));
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::tracker_error_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::tracker_alert &>(a));
+
+  SET_INT32(o, TIMES_IN_ROW_KEY, a.times_in_row)
+  SET_INT32(o, STATUS_CODE_KEY, a.status_code)
+  //error_code const error;
+  SET_CONST_CHAR(o, ERROR_MESSAGE_KEY, a.error_message());
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::tracker_warning_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::tracker_alert &>(a));
+
+  SET_INT32(o, TIMES_IN_ROW_KEY, a.times_in_row)
+  SET_INT32(o, STATUS_CODE_KEY, a.status_code)
+  //error_code const error;
+  SET_CONST_CHAR(o, ERROR_MESSAGE_KEY, a.error_message());
+
+  return o;
+}
 
 v8::Local<v8::Object> toObject(const libtorrent::dht_get_peers_reply_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
@@ -181,15 +265,6 @@ v8::Local<v8::Object> toObject(const libtorrent::torrent_checked_alert & a, v8::
   toObject(static_cast<const libtorrent::torrent_alert &>(a), o);
 }
 
-v8::Local<v8::Object> toObject(const libtorrent::read_piece_alert & a, v8::Local<v8::Object> & o) {
-  toObject(static_cast<const libtorrent::torrent_alert &>(a), o);
-
-  // error_code const error;
-  // boost::shared_array<char> const buffer;
-  // piece_index_t const piece;
-  // int const size;
-
-}
 
 v8::Local<v8::Object> toObject(const libtorrent::piece_finished_alert & a, v8::Local<v8::Object> & o) {
   toObject(static_cast<const libtorrent::torrent_alert &>(a), o);
