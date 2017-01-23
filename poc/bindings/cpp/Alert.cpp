@@ -63,6 +63,12 @@
 #define TRACKER_ID_KEY "trackerID"
 #define ENDPOINT_KEY "endpoint"
 #define ADD_TORRENT_PARAMS_KEY "addTorrentParams"
+#define TARGET_KEY "target"
+#define SALT_KEY "salt"
+#define AUTHORITATIVE_KEY "authoritative"
+#define NUM_SUCCESS_KEY "numSuccess"
+#define OBFUCASTED_INFO_HASH_KEY "obfucastedInfoHash"
+#define EVENT_TYPE_KEY "eventType"
 
 namespace joystream {
 namespace node {
@@ -227,6 +233,57 @@ v8::Local<v8::Object> toObject(const libtorrent::tracker_reply_alert & a) {
   return o;
 }
 
+v8::Local<v8::Object> toObject(const libtorrent::dht_reply_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::tracker_alert &>(a));
+
+  SET_INT32(o, NUM_PEERS_KEY, a.num_peers)
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::tracker_announce_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::tracker_alert &>(a));
+
+  SET_INT32(o, EVENT_KEY, a.event)
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::hash_failed_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
+
+  //piece_index_t const piece_index;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::peer_ban_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::peer_unsnubbed_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::peer_snubbed_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::peer_error_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
+
+  SET_INT32(o, OPERATION_KEY, a.operation)
+  // error_code const error;
+
+  return o;
+}
+
 v8::Local<v8::Object> toObject(const libtorrent::peer_connect_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
 
@@ -238,17 +295,9 @@ v8::Local<v8::Object> toObject(const libtorrent::peer_connect_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::peer_disconnected_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
 
-  // the kind of socket this peer was connected over
   SET_INT32(o, SOCKET_TYPE_KEY, a.socket_type);
-
-  // the operation or level where the error occurred. Specified as an
-  // value from the operation_t enum. Defined in operations.hpp.
   //operation_t const operation;
-
-  // tells you what error caused peer to disconnect.
   // error_code const error;
-
-  // the reason the peer disconnected (if specified)
   // close_reason_t const reason;
 
   return o;
@@ -257,18 +306,9 @@ v8::Local<v8::Object> toObject(const libtorrent::peer_disconnected_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::invalid_request_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
 
-  // the request we received from the peer
   // peer_request const request;
-
-  // true if we have this piece
   SET_BOOL(o, WE_HAVE_KEY, a.we_have);
-
-  // true if the peer indicated that it was interested to download before
-  // sending the request
   SET_BOOL(o, PEER_INTERESTED_KEY, a.peer_interested);
-
-  // if this is true, the peer is not allowed to download this piece because
-  // of superseeding rules.
   SET_BOOL(o, WITHHELD_KEY, a.withheld);
 
   return o;
@@ -283,7 +323,6 @@ v8::Local<v8::Object> toObject(const libtorrent::torrent_finished_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::piece_finished_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // the index of the piece that finished
   // piece_index_t const piece_index;
 
   return o;
@@ -364,7 +403,6 @@ v8::Local<v8::Object> toObject(const libtorrent::torrent_deleted_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::torrent_delete_failed_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // tells you why it failed.
   // error_code const error;
   SET_VAL(o, INFO_HASH_KEY, info_hash::toObject(a.info_hash));
 
@@ -374,7 +412,6 @@ v8::Local<v8::Object> toObject(const libtorrent::torrent_delete_failed_alert & a
 v8::Local<v8::Object> toObject(const libtorrent::save_resume_data_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // points to the resume data.
 	//std::shared_ptr<entry> const resume_data;
 
   return o;
@@ -383,7 +420,6 @@ v8::Local<v8::Object> toObject(const libtorrent::save_resume_data_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::save_resume_data_failed_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // the error code from the resume_data failure
 	// error_code const error;
 
   return o;
@@ -410,10 +446,7 @@ v8::Local<v8::Object> toObject(const libtorrent::torrent_checked_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::url_seed_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // the error the web seed encountered. If this is not set, the server
-  // sent an error message, call ``error_message()``.
   // error_code const error;
-
   SET_CONST_CHAR(o, SERVER_URL_KEY, a.server_url());
   SET_CONST_CHAR(o, ERROR_MESSAGE_KEY, a.error_message());
 
@@ -423,7 +456,6 @@ v8::Local<v8::Object> toObject(const libtorrent::url_seed_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::file_error_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // the error code describing the error.
   //error_code const error;
   SET_CONST_CHAR(o, OPERATION_KEY, a.operation);
   SET_CONST_CHAR(o, FILENAME_KEY, a.filename());
@@ -434,8 +466,6 @@ v8::Local<v8::Object> toObject(const libtorrent::file_error_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::metadata_failed_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // indicates what failed when parsing the metadata. This error is
-  // what's returned from lazy_bdecode().
   // error_code const error;
 
   return o;
@@ -450,10 +480,7 @@ v8::Local<v8::Object> toObject(const libtorrent::metadata_received_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::udp_error_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
 
-  // the source address associated with the error (if any)
   // udp::endpoint const endpoint;
-
-  // the error code describing the error
   //error_code const error;
 
   return o;
@@ -472,10 +499,10 @@ v8::Local<v8::Object> toObject(const libtorrent::listen_failed_alert & a) {
 
   SET_CONST_CHAR(o, LISTEN_INTERFACE_KEY, a.listen_interface());
   // error_code const error;
-  SET_INT32(o, OPERATION_KEY, a.operation)
+  SET_INT32(o, OPERATION_KEY, a.operation);
   //libtorrent::socket_type_t const socket_type;
   //libtorrent::address const address;
-  SET_INT32(o, PORT_KEY, a.port)
+  SET_INT32(o, PORT_KEY, a.port);
 
   // NOTE: PORT_KEY AND ADDRESS_KEY are defined in endpoint.cpp
 
@@ -561,10 +588,7 @@ v8::Local<v8::Object> toObject(const libtorrent::dht_get_peers_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::stats_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // an array of samples. The enum describes what each sample is a
-  // measurement of. All of these are raw, and not smoothing is performed.
   // std::array<int, num_channels> const transferred;
-
   SET_INT32(o, INTERVAL_KEY, a.interval);
 
   return o;
@@ -579,7 +603,6 @@ v8::Local<v8::Object> toObject(const libtorrent::cache_flushed_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::anonymous_mode_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  // specifies what error this is, see kind_t.
   SET_INT32(o, KIND_KEY, a.kind);
   SET_STD_STRING(o, STR_KEY, a.str);
 
@@ -626,7 +649,7 @@ v8::Local<v8::Object> toObject(const libtorrent::torrent_need_cert_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::incoming_connection_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
 
-  //int const socket_type;
+  SET_INT32(o, SOCKET_TYPE_KEY, a.socket_type);
   SET_VAL(o, ENDPOINT_KEY, EndpointWrap::New(a.endpoint))
 
   return o;
@@ -635,7 +658,7 @@ v8::Local<v8::Object> toObject(const libtorrent::incoming_connection_alert & a) 
 v8::Local<v8::Object> toObject(const libtorrent::add_torrent_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  SET_VAL(o, ADD_TORRENT_PARAMS_KEY, libtorrent::node::add_torrent_params::toObject(a.params))
+  SET_VAL(o, ADD_TORRENT_PARAMS_KEY, libtorrent::node::add_torrent_params::toObject(a.params));
   //error_code const error;
 
   return o;
@@ -649,58 +672,142 @@ v8::Local<v8::Object> toObject(const libtorrent::state_update_alert & a) {
   return o;
 }
 
+v8::Local<v8::Object> toObject(const libtorrent::session_stats_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-v8::Local<v8::Object> toObject(const libtorrent::dht_reply_alert & a) {
-  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::tracker_alert &>(a));
-
-  SET_INT32(o, NUM_PEERS_KEY, a.num_peers)
+	// std::array<std::int64_t, counters::num_counters> const values;
 
   return o;
 }
 
-v8::Local<v8::Object> toObject(const libtorrent::tracker_announce_alert & a) {
-  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::tracker_alert &>(a));
+v8::Local<v8::Object> toObject(const libtorrent::dht_error_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
 
-  SET_INT32(o, EVENT_KEY, a.event)
+	// error_code const error;
+  // op_t const operation;
 
   return o;
 }
 
-v8::Local<v8::Object> toObject(consv8::Local<v8::Object> toObject(const libtorrent::torrent_paused_alert & a, v8::Local<v8::Object> & o) {
-  toObject(static_cast<const libtorrent::torrent_alert &>(a), o);
-}t libtorrent::hash_failed_alert & a) {
+v8::Local<v8::Object> toObject(const libtorrent::dht_immutable_item_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  SET_VAL(o, TARGET_KEY, info_hash::toObject(a.target))
+  //entry const item;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::dht_mutable_item_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  //std::array<char, 32> const key;
+  //std::array<char, 64> const signature;
+  //std::int64_t const seq;
+  SET_STD_STRING(o, SALT_KEY, a.salt);
+  //entry const item;
+  SET_BOOL(o, AUTHORITATIVE_KEY, a.authoritative);
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::dht_put_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  SET_VAL(o, TARGET_KEY, info_hash::toObject(a.target))
+  //std::array<char, 32> const public_key;
+  //std::array<char, 64> const signature;
+  SET_STD_STRING(o, SALT_KEY, a.salt);
+  //std::int64_t const seq;
+  SET_INT32(o, NUM_SUCCESS_KEY, a.num_success);
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::i2p_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+	//error_code const error;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::dht_outgoing_get_peers_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  SET_VAL(o, INFO_HASH_KEY, info_hash::toObject(a.info_hash));
+  SET_VAL(o, OBFUCASTED_INFO_HASH_KEY, info_hash::toObject(a.obfuscated_info_hash));
+  // udp::endpoint const endpoint;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::log_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  SET_CONST_CHAR(o, LOG_MESSAGE_KEY, a.log_message());
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::torrent_log_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::torrent_alert &>(a));
 
-  //piece_index_t const piece_index;
+  SET_CONST_CHAR(o, LOG_MESSAGE_KEY, a.log_message());
 
   return o;
 }
 
-v8::Local<v8::Object> toObject(const libtorrent::peer_ban_alert & a) {
+v8::Local<v8::Object> toObject(const libtorrent::peer_log_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
+
+  SET_CONST_CHAR(o, EVENT_TYPE_KEY, a.event_type);
+  //direction_t const direction;
+  SET_CONST_CHAR(o, LOG_MESSAGE_KEY, a.log_message());
 
   return o;
 }
 
-v8::Local<v8::Object> toObject(const libtorrent::peer_unsnubbed_alert & a) {
-  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
+v8::Local<v8::Object> toObject(const libtorrent::lsd_error_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
 
-  return o;
-}
-
-v8::Local<v8::Object> toObject(const libtorrent::peer_snubbed_alert & a) {
-  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
-
-  return o;
-}
-
-v8::Local<v8::Object> toObject(const libtorrent::peer_error_alert & a) {
-  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
-
-  SET_INT32(o, OPERATION_KEY, a.operation)
   // error_code const error;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::dht_stats_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  // std::vector<dht_lookup> const active_requests;
+  // std::vector<dht_routing_bucket> const routing_table;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::incoming_request_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
+
+  // peer_request const req;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::dht_log_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  SET_CONST_CHAR(o, LOG_MESSAGE_KEY, a.log_message());
+  // dht_module_t const module;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::dht_pkt_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  // span<char const> pkt_buf() const;
+  // direction_t const direction;
+  // udp::endpoint const node;
 
   return o;
 }
@@ -708,20 +815,38 @@ v8::Local<v8::Object> toObject(const libtorrent::peer_error_alert & a) {
 v8::Local<v8::Object> toObject(const libtorrent::dht_get_peers_reply_alert & a) {
   v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
 
-  //SET_STR(o, "info_hash", a.info_hash.)
-  SET_INT(o, "num_peers", a.num_peers())
+  SET_VAL(o, INFO_HASH_KEY, info_hash::toObject(a.info_hash));
+  SET_INT32(o, NUM_PEERS_KEY, a.num_peers());
   // std::vector<tcp::endpoint> peers() const
 
   return o;
 }
 
-// Non-virtual (torrent) alerts
+v8::Local<v8::Object> toObject(const libtorrent::dht_direct_response_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
 
+  // void const* userdata;
+  // udp::endpoint const endpoint;
+  // bdecode_node response() const;
 
-v8::Local<v8::Object> toObject(const libtorrent::torrent_removed_alert & a, v8::Local<v8::Object> & o) {
-  toObject(static_cast<const libtorrent::torrent_alert &>(a), o);
-
-  // is required, since handle has expired most likeyl
-  //sha1_hash const info_hash;
+  return o;
 }
+
+v8::Local<v8::Object> toObject(const libtorrent::picker_log_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::peer_alert &>(a));
+
+  // std::uint32_t const picker_flags;
+  // std::vector<piece_block> blocks() const;
+
+  return o;
+}
+
+v8::Local<v8::Object> toObject(const libtorrent::session_error_alert & a) {
+  v8::Local<v8::Object> o = toObject(static_cast<const libtorrent::alert &>(a));
+
+  // error_code const error;
+
+  return o;
+}
+
 }}}
