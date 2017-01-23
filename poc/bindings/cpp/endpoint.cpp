@@ -1,0 +1,45 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 16 2017
+ */
+
+#include "endpoint.hpp"
+#include "address.hpp"
+#include "utils.hpp"
+
+#define ADDRESS_KEY "address"
+#define PORT_KEY "key"
+
+namespace libtorrent {
+namespace node {
+namespace endpoint {
+
+v8::Local<v8::Object> toObject(const libtorrent::tcp::endpoint & ep) {
+
+    v8::Local<v8::Object> o = Nan::New<v8::Object>();
+
+    SET_VAL(o, ADDRESS_KEY, libtorrent::node::address::toObject(ep.address()));
+    SET_UINT32(o, PORT_KEY, ep.port());
+
+    return o;
+}
+
+libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o) {
+
+  libtorrent::tcp::endpoint endpoint;
+
+  v8::Local<v8::Value> addressValue = GET_VAL(o, ADDRESS_KEY);
+
+  libtorrent::address a = address::fromObject(addressValue);
+  uint32_t port = GET_UINT32(o, PORT_KEY);
+
+  endpoint.address(a);
+  endpoint.port(port);
+
+  return endpoint;
+
+}
+
+}}}
