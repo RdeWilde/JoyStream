@@ -215,16 +215,38 @@ NAM_METHOD(SessionWrap::add_extension) {
 }
 
 NAN_METHOD(SessionWrap::pop_alerts) {
-  v8::Local<v8::Array> ret = Nan::New<v8::Array>();
 
+  // Recover session binding
+  SessionWrap * session = THIS(SessionWrap);
+
+  // Get currently pending alerts from libtorrent
   std::vector<libtorrent::alert*> alerts;
+  session->session_.s->pop_alerts(&alerts);
 
-  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  // Iterate alerts, and convert to js objects
+  v8::Local<v8::Array> ret = Nan::New<v8::Array>();
+  for(const libtorrent::alert * alert : alerts) {
 
-  session_wrap->session_.s->pop_alerts(&alerts);
+    bool success;
+    DefaultAlertConverter(alert, v8::Local<v8::Object> & o, success);
 
-  for(const libtorrent::alert * alert : alerts)
+    if(!success) {
+
+      for(c : _converters) {
+
+        bool success;
+        c(alert, , success);
+
+        if(success)
+          continue;
+
+
+      }
+    }
+
+    // Old style
     ret->Set(ret->Length(), AlertWrap::New(alert));
+  }
 
   info.GetReturnValue().Set(ret);
 }
@@ -265,4 +287,39 @@ NAN_METHOD(SessionWrap::dht_get_peers) {
   session_wrap->session_.s->dht_announce(info_hash, listen_port);
 
   info.GetReturnValue().Set(Nan::Undefined());
+}
+
+void DefaultAlertConverter(const libtorrent::alert * a, v8::Local<v8::Object> & o, bool success) {
+
+  /**
+  if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
+      process(p);
+  else if(libtorrent::metadata_failed_alert const * p = libtorrent::alert_cast<libtorrent::metadata_failed_alert>(a))
+      process(p);
+  else if(libtorrent::listen_succeeded_alert const * p = libtorrent::alert_cast<libtorrent::listen_succeeded_alert>(a))
+      process(p);
+  else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
+      process(p);
+  else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a))
+      process(p);
+  else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a))
+      process(p);
+  else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
+      process(p);
+  else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
+      process(p);
+  else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
+      process(p);
+  else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
+      process(p);
+  else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
+      process(p);
+  else if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a))
+      process(p);
+  else if(libtorrent::piece_finished_alert const * p = libtorrent::alert_cast<libtorrent::piece_finished_alert>(a))
+      process(p);
+  else
+      // ..
+  */
+
 }

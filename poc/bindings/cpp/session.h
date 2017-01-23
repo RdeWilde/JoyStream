@@ -9,6 +9,7 @@
 //#include <extension/extension.hpp>
 #include <joystream_libtorrent_session/Session.hpp>
 
+#include <vector>
 
 class SessionWrap : public Nan::ObjectWrap {
   public:
@@ -40,5 +41,8 @@ class SessionWrap : public Nan::ObjectWrap {
     static NAN_METHOD(dht_get_peers);
 
 };
+
+// Alert converter for (subset) of built in libtorrent alerts
+static void DefaultAlertConverter(const libtorrent::alert *, v8::Local<v8::Object> & o, bool success);
 
 #endif

@@ -23,12 +23,12 @@ class plugin : public Nan::ObjectWrap {
 public:
 
   /**
-   * @brief Alert cnverter for this plugin.
+   * @brief Alert converter for this plugin.
    * @param a alert for conversion.
    * @param o object to which alert should be converted.
    * @param success will be written to to indicate whether the alert was recognized, and written to ´o´.
    */
-  typedef void(*converter)(const libtorrent::alert &, v8::Local<v8::Object> & o, bool success);
+  typedef void(*converter)(const libtorrent::alert *, v8::Local<v8::Object> & o, bool success);
 
   /**
    * @brief Get alert converter for this plugin.
