@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 11 2017
  */
 
-#ifndef JOYSTREAM_NODE_SELLERTERMS_HPP
-#define JOYSTREAM_NODE_SELLERTERMS_HPP
+#ifndef JOYSTREAM_NODE_SELLER_TERMS_HPP
+#define JOYSTREAM_NODE_SELLER_TERMS_HPP
 
 #include <nan.h>
 #include <protocol_wire/protocol_wire.hpp>
@@ -16,7 +16,7 @@ namespace protocol_wire {
   class SellerTerms;
 }
 namespace node {
-namespace SellerTerms {
+namespace seller_terms {
 
   /**
    * Encoding o
@@ -34,4 +34,4 @@ namespace SellerTerms {
 }
 }
 
-#endif // JOYSTREAM_NODE_SELLERTERMS_HPP
+#endif // JOYSTREAM_NODE_SELLER_TERMS_HPP

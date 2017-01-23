@@ -17,7 +17,7 @@
 
 namespace joystream {
 namespace node {
-namespace BuyerTerms {
+namespace buyer_terms {
 
 v8::Local<v8::Object> createObject(const protocol_wire::BuyerTerms & terms) {
 

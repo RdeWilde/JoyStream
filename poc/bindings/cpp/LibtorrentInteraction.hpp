@@ -10,14 +10,14 @@
 
 #include <nan.h>
 
-#include <extension/extension.hpp> //
+#include <extension/extension.hpp> // cannot forward declare extension::TorrentPlugin::LibtorrentInteraction
 
 namespace joystream {
 namespace extension {
   enum class LibtorrentInteraction;
 }
 namespace node {
-namespace LibtorrentInteraction {
+namespace libtorrent_interaction {
 
   // Exports object called `LibtorrentInteraction` object, which maps
   // extension::LibtorrentInteraction enums, as strings, to integers.

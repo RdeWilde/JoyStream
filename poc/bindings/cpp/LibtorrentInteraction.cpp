@@ -10,7 +10,7 @@
 
 namespace joystream {
 namespace node {
-namespace LibtorrentInteraction {
+namespace libtorrent_interaction {
 
   #define SET_LIBTORRENT_INTERACTION(o, name) SET_VAL(o, #name, createValue(name));
 

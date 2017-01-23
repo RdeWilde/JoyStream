@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 9 2017
  */
 
-#ifndef JOYSTREAM_NODE_BUYERTERMS_HPP
-#define JOYSTREAM_NODE_BUYERTERMS_HPP
+#ifndef JOYSTREAM_NODE_BUYER_TERMS_HPP
+#define JOYSTREAM_NODE_BUYER_TERMS_HPP
 
 #include <nan.h>
 
@@ -15,7 +15,7 @@ namespace protocol_wire {
   class BuyerTerms;
 }
 namespace node {
-namespace BuyerTerms {
+namespace buyer_terms {
 
   /**
    * Encoding o
@@ -32,4 +32,4 @@ namespace BuyerTerms {
 }
 }
 
-#endif // JOYSTREAM_NODE_BUYERTERMS_HPP
+#endif // JOYSTREAM_NODE_BUYER_TERMS_HPP
