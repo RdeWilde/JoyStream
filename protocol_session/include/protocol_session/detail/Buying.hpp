@@ -9,6 +9,8 @@
 #define JOYSTREAM_PROTOCOLSESSION_BUYING_HPP
 
 #include <protocol_session/Session.hpp>
+#include <protocol_session/detail/Connection.hpp>
+#include <protocol_session/Callbacks.hpp>
 #include <protocol_session/BuyingState.hpp>
 #include <protocol_session/detail/Piece.hpp>
 #include <protocol_session/detail/Seller.hpp>

@@ -109,6 +109,9 @@ namespace detail {
 
     };
 
+    template <class ConnectionIdType>
+    using ConnectionMap = std::map<ConnectionIdType, Connection<ConnectionIdType> *>;
+
 }
 }
 }
