@@ -12,16 +12,16 @@ namespace joystream {
 namespace node {
 namespace libtorrent_interaction {
 
-  #define SET_LIBTORRENT_INTERACTION(o, name) SET_VAL(o, #name, createValue(name));
+  #define SET_LIBTORRENT_INTERACTION(o, name) SET_VAL(o, #name, createValue(extension::TorrentPlugin::LibtorrentInteraction::name));
 
   NAN_MODULE_INIT(Init) {
 
     v8::Local<v8::Object> object = Nan::New<v8::Object>();
 
-    SET_LIBTORRENT_INTERACTION(object, extension::TorrentPlugin::LibtorrentInteraction::None);
-    SET_LIBTORRENT_INTERACTION(object, extension::TorrentPlugin::LibtorrentInteraction::BlockUploading);
-    SET_LIBTORRENT_INTERACTION(object, extension::TorrentPlugin::LibtorrentInteraction::BlockDownloading);
-    SET_LIBTORRENT_INTERACTION(object, extension::TorrentPlugin::LibtorrentInteraction::BlockUploadingAndDownloading);
+    SET_LIBTORRENT_INTERACTION(object, None);
+    SET_LIBTORRENT_INTERACTION(object, BlockUploading);
+    SET_LIBTORRENT_INTERACTION(object, BlockDownloading);
+    SET_LIBTORRENT_INTERACTION(object, BlockUploadingAndDownloading);
 
     SET_VAL(target, "LibtorrentInteraction", object);
   }
