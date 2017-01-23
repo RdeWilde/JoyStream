@@ -96,7 +96,7 @@ NAN_METHOD(SessionWrap::add_torrent) {
 
     v8::Local<v8::Value> argv[] = {
         Nan::Null(),
-        TorrentHandleWrap::New(th)
+        TorrentHandle::New(th)
     };
 
     callback->Call(2, argv);
@@ -195,7 +195,7 @@ NAN_METHOD(SessionWrap::find_torrent) {
   SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
   th = session_wrap->session_.s->find_torrent(info_hash);
 
-  info.GetReturnValue().Set(TorrentHandleWrap::New(th));
+  info.GetReturnValue().Set(TorrentHandle::New(th));
 }
 
 NAN_METHOD(SessionWrap::pop_alerts) {

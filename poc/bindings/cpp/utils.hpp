@@ -4,6 +4,7 @@
  * Proprietary and confidential
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
+ 
 #ifndef JOYSTREAM_NODE_ADDON_UTILS_HPP
 #define JOYSTREAM_NODE_ADDON_UTILS_HPP
 
