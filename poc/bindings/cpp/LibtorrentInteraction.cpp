@@ -49,7 +49,7 @@ namespace LibtorrentInteraction {
       case 2: return extension::TorrentPlugin::LibtorrentInteraction::BlockDownloading;
       case 3: return extension::TorrentPlugin::LibtorrentInteraction::BlockUploadingAndDownloading;
       default:
-        assert(false);
+        throw std::runtime_error("Could not decode LibtorrentInteraction: value not recognized");
     }
 
   }
