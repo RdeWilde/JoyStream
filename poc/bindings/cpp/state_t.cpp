@@ -20,14 +20,14 @@ namespace state_t {
 
     v8::Local<v8::Object> object = Nan::New<v8::Object>();
 
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::unused_enum_for_backwards_compatibility);
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::checking_files);
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::downloading_metadata);
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::downloading);
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::finished);
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::seeding);
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::allocating);
-    SET_STATE_T(object, libtorrent::torrent_status::state_t::checking_resume_data);
+    SET_STATE_T(object, unused_enum_for_backwards_compatibility);
+    SET_STATE_T(object, checking_files);
+    SET_STATE_T(object, downloading_metadata);
+    SET_STATE_T(object, downloading);
+    SET_STATE_T(object, finished);
+    SET_STATE_T(object, seeding);
+    SET_STATE_T(object, allocating);
+    SET_STATE_T(object, checking_resume_data);
 
     SET_VAL(target, "TorrentState", object);
   }
