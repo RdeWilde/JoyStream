@@ -14,7 +14,7 @@ namespace libtorrent {
 namespace node {
 namespace state_t {
 
-  #define SET_STATE_T(o, name) SET_VAL(o, #name, createValue(name));
+  #define SET_STATE_T(o, name) SET_VAL(o, #name, createValue(libtorrent::torrent_status::state_t::name));
 
   NAN_MODULE_INIT(Init) {
 
