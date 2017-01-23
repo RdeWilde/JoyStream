@@ -20,7 +20,7 @@ namespace joystream {
 namespace node {
 namespace seller_terms {
 
-v8::Local<v8::Object> createObject(const protocol_wire::SellerTerms & terms) {
+v8::Local<v8::Value> toValue(const protocol_wire::SellerTerms & terms) {
 
   v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
@@ -33,7 +33,13 @@ v8::Local<v8::Object> createObject(const protocol_wire::SellerTerms & terms) {
   return o;
 }
 
-protocol_wire::SellerTerms fromObject(const v8::Local<v8::Object> & o) {
+protocol_wire::SellerTerms fromValue(const v8::Local<v8::Value> & v) {
+
+  // Convert to object
+  if(!v->IsObject())
+    throw std::runtime_error("Argument must be dictionary.");
+
+  v8::Local<v8::Object> o = v->ToObject();
 
   return protocol_wire::SellerTerms(GET_INT64(o, MIN_PRICE_KEY),
                                     GET_UINT32(o, MIN_LOCK_KEY),

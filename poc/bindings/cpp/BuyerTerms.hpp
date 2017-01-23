@@ -25,7 +25,7 @@ namespace buyer_terms {
    * {Number} o.maxContractFeePerKb - max. pr. Kb contract tx fee in stats.
    */
 
-  v8::Local<v8::Value> createValue(const protocol_wire::BuyerTerms & terms);
+  v8::Local<v8::Value> toValue(const protocol_wire::BuyerTerms & terms);
   protocol_wire::BuyerTerms fromValue(const v8::Local<v8::Value> & o);
 
 }

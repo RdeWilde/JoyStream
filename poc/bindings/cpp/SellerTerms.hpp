@@ -27,8 +27,8 @@ namespace seller_terms {
    * {Number} o.settlementFee - (total) settlement tx fee in sats.
    */
 
-  v8::Local<v8::Object> createObject(const protocol_wire::SellerTerms & terms);
-  protocol_wire::SellerTerms fromObject(const v8::Local<v8::Object> & o);
+  v8::Local<v8::Value> toValue(const protocol_wire::SellerTerms & terms);
+  protocol_wire::SellerTerms fromValue(const v8::Local<v8::Value> & o);
 
 }
 }

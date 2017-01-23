@@ -19,7 +19,7 @@ namespace joystream {
 namespace node {
 namespace buyer_terms {
 
-v8::Local<v8::Value> createValue(const protocol_wire::BuyerTerms & terms) {
+v8::Local<v8::Value> toValue(const protocol_wire::BuyerTerms & terms) {
 
   v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
