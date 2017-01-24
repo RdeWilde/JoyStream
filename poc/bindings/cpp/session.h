@@ -22,9 +22,8 @@ class SessionWrap : public Nan::ObjectWrap {
   private:
     Session session_;
 
-    // Alert converters associated with installed plugins
-    // Is populated by add_extension calls
-    std::vector<libtorrent::node::plugin::converter> _converters;
+    // static boost::shared_ptr<libtorrent::session> createSession( /** some args **/ );
+    // boost::shared_ptr<libtorrent::session> session;
 
     static Nan::Persistent<v8::Function> constructor;
 
