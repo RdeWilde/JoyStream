@@ -228,7 +228,7 @@ NAN_METHOD(SessionWrap::add_extension) {
 NAN_METHOD(SessionWrap::pop_alerts) {
 
   // Recover session binding
-  SessionWrap * session = THIS(SessionWrap);
+  SessionWrap * session = Nan::ObjectWrap::Unwrap<SessionWrap>(info.This());
 
   // Get currently pending alerts from libtorrent
   std::vector<libtorrent::alert*> alerts;
@@ -238,25 +238,19 @@ NAN_METHOD(SessionWrap::pop_alerts) {
   v8::Local<v8::Array> ret = Nan::New<v8::Array>();
   for(const libtorrent::alert * alert : alerts) {
 
-    bool success;
-    DefaultAlertConverter(alert, v8::Local<v8::Object> & o, success);
+    // Iterate decoders to find match
+    for(AlertDecoder decoder : session->_decoders) {
 
-    if(!success) {
+      // decode
+      auto v = decoder(alert);
 
-      for(c : _converters) {
-
-        bool success;
-        c(alert, , success);
-
-        if(success)
-          continue;
-
-
+      // if decoded, then store, and break to next alert
+      if(v.is_initialized()) {
+        ret->Set(ret->Length(), v.get());
+        break;
       }
-    }
 
-    // Old style
-    ret->Set(ret->Length(), AlertWrap::New(alert));
+    }
   }
 
   info.GetReturnValue().Set(ret);
