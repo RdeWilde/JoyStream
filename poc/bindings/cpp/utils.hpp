@@ -230,5 +230,10 @@ T ToV8(const v8::Local<v8::Value> val) {
   }                                                                           \
   cls* var = Nan::ObjectWrap::Unwrap<cls>(info[i]->ToObject());
 
+#define EXPLOSIVE_ARGUMENT_REQUIRE_WRAPS(i, type, var)                        \
+if (!ARGUMENTS_IS_OBJECT(i)) {                                                \
+  return Nan::ThrowTypeError("Argument " #i " must be an Object");            \
+}                                                                             \
+type * var = Nan::ObjectWrap::Unwrap<type>(info[i]->ToObject());
 
 #endif
