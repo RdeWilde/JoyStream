@@ -12,7 +12,7 @@ uchar_vector NodeBufferToUCharVector(v8::Local<v8::Value> buffer) {
 }
 
 uchar_vector StringToUCharVector(v8::Local<v8::Value> value) {
-    auto hex = To<std::string>(value);
+    auto hex = ToNative<std::string>(value);
     uchar_vector data = uchar_vector(hex);
     return data;
 }

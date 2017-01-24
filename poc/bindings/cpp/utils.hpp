@@ -4,7 +4,7 @@
  * Proprietary and confidential
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
- 
+
 #ifndef JOYSTREAM_NODE_ADDON_UTILS_HPP
 #define JOYSTREAM_NODE_ADDON_UTILS_HPP
 
@@ -86,7 +86,7 @@ v8::Local<v8::Value> GetValue(const v8::Local<v8::Object> & o, const std::string
  * @brief Convert value to given native type instance
  */
 template<class T>
-T To(const v8::Local<v8::Value> & val) {
+T ToNative(const v8::Local<v8::Value> & val) {
 
   // // Native types conversions
   // https://github.com/nodejs/nan/blob/master/doc/converters.md#api_nan_to
@@ -99,14 +99,37 @@ T To(const v8::Local<v8::Value> & val) {
   Nan::Maybe<T> maybeT = Nan::To<T>(val);
 
   if(!maybeT.IsJust())
-    throw std::runtime_error("Value malformed, conversion failed.");
+    throw std::runtime_error("conversion to desired type failed");
   else
     return maybeT.FromJust();
 }
 
 // We have to specialize for std::string, as To returns MaybeLocal, not Maybe as above.
 template<>
-std::string To(const v8::Local<v8::Value> & val);
+std::string ToNative(const v8::Local<v8::Value> & val);
+
+/**
+ * @briaf Convert value to given v8 type instance, or throw.
+ */
+template<class T>
+T ToV8(const v8::Local<v8::Value> val) {
+
+  // // V8 types
+  // Nan::MaybeLocal<v8::Boolean> Nan::To<v8::Boolean>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Int32> Nan::To<v8::Int32>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Integer> Nan::To<v8::Integer>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Object> Nan::To<v8::Object>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Number> Nan::To<v8::Number>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::String> Nan::To<v8::String>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Uint32> Nan::To<v8::Uint32>(v8::Local<v8::Value> val);
+
+  Nan::MaybeLocal<T> maybeLocal = Nan::To<T>(val);
+
+  if(maybeLocal.IsEmpty())
+    throw std::runtime_error("conversion to desired type failed");
+  else
+    return maybeLocal.ToLocalChecked();
+}
 
 /**
  * Object getters.
@@ -118,22 +141,22 @@ std::string To(const v8::Local<v8::Value> & val);
 #define GET_VAL(o, key)           (GetValue(o, key))
 
 // @return {int32_t}
-#define GET_INT32(o, key)         (To<int32_t>(GET_VAL(o, key)))
+#define GET_INT32(o, key)         (ToNative<int32_t>(GET_VAL(o, key)))
 
 // @return {uint32_t}
-#define GET_UINT32(o, key)        (To<uint32_t>(GET_VAL(o, key)))
+#define GET_UINT32(o, key)        (ToNative<uint32_t>(GET_VAL(o, key)))
 
 // @return {int64_t}
-#define GET_INT64(o, key)         (To<int64_t>(GET_VAL(o, key)))
+#define GET_INT64(o, key)         (ToNative<int64_t>(GET_VAL(o, key)))
 
 // @return {double}
-#define GET_DOUBLE(o, key)        (To<double>(GET_VAL(o, key)))
+#define GET_DOUBLE(o, key)        (ToNative<double>(GET_VAL(o, key)))
 
 // @return {bool}
-#define GET_BOOL(o, key)          (To<bool>(GET_VAL(o, key)))
+#define GET_BOOL(o, key)          (ToNative<bool>(GET_VAL(o, key)))
 
 // @return {std::string}
-#define GET_STD_STRING(o, key)    (To<std::string>(GET_VAL(o, key)))
+#define GET_STD_STRING(o, key)    (ToNative<std::string>(GET_VAL(o, key)))
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Utility macros from @fanatid in macro.hpp@a4901b

@@ -20,7 +20,7 @@ v8::Local<v8::Object> toObject(const libtorrent::tcp::endpoint & ep) {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    SET_VAL(o, ADDRESS_KEY, libtorrent::node::address::toObject(ep.address()));
+    SET_VAL(o, ADDRESS_KEY, libtorrent::node::address::encode(ep.address()));
     SET_UINT32(o, PORT_KEY, ep.port());
 
     return o;
@@ -32,7 +32,7 @@ libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o) {
 
   v8::Local<v8::Value> addressValue = GET_VAL(o, ADDRESS_KEY);
 
-  libtorrent::address a = address::fromObject(addressValue);
+  libtorrent::address a = address::decode(addressValue);
   uint32_t port = GET_UINT32(o, PORT_KEY);
 
   endpoint.address(a);
