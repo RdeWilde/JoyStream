@@ -26,6 +26,11 @@ SOURCES += \
     SellingNavigator.cpp \
     BuyingNavigator.cpp
 
+# GTest configs
+QMAKE_CXXFLAGS +=-pthread
+LIBS += -pthread
+LIBS += -lgtest
+
 # protocol_statemachine ###########################################################################
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../protocol_statemachine/release/ -lprotocol_statemachine

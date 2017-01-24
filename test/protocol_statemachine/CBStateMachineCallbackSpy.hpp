@@ -72,7 +72,7 @@ public:
 
     bool contractHasBeenPrepared() const;
     Coin::typesafeOutPoint anchor() const;
-    quint64 value() const;
+    uint64_t value() const;
     Coin::PublicKey contractPk() const;
     Coin::PubKeyHash finalPkHash() const;
 
@@ -131,7 +131,7 @@ private:
     // ContractIsReady
     bool _contractHasBeenPrepared;
     Coin::typesafeOutPoint _anchor;
-    quint64 _value;
+    uint64_t _value;
     Coin::PublicKey _contractPk;
     Coin::PubKeyHash _finalPkHash;
 
