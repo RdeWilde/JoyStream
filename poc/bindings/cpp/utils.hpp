@@ -236,4 +236,16 @@ if (!ARGUMENTS_IS_OBJECT(i)) {                                                \
 }                                                                             \
 type * var = Nan::ObjectWrap::Unwrap<type>(info[i]->ToObject());
 
+// Tries to decode the ith argument (info[i]) using decoder of given
+// class (cls::decode). Requires that class (cls) also has default constructor
+// Throws javascript exception if it fails
+#define ARGUMENTS_REQUIRE_DECODED(i, cls, var)                                 \
+  REQUIRE_ARGUMENTS(i)                                                         \
+  cls var;                                                                     \
+  try {                                                                        \
+    var = cls::decode(info[i]);                                                \
+  } catch(const std::runtime_error & e) {                                      \
+    return Nan::ThrowTypeError(std::string("Argument " #i " could not be decoded into " #cls " : ") + e.what()); \
+  }
+
 #endif
