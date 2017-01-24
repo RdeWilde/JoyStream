@@ -217,11 +217,15 @@ T ToV8(const v8::Local<v8::Value> val) {
 #define ARGUMENTS_IS_OBJECT(i)                                               \
   (info.Length() >= (i) && info[i]->IsObject())
 
-#define ARGUMENTS_IS_INSTANCE(i, cls)                                         \
-  (ARGUMENTS_IS_OBJECT(i) && Nan::New(cls::prototype)->HasInstance(info[i]))
+///////////////////////////////////
 
-#define ARGUMENTS_REQUIRE_INSTANCE(i, cls, var)                               \
-  if (!ARGUMENTS_IS_INSTANCE(i, cls)) {                                       \
+// Requires that class has public:
+// static Nan::Persistent<v8::Function> constructor
+#define ARGUMENTS_IS_DIRECT_INSTANCE(i, cls)                                  \
+  (ARGUMENTS_IS_OBJECT(i) && (cls::constructor == (info[i]->ToObject()).GetPrototype()))
+
+#define ARGUMENTS_REQUIRE_DIRECT_INSTANCE(i, cls, var)                        \
+  if (!ARGUMENTS_IS_DIRECT_INSTANCE(i, cls)) {                                \
     return Nan::ThrowTypeError("Argument " #i " must be a " #cls);            \
   }                                                                           \
   cls* var = Nan::ObjectWrap::Unwrap<cls>(info[i]->ToObject());
