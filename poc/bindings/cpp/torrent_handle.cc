@@ -127,7 +127,7 @@ NAN_METHOD(TorrentHandle::get_peer_info) {
     Local<Array> ret = Nan::New<Array>();
 
     for(libtorrent::peer_info i : res)
-      ret->Set(ret->Length(), libtorrent::node::peer_info::toObject(i));
+      ret->Set(ret->Length(), libtorrent::node::peer_info::encode(i));
 
     info.GetReturnValue().Set(ret);
 };

@@ -16,7 +16,7 @@ namespace libtorrent {
 namespace node {
 namespace endpoint {
 
-v8::Local<v8::Object> toObject(const libtorrent::tcp::endpoint & ep) {
+v8::Local<v8::Object> encode(const libtorrent::tcp::endpoint & ep) {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 

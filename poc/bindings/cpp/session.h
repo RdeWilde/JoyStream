@@ -2,7 +2,7 @@
 #define SESSION_H
 
 #include <nan.h>
-#include "alert.h"
+#include "alert.hpp"
 #include "torrent_handle.h"
 #include "plugin.hpp" //
 #include <iostream>
