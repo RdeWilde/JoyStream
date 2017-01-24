@@ -16,17 +16,19 @@ namespace libtorrent {
 namespace node {
 namespace torrent_status {
 
-v8::Local<v8::Object> toObject(const libtorrent::torrent_status & ts) {
+v8::Local<v8::Object> encode(const libtorrent::torrent_status & ts) {
   v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-  SET_VAL(o, INFO_HASH_KEY, info_hash::toObject(ts.info_hash));
+  SET_VAL(o, INFO_HASH_KEY, info_hash::encode(ts.info_hash));
   SET_VAL(o, STATE_KEY, state_t::createValue(ts.state));
   SET_DOUBLE(o, PROGRESS_KEY, ts.progress);
 
   return o;
 }
 
-libtorrent::torrent_status fromObject(const v8::Local<v8::Object> & o) {
+libtorrent::torrent_status decode(const v8::Local<v8::Object> & o) {
+
+  throw std::runtime_error("Not yet implemented?");
 
 }
 
