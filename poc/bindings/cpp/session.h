@@ -11,6 +11,9 @@
 
 #include <vector>
 
+namespace libtorrent {
+namespace node {
+
 class SessionWrap : public Nan::ObjectWrap {
   public:
     static NAN_MODULE_INIT(Init);
@@ -45,5 +48,7 @@ class SessionWrap : public Nan::ObjectWrap {
 
 };
 
+}
+}
 
 #endif

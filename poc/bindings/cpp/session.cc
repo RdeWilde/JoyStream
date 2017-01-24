@@ -1,9 +1,8 @@
 #include "session.h"
 #include "plugin.hpp"
 
-// Wrapper Impl
-
-Nan::Persistent<v8::Function> SessionWrap::constructor;
+namespace libtorrent {
+namespace node {
 
 NAN_MODULE_INIT(SessionWrap::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
@@ -337,6 +336,8 @@ boost::optional<v8::Local<v8::Object>> DefaultAlertDecoder(const libtorrent::ale
   */
 
   return v;
+
+}
 
 }
 }
