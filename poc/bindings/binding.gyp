@@ -41,6 +41,7 @@
                 "joystream-node/TransactionId.cpp",
                 "joystream-node/Connection.cpp",
                 "joystream-node/buffers.cpp"
+                "cpp/payment_channel.cpp",
                 # Others
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
