@@ -3,13 +3,13 @@
 
 namespace joystream {
 namespace node {
-namespace pubkeyhash {
+namespace pubkey_hash {
 
-v8::Local<v8::Value> toValue(const Coin::PubKeyHash &hash) {
+v8::Local<v8::Object> encode(const Coin::PubKeyHash &hash) {
     return UCharVectorBasedToV8Value<Coin::PubKeyHash>(hash);
 }
 
-Coin::PubKeyHash fromValue(const v8::Local<v8::Value>& value) {
+Coin::PubKeyHash decode(const v8::Local<v8::Value>& value) {
     return V8ValueToUCharVectorBased<Coin::PubKeyHash>(value);
 }
 
