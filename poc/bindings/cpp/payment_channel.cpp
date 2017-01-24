@@ -9,13 +9,14 @@
 
 namespace joystream {
 namespace node {
+namespace payment_channel {
 
   #define VALUE_KEY "value"
   #define PAYOR_KEY "payor"
   #define PAYEE_KEY "payee"
   #define LOCKTIME_KEY "locktime"
 
-  NAN_MODULE_INIT(InitPaymentChannel) {
+  NAN_MODULE_INIT(Init) {
 
     Nan::Set(target, Nan::New("commitmentToOutput").ToLocalChecked(),
       Nan::New<v8::FunctionTemplate>(CommitmentToOutput)->GetFunction());
@@ -44,18 +45,39 @@ namespace node {
     }
 
     auto obj = Nan::To<v8::Object>(commitment).ToLocalChecked();
-    GET_VAL(obj, VALUE_KEY);
-    GET_VAL(obj, LOCKTIME_KEY);
-    auto value = GET_INT64(obj, VALUE_KEY); // Number satoshi
+
+    auto value = GET_VAL(obj, VALUE_KEY);
+
+    if(!value->IsNumber()){
+      throw std::runtime_error("value key is not a Number");
+    }
+
+    int64_t outputValue = To<int64_t>(value); // Number satoshi
+
+    if(outputValue < 0) {
+      throw std::runtime_error("value is negative");
+    }
+
+    auto locktime = GET_VAL(obj, LOCKTIME_KEY);
+
+    if(!locktime->IsNumber()){
+      throw std::runtime_error("locktime key is not a Number");
+    }
+
+    int32_t relativeLocktime = To<int32_t>(locktime); // Number locktime counter;
+    if(relativeLocktime < 0) {
+      throw std::runtime_error("locktime value is negative");
+    }
+
     auto payor = GET_VAL(obj, PAYOR_KEY); // public_key
+
     auto payee = GET_VAL(obj, PAYEE_KEY); // public_key
-    auto locktime = GET_INT32(obj, LOCKTIME_KEY); // Number locktime counter
-std::cout << "locktime:" << locktime << std::endl;
-    return paymentchannel::Commitment(value,
+
+    return paymentchannel::Commitment(outputValue,
                                       public_key::decode(payor),
                                       public_key::decode(payee),
                                       //relative_locktime::decode(locktime)); //todo
-                                      Coin::RelativeLockTime::fromBlockUnits(locktime));
+                                      Coin::RelativeLockTime::fromBlockUnits(relativeLocktime));
   }
 
-}}
+}}}

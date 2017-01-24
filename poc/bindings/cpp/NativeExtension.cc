@@ -21,7 +21,7 @@ NAN_MODULE_INIT(InitAll) {
   TorrentInfo::Init(target);
   libtorrent::node::SessionWrap::Init(target);
 
-  joystream::node::InitPaymentChannel(target);
+  joystream::node::payment_channel::Init(target);
 
   InitExtension(target);
 }
