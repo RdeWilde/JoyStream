@@ -23,10 +23,7 @@ namespace payment_channel {
   }
 
   NAN_METHOD(CommitmentToOutput) {
-    if(info.Length() < 1) {
-      Nan::ThrowTypeError("missing commitment argument");
-      return;
-    }
+    REQUIRE_ARGUMENTS(1)
 
     try {
       paymentchannel::Commitment commitment = decode(info[0]);
@@ -44,7 +41,7 @@ namespace payment_channel {
         throw std::runtime_error("argument not an Object");
     }
 
-    auto obj = Nan::To<v8::Object>(commitment).ToLocalChecked();
+    auto obj = ToV8<v8::Object>(commitment);
 
     auto value = GET_VAL(obj, VALUE_KEY);
 
@@ -52,7 +49,7 @@ namespace payment_channel {
       throw std::runtime_error("value key is not a Number");
     }
 
-    int64_t outputValue = To<int64_t>(value); // Number satoshi
+    int64_t outputValue = ToNative<int64_t>(value); // Number satoshi
 
     if(outputValue < 0) {
       throw std::runtime_error("value is negative");
@@ -64,7 +61,7 @@ namespace payment_channel {
       throw std::runtime_error("locktime key is not a Number");
     }
 
-    int32_t relativeLocktime = To<int32_t>(locktime); // Number locktime counter;
+    int32_t relativeLocktime = ToNative<int32_t>(locktime); // Number locktime counter;
     if(relativeLocktime < 0) {
       throw std::runtime_error("locktime value is negative");
     }
@@ -77,7 +74,7 @@ namespace payment_channel {
                                       public_key::decode(payor),
                                       public_key::decode(payee),
                                       //relative_locktime::decode(locktime)); //todo
-                                      Coin::RelativeLockTime::fromBlockUnits(relativeLocktime));
+                                      Coin::RelativeLockTime::fromTimeUnits(relativeLocktime));
   }
 
 }}}
