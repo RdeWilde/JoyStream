@@ -40,9 +40,10 @@ class SessionWrap : public Nan::ObjectWrap {
     static NAN_METHOD(dht_announce);
     static NAN_METHOD(dht_get_peers);
 
+    // Default alert decoder
+    static boost::optional<v8::Local<v8::Object>> DefaultAlertDecoder(const libtorrent::alert *);
+
 };
 
-// Alert converter for (subset) of built in libtorrent alerts
-static void DefaultAlertConverter(const libtorrent::alert *, v8::Local<v8::Object> & o, bool success);
 
 #endif
