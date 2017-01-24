@@ -4,6 +4,11 @@
 namespace libtorrent {
 namespace node {
 
+
+Nan::Persistent<v8::Function> SessionWrap::constructor;
+
+Nan::Callback SessionWrap::_alertNotifier;
+
 NAN_MODULE_INIT(SessionWrap::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("Session").ToLocalChecked());
