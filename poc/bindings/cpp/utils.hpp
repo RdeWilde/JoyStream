@@ -230,20 +230,5 @@ T ToV8(const v8::Local<v8::Value> val) {
   }                                                                           \
   cls* var = Nan::ObjectWrap::Unwrap<cls>(info[i]->ToObject());
 
-///////////////////////////////////
-
-// Recover object wrapped on this object
-#define THIS(cls)                                                             \
-  Nan::ObjectWrap::Unwrap<cls>(info.This())                                   \
-
-// Recover type from object encoding
-#define ARGUMENTS_REQUIRE_OBJECT(i, type, var)                                \
-  type var;                                                                   \
-  try {                                                                       \
-    var = fromValue(info[i]);                                                 \
-  } catch (const std::runtime_error & e) {                                    \
-    std::string m("Argument " #i " is not a " #type " object: ");             \
-    return Nan::ThrowTypeError(m + e.what());                                 \
-  }
 
 #endif
