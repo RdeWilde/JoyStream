@@ -31,6 +31,9 @@ class SessionWrap : public Nan::ObjectWrap {
     // Persistent handle set in set_alert_notify, signaling alert queue becoming non-empty
     static Nan::Callback _alertNotifier;
 
+    // Alert decoders used, in order.
+    std::vector<AlertDecoder> _decoders;
+
     static NAN_METHOD(New);
     static NAN_METHOD(add_torrent);
     static NAN_METHOD(remove_torrent);
@@ -40,7 +43,11 @@ class SessionWrap : public Nan::ObjectWrap {
     static NAN_METHOD(is_paused);
     static NAN_METHOD(resume);
     static NAN_METHOD(find_torrent);
-    static NAM_METHOD(add_extension);
+
+#ifndef TORRENT_DISABLE_EXTENSIONS
+    static NAN_METHOD(add_extension);
+#endif // TORRENT_DISABLE_EXTENSIONS
+
     static NAN_METHOD(pop_alerts);
     static NAN_METHOD(set_alert_notify);
     static NAN_METHOD(dht_announce);

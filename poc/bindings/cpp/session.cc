@@ -207,20 +207,23 @@ NAN_METHOD(SessionWrap::find_torrent) {
   info.GetReturnValue().Set(TorrentHandle::New(th));
 }
 
-NAM_METHOD(SessionWrap::add_extension) {
+#ifndef TORRENT_DISABLE_EXTENSIONS
+NAN_METHOD(SessionWrap::add_extension) {
 
   // Recover the plugin binding
-  ARGUMENTS_REQUIRE_INSTANCE(0, libtorrent::node::plugin, p)
+  // ***** USER MUST SUPPLY WRAPPED OBJECT OF CORRECT KIND, OR V8 DIES *****
+  EXPLOSIVE_ARGUMENT_REQUIRE_WRAPS(0, libtorrent::node::plugin, p)
 
   // Recover session binding
-  SessionWrap * session = THIS(SessionWrap);
+  SessionWrap * session = Nan::ObjectWrap::Unwrap<SessionWrap>(info.This());
 
   // Add underlying plugin to underlying session
-  session->session_.add_extension(p->getPlugin());
+  session->session_.s->add_extension(p->getPlugin());
 
   // Get alert converter for plugin, and add it to list of converters.
-  session->_converters.push_back(p->getConverter())
+  session->_decoders.push_back(p->getDecoder());
 }
+#endif // TORRENT_DISABLE_EXTENSIONS
 
 NAN_METHOD(SessionWrap::pop_alerts) {
 
