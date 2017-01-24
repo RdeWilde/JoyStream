@@ -112,7 +112,7 @@ std::string ToNative(const v8::Local<v8::Value> & val);
  * @briaf Convert value to given v8 type instance, or throw.
  */
 template<class T>
-T ToV8(const v8::Local<v8::Value> val) {
+v8::Local<T> ToV8(const v8::Local<v8::Value> val) {
 
   // // V8 types
   // Nan::MaybeLocal<v8::Boolean> Nan::To<v8::Boolean>(v8::Local<v8::Value> val);
