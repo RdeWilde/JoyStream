@@ -59,7 +59,7 @@ UCharArray<array_length>::UCharArray(const std::string & hexEncoded) {
         throw std::runtime_error(s.str());
 
     } else {
-        UCharArray<array_length>(Coin::toUCharVector(hexEncoded));
+        UCharArray<array_length>(uchar_vector(hexEncoded));
     }
 }
 
