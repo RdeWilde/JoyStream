@@ -28,6 +28,9 @@ class SessionWrap : public Nan::ObjectWrap {
 
     static Nan::Persistent<v8::Function> constructor;
 
+    // Persistent handle set in set_alert_notify, signaling alert queue becoming non-empty
+    static Nan::Callback _alertNotifier;
+
     static NAN_METHOD(New);
     static NAN_METHOD(add_torrent);
     static NAN_METHOD(remove_torrent);

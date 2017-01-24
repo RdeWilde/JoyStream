@@ -261,15 +261,17 @@ NAN_METHOD(SessionWrap::pop_alerts) {
 
 NAN_METHOD(SessionWrap::set_alert_notify) {
 
-  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  ARGUMENTS_REQUIRE_FUNCTION(0, fn);
 
-  /*
-   * Need to define the logic here
-   */
+  // Recover session binding
+  SessionWrap* session_wrap = Nan::ObjectWrap::Unwrap<SessionWrap>(info.This());
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  // Store persistent handle to callback
+  _alertNotifier.Reset(fn);
+
+  // Set alert notifier on libtorrent session
+  session_wrap->session_.s->set_alert_notify([]() { _alertNotifier(0, {}); });
 }
-
 
 NAN_METHOD(SessionWrap::dht_announce) {
   libtorrent::sha1_hash info_hash;
