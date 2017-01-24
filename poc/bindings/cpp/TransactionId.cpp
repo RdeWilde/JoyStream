@@ -4,14 +4,14 @@
 
 namespace joystream {
 namespace node {
-namespace transactionid {
+namespace transaction_id {
 
 
-v8::Local<v8::Value> toValue(const Coin::TransactionId &id) {
+v8::Local<v8::Object> encode(const Coin::TransactionId &id) {
     return UCharVectorBasedToV8Value<Coin::TransactionId>(id);
 }
 
-Coin::TransactionId fromValue(const v8::Local<v8::Value>& value) {
+Coin::TransactionId decode(const v8::Local<v8::Value>& value) {
     auto data = NodeBufferToUCharVector(value);
     return Coin::TransactionId::fromRPCByteOrder(data);
 }
