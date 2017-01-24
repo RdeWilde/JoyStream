@@ -17,7 +17,7 @@ uchar_vector StringToUCharVector(v8::Local<v8::Value> value) {
     return data;
 }
 
-v8::Local<v8::Value> UCharVectorToNodeBuffer(uchar_vector &data) {
+v8::Local<v8::Object> UCharVectorToNodeBuffer(uchar_vector &data) {
     auto buf = Nan::NewBuffer(data.size()).ToLocalChecked();
     auto pbuf = ::node::Buffer::Data(buf);
     //copyToArray should really have been marked const since it doesn't modify s_frk_state

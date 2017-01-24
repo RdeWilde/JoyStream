@@ -30,7 +30,7 @@ uchar_vector NodeBufferToUCharVector(v8::Local<v8::Value>);
  * @param uchar_vector data
  * @return {v8::Local<v8::Value>} node Buffer
  */
-v8::Local<v8::Value> UCharVectorToNodeBuffer(uchar_vector&);
+v8::Local<v8::Object> UCharVectorToNodeBuffer(uchar_vector&);
 
 
 /* @brief Convert types derived from Coin::UCharArray<> to a Node Buffer.
@@ -38,7 +38,7 @@ v8::Local<v8::Value> UCharVectorToNodeBuffer(uchar_vector&);
  * @return {v8::Local<v8::Value>} node Buffer
  */
 template<class T>
-v8::Local<v8::Value> UCharVectorBasedToV8Value(const T &t) {
+v8::Local<v8::Object> UCharVectorBasedToV8Value(const T &t) {
     uchar_vector data = t.toUCharVector();
     auto buf = UCharVectorToNodeBuffer(data);
     return buf;

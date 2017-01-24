@@ -4,13 +4,13 @@
 
 namespace joystream {
 namespace node {
-namespace publickey {
+namespace public_key {
 
-v8::Local<v8::Value> toValue(const Coin::PublicKey &pk) {
+v8::Local<v8::Object> encode(const Coin::PublicKey &pk) {
     return UCharVectorBasedToV8Value<Coin::PublicKey>(pk);
 }
 
-Coin::PublicKey fromValue(const v8::Local<v8::Value>& value) {
+Coin::PublicKey decode(const v8::Local<v8::Value>& value) {
     return V8ValueToUCharVectorBased<Coin::PublicKey>(value);
 }
 
