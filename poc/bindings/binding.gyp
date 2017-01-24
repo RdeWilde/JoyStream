@@ -3,21 +3,20 @@
         {
             "target_name": "NativeExtension",
             "sources": [
-                "cpp/plugin_alert_to_object_converter.cpp",
-                "cpp/Alert.cpp",
                 "cpp/NativeExtension.cc",
                 # Libtorrent
-				"cpp/Alert.cpp",
+				"cpp/alert.cpp",
                 "cpp/info_hash.cpp",
                 "cpp/session.cc",
                 "cpp/torrent_handle.cc",
                 "cpp/torrent_status.cc",
-                "cpp/alert.cc",
                 "cpp/torrent_info.cc",
                 "cpp/add_torrent_params.cpp",
                 "cpp/endpoint.cpp",
                 "cpp/peer_info.cpp",
                 "cpp/bencode.cc",
+                "cpp/entry.cpp",
+                "cpp/error_code.cpp",
                 # Extension
                 "cpp/extension/init.cpp",
                 "cpp/extension/TorrentPluginStatus.cpp",

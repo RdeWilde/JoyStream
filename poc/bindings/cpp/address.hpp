@@ -17,7 +17,7 @@ namespace address {
 
   // Address is encoded as a string in dotted decimal format.
 
-  v8::Local<v8::Value> toObject(const libtorrent::address & a);
+  v8::Local<v8::Value> encode(const libtorrent::address & a);
   libtorrent::address fromObject(const v8::Local<v8::Value> & o);
 
 }}}

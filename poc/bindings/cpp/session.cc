@@ -208,7 +208,7 @@ NAN_METHOD(SessionWrap::pop_alerts) {
   session_wrap->session_.s->pop_alerts(&alerts);
 
   for(const libtorrent::alert * alert : alerts)
-    ret->Set(ret->Length(), AlertWrap::New(alert));
+    ret->Set(ret->Length(), libtorrent::node::alert_types::encode(*alert));
 
   info.GetReturnValue().Set(ret);
 }

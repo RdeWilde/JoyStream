@@ -31,7 +31,7 @@ namespace torrent_status {
    * }
    */
 
- v8::Local<v8::Object> toObject(const libtorrent::torrent_status & s);
+ v8::Local<v8::Object> encode(const libtorrent::torrent_status & s);
  libtorrent::torrent_status fromObject(const v8::Local<v8::Object> & o);
 
 }}}

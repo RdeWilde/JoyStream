@@ -19,7 +19,7 @@ namespace info_hash {
    * Encoded as hex string.
    */
 
- v8::Local<v8::Value> toObject(const libtorrent::sha1_hash & h);
+ v8::Local<v8::Value> encode(const libtorrent::sha1_hash & h);
  libtorrent::sha1_hash fromObject(const v8::Local<v8::Value> & o);
 
 }}}

@@ -1,5 +1,4 @@
 #include "session.h"
-#include "alert.h"
 #include "torrent_handle.h"
 #include "torrent_info.h"
 #include "bencode.h"
@@ -16,7 +15,6 @@ NAN_MODULE_INIT(InitAll) {
   Nan::Set(target, Nan::New<v8::String>("BEncode").ToLocalChecked(),
     Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
 
-  AlertWrap::Init(target);
   TorrentHandle::Init(target);
   TorrentInfo::Init(target);
   SessionWrap::Init(target);

@@ -12,7 +12,7 @@ namespace libtorrent {
 namespace node {
 namespace info_hash {
 
-v8::Local<v8::Value> toObject(const libtorrent::sha1_hash & h) {
+v8::Local<v8::Value> encode(const libtorrent::sha1_hash & h) {
   v8::Local<v8::String> localHexString = Nan::New(h.to_string()).ToLocalChecked();
 
   return localHexString;

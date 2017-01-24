@@ -16,11 +16,11 @@ namespace libtorrent {
 namespace node {
 namespace endpoint {
 
-v8::Local<v8::Object> toObject(const libtorrent::tcp::endpoint & ep) {
+v8::Local<v8::Object> encode(const libtorrent::tcp::endpoint & ep) {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    SET_VAL(o, ADDRESS_KEY, libtorrent::node::address::toObject(ep.address()));
+    SET_VAL(o, ADDRESS_KEY, libtorrent::node::address::encode(ep.address()));
     SET_UINT32(o, PORT_KEY, ep.port());
 
     return o;

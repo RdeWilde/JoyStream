@@ -2,8 +2,9 @@
 #define SESSION_H
 
 #include <nan.h>
-#include "alert.h"
+#include "alert.hpp"
 #include "torrent_handle.h"
+#include "alert.cpp"
 #include <iostream>
 //#include <extension/extension.hpp>
 #include <joystream_libtorrent_session/Session.hpp>

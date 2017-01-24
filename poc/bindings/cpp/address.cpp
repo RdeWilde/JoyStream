@@ -14,7 +14,7 @@ namespace libtorrent {
 namespace node {
 namespace address {
 
-v8::Local<v8::Value> toObject(const libtorrent::address & a) {
+v8::Local<v8::Value> encode(const libtorrent::address & a) {
 
     std::string addressString = libtorrent::print_address(a);
     v8::Local<v8::String> v = Nan::New<v8::String>(addressString).ToLocalChecked();
