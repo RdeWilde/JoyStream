@@ -20,7 +20,7 @@ namespace joystream {
 namespace node {
 namespace seller_terms {
 
-v8::Local<v8::Value> toValue(const protocol_wire::SellerTerms & terms) {
+v8::Local<v8::Value> encode(const protocol_wire::SellerTerms & terms) {
 
   v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
@@ -33,7 +33,7 @@ v8::Local<v8::Value> toValue(const protocol_wire::SellerTerms & terms) {
   return o;
 }
 
-protocol_wire::SellerTerms fromValue(const v8::Local<v8::Value> & v) {
+protocol_wire::SellerTerms decode(const v8::Local<v8::Value> & v) {
 
   // Convert to object
   if(!v->IsObject())
