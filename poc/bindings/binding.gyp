@@ -18,26 +18,21 @@
                 "cpp/state_t.cpp",
                 "cpp/entry.cpp",
                 "cpp/error_code.cpp",
-                # Extension
-                "cpp/extension/init.cpp",
-                "cpp/extension/TorrentPluginStatus.cpp",
-                "cpp/extension/PeerPluginStatus.cpp",
-                "cpp/BuyerTerms.cpp",
-                "cpp/SellerTerms.cpp",
-                "cpp/LibtorrentInteraction.cpp",
-                # Common
-                "cpp/Transaction.cpp",
-                "cpp/PrivateKey.cpp",
-                "cpp/PubKeyHash.cpp",
-                "cpp/PublicKey.cpp",
-                "cpp/OutPoint.cpp",
-                "cpp/TransactionId.cpp",
-                # Protocol Session
-                "cpp/protocol_session/init.cpp",
-                "cpp/protocol_session/Connection.cpp",
-                # Util
-                "cpp/buffers.cpp",
                 "cpp/utils.cpp",
+                # Extension
+                "cpp/joystream-node/TorrentPluginStatus.cpp",
+                "cpp/joystream-node/PeerPluginStatus.cpp",
+                "cpp/joystream-node/BuyerTerms.cpp",
+                "cpp/joystream-node/SellerTerms.cpp",
+                "cpp/joystream-node/LibtorrentInteraction.cpp",
+                "cpp/joystream-node/Transaction.cpp",
+                "cpp/joystream-node/PrivateKey.cpp",
+                "cpp/joystream-node/PubKeyHash.cpp",
+                "cpp/joystream-node/PublicKey.cpp",
+                "cpp/joystream-node/OutPoint.cpp",
+                "cpp/joystream-node/TransactionId.cpp",
+                "cpp/joystream-node/Connection.cpp",
+                "cpp/joystream-node/buffers.cpp",
                 # Others
                 "../src/Session.cpp"
                 ],

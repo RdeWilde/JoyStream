@@ -1,4 +1,4 @@
-#include <addon/extension/PeerPluginStatus.hpp>
+#include "PeerPluginStatus.hpp"
 
 namespace joystream {
 namespace addon {

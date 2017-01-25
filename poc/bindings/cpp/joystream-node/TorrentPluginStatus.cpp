@@ -1,4 +1,4 @@
-#include <addon/extension/TorrentPluginStatus.hpp>
+#include "TorrentPluginStatus.hpp"
 
 namespace joystream {
 namespace addon {
