@@ -2,8 +2,6 @@
 #include "torrent_handle.h"
 #include "torrent_info.h"
 #include "bencode.h"
-#include "joystream-node/SellerTerms.hpp"
-#include "joystream-node/BuyerTerms.hpp"
 #include <nan.h>
 
 // NativeExtension.cc represents the top level of the module.
