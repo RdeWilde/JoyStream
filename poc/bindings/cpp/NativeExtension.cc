@@ -1,4 +1,4 @@
-#include "session.h"
+#include "session.hpp"
 #include "torrent_handle.h"
 #include "torrent_info.h"
 #include "bencode.h"
@@ -13,11 +13,11 @@ NAN_MODULE_INIT(InitExtension);
 
 NAN_MODULE_INIT(InitAll) {
 
-  SET_VAL(target, "BEncode", Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());  
+  SET_VAL(target, "BEncode", Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
 
   TorrentHandle::Init(target);
   TorrentInfo::Init(target);
-  libtorrent::node::SessionWrap::Init(target);
+  libtorrent::node::Session::Init(target);
 
   InitExtension(target);
 }

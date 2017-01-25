@@ -4,7 +4,8 @@
 #include <nan.h>
 #include "alert.hpp"
 #include "torrent_handle.h"
-#include "plugin.hpp" //
+#include "plugin.hpp"
+#include "info_hash.hpp"
 #include <iostream>
 //#include <extension/extension.hpp>
 #include <joystream_libtorrent_session/Session.hpp>
@@ -14,10 +15,9 @@
 namespace libtorrent {
 namespace node {
 
-class SessionWrap : public Nan::ObjectWrap {
+class Session : public Nan::ObjectWrap {
   public:
     static NAN_MODULE_INIT(Init);
-    static libtorrent::sha1_hash object_to_sha1_hash(Local<Value> infoHash);
 
   private:
     Session session_;
@@ -57,7 +57,6 @@ class SessionWrap : public Nan::ObjectWrap {
 
 };
 
-}
-}
+}}
 
 #endif
