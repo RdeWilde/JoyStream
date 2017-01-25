@@ -1,4 +1,5 @@
 {
+  "name": "joystream",
   "main": "index.js",
   "scripts": {
     "preinstall" : "sh link_qt_headers.sh",
