@@ -14,8 +14,7 @@ NAN_MODULE_INIT(InitExtension);
 
 NAN_MODULE_INIT(InitAll) {
 
-  Nan::Set(target, Nan::New<v8::String>("BEncode").ToLocalChecked(),
-  Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
+  SET_VAL(target, "BEncode", Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());  
   AlertWrap::Init(target);
   TorrentHandle::Init(target);
   TorrentInfo::Init(target);
