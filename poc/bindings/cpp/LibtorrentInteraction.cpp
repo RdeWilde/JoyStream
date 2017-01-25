@@ -41,7 +41,7 @@ namespace libtorrent_interaction {
 
   extension::TorrentPlugin::LibtorrentInteraction fromValue(const v8::Local<v8::Value> & v) {
 
-    uint32_t value = To<uint32_t>(v);
+    uint32_t value = ToNative<uint32_t>(v);
 
     switch(value) {
       case 0: return extension::TorrentPlugin::LibtorrentInteraction::None;
