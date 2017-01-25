@@ -37,9 +37,8 @@
                 "cpp/protocol_session/Connection.cpp",
                 # Util
                 "cpp/buffers.cpp",
-                "cpp/utils.cpp",
+                "cpp/utils.cpp"
                 # Others
-                "../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
             'cflags!': [ '-fno-exceptions', '-fno-rtti' ],

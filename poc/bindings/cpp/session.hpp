@@ -7,8 +7,8 @@
 #include "plugin.hpp"
 #include "info_hash.hpp"
 #include <iostream>
+#include <libtorrent/session.hpp>
 //#include <extension/extension.hpp>
-#include <joystream_libtorrent_session/Session.hpp>
 
 #include <vector>
 
@@ -20,10 +20,8 @@ class Session : public Nan::ObjectWrap {
     static NAN_MODULE_INIT(Init);
 
   private:
-    Session session_;
-
     // static boost::shared_ptr<libtorrent::session> createSession( /** some args **/ );
-    // boost::shared_ptr<libtorrent::session> session;
+    boost::shared_ptr<libtorrent::session> session;
 
     static Nan::Persistent<v8::Function> constructor;
 
@@ -34,11 +32,11 @@ class Session : public Nan::ObjectWrap {
     std::vector<AlertDecoder> _decoders;
 
     static NAN_METHOD(New);
-    static NAN_METHOD(add_torrent);
-    static NAN_METHOD(remove_torrent);
+    //static NAN_METHOD(add_torrent);
+    //static NAN_METHOD(remove_torrent);
     static NAN_METHOD(listen_port);
     static NAN_METHOD(post_torrent_updates);
-    static NAN_METHOD(pause);
+    //static NAN_METHOD(pause);
     static NAN_METHOD(is_paused);
     static NAN_METHOD(resume);
     static NAN_METHOD(find_torrent);
