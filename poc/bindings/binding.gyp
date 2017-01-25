@@ -7,7 +7,7 @@
                 # Libtorrent
 				"cpp/alert.cpp",
                 "cpp/info_hash.cpp",
-                "cpp/session.cc",
+                "cpp/session.cpp",
                 "cpp/torrent_handle.cc",
                 "cpp/torrent_status.cpp",
                 "cpp/torrent_info.cc",

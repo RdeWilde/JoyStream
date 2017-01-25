@@ -1,4 +1,4 @@
-#include "session.h"
+#include "session.hpp"
 #include "plugin.hpp"
 
 namespace libtorrent {
