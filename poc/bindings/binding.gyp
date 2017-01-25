@@ -9,7 +9,7 @@
                 "cpp/info_hash.cpp",
                 "cpp/session.cc",
                 "cpp/torrent_handle.cc",
-                "cpp/torrent_status.cc",
+                "cpp/torrent_status.cpp",
                 "cpp/alert.cc",
                 "cpp/torrent_info.cc",
                 "cpp/add_torrent_params.cpp",

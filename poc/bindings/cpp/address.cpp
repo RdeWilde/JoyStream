@@ -14,17 +14,15 @@ namespace libtorrent {
 namespace node {
 namespace address {
 
-v8::Local<v8::Value> toObject(const libtorrent::address & a) {
+v8::Local<v8::String> encode(const libtorrent::address & a) {
 
     std::string addressString = libtorrent::print_address(a);
-    v8::Local<v8::String> v = Nan::New<v8::String>(addressString).ToLocalChecked();
-
-    return v;
+    return Nan::New<v8::String>(addressString).ToLocalChecked();
 }
 
-libtorrent::address fromObject(const v8::Local<v8::Value> & o) {
+libtorrent::address decode(const v8::Local<v8::Value> & o) {
 
-  std::string addressString = To<std::string>(o);
+  std::string addressString = ToNative<std::string>(o);
 
   libtorrent::error_code ec;
   libtorrent::address a = libtorrent::address::from_string(addressString, ec);

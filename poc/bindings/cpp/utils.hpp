@@ -4,7 +4,7 @@
  * Proprietary and confidential
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
- 
+
 #ifndef JOYSTREAM_NODE_ADDON_UTILS_HPP
 #define JOYSTREAM_NODE_ADDON_UTILS_HPP
 
@@ -86,7 +86,7 @@ v8::Local<v8::Value> GetValue(const v8::Local<v8::Object> & o, const std::string
  * @brief Convert value to given native type instance
  */
 template<class T>
-T To(const v8::Local<v8::Value> & val) {
+T ToNative(const v8::Local<v8::Value> & val) {
 
   // // Native types conversions
   // https://github.com/nodejs/nan/blob/master/doc/converters.md#api_nan_to
@@ -99,14 +99,37 @@ T To(const v8::Local<v8::Value> & val) {
   Nan::Maybe<T> maybeT = Nan::To<T>(val);
 
   if(!maybeT.IsJust())
-    throw std::runtime_error("Value malformed, conversion failed.");
+    throw std::runtime_error("conversion to desired type failed");
   else
     return maybeT.FromJust();
 }
 
 // We have to specialize for std::string, as To returns MaybeLocal, not Maybe as above.
 template<>
-std::string To(const v8::Local<v8::Value> & val);
+std::string ToNative(const v8::Local<v8::Value> & val);
+
+/**
+ * @briaf Convert value to given v8 type instance, or throw.
+ */
+template<class T>
+v8::Local<T> ToV8(const v8::Local<v8::Value> val) {
+
+  // // V8 types
+  // Nan::MaybeLocal<v8::Boolean> Nan::To<v8::Boolean>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Int32> Nan::To<v8::Int32>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Integer> Nan::To<v8::Integer>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Object> Nan::To<v8::Object>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Number> Nan::To<v8::Number>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::String> Nan::To<v8::String>(v8::Local<v8::Value> val);
+  // Nan::MaybeLocal<v8::Uint32> Nan::To<v8::Uint32>(v8::Local<v8::Value> val);
+
+  Nan::MaybeLocal<T> maybeLocal = Nan::To<T>(val);
+
+  if(maybeLocal.IsEmpty())
+    throw std::runtime_error("conversion to desired type failed");
+  else
+    return maybeLocal.ToLocalChecked();
+}
 
 /**
  * Object getters.
@@ -118,21 +141,111 @@ std::string To(const v8::Local<v8::Value> & val);
 #define GET_VAL(o, key)           (GetValue(o, key))
 
 // @return {int32_t}
-#define GET_INT32(o, key)         (To<int32_t>(GET_VAL(o, key)))
+#define GET_INT32(o, key)         (ToNative<int32_t>(GET_VAL(o, key)))
 
 // @return {uint32_t}
-#define GET_UINT32(o, key)        (To<uint32_t>(GET_VAL(o, key)))
+#define GET_UINT32(o, key)        (ToNative<uint32_t>(GET_VAL(o, key)))
 
 // @return {int64_t}
-#define GET_INT64(o, key)         (To<int64_t>(GET_VAL(o, key)))
+#define GET_INT64(o, key)         (ToNative<int64_t>(GET_VAL(o, key)))
 
 // @return {double}
-#define GET_DOUBLE(o, key)        (To<double>(GET_VAL(o, key)))
+#define GET_DOUBLE(o, key)        (ToNative<double>(GET_VAL(o, key)))
 
 // @return {bool}
-#define GET_BOOL(o, key)          (To<bool>(GET_VAL(o, key)))
+#define GET_BOOL(o, key)          (ToNative<bool>(GET_VAL(o, key)))
 
 // @return {std::string}
-#define GET_STD_STRING(o, key)    (To<std::string>(GET_VAL(o, key)))
+#define GET_STD_STRING(o, key)    (ToNative<std::string>(GET_VAL(o, key)))
+
+///////////////////////////////////////////////////////////////////////////////
+/// Utility macros from @fanatid in macro.hpp@a4901b
+///////////////////////////////////////////////////////////////////////////////
+
+#define REQUIRE_ARGUMENTS(n)                                                  \
+  if (info.Length() < (n)) {                                                  \
+    return Nan::ThrowTypeError("Expected " #n "arguments");                   \
+  }
+
+#define ARGUMENTS_OPTIONAL_OBJECT(i, var, defaultValue)                       \
+  v8::Local<v8::Object> var;                                                  \
+  if (info.Length() > i && !info[i]->IsUndefined()) {                         \
+    if (!info[i]->IsObject()) {                                               \
+      return Nan::ThrowTypeError("Argument " #i " must be a Object");         \
+    }                                                                         \
+    var = info[i]->ToObject();                                                \
+  } else {                                                                    \
+    var = (defaultValue);                                                     \
+  }
+
+#define ARGUMENTS_IS_NUMBER(i)                                                \
+  (info.Length() > (i) && info[i]->IsNumber())
+
+#define ARGUMENTS_REQUIRE_NUMBER(i, var)                                      \
+  if (!ARGUMENTS_IS_NUMBER(i)) {                                              \
+    return Nan::ThrowTypeError("Argument " #i " must be a Number");           \
+  }                                                                           \
+  int64_t var = info[i]->IntegerValue();
+
+#define ARGUMENTS_IS_BOOLEAN(i)                                               \
+  (info.Length() > (i) && info[i]->IsBoolean())
+
+#define ARGUMENTS_REQUIRE_BOOLEAN(i, var)                                     \
+  if (!ARGUMENTS_IS_BOOLEAN(i)) {                                             \
+    return Nan::ThrowTypeError("Argument " #i " must be a Boolean");          \
+  }                                                                           \
+  bool var = info[i]->BooleanValue();
+
+#define ARGUMENTS_IS_STRING(i)                                                \
+  (info.Length() > (i) && info[i]->IsString())
+
+#define ARGUMENTS_REQUIRE_STRING(i, var)                                      \
+  if (!ARGUMENTS_IS_STRING(i)) {                                              \
+    return Nan::ThrowTypeError("Argument " #i " must be a String");           \
+  }                                                                           \
+  Nan::Utf8String var(info[i]);
+
+#define ARGUMENTS_IS_FUNCTION(i)                                              \
+  (info.Length() > (i) && info[i]->IsFunction())
+
+#define ARGUMENTS_REQUIRE_FUNCTION(i, var)                                    \
+  if (!ARGUMENTS_IS_FUNCTION(i)) {                                            \
+    return Nan::ThrowTypeError("Argument " #i " must be a Function");         \
+  }                                                                           \
+  v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[i]);
+
+#define ARGUMENTS_IS_OBJECT(i)                                               \
+  (info.Length() >= (i) && info[i]->IsObject())
+
+///////////////////////////////////
+
+// Requires that class has public:
+// static Nan::Persistent<v8::Function> constructor
+#define ARGUMENTS_IS_DIRECT_INSTANCE(i, cls)                                  \
+  (ARGUMENTS_IS_OBJECT(i) && (cls::constructor == (info[i]->ToObject()).GetPrototype()))
+
+#define ARGUMENTS_REQUIRE_DIRECT_INSTANCE(i, cls, var)                        \
+  if (!ARGUMENTS_IS_DIRECT_INSTANCE(i, cls)) {                                \
+    return Nan::ThrowTypeError("Argument " #i " must be a " #cls);            \
+  }                                                                           \
+  cls* var = Nan::ObjectWrap::Unwrap<cls>(info[i]->ToObject());
+
+#define EXPLOSIVE_ARGUMENT_REQUIRE_WRAPS(i, type, var)                        \
+if (!ARGUMENTS_IS_OBJECT(i)) {                                                \
+  return Nan::ThrowTypeError("Argument " #i " must be an Object");            \
+}                                                                             \
+type * var = Nan::ObjectWrap::Unwrap<type>(info[i]->ToObject());
+
+// Tries to decode the ith argument (info[i]) using decoder of given
+// class (cls::decode). Requires that class (cls) also has default constructor
+// Throws javascript exception if it fails
+#define ARGUMENTS_REQUIRE_DECODED(i, cls, var)                                 \
+  REQUIRE_ARGUMENTS(i)                                                         \
+  cls var;                                                                     \
+  try {                                                                        \
+    var = cls::decode(info[i]);                                                \
+  } catch(const std::runtime_error & e) {                                      \
+    return Nan::ThrowTypeError(std::string("Argument " #i " could not be decoded into " #cls " : ") + e.what()); \
+  }
 
 #endif

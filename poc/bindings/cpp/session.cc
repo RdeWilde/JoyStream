@@ -1,8 +1,13 @@
 #include "session.h"
+#include "plugin.hpp"
 
-// Wrapper Impl
+namespace libtorrent {
+namespace node {
+
 
 Nan::Persistent<v8::Function> SessionWrap::constructor;
+
+Nan::Callback SessionWrap::_alertNotifier;
 
 NAN_MODULE_INIT(SessionWrap::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
@@ -44,16 +49,25 @@ libtorrent::sha1_hash SessionWrap::object_to_sha1_hash(v8::Local<v8::Value> info
 }
 
 NAN_METHOD(SessionWrap::New) {
-  if (info.IsConstructCall()) {
-    SessionWrap *obj = new SessionWrap();
-    obj->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
-  } else {
-    const int argc = 1;
-    v8::Local<v8::Value> argv[argc] = {info[0]};
-    v8::Local<v8::Function> cons = Nan::New(constructor);
-    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
-  }
+
+  NEW_OPERATOR_GUARD(info, constructor)
+
+  SessionWrap *obj = new SessionWrap();
+
+  /**
+  // TODO
+  #include <boost/asio/impl/src.hpp>??
+  libtorrent::settings_pack sett;
+  sett.set_str(libtorrent::settings_pack::listen_interfaces, "0.0.0.0:6881");
+  s = new libtorrent::session(sett);
+  */
+
+  // Add default alert decode to decoder list
+  obj->_decoders.push_back(DefaultAlertDecoder);
+
+  obj->Wrap(info.This());
+  info.GetReturnValue().Set(info.This());
+
 }
 
 NAN_METHOD(SessionWrap::add_torrent) {
@@ -198,32 +212,68 @@ NAN_METHOD(SessionWrap::find_torrent) {
   info.GetReturnValue().Set(TorrentHandle::New(th));
 }
 
+#ifndef TORRENT_DISABLE_EXTENSIONS
+NAN_METHOD(SessionWrap::add_extension) {
+
+  // Recover the plugin binding
+  // ***** USER MUST SUPPLY WRAPPED OBJECT OF CORRECT KIND, OR V8 DIES *****
+  EXPLOSIVE_ARGUMENT_REQUIRE_WRAPS(0, libtorrent::node::plugin, p)
+
+  // Recover session binding
+  SessionWrap * session = Nan::ObjectWrap::Unwrap<SessionWrap>(info.This());
+
+  // Add underlying plugin to underlying session
+  session->session_.s->add_extension(p->getPlugin());
+
+  // Get alert converter for plugin, and add it to list of converters.
+  session->_decoders.push_back(p->getDecoder());
+}
+#endif // TORRENT_DISABLE_EXTENSIONS
+
 NAN_METHOD(SessionWrap::pop_alerts) {
-  v8::Local<v8::Array> ret = Nan::New<v8::Array>();
 
+  // Recover session binding
+  SessionWrap * session = Nan::ObjectWrap::Unwrap<SessionWrap>(info.This());
+
+  // Get currently pending alerts from libtorrent
   std::vector<libtorrent::alert*> alerts;
+  session->session_.s->pop_alerts(&alerts);
 
-  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  // Iterate alerts, and convert to js objects
+  v8::Local<v8::Array> ret = Nan::New<v8::Array>();
+  for(const libtorrent::alert * alert : alerts) {
 
-  session_wrap->session_.s->pop_alerts(&alerts);
+    // Iterate decoders to find match
+    for(AlertDecoder decoder : session->_decoders) {
 
-  for(const libtorrent::alert * alert : alerts)
-    ret->Set(ret->Length(), AlertWrap::New(alert));
+      // decode
+      auto v = decoder(alert);
+
+      // if decoded, then store, and break to next alert
+      if(v.is_initialized()) {
+        ret->Set(ret->Length(), v.get());
+        break;
+      }
+
+    }
+  }
 
   info.GetReturnValue().Set(ret);
 }
 
 NAN_METHOD(SessionWrap::set_alert_notify) {
 
-  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  ARGUMENTS_REQUIRE_FUNCTION(0, fn);
 
-  /*
-   * Need to define the logic here
-   */
+  // Recover session binding
+  SessionWrap* session_wrap = Nan::ObjectWrap::Unwrap<SessionWrap>(info.This());
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  // Store persistent handle to callback
+  _alertNotifier.Reset(fn);
+
+  // Set alert notifier on libtorrent session
+  session_wrap->session_.s->set_alert_notify([]() { _alertNotifier(0, {}); });
 }
-
 
 NAN_METHOD(SessionWrap::dht_announce) {
   libtorrent::sha1_hash info_hash;
@@ -249,4 +299,49 @@ NAN_METHOD(SessionWrap::dht_get_peers) {
   session_wrap->session_.s->dht_announce(info_hash, listen_port);
 
   info.GetReturnValue().Set(Nan::Undefined());
+}
+
+// Alert converter for (subset) of built in libtorrent alerts
+boost::optional<v8::Local<v8::Object>> SessionWrap::DefaultAlertDecoder(const libtorrent::alert *) {
+
+  // Return value
+  boost::optional<v8::Local<v8::Object>> v;
+
+  /**
+  // TODO
+  if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::metadata_failed_alert const * p = libtorrent::alert_cast<libtorrent::metadata_failed_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::listen_succeeded_alert const * p = libtorrent::alert_cast<libtorrent::listen_succeeded_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
+      v = toObject(p);
+  else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a))
+      v = toObject(p);
+  else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a))
+      v = toObject(p);
+  else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a))
+      v = toObject(p);
+  else if(libtorrent::piece_finished_alert const * p = libtorrent::alert_cast<libtorrent::piece_finished_alert>(a))
+      v = toObject(p);
+  //else
+      // ..
+  */
+
+  return v;
+
+}
+
+}
 }

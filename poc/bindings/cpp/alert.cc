@@ -147,7 +147,7 @@ NAN_METHOD(AlertWrap::status) {
       info.GetReturnValue().SetUndefined();
     } else {
       for(const libtorrent::torrent_status ts : casted->status)
-        ret->Set(ret->Length(), libtorrent::node::torrent_status::toObject(ts));
+        ret->Set(ret->Length(), libtorrent::node::torrent_status::encode(ts));
       info.GetReturnValue().Set(ret);
     }
 

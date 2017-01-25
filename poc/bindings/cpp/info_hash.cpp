@@ -12,10 +12,8 @@ namespace libtorrent {
 namespace node {
 namespace info_hash {
 
-v8::Local<v8::Value> toObject(const libtorrent::sha1_hash & h) {
-  v8::Local<v8::String> localHexString = Nan::New(h.to_string()).ToLocalChecked();
-
-  return localHexString;
+v8::Local<v8::String> encode(const libtorrent::sha1_hash & h) {
+  return Nan::New(h.to_string()).ToLocalChecked();
 }
 
 libtorrent::sha1_hash sha1FromHex(const std::string & hex) {
@@ -31,8 +29,8 @@ libtorrent::sha1_hash sha1FromHex(const std::string & hex) {
   return libtorrent::sha1_hash(buf);
 }
 
-libtorrent::sha1_hash fromObject(const v8::Local<v8::Value> & o) {
-  std::string hexString = To<std::string>(o);
+libtorrent::sha1_hash decode(const v8::Local<v8::Value> & o) {
+  std::string hexString = ToNative<std::string>(o);
   return sha1FromHex(hexString);
 }
 

@@ -30,7 +30,7 @@ v8::Local<v8::Value> GetValue(const v8::Local<v8::Object> & o, const std::string
 
 // We have to specialize for std::string, as To returns MaybeLocal, not Maybe as above.
 template<>
-std::string To(const v8::Local<v8::Value> & val) {
+std::string ToNative(const v8::Local<v8::Value> & val) {
 
   // V8 type conversion
   Nan::MaybeLocal<v8::String> uncheckedString = Nan::To<v8::String>(val);

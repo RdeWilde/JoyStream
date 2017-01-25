@@ -22,7 +22,7 @@ NAN_MODULE_INIT(InitAll) {
   AlertWrap::Init(target);
   TorrentHandle::Init(target);
   TorrentInfo::Init(target);
-  SessionWrap::Init(target);
+  libtorrent::node::SessionWrap::Init(target);
 
   InitExtension(target);
 }

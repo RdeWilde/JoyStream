@@ -9,7 +9,6 @@
 #define LIBTORRENT_NODE_ADD_TORRENT_PARAMS_HPP
 
 #include <nan.h>
-#include <libtorrent/add_torrent_params.hpp>
 
 // The add_torrent_params is a parameter pack for adding torrents to a
 // session. The key fields when adding a torrent are:
@@ -21,6 +20,7 @@
 //
 
 namespace libtorrent {
+    struct add_torrent_params;
 namespace node {
 namespace add_torrent_params {
 
