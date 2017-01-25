@@ -21,7 +21,7 @@ v8::Local<v8::Object> encode(const libtorrent::torrent_status & ts) {
 
   SET_VAL(o, INFO_HASH_KEY, info_hash::encode(ts.info_hash));
   SET_VAL(o, STATE_KEY, state_t::createValue(ts.state));
-  SET_DOUBLE(o, PROGRESS_KEY, ts.progress);
+  SET_NUMBER(o, PROGRESS_KEY, ts.progress);
 
   return o;
 }

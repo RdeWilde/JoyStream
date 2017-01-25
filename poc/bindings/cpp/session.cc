@@ -4,6 +4,11 @@
 namespace libtorrent {
 namespace node {
 
+
+Nan::Persistent<v8::Function> SessionWrap::constructor;
+
+Nan::Callback SessionWrap::_alertNotifier;
+
 NAN_MODULE_INIT(SessionWrap::Init) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("Session").ToLocalChecked());
@@ -288,7 +293,7 @@ NAN_METHOD(SessionWrap::dht_get_peers) {
 }
 
 // Alert converter for (subset) of built in libtorrent alerts
-boost::optional<v8::Local<v8::Object>> DefaultAlertDecoder(const libtorrent::alert *) {
+boost::optional<v8::Local<v8::Object>> SessionWrap::DefaultAlertDecoder(const libtorrent::alert *) {
 
   // Return value
   boost::optional<v8::Local<v8::Object>> v;

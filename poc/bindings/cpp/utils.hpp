@@ -52,7 +52,7 @@ if(!info.IsConstructCall()) { \
 
 // @param {double} val
 // Based on v8::Local<v8::Number> Nan::New<T>(double value)
-#define SET_DOUBLE(o, key, val) (SET_VAL(o, key, Nan::New(val)))
+#define SET_NUMBER(o, key, val) (SET_VAL(o, key, Nan::New(static_cast<double>(val))))
 
 // @param {bool} val
 // Based on v8::Local<v8::Boolean> Nan::New<T>(bool value);
@@ -112,7 +112,7 @@ std::string ToNative(const v8::Local<v8::Value> & val);
  * @briaf Convert value to given v8 type instance, or throw.
  */
 template<class T>
-T ToV8(const v8::Local<v8::Value> val) {
+v8::Local<T> ToV8(const v8::Local<v8::Value> val) {
 
   // // V8 types
   // Nan::MaybeLocal<v8::Boolean> Nan::To<v8::Boolean>(v8::Local<v8::Value> val);
