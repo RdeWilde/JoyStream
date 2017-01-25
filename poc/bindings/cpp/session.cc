@@ -300,3 +300,5 @@ NAN_METHOD(SessionWrap::dht_get_peers) {
 
   info.GetReturnValue().Set(Nan::Undefined());
 }
+
+}}
