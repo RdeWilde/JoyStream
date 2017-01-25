@@ -69,9 +69,10 @@ Seed Entropy::seed(std::string passphrase) const {
     }
 
     // Construct Seed from raw bytes
-    const char *seed = (char*)digest;
+    const unsigned char *seed = (unsigned char*)digest;
+    uchar_vector v(seed, WALLET_SEED_BYTE_LENGTH);
 
-    return Seed(seed);
+    return Seed(v.getHex().c_str());
 }
 
 Entropy Entropy::fromMnemonic(std::string wordList) {

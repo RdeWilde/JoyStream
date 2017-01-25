@@ -59,7 +59,11 @@ UCharArray<array_length>::UCharArray(const std::string & hexEncoded) {
         throw std::runtime_error(s.str());
 
     } else {
-        UCharArray<array_length>(uchar_vector(hexEncoded));
+        /*
+         * TODO: Validate if it's a valid hex string(?)
+         */
+        uchar_vector v(hexEncoded);
+        fill(static_cast<const unsigned char *>(v.data()));
     }
 }
 
@@ -99,8 +103,9 @@ bool UCharArray<array_length>::isClear() const {
 template<unsigned int array_length>
 std::string UCharArray<array_length>::toHex() const {
 
-    const char * ptr = (const char *)(this->data()); // this conversion is not safe ? think
-    return std::string(ptr);
+    const unsigned char * ptr = (const unsigned char *)(this->data()); // this conversion is not safe ? think
+    uchar_vector v(ptr, array_length);
+    return v.getHex();
 }
 
 template<unsigned int array_length>
