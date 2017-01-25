@@ -52,7 +52,7 @@ if(!info.IsConstructCall()) { \
 
 // @param {double} val
 // Based on v8::Local<v8::Number> Nan::New<T>(double value)
-#define SET_DOUBLE(o, key, val) (SET_VAL(o, key, Nan::New(val)))
+#define SET_NUMBER(o, key, val) (SET_VAL(o, key, Nan::New(static_cast<double>(val))))
 
 // @param {bool} val
 // Based on v8::Local<v8::Boolean> Nan::New<T>(bool value);

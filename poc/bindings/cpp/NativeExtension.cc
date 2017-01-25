@@ -3,6 +3,8 @@
 #include "torrent_handle.h"
 #include "torrent_info.h"
 #include "bencode.h"
+#include "SellerTerms.hpp"
+#include "BuyerTerms.hpp"
 #include <nan.h>
 
 // NativeExtension.cc represents the top level of the module.
@@ -12,9 +14,7 @@ NAN_MODULE_INIT(InitExtension);
 
 NAN_MODULE_INIT(InitAll) {
 
-  Nan::Set(target, Nan::New<v8::String>("BEncode").ToLocalChecked(),
-    Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
-
+  SET_VAL(target, "BEncode", Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());  
   AlertWrap::Init(target);
   TorrentHandle::Init(target);
   TorrentInfo::Init(target);

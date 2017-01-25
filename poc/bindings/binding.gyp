@@ -21,6 +21,9 @@
                 "cpp/extension/init.cpp",
                 "cpp/extension/TorrentPluginStatus.cpp",
                 "cpp/extension/PeerPluginStatus.cpp",
+                "cpp/BuyerTerms.cpp",
+                "cpp/SellerTerms.cpp",
+                "cpp/LibtorrentInteraction.cpp",
                 # Common
                 "cpp/Transaction.cpp",
                 "cpp/PrivateKey.cpp",
