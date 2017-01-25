@@ -5,6 +5,9 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 12 2017
  */
 
+ #ifndef LIBTORRENT_NODE_ALERT_HPP
+ #define LIBTORRENT_NODE_ALERT_HPP
+
 #include <nan.h>
 
 namespace libtorrent {
@@ -215,3 +218,5 @@ v8::Local<v8::Object> encode(const libtorrent::tracker_announce_alert &);
 v8::Local<v8::Object> encode(const libtorrent::trackerid_alert &);
 
 }}}
+
+#endif // LIBTORRENT_NODE_ALERT_HPP
