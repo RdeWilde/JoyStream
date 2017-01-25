@@ -13,11 +13,11 @@ namespace libtorrent {
 namespace node {
 namespace peer_info {
 
-v8::Local<v8::Object> toObject(const libtorrent::peer_info & pi) {
+v8::Local<v8::Object> encode(const libtorrent::peer_info & pi) {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    SET_VAL(o, IP_KEY, endpoint::toObject(pi.ip));
+    SET_VAL(o, IP_KEY, endpoint::encode(pi.ip));
 
     return o;
 }
