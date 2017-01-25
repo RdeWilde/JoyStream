@@ -1,23 +1,27 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 25 2017
+ */
+
+#include "init.hpp"
 #include "session.h"
 #include "torrent_handle.h"
 #include "torrent_info.h"
 #include "bencode.h"
-#include <nan.h>
 
-// NativeExtension.cc represents the top level of the module.
-// C++ constructs that are exposed to javascript are exported here
+namespace libtorrent {
+namespace node {
 
-NAN_MODULE_INIT(InitExtension);
-
-NAN_MODULE_INIT(InitAll) {
+NAN_MODULE_INIT(Init) {
 
   SET_VAL(target, "BEncode", Nan::GetFunction(Nan::New<v8::FunctionTemplate>(BEncode)).ToLocalChecked());
 
   TorrentHandle::Init(target);
   TorrentInfo::Init(target);
   libtorrent::node::SessionWrap::Init(target);
-
-  InitExtension(target);
 }
 
-NODE_MODULE(NativeExtension, InitAll)
+}
+}
