@@ -1,5 +1,5 @@
 #include "buffers.hpp"
-#include "utils.hpp"
+#include "libtorrent-node/utils.hpp"
 
 namespace joystream {
 namespace node {

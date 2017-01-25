@@ -6,7 +6,7 @@
  */
 
 #include "SellerTerms.hpp"
-#include "utils.hpp"
+#include "libtorrent-node/utils.hpp"
 
 #include <protocol_wire/protocol_wire.hpp>
 
