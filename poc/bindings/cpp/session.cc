@@ -49,25 +49,16 @@ libtorrent::sha1_hash SessionWrap::object_to_sha1_hash(v8::Local<v8::Value> info
 }
 
 NAN_METHOD(SessionWrap::New) {
-
-  NEW_OPERATOR_GUARD(info, constructor)
-
-  SessionWrap *obj = new SessionWrap();
-
-  /**
-  // TODO
-  #include <boost/asio/impl/src.hpp>??
-  libtorrent::settings_pack sett;
-  sett.set_str(libtorrent::settings_pack::listen_interfaces, "0.0.0.0:6881");
-  s = new libtorrent::session(sett);
-  */
-
-  // Add default alert decode to decoder list
-  obj->_decoders.push_back(DefaultAlertDecoder);
-
-  obj->Wrap(info.This());
-  info.GetReturnValue().Set(info.This());
-
+  if (info.IsConstructCall()) {
+    SessionWrap *obj = new SessionWrap();
+    obj->Wrap(info.This());
+    info.GetReturnValue().Set(info.This());
+  } else {
+    const int argc = 1;
+    v8::Local<v8::Value> argv[argc] = {info[0]};
+    v8::Local<v8::Function> cons = Nan::New(constructor);
+    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
+  }
 }
 
 NAN_METHOD(SessionWrap::add_torrent) {

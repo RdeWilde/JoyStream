@@ -3,20 +3,21 @@
         {
             "target_name": "NativeExtension",
             "sources": [
-                "cpp/address.cpp",
                 "cpp/NativeExtension.cc",
                 # Libtorrent
+				"cpp/alert.cpp",
                 "cpp/info_hash.cpp",
                 "cpp/session.cc",
                 "cpp/torrent_handle.cc",
                 "cpp/torrent_status.cpp",
-                "cpp/alert.cc",
                 "cpp/torrent_info.cc",
                 "cpp/add_torrent_params.cpp",
                 "cpp/endpoint.cpp",
                 "cpp/peer_info.cpp",
                 "cpp/bencode.cc",
                 "cpp/state_t.cpp",
+                "cpp/entry.cpp",
+                "cpp/error_code.cpp",
                 # Extension
                 "cpp/extension/init.cpp",
                 "cpp/extension/TorrentPluginStatus.cpp",

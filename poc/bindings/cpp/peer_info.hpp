@@ -24,7 +24,7 @@ namespace peer_info {
  *  ip : { Endpoint object },
  * }
  */
-v8::Local<v8::Object> toObject(const libtorrent::peer_info & pi);
+v8::Local<v8::Object> encode(const libtorrent::peer_info & pi);
 
 }}}
 
