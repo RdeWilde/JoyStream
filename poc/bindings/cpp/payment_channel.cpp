@@ -19,8 +19,10 @@ namespace payment_channel {
   NAN_MODULE_INIT(Init) {
 
     Nan::Set(target, Nan::New("commitmentToOutput").ToLocalChecked(),
-      Nan::New<v8::FunctionTemplate>(CommitmentToOutput)->GetFunction());
+      Nan::New<v8::FunctionTemplate>(commitment::CommitmentToOutput)->GetFunction());
   }
+
+namespace commitment {
 
   NAN_METHOD(CommitmentToOutput) {
     REQUIRE_ARGUMENTS(1)
@@ -76,5 +78,6 @@ namespace payment_channel {
                                       //relative_locktime::decode(locktime)); //todo
                                       Coin::RelativeLockTime::fromTimeUnits(relativeLocktime));
   }
+}
 
 }}}

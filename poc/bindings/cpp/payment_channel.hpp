@@ -13,6 +13,7 @@ namespace payment_channel {
 
     NAN_MODULE_INIT(Init);
 
+namespace commitment {
     /* @brief Converts a commitment to a raw paymentchannel
      * contract transaction output.
      * @return node Buffer
@@ -27,6 +28,7 @@ namespace payment_channel {
      * @throws std::runtime_error if conversion fails
      */
     paymentchannel::Commitment decode(const v8::Local<v8::Value>&);
+}
 
 }}}
 #endif
