@@ -28,11 +28,12 @@ v8::Local<v8::Object> encode(const libtorrent::entry & e) {
 libtorrent::entry decode(const v8::Local<v8::Object> & o) {
   libtorrent::entry e;
 
-  auto v = GET_VAL(o, ENTRY_KEY);
-
   // TODO
+  //auto v = GET_VAL(o, ENTRY_KEY);
 
   return e;
 }
 
-}}}
+}
+}
+}

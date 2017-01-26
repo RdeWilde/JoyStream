@@ -33,4 +33,6 @@ libtorrent::address decode(const v8::Local<v8::Value> & o) {
     return a;
 }
 
-}}}
+}
+}
+}

@@ -22,4 +22,6 @@ v8::Local<v8::Object> encode(const libtorrent::peer_info & pi) {
     return o;
 }
 
-}}}
+}
+}
+}

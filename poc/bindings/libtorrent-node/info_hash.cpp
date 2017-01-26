@@ -34,4 +34,6 @@ libtorrent::sha1_hash decode(const v8::Local<v8::Value> & o) {
   return sha1FromHex(hexString);
 }
 
-}}}
+}
+}
+}
