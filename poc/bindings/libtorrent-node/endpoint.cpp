@@ -42,4 +42,6 @@ libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o) {
 
 }
 
-}}}
+}
+}
+}

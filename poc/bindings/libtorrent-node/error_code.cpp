@@ -20,4 +20,6 @@ libtorrent::error_code decode(const v8::Local<v8::Object> & o) {
 
 }
 
-}}}
+}
+}
+}

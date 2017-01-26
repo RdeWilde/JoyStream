@@ -850,4 +850,4 @@ v8::Local<v8::Object> encode(const libtorrent::picker_log_alert & a) {
   return o;
 }*/
 
-}}}
+}

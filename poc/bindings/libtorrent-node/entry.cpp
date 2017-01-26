@@ -35,4 +35,6 @@ libtorrent::entry decode(const v8::Local<v8::Object> & o) {
   return e;
 }
 
-}}}
+}
+}
+}
