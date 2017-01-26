@@ -38,5 +38,5 @@ std::string ToNative(const v8::Local<v8::Value> & val) {
   if(uncheckedString.IsEmpty())
     throw std::runtime_error(std::string("Value not valid string"));
   else
-    toString(uncheckedString.ToLocalChecked());
+    return toString(uncheckedString.ToLocalChecked());
 }
