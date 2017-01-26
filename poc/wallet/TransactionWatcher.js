@@ -8,6 +8,9 @@ module.exports = TransactionWatcher;
 function TransactionWatcher(pool, intercept) {
   this.pool = pool
 
+  // ensure calling pool.forceSync() requests mempool from peers
+  this.pool.network.requestMempool = true
+
   if (intercept) {
     // pool.setFilter is called when pool is loaded, and on connect.
     // when walletdb is opened it will add all its addresses to the filter and call setFilter
