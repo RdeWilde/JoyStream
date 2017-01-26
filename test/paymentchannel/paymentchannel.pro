@@ -11,14 +11,12 @@ CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-us
 CONFIG  += c++11
 CONFIG  += testcase
 
-QT      += core
-QT      += testlib
+SOURCES += main.cpp
 
-HEADERS += \
-    Test.hpp
-
-SOURCES += \
-    Test.cpp
+# GTest configs
+QMAKE_CXXFLAGS +=-pthread
+LIBS += -pthread
+LIBS += -lgtest
 
 # paymentchannels ###################################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/release/ -lpaymentchannel
