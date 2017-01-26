@@ -7,16 +7,15 @@
 
 #include "Init.hpp"
 #include "LibtorrentInteraction.hpp"
+#include "RequestResult.hpp"
 
 namespace joystream {
 namespace node {
 
   NAN_MODULE_INIT(Init) {
-
     libtorrent_interaction::Init(target);
-
-    // Call inits for each joystream type
-
+    RequestResult::Init(target);
   }
+
 }
 }
