@@ -1,5 +1,5 @@
-#ifndef TORRENT_HANDLE_H
-#define TORRENT_HANDLE_H
+#ifndef LIBTORRENT_NODE_TORRENT_HANDLE_HPP
+#define LIBTORRENT_NODE_TORRENT_HANDLE_HPP
 
 #include <nan.h>
 #include <libtorrent/torrent_handle.hpp>
@@ -107,4 +107,4 @@ class TorrentHandle : public Nan::ObjectWrap {
     static NAN_METHOD(torrent_file);
 };
 
-#endif
+#endif // LIBTORRENT_NODE_TORRENT_HANDLE_HPP

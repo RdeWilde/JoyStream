@@ -1,5 +1,5 @@
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef LIBTORRENT_NODE_SESSION_HPP
+#define LIBTORRENT_NODE_SESSION_HPP
 
 #include <nan.h>
 #include "alert.hpp"
@@ -60,4 +60,4 @@ class SessionWrap : public Nan::ObjectWrap {
 }
 }
 
-#endif
+#endif // LIBTORRENT_NODE_SESSION_HPP

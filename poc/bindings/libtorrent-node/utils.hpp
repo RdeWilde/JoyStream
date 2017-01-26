@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_UTILS_HPP
-#define JOYSTREAM_NODE_ADDON_UTILS_HPP
+#ifndef LIBTORRENT_NODE_UTILS_HPP
+#define LIBTORRENT_NODE_UTILS_HPP
 
 #include <nan.h>
 
@@ -254,4 +254,4 @@ type * var = Nan::ObjectWrap::Unwrap<type>(info[i]->ToObject());
     return Nan::ThrowTypeError(std::string("Argument " #i " could not be decoded into " #cls " : ") + e.what()); \
   }
 
-#endif
+#endif // LIBTORRENT_NODE_UTILS_HPP

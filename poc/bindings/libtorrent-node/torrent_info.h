@@ -1,5 +1,5 @@
-#ifndef TORRENT_INFO_H
-#define TORRENT_INFO_H
+#ifndef LIBTORRENT_NODE_TORRENT_INFO_HPP
+#define LIBTORRENT_NODE_TORRENT_INFO_HPP
 
 #include <nan.h>
 #include <boost/optional.hpp>
@@ -53,4 +53,4 @@ class TorrentInfo: public Nan::ObjectWrap {
       static NAN_METHOD(map_file);*/
 };
 
-#endif
+#endif // LIBTORRENT_NODE_TORRENT_INFO_HPP

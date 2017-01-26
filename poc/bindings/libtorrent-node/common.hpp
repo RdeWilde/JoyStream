@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 23 2017
  */
 
- #ifndef JOYSTREAM_NODE_COMMON_HPP
- #define JOYSTREAM_NODE_COMMON_HPP
+ #ifndef LIBTORRENT_NODE_COMMON_HPP
+ #define LIBTORRENT_NODE_COMMON_HPP
 
  #include <nan.h>
 
@@ -28,4 +28,4 @@
  }
  }
 
- #endif // JOYSTREAM_NODE_COMMON_HPP
+ #endif // LIBTORRENT_NODE_COMMON_HPP
