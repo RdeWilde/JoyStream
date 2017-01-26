@@ -29,7 +29,7 @@ function TransactionWatcher(pool, intercept) {
     this._poolSetFilter = _.bind(this.pool.__proto__.setFilter, this.pool);
   }
 
-  // colllection of transaction ids we are watching
+  // colllection of transaction hashes we are watching
   // mapped to an array of promise resolvers
   this.monitoredTransactions = {};
 
@@ -77,8 +77,18 @@ TransactionWatcher.prototype._setFilterIntercept = function(filter) {
 };
 
 //transaction hash (not reversed little endian txid) hex string or Buffer
+//extreme edge case - what if transaction was just mined a few seconds ago! (we have to rescan)
+//we don't need to handle this edge case as the average time for a tx to get confirmed
+//as likely more than we are willing to wait for it (as a seller) to appear to serve a buyer
 TransactionWatcher.prototype.watch = function(hash, timeout) {
   const self = this
+
+  const mempoolRequestDelay = 1000
+
+  //timeout should be greater than delay before getting mempool
+  if(timeout > 0 && timeout < mempoolRequestDelay) {
+    timeout += mempoolRequestDelay
+  }
 
   let p = new Promise(function(resolve, reject){
     if(timeout > 0) {
@@ -96,10 +106,16 @@ TransactionWatcher.prototype.watch = function(hash, timeout) {
   });
 
   // Update the spv filter
-  this.pool.watch(hash)
+  self.pool.watch(hash)
+
+  // allow time for bloomfilter to be updated
+  setTimeout(function() {
+    // get the mem pool incase we already missed the tx
+    self.pool.forceSync()
+  }, mempoolRequestDelay)
 
   // return a promise which resolves when the tx is seen.
-  // rejected when timeout expires, or net pool is closed
+  // rejected when timeout expires, or pool is closed
   return p
 };
 
