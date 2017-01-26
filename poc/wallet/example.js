@@ -12,23 +12,24 @@ let logger = new bcoin.logger({
 });
 
 function logExit(e) {
+  console.log("Unhandled Error - Exiting")
   console.log(e)
   process.exit()
 }
 
-// get two nodes working (fix port conflict)
-
-let walleta = new SPVWallet({
+let buyerWallet = new SPVWallet({
       prefix  : '/Users/mokhtar/test-walleta/',
       network : 'testnet',
       logger  : logger,
+      httpPort: 18332
     })
 
-// let walletb = new SPVWallet({
-//       prefix  : '/Users/mokhtar/test-walletb/',
-//       network : 'testnet',
-//       logger  : logger,
-//     })
+let sellerWallet = new SPVWallet({
+      prefix  : '/Users/mokhtar/test-walletb/',
+      network : 'testnet',
+      logger  : logger,
+      httpPort: 18331
+    })
 
 let payorSk = bcoin.ec.generatePrivateKey()
 let payorPublicKey = bcoin.ec.publicKeyCreate(payorSk)
@@ -36,22 +37,22 @@ let payeeSk = bcoin.ec.generatePrivateKey()
 let payeePublicKey = bcoin.ec.publicKeyCreate(payeeSk)
 
 
-co.wrap(function*(wallet){
+co.wrap(function*(buyer, seller){
 
-  yield wallet.start()
+  // we need to handle errors on initial connection failure, DNS lookup
+  // what if we loose network connection.. after successful connection?
 
-  let balance = yield wallet.getBalance();
+  // we can open while offline
+  yield buyer.start()
+  yield seller.start()
 
-  console.log(balance);
-
-  let addresses = yield wallet.getAllAddresses();
-
-  _.each(addresses, function(addr){
-    console.log(addr);
-  })
+  //yield buyer.connect() // throws if we don't have connectivity
+  //yield seller.connect()
+  //buyer.startSync()
+  //seller.startSync()
 
   let rawoutput = joystream.commitmentToOutput({
-    value: 30000,
+    value: 25000,
     payor: payorPublicKey,
     payee: payeePublicKey,
     locktime: 1
@@ -60,23 +61,33 @@ co.wrap(function*(wallet){
   let output = bcoin.output.fromRaw(rawoutput)
 
   // as the buyer the transaction will go straight into the wallet database
-  let contract = yield wallet.send([output])
+  let contract = yield buyer.send([output])
 
-  console.log('sent contract:', contract.txid())
+  // getting here doesn't gurantee that the contract was broadcast successfully
+  // on the network because the node catches errors from the broadcast method
+  // but it does mean the contract was constructed and is stored in the wallet
 
-  // sleep for 2s - simulate network delay while buyer sends seller
+  // so we need to handle possibility that contract is not in the network
+
+  console.log('sent contract txid:', contract.txid())
+
+  try {
+    yield buyer.awaitTransaction(contract.hash(), 20000)
+    console.log('buyer saw contract')
+  } catch(e) {
+    console.log('buyer timeout waiting to see contract')
+  }
+
+  // sleep - simulate network delay while buyer sends seller
   // contract info
   yield new Promise(function(resolve){
-    setTimeout(resolve, 2000)
+    setTimeout(resolve, 5000)
   })
 
-  // pretend we are seller .. wait to see contract
-  let tx = yield wallet.awaitTransaction(contract.hash())
+  console.log('seller waiting to see transaction')
 
-  console.log('saw contract', tx)
+  let tx = yield seller.awaitTransaction(contract.hash())
 
-  // asssert failure on disconnect !?
-  //yield wallet.disconnect()
+  console.log('seller saw contract', tx)
 
-  throw new Error('Done')
-})(walleta).catch(logExit)
+})(buyerWallet, sellerWallet).catch(logExit)
