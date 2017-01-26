@@ -20,6 +20,7 @@
 #define DOWNLOAD_LIMIT_KEY "downloadLimit"
 
 #include <libtorrent/add_torrent_params.hpp>
+#include <boost/make_shared.hpp>
 
 namespace libtorrent {
 namespace node {
@@ -29,7 +30,7 @@ v8::Local<v8::Object> encode(const libtorrent::add_torrent_params & atp) {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    //SET_VAL(o, TI_KEY, TorrentInfoWrap::New(atp.ti));
+    SET_VAL(o, TI_KEY, TorrentInfo::New(atp.ti));
     SET_STD_STRING(o, NAME_KEY, atp.name);
     SET_STD_STRING(o, SAVE_PATH_KEY, atp.save_path);
     SET_VAL(o, INFO_HASH_KEY, libtorrent::node::info_hash::encode(atp.info_hash));
@@ -41,20 +42,25 @@ v8::Local<v8::Object> encode(const libtorrent::add_torrent_params & atp) {
     return o;
 }
 
-libtorrent::add_torrent_params fromObject(const v8::Local<v8::Object> & o) {
+libtorrent::add_torrent_params decode(const v8::Local<v8::Object> & o) {
   libtorrent::add_torrent_params atp;
 
-  // atp.ti =
+  v8::Local<v8::Value> v = GET_VAL(o, TI_KEY);
+  boost::shared_ptr<const libtorrent::torrent_info> torrent_info = TorrentInfo::Unwrap(v->ToObject());
+  const libtorrent::torrent_info ti = *torrent_info.get();
+  libtorrent::torrent_info* newTi = new libtorrent::torrent_info(ti);
+  atp.ti = boost::make_shared<libtorrent::torrent_info>(*newTi);
   atp.name =  GET_STD_STRING(o, NAME_KEY);
   atp.save_path =  GET_STD_STRING(o, SAVE_PATH_KEY);
-  // atp.info_hash
+  atp.info_hash = libtorrent::node::info_hash::decode(GET_VAL(o, INFO_HASH_KEY));
   atp.url =  GET_STD_STRING(o, URL_KEY);
   std::string str = GET_STD_STRING(o, RESUME_DATA_KEY);
   std::copy(str.begin(), str.end(), std::back_inserter(atp.resume_data));
   atp.upload_limit =  GET_INT32(o, UPLOAD_LIMIT_KEY);
   atp.download_limit =  GET_INT32(o, DOWNLOAD_LIMIT_KEY);
-
   return atp;
 }
 
-}}}
+}
+}
+}

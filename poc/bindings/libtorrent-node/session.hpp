@@ -4,6 +4,7 @@
 #include <nan.h>
 #include "alert.hpp"
 #include "torrent_handle.h"
+#include "add_torrent_params.hpp"
 #include "plugin.hpp"
 #include "info_hash.hpp"
 #include <iostream>
@@ -31,6 +32,8 @@ class Session : public Nan::ObjectWrap {
     std::vector<AlertDecoder> _decoders;
 
     static NAN_METHOD(New);
+    static NAN_METHOD(add_torrent);
+    static NAN_METHOD(remove_torrent);
     static NAN_METHOD(listen_port);
     static NAN_METHOD(post_torrent_updates);
     static NAN_METHOD(pause);

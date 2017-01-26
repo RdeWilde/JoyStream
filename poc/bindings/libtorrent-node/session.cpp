@@ -18,6 +18,8 @@ NAN_MODULE_INIT(Session::Init) {
   tpl->SetClassName(Nan::New("Session").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+  Nan::SetPrototypeMethod(tpl, "addTorrent", add_torrent);
+  Nan::SetPrototypeMethod(tpl, "removeTorrent", remove_torrent);
   Nan::SetPrototypeMethod(tpl, "listenPort", listen_port);
   Nan::SetPrototypeMethod(tpl, "postTorrentUpdates", post_torrent_updates);
   Nan::SetPrototypeMethod(tpl, "pause", pause);
@@ -143,6 +145,29 @@ NAN_METHOD(Session::New) {
   info.GetReturnValue().Set(info.This());
 }
 
+NAN_METHOD(Session::add_torrent) {
+  REQUIRE_ARGUMENTS(1);
+
+  libtorrent::torrent_handle th;
+  libtorrent::error_code ec;
+  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  th = session_wrap->session->add_torrent(libtorrent::node::add_torrent_params::decode(info[0]->ToObject()), ec);
+
+  info.GetReturnValue().Set(TorrentHandle::New(th));
+}
+
+NAN_METHOD(Session::remove_torrent) {
+  REQUIRE_ARGUMENTS(1);
+
+  libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info[0]->ToObject());
+  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+
+  session_wrap->session->remove_torrent(*th);
+
+  info.GetReturnValue().Set(Nan::Undefined());
+}
+
+
 NAN_METHOD(Session::listen_port) {
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
 
@@ -159,8 +184,6 @@ NAN_METHOD(Session::post_torrent_updates) {
 
 NAN_METHOD(Session::pause) {
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
-
-  std::shared_ptr<Nan::Callback> callback;
 
   session_wrap->session->resume();
 
