@@ -8,8 +8,7 @@
 #include "info_hash.hpp"
 #include <iostream>
 #include <libtorrent/session.hpp>
-//#include <extension/extension.hpp>
-
+#include <libtorrent/fingerprint.hpp>
 #include <vector>
 
 namespace libtorrent {
@@ -20,23 +19,21 @@ class Session : public Nan::ObjectWrap {
     static NAN_MODULE_INIT(Init);
 
   private:
-    // static boost::shared_ptr<libtorrent::session> createSession( /** some args **/ );
+    explicit Session(boost::shared_ptr<libtorrent::session> session) : session(session) {};
+    static libtorrent::settings_pack session_settings(bool enableDHT) noexcept;
+
+
     boost::shared_ptr<libtorrent::session> session;
-
     static Nan::Persistent<v8::Function> constructor;
-
     // Persistent handle set in set_alert_notify, signaling alert queue becoming non-empty
     static Nan::Callback _alertNotifier;
-
     // Alert decoders used, in order.
     std::vector<AlertDecoder> _decoders;
 
     static NAN_METHOD(New);
-    //static NAN_METHOD(add_torrent);
-    //static NAN_METHOD(remove_torrent);
     static NAN_METHOD(listen_port);
     static NAN_METHOD(post_torrent_updates);
-    //static NAN_METHOD(pause);
+    static NAN_METHOD(pause);
     static NAN_METHOD(is_paused);
     static NAN_METHOD(resume);
     static NAN_METHOD(find_torrent);

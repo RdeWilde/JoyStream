@@ -1,5 +1,10 @@
 #include "session.hpp"
 
+#define CORE_USER_AGENT_NAME "JoyStream"
+#define CORE_VERSION_MAJOR 0
+#define CORE_VERSION_MINOR 1
+#define CORE_PEER_ID "JS"
+
 namespace libtorrent {
 namespace node {
 
@@ -13,11 +18,9 @@ NAN_MODULE_INIT(Session::Init) {
   tpl->SetClassName(Nan::New("Session").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  //Nan::SetPrototypeMethod(tpl, "addTorrent", add_torrent);
-  //Nan::SetPrototypeMethod(tpl, "removeTorrent", remove_torrent);
   Nan::SetPrototypeMethod(tpl, "listenPort", listen_port);
   Nan::SetPrototypeMethod(tpl, "postTorrentUpdates", post_torrent_updates);
-  //Nan::SetPrototypeMethod(tpl, "pause", pause);
+  Nan::SetPrototypeMethod(tpl, "pause", pause);
   Nan::SetPrototypeMethod(tpl, "isPaused", is_paused);
   Nan::SetPrototypeMethod(tpl, "resume", resume);
   Nan::SetPrototypeMethod(tpl, "findTorrent", find_torrent);
@@ -30,86 +33,115 @@ NAN_MODULE_INIT(Session::Init) {
   Nan::Set(target, Nan::New("Session").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-NAN_METHOD(Session::New) {
-  if (info.IsConstructCall()) {
-    Session *obj = new Session();
-    obj->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
-  } else {
-    const int argc = 1;
-    v8::Local<v8::Value> argv[argc] = {info[0]};
-    v8::Local<v8::Function> cons = Nan::New(constructor);
-    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
-  }
+libtorrent::settings_pack Session::session_settings(bool enableDHT) noexcept {
+
+    // Initialize with default values
+    libtorrent::settings_pack pack;
+
+    // Setup alert filtering
+    int ignoredAlerts =
+                        // Enables alerts on events in the DHT node. For incoming searches or bootstrapping being done etc.
+                        libtorrent::alert::dht_notification +
+
+                        // Enables alerts for when blocks are requested and completed. Also when pieces are completed.
+                        libtorrent::alert::progress_notification +
+
+                        // Enables stats_alert approximately once every second, for every active torrent.
+                        // These alerts contain all statistics counters for the interval since the lasts stats alert.
+                        libtorrent::alert::stats_notification +
+
+                        // Enables debug logging alerts. These are available unless libtorrent was
+                        // built with logging disabled (TORRENT_DISABLE_LOGGING).
+                        // The alerts being posted are log_alert and are session wide.
+                        libtorrent::alert::session_log_notification +
+
+                        // Enables debug logging alerts for torrents. These are available unless libtorrent was
+                        // built with logging disabled (TORRENT_DISABLE_LOGGING). The alerts being posted are
+                        // torrent_log_alert and are torrent wide debug events.
+                        libtorrent::alert::torrent_log_notification +
+
+                        // Enables debug logging alerts for peers. These are available unless libtorrent was
+                        // built with logging disabled (TORRENT_DISABLE_LOGGING). The alerts being posted are
+                        // peer_log_alert and low-level peer events and messages.
+                        libtorrent::alert::peer_log_notification +
+
+                        // Enables dht_log_alert, debug logging for the DHT
+                        libtorrent::alert::dht_log_notification +
+
+                        // Enables verbose logging from the piece picker
+                        libtorrent::alert::picker_log_notification;
+
+    pack.set_int(libtorrent::settings_pack::alert_mask, libtorrent::alert::all_categories & ~ ignoredAlerts);
+
+    // Enable all default extensions, and possibly DHT.
+    pack.set_bool(libtorrent::settings_pack::enable_upnp, true);
+    pack.set_bool(libtorrent::settings_pack::enable_natpmp, true);
+    pack.set_bool(libtorrent::settings_pack::enable_lsd, true);
+    pack.set_bool(libtorrent::settings_pack::enable_dht, enableDHT);
+
+    // This is the client identification to the tracker.
+    // The recommended format of this string is: "ClientName/ClientVersion libtorrent/libtorrentVersion".
+    // This name will not only be used when making HTTP requests, but also when sending BEP10 extended handshake
+    // if handshake_client_version is left blank.
+    // default: "libtorrent/" LIBTORRENT_VERSION
+    pack.set_str(libtorrent::settings_pack::user_agent, std::string(CORE_USER_AGENT_NAME) +
+                                                        std::string("/") +
+                                                        std::to_string(CORE_VERSION_MAJOR) +
+                                                        std::string(".") +
+                                                        std::to_string(CORE_VERSION_MINOR));
+
+    // Client name and version identifier sent to peers in the BEP10 handshake message.
+    // If this is an empty string, the user_agent is used instead.
+    // default: <user_agent>
+    //pack.set_str(libtorrent::settings_pack::handshake_client_version, std::string(CORE_USER_AGENT_NAME) + CORE_VERSION_MAJOR + "." + CORE_VERSION_MINOR);
+
+    // Fingerprint for the client.
+    // It will be used as the prefix to the peer_id.
+    // If this is 20 bytes (or longer) it will be used as the peer-id
+    // There are two encoding styles, we use Azureus style, which is most popular:
+    // '-', two characters for client id, four ascii digits for version number, '-', followed by random numbers.
+    // For example: '-AZ2060-'...
+    // default: "-LT1100-"
+    std::string peerIdString = libtorrent::fingerprint(CORE_PEER_ID, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0).to_string();
+
+    pack.set_str(libtorrent::settings_pack::peer_fingerprint, peerIdString);
+
+    // Determines if connections from the same IP address as existing
+    // connections should be rejected or not. Multiple connections from
+    // the same IP address is not allowed by default, to prevent abusive behavior by peers.
+    // It may be useful to allow such connections in cases where simulations
+    // are run on the same machie, and all peers in a swarm has the same IP address.
+    pack.set_bool(libtorrent::settings_pack::allow_multiple_connections_per_ip, true);
+
+
+    return pack;
 }
 
-/*NAN_METHOD(Session::add_torrent) {
-  if (info.Length() < 7) {
-    Nan::ThrowTypeError("Wrong number of arguments");
-    return;
-  }
+NAN_METHOD(Session::New) {
+  if (!info.IsConstructCall()) return;
 
-  libtorrent::add_torrent_params params;
+  boost::shared_ptr<libtorrent::session> session;
 
-  unsigned int uploadLimit = info[0]->Uint32Value();
-  unsigned int downloadLimit = info[1]->Uint32Value();
-  v8::String::Utf8Value s1(info[2]);
-  std::string name = std::string(*s1);
-  std::vector<char> resumeData;
-  v8::String::Utf8Value s2(info[4]);
-  std::string savePath = std::string(*s2);
+  libtorrent::settings_pack sett;
+  libtorrent::dht_settings dht_settings;
 
-  params.upload_limit = uploadLimit;
-  params.download_limit = downloadLimit;
-  params.name = name;
-  params.resume_data = resumeData;
-  params.save_path = savePath;
-  params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_paused;
-  params.flags &= ~libtorrent::add_torrent_params::flags_t::flag_auto_managed;
-  params.flags |= libtorrent::add_torrent_params::flag_duplicate_is_error;
-  params.info_hash = info_hash::decode(info[5]);
+  sett.set_str(libtorrent::settings_pack::listen_interfaces, "0.0.0.0:6881");
+  session = boost::shared_ptr<libtorrent::session>(new libtorrent::session(sett));
 
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  session->set_dht_settings(dht_settings);
 
-  Nan::Callback *callback = new Nan::Callback(info[6].As<v8::Function>());
-  session_wrap->session.plugin_->submit(joystream::extension::request::AddTorrent(params, [callback](libtorrent::error_code ec, libtorrent::torrent_handle th){
+  // Add DHT routers
+  session->add_dht_router(std::make_pair(std::string("router.bittorrent.com"), 6881));
+  session->add_dht_router(std::make_pair(std::string("router.utorrent.com"), 6881));
+  session->add_dht_router(std::make_pair(std::string("router.bitcomet.com"), 6881));
 
-    if(ec) {
-        v8::Local<v8::Value> argv[] = { Nan::New(ec.value()) };
+  // Enable DHT node, now that routers have been added
+  session->apply_settings(session_settings(true));
 
-        callback->Call(1, argv);
-        return;
-    }
-
-    v8::Local<v8::Value> argv[] = {
-        Nan::Null(),
-        TorrentHandle::New(th)
-    };
-
-    callback->Call(2, argv);
-
-  }));
-}*/
-
-/*NAN_METHOD(Session::remove_torrent) {
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
-
-  libtorrent::sha1_hash info_hash = info_hash::decode(info[0]);
-
-  Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
-  session_wrap->session.plugin_->submit(joystream::extension::request::RemoveTorrent(info_hash, [callback](const std::exception_ptr &ex){
-
-    v8::Local<v8::Value> argv[] = {
-        Nan::Null()
-    };
-
-    if(ex) {
-        argv[0] = Nan::New<v8::String>("Missing Torrent").ToLocalChecked();
-    }
-
-    callback->Call(1, argv);
-  }));
-}*/
+  Session* obj = new Session(session);
+  obj->Wrap(info.This());
+  info.GetReturnValue().Set(info.This());
+}
 
 NAN_METHOD(Session::listen_port) {
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
@@ -125,7 +157,7 @@ NAN_METHOD(Session::post_torrent_updates) {
   info.GetReturnValue().Set(Nan::Undefined());
 }
 
-/*NAN_METHOD(Session::pause) {
+NAN_METHOD(Session::pause) {
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
 
   std::shared_ptr<Nan::Callback> callback;
@@ -134,25 +166,10 @@ NAN_METHOD(Session::post_torrent_updates) {
       callback.reset(new Nan::Callback(info[0].As<v8::Function>()));
   }
 
-  // Pause libtorrent session
-  session_wrap->session_.plugin_->submit(joystream::extension::request::PauseLibtorrent([session_wrap, callback]() {
-
-    std::clog << "Libtorrent session paused" << std::endl;
-
-    // Stop all plugins
-    session_wrap->session_.plugin_->submit(joystream::extension::request::StopAllTorrentPlugins([callback]() {
-
-        std::clog << "All plugins stopped" << std::endl;
-
-        // Service user callback
-        if(callback && !callback->IsEmpty()) {
-            callback->Call(0, {});
-        }
-    }));
-  }));
+  session_wrap->session->resume();
 
   info.GetReturnValue().Set(Nan::Undefined());
-}*/
+}
 
 NAN_METHOD(Session::is_paused) {
 
