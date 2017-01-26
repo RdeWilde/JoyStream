@@ -13,11 +13,11 @@ namespace node {
 namespace error_code {
 
 v8::Local<v8::Object> encode(const libtorrent::error_code & a) {
-
+  return Nan::New<v8::Object>();
 }
 
 libtorrent::error_code decode(const v8::Local<v8::Object> & o) {
-
+  return libtorrent::error_code();
 }
 
 }
