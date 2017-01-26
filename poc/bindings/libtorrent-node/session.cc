@@ -49,16 +49,12 @@ libtorrent::sha1_hash SessionWrap::object_to_sha1_hash(v8::Local<v8::Value> info
 }
 
 NAN_METHOD(SessionWrap::New) {
-  if (info.IsConstructCall()) {
-    SessionWrap *obj = new SessionWrap();
-    obj->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
-  } else {
-    const int argc = 1;
-    v8::Local<v8::Value> argv[argc] = {info[0]};
-    v8::Local<v8::Function> cons = Nan::New(constructor);
-    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
-  }
+
+  NEW_OPERATOR_GUARD(info, constructor)
+
+  (new SessionWrap())->Wrap(info.This());
+
+  RETURN(info.This())
 }
 
 NAN_METHOD(SessionWrap::add_torrent) {
