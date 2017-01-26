@@ -18,7 +18,6 @@ function SPVWallet(options) {
   const prefix = options.prefix || __dirname;
   const network = options.network || 'tesetnet';
 
-  // take a bcoin spvnode instead of creating it?
   let node = new bcoin.spvnode({
     prefix : prefix,
     logger : options.logger,
@@ -40,7 +39,7 @@ function SPVWallet(options) {
 
   let watcher = new TransactionWatcher(node.pool, true)
 
-  // open() must be called before any other method on SPVWallet
+  // start() or open() must be called before any other method on SPVWallet
   self.start = co.wrap(function* start() {
     assert(!node.wallet)
 
@@ -49,9 +48,6 @@ function SPVWallet(options) {
     assert(node.wallet)
 
     yield node.connect()
-
-    // Recover missed transactions
-    //node.scan(spv.chain.height - 1);
 
     node.startSync()
   })
@@ -127,13 +123,6 @@ function SPVWallet(options) {
 
     throw new Error('timeout')
   })
-
-  // self.resendPendingTransactions = function resendPendingTransactions() {
-  //   // It resends transactions in the wallet with 0 confirmations
-  //   // I don't think we need to expose this, it is done automatically when
-  //   // the walletdb is opened
-  //   return node.walletdb.resend()
-  // }
 
   self.close = function close() {
     return node.close()
