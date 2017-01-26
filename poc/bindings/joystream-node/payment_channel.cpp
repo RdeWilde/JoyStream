@@ -1,7 +1,7 @@
 #include "payment_channel.hpp"
 #include "PublicKey.hpp"
 
-#include "utils.hpp"
+#include "libtorrent-node/utils.hpp"
 #include "buffers.hpp"
 
 #include <paymentchannel/Commitment.hpp>
