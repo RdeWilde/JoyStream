@@ -193,6 +193,7 @@ NAN_METHOD(Session::resume) {
 NAN_METHOD(Session::find_torrent) {
   libtorrent::torrent_handle th;
 
+  REQUIRE_ARGUMENTS(1);
   libtorrent::sha1_hash info_hash = info_hash::decode(info[0]);
 
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
@@ -265,9 +266,11 @@ NAN_METHOD(Session::set_alert_notify) {
 }
 
 NAN_METHOD(Session::dht_announce) {
-  libtorrent::sha1_hash info_hash = info_hash::decode(info[0]);
+  REQUIRE_ARGUMENTS(2);
 
+  libtorrent::sha1_hash info_hash = info_hash::decode(info[0]);
   unsigned int listen_port = info[1]->Uint32Value();
+
 
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
 
@@ -288,4 +291,5 @@ NAN_METHOD(Session::dht_get_peers) {
   info.GetReturnValue().Set(Nan::Undefined());
 }
 
-}}
+}
+}

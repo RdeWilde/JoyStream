@@ -52,6 +52,7 @@ class Session : public Nan::ObjectWrap {
 
 };
 
-}}
+}
+}
 
 #endif

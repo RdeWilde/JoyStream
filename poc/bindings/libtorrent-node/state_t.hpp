@@ -26,6 +26,8 @@ namespace state_t {
   v8::Local<v8::Value> createValue(libtorrent::torrent_status::state_t state);
   libtorrent::torrent_status::state_t fromValue(const v8::Local<v8::Value> & v);
 
-}}}
+}
+}
+}
 
 #endif // LIBTORRENT_NODE_STATE_T_HPP
