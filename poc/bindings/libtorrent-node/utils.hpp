@@ -240,12 +240,11 @@ type * var = Nan::ObjectWrap::Unwrap<type>(info[i]->ToObject());
 // class (cls::decode). Requires that class (cls) also has default constructor
 // Throws javascript exception if it fails
 #define ARGUMENTS_REQUIRE_DECODED(i, cls, var)                                 \
-  REQUIRE_ARGUMENTS(i)                                                         \
-  cls var;                                                                     \
+  REQUIRE_ARGUMENTS(i);                                                        \
   try {                                                                        \
     var = cls::decode(info[i]);                                                \
   } catch(const std::runtime_error & e) {                                      \
-    return Nan::ThrowTypeError(std::string("Argument " #i " could not be decoded into " #cls " : ") + e.what()); \
+    return Nan::ThrowTypeError((std::string("Argument " #i " could not be decoded into " #cls " : ") + e.what()).c_str()); \
   }
 
 #endif

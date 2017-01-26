@@ -162,10 +162,6 @@ NAN_METHOD(Session::pause) {
 
   std::shared_ptr<Nan::Callback> callback;
 
-  if(info.Length() > 0) {
-      callback.reset(new Nan::Callback(info[0].As<v8::Function>()));
-  }
-
   session_wrap->session->resume();
 
   info.GetReturnValue().Set(Nan::Undefined());
@@ -193,8 +189,8 @@ NAN_METHOD(Session::resume) {
 NAN_METHOD(Session::find_torrent) {
   libtorrent::torrent_handle th;
 
-  REQUIRE_ARGUMENTS(1);
-  libtorrent::sha1_hash info_hash = info_hash::decode(info[0]);
+  libtorrent::sha1_hash info_hash;
+  ARGUMENTS_REQUIRE_DECODED(0, libtorrent::node::info_hash, info_hash);
 
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
   th = session_wrap->session->find_torrent(info_hash);
@@ -268,7 +264,9 @@ NAN_METHOD(Session::set_alert_notify) {
 NAN_METHOD(Session::dht_announce) {
   REQUIRE_ARGUMENTS(2);
 
-  libtorrent::sha1_hash info_hash = info_hash::decode(info[0]);
+  libtorrent::sha1_hash info_hash;
+  ARGUMENTS_REQUIRE_DECODED(0, libtorrent::node::info_hash, info_hash);
+
   unsigned int listen_port = info[1]->Uint32Value();
 
 
@@ -280,7 +278,10 @@ NAN_METHOD(Session::dht_announce) {
 }
 
 NAN_METHOD(Session::dht_get_peers) {
-  libtorrent::sha1_hash info_hash = info_hash::decode(info[0]);
+  REQUIRE_ARGUMENTS(2);
+
+  libtorrent::sha1_hash info_hash;
+  ARGUMENTS_REQUIRE_DECODED(0, libtorrent::node::info_hash, info_hash);
 
   unsigned int listen_port = info[1]->Uint32Value();
 
