@@ -25,6 +25,7 @@ function SPVWallet(options) {
     db: 'leveldb',
     maxOutbound: options.maxOutbound || 8,
     network: network,
+    httpPort: options.httpPort,
   });
 
 
