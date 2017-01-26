@@ -1,4 +1,4 @@
-#include <addon/protocol_session/Connection.hpp>
+#include "Connection.hpp"
 
 namespace joystream {
 namespace addon {
