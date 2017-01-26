@@ -31,6 +31,12 @@ if(!info.IsConstructCall()) { \
   return; \
 } \
 
+#define NEW_OBJECT(cons, var) v8::Local<v8::Object> var = (((Nan::New(cons))->NewInstance(Nan::GetCurrentContext())).ToLocalChecked());
+
+#define RETURN(var) info.GetReturnValue().Set(var);
+
+#define RETURN_VOID RETURN(Nan::Undefined())
+
 /**
  * Object setters.
  * @param {v8::Local<v8::Object>} o
