@@ -95,33 +95,36 @@ function SPVWallet(options) {
     return addresses;
   })
 
-  self.awaitTransaction = function(hash) {
-    return watcher.watch(hash);
+  //transaction hash (not reversed little endian txid) hex string or Buffer
+  self.awaitTransaction = function(hash, timeout) {
+    return watcher.watch(hash, timeout);
   }
 
   // Broadcast a signed transaction (settlements, refunds)
   // Accepts hex encoded string, Buffer or bcoin.TX
-  // will try upto three times on pool.options.invTimeout
+  // will try upto three times on pool.options.invTimeout (1minute)
   self.broadcast = co.wrap(function* broadcast(tx) {
 
-    if(!(tx instanceof bcoin.TX)) {
-      tx = bcoin.TX.fromRaw(tx)
+    if(!(tx instanceof bcoin.primitives.TX)) {
+      tx = bcoin.primitives.TX.fromRaw(tx)
     }
 
     for(let tries = 0; tries < 3; tries++) {
       try {
         //using pool to do our own error handling
-        yield node.pool.broadcast(tx)
-        // success
-        return
+
+        //bool return value, true = successful ack from peer,
+        //false = (tx rejected or pool closed before ack received)
+        // == how to distinguish between reject and network disconnect?
+        return yield node.pool.broadcast(tx)
+
       } catch(e) {
-        if(e.message == 'Timed out.')//reliable ?
-          continue
-        throw e
+        //timeout
+        continue
       }
     }
 
-    throw new Error('timeout')
+    throw 'timeout'
   })
 
   self.close = function close() {
