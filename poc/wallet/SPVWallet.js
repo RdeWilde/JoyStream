@@ -27,6 +27,10 @@ function SPVWallet(options) {
     httpPort: options.httpPort,
   });
 
+  // add a mempool (advantage: better network fee estimation, or do we need a full chain?)
+  // but actually adding it is interfering with watcher attempt to get mempool!
+  //node.pool.selfish = true
+  //node.pool.mempool = new bcoin.mempool({ chain: node.chain })
 
   // make sure to handle error event or app will exit with unhandled Error
   if(typeof options.onError === 'function') {
