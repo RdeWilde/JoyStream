@@ -7,7 +7,7 @@
 
 #include "add_torrent_params.hpp"
 #include "torrent_info.h"
-#include "info_hash.hpp"
+#include "sha1_hash.hpp"
 #include "utils.hpp"
 
 #define TI_KEY "ti"
@@ -32,7 +32,7 @@ v8::Local<v8::Object> encode(const libtorrent::add_torrent_params & atp) {
     //SET_VAL(o, TI_KEY, TorrentInfoWrap::New(atp.ti));
     SET_STD_STRING(o, NAME_KEY, atp.name);
     SET_STD_STRING(o, SAVE_PATH_KEY, atp.save_path);
-    SET_VAL(o, INFO_HASH_KEY, libtorrent::node::info_hash::encode(atp.info_hash));
+    SET_VAL(o, INFO_HASH_KEY, libtorrent::node::sha1_hash::encode(atp.info_hash));
     SET_STD_STRING(o, URL_KEY, atp.url);
     SET_STD_STRING(o, RESUME_DATA_KEY, std::string(atp.resume_data.begin(), atp.resume_data.end()));
     SET_INT32(o, UPLOAD_LIMIT_KEY, atp.upload_limit);
