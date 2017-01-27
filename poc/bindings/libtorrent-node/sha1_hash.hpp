@@ -13,7 +13,7 @@
 
 namespace libtorrent {
 namespace node {
-namespace info_hash {
+namespace sha1_hash {
 
   /**
    * Encoded as hex string.
