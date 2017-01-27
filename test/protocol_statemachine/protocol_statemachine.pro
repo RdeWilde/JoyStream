@@ -15,7 +15,7 @@ QT      += core
 QT      += testlib
 
 HEADERS += \
-    Test.hpp \
+#    Test.hpp \
     CBStateMachineCallbackSpy.hpp \
     SellingNavigator.hpp \
     BuyingNavigator.hpp
