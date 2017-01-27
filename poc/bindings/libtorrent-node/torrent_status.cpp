@@ -7,6 +7,8 @@
 
 #include "torrent_status.hpp"
 #include "state_t.hpp"
+#include "sha1_hash.hpp"
+#include "utils.hpp"
 
 #define INFO_HASH_KEY "infoHash"
 #define STATE_KEY "state"
@@ -19,7 +21,7 @@ namespace torrent_status {
 v8::Local<v8::Object> encode(const libtorrent::torrent_status & ts) {
   v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-  SET_VAL(o, INFO_HASH_KEY, info_hash::encode(ts.info_hash));
+  SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(ts.info_hash));
   SET_VAL(o, STATE_KEY, state_t::createValue(ts.state));
   SET_NUMBER(o, PROGRESS_KEY, ts.progress);
 
