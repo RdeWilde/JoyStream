@@ -10,48 +10,14 @@
 
 #include <extension/extension.hpp>
 
+#define SET_JOYSTREAM_PLUGIN_ALERT_TYPE(o, name) SET_VAL(o, #name, createValue(joystream::extension::alert::name));
+
 namespace joystream {
 namespace extension {
 namespace node {
 namespace PluginAlertEncoder {
 
-  #define SET_JOYSTREAM_PLUGIN_ALERT_TYPE(o, name) SET_VAL(o, #name, createValue(joystream::extension::alert::name));
-
-  NAN_MODULE_INIT(InitAlertTypes) {
-
-    // Export extended alert types
-    v8::Local<v8::Object> object = Nan::New<v8::Object>();
-
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, RequestResult)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, TorrentPluginStatusUpdateAlert)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, PeerPluginStatusUpdateAlert)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, TorrentPluginAdded)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, TorrentPluginRemoved)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, PeerPluginAdded)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, PeerPluginRemoved)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ConnectionAddedToSession)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ConnectionRemovedFromSession)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionStarted)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionPaused)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionStopped)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionToObserveMode)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionToSellMode)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionToBuyMode)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ValidPaymentReceived)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, InvalidPaymentReceived)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, BuyerTermsUpdated)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SellerTermsUpdated)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ContractConstructed)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SentPayment)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, LastPaymentReceived)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, InvalidPieceArrived)
-    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ValidPieceArrived)
-
-    SET_VAL(target, "AlertType", object);
-
-  }
-
-  PluginAlertEncoder = boost::optional<v8::Local<v8::Object>>(const libtorrent::alert * a) {
+  alertEncoder = boost::optional<v8::Local<v8::Object>>(const libtorrent::alert * a) {
 
     boost::optional<v8::Local<v8::Object>> v;
 
@@ -105,6 +71,40 @@ namespace PluginAlertEncoder {
         v = encode(p);
 
     return v;
+
+  }
+
+  NAN_MODULE_INIT(InitAlertTypes) {
+
+    // Export extended alert types
+    v8::Local<v8::Object> object = Nan::New<v8::Object>();
+
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, RequestResult)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, TorrentPluginStatusUpdateAlert)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, PeerPluginStatusUpdateAlert)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, TorrentPluginAdded)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, TorrentPluginRemoved)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, PeerPluginAdded)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, PeerPluginRemoved)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ConnectionAddedToSession)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ConnectionRemovedFromSession)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionStarted)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionPaused)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionStopped)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionToObserveMode)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionToSellMode)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SessionToBuyMode)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ValidPaymentReceived)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, InvalidPaymentReceived)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, BuyerTermsUpdated)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SellerTermsUpdated)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ContractConstructed)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, SentPayment)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, LastPaymentReceived)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, InvalidPieceArrived)
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, ValidPieceArrived)
+
+    SET_VAL(target, "AlertType", object);
 
   }
 

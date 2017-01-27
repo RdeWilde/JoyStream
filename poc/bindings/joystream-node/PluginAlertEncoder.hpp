@@ -45,9 +45,9 @@ namespace alert {
 namespace node {
 namespace PluginAlertEncoder {
 
-  static NAN_MODULE_INIT(InitAlertTypes);
+  libtorrent::node::AlertDecoder alertEncoder;
 
-  static AlertDecoder encode;
+  NAN_MODULE_INIT(InitAlertTypes);
 
   v8::Local<v8::Object> encode(extension::alert::RequestResult const * p);
   v8::Local<v8::Object> encode(extension::alert::TorrentPluginStatusUpdateAlert const * p);
@@ -74,7 +74,6 @@ namespace PluginAlertEncoder {
   v8::Local<v8::Object> encode(extension::alert::InvalidPieceArrived const * p);
   v8::Local<v8::Object> encode(extension::alert::ValidPieceArrived const * p);
 
-}
 }
 }
 }
