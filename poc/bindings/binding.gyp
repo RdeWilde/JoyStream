@@ -8,7 +8,7 @@
                 # libtorrent
                 "libtorrent-node/init.cpp",
                 "libtorrent-node/alert.cpp",
-                "libtorrent-node/info_hash.cpp",
+                "libtorrent-node/sha1_hash.cpp",
                 "libtorrent-node/session.cpp",
                 "libtorrent-node/torrent_handle.cc",
                 "libtorrent-node/torrent_status.cpp",

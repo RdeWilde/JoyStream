@@ -9,7 +9,7 @@
 #include "torrent_handle.h"
 #include "add_torrent_params.hpp"
 #include "endpoint.hpp"
-#include "info_hash.hpp"
+#include "sha1_hash.hpp"
 #include "state_t.hpp"
 #include "utils.hpp"
 
@@ -132,7 +132,7 @@ v8::Local<v8::Object> encode(const libtorrent::tracker_alert & a) {
  v8::Local<v8::Object> encode(const libtorrent::torrent_removed_alert & a) {
    v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert &>(a));
 
-   SET_VAL(o, INFO_HASH_KEY, info_hash::encode(a.info_hash));
+   SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a.info_hash));
 
    return o;
  }
@@ -396,7 +396,7 @@ v8::Local<v8::Object> encode(const libtorrent::storage_moved_failed_alert & a) {
 v8::Local<v8::Object> encode(const libtorrent::torrent_deleted_alert & a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert &>(a));
 
-  SET_VAL(o, INFO_HASH_KEY, info_hash::encode(a.info_hash));
+  SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a.info_hash));
 
   return o;
 }
@@ -405,7 +405,7 @@ v8::Local<v8::Object> encode(const libtorrent::torrent_delete_failed_alert & a) 
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert &>(a));
 
   // error_code const error;
-  SET_VAL(o, INFO_HASH_KEY, info_hash::encode(a.info_hash));
+  SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a.info_hash));
 
   return o;
 }
@@ -573,7 +573,7 @@ v8::Local<v8::Object> encode(const libtorrent::dht_announce_alert & a) {
 
   // address const ip;
   SET_INT32(o, PORT_KEY, a.port);
-  SET_VAL(o, INFO_HASH_KEY, info_hash::encode(a.info_hash));
+  SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a.info_hash));
 
   return o;
 }
@@ -581,7 +581,7 @@ v8::Local<v8::Object> encode(const libtorrent::dht_announce_alert & a) {
 v8::Local<v8::Object> encode(const libtorrent::dht_get_peers_alert & a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert &>(a));
 
-  SET_VAL(o, INFO_HASH_KEY, info_hash::encode(a.info_hash));
+  SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a.info_hash));
 
   return o;
 }
@@ -693,7 +693,7 @@ v8::Local<v8::Object> encode(const libtorrent::dht_error_alert & a) {
 v8::Local<v8::Object> encode(const libtorrent::dht_immutable_item_alert & a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert &>(a));
 
-  SET_VAL(o, TARGET_KEY, info_hash::encode(a.target));
+  SET_VAL(o, TARGET_KEY, sha1_hash::encode(a.target));
   //entry const item;
 
   return o;
@@ -715,7 +715,7 @@ v8::Local<v8::Object> encode(const libtorrent::dht_mutable_item_alert & a) {
 v8::Local<v8::Object> encode(const libtorrent::dht_put_alert & a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert &>(a));
 
-  SET_VAL(o, TARGET_KEY, info_hash::encode(a.target));
+  SET_VAL(o, TARGET_KEY, sha1_hash::encode(a.target));
   //std::array<char, 32> const public_key;
   //std::array<char, 64> const signature;
   SET_STD_STRING(o, SALT_KEY, a.salt);
@@ -736,8 +736,8 @@ v8::Local<v8::Object> encode(const libtorrent::i2p_alert & a) {
 v8::Local<v8::Object> encode(const libtorrent::dht_outgoing_get_peers_alert & a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert &>(a));
 
-  SET_VAL(o, INFO_HASH_KEY, info_hash::encode(a.info_hash));
-  SET_VAL(o, OBFUCASTED_INFO_HASH_KEY, info_hash::encode(a.obfuscated_info_hash));
+  SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a.info_hash));
+  SET_VAL(o, OBFUCASTED_INFO_HASH_KEY, sha1_hash::encode(a.obfuscated_info_hash));
   // udp::endpoint const endpoint;
 
   return o;
@@ -816,7 +816,7 @@ v8::Local<v8::Object> encode(const libtorrent::dht_pkt_alert & a) {
 v8::Local<v8::Object> encode(const libtorrent::dht_get_peers_reply_alert & a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert &>(a));
 
-  SET_VAL(o, INFO_HASH_KEY, info_hash::encode(a.info_hash));
+  SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a.info_hash));
   SET_INT32(o, NUM_PEERS_KEY, a.num_peers());
   // std::vector<tcp::endpoint> peers() const
 
@@ -850,4 +850,6 @@ v8::Local<v8::Object> encode(const libtorrent::picker_log_alert & a) {
   return o;
 }*/
 
-}}}
+}
+}
+}

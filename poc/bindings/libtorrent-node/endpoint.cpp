@@ -26,9 +26,14 @@ v8::Local<v8::Object> encode(const libtorrent::tcp::endpoint & ep) {
     return o;
 }
 
-libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o) {
+libtorrent::tcp::endpoint decode(const v8::Local<v8::Value> & v) {
 
   libtorrent::tcp::endpoint endpoint;
+
+  if(!v->IsObject())
+    throw std::runtime_error("Argument must be dictionary.");
+
+  v8::Local<v8::Object> o = v->ToObject();
 
   v8::Local<v8::Value> addressValue = GET_VAL(o, ADDRESS_KEY);
 
@@ -42,4 +47,6 @@ libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o) {
 
 }
 
-}}}
+}
+}
+}

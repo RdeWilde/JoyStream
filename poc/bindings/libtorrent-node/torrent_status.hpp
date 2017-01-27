@@ -11,9 +11,6 @@
 #include <nan.h>
 #include <libtorrent/torrent_status.hpp>
 
-#include "utils.hpp"
-#include "info_hash.hpp"
-
 namespace libtorrent {
   struct torrent_status;
 

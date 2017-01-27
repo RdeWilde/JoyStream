@@ -142,7 +142,7 @@ NAN_METHOD(Session::New) {
 
   Session* obj = new Session(session);
   obj->Wrap(info.This());
-  info.GetReturnValue().Set(info.This());
+  RETURN(info.This());
 }
 
 NAN_METHOD(Session::add_torrent) {
@@ -150,28 +150,33 @@ NAN_METHOD(Session::add_torrent) {
 
   libtorrent::torrent_handle th;
   libtorrent::error_code ec;
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
-  th = session_wrap->session->add_torrent(libtorrent::node::add_torrent_params::decode(info[0]->ToObject()), ec);
 
-  info.GetReturnValue().Set(TorrentHandle::New(th));
+  ARGUMENTS_REQUIRE_DECODED(0, params, libtorrent::add_torrent_params, libtorrent::node::add_torrent_params::decode);
+
+  Session* session_wrap = Nan::ObjectWrap::Unwrap<Session>(info.This());
+
+  th = session_wrap->session->add_torrent(params, ec);
+
+  RETURN(TorrentHandle::New(th));
 }
 
 NAN_METHOD(Session::remove_torrent) {
   REQUIRE_ARGUMENTS(1);
 
-  libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info[0]->ToObject());
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  EXPLOSIVE_ARGUMENT_REQUIRE_WRAPS(0, TorrentHandle, th);
 
-  session_wrap->session->remove_torrent(*th);
+  Session* session_wrap = Nan::ObjectWrap::Unwrap<Session>(info.This());
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  session_wrap->session->remove_torrent(th->th_);
+
+  RETURN_VOID;
 }
 
 
 NAN_METHOD(Session::listen_port) {
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
 
-  info.GetReturnValue().Set(session_wrap->session->listen_port());
+  RETURN(session_wrap->session->listen_port());
 }
 
 NAN_METHOD(Session::post_torrent_updates) {
@@ -179,7 +184,7 @@ NAN_METHOD(Session::post_torrent_updates) {
 
   session_wrap->session->post_torrent_updates();
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  RETURN_VOID;
 }
 
 NAN_METHOD(Session::pause) {
@@ -187,38 +192,40 @@ NAN_METHOD(Session::pause) {
 
   session_wrap->session->resume();
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  RETURN_VOID;
 }
 
 NAN_METHOD(Session::is_paused) {
-
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+
   v8::Local<v8::Boolean> isPaused;
   if (session_wrap->session->is_paused()) {
     isPaused = Nan::True();
   } else {
     isPaused = Nan::False();
   }
-  info.GetReturnValue().Set(isPaused);
+
+  RETURN(isPaused);
 }
 
 NAN_METHOD(Session::resume) {
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+
   session_wrap->session->resume();
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  RETURN_VOID;
 }
 
 NAN_METHOD(Session::find_torrent) {
   libtorrent::torrent_handle th;
 
-  libtorrent::sha1_hash info_hash;
-  ARGUMENTS_REQUIRE_DECODED(0, libtorrent::node::info_hash, info_hash);
+  ARGUMENTS_REQUIRE_DECODED(0,info_hash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode);
 
   Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+
   th = session_wrap->session->find_torrent(info_hash);
 
-  info.GetReturnValue().Set(TorrentHandle::New(th));
+  RETURN(TorrentHandle::New(th));
 }
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
@@ -267,7 +274,7 @@ NAN_METHOD(Session::pop_alerts) {
     }
   }
 
-  info.GetReturnValue().Set(ret);
+  RETURN(ret);
 }
 
 NAN_METHOD(Session::set_alert_notify) {
@@ -287,8 +294,7 @@ NAN_METHOD(Session::set_alert_notify) {
 NAN_METHOD(Session::dht_announce) {
   REQUIRE_ARGUMENTS(2);
 
-  libtorrent::sha1_hash info_hash;
-  ARGUMENTS_REQUIRE_DECODED(0, libtorrent::node::info_hash, info_hash);
+  ARGUMENTS_REQUIRE_DECODED(0,info_hash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode);
 
   unsigned int listen_port = info[1]->Uint32Value();
 
@@ -297,14 +303,13 @@ NAN_METHOD(Session::dht_announce) {
 
   session_wrap->session->dht_announce(info_hash, listen_port);
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  RETURN_VOID;
 }
 
 NAN_METHOD(Session::dht_get_peers) {
   REQUIRE_ARGUMENTS(2);
 
-  libtorrent::sha1_hash info_hash;
-  ARGUMENTS_REQUIRE_DECODED(0, libtorrent::node::info_hash, info_hash);
+  ARGUMENTS_REQUIRE_DECODED(0,info_hash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode);
 
   unsigned int listen_port = info[1]->Uint32Value();
 
@@ -312,7 +317,7 @@ NAN_METHOD(Session::dht_get_peers) {
 
   session_wrap->session->dht_announce(info_hash, listen_port);
 
-  info.GetReturnValue().Set(Nan::Undefined());
+  RETURN_VOID;
 }
 
 }

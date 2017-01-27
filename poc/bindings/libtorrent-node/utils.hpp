@@ -31,6 +31,12 @@ if(!info.IsConstructCall()) { \
   return; \
 } \
 
+#define NEW_OBJECT(cons, var) v8::Local<v8::Object> var = (((Nan::New(cons))->NewInstance(Nan::GetCurrentContext())).ToLocalChecked());
+
+#define RETURN(var) info.GetReturnValue().Set(var);
+
+#define RETURN_VOID RETURN(Nan::Undefined())
+
 /**
  * Object setters.
  * @param {v8::Local<v8::Object>} o
@@ -219,6 +225,8 @@ v8::Local<T> ToV8(const v8::Local<v8::Value> val) {
 
 ///////////////////////////////////
 
+#define ARGUMENTS_IS(i) (info.Length() > (i))
+
 // Requires that class has public:
 // static Nan::Persistent<v8::Function> constructor
 #define ARGUMENTS_IS_DIRECT_INSTANCE(i, cls)                                  \
@@ -236,15 +244,19 @@ if (!ARGUMENTS_IS_OBJECT(i)) {                                                \
 }                                                                             \
 type * var = Nan::ObjectWrap::Unwrap<type>(info[i]->ToObject());
 
-// Tries to decode the ith argument (info[i]) using decoder of given
-// class (cls::decode). Requires that class (cls) also has default constructor
+// Tries to decode the ith argument (info[i]) using decoder (decoder) of given
+// type (type). Requires that type also has default constructor
 // Throws javascript exception if it fails
-#define ARGUMENTS_REQUIRE_DECODED(i, cls, var)                                 \
-  REQUIRE_ARGUMENTS(i);                                                        \
-  try {                                                                        \
-    var = cls::decode(info[i]);                                                \
-  } catch(const std::runtime_error & e) {                                      \
-    return Nan::ThrowTypeError((std::string("Argument " #i " could not be decoded into " #cls " : ") + e.what()).c_str()); \
+#define ARGUMENTS_REQUIRE_DECODED(i, var, type, decoder)                        \
+  if (!ARGUMENTS_IS(i)) {                                                       \
+    return Nan::ThrowTypeError("Argument " #i " of type " #type " is missing"); \
+  }                                                                             \
+  type var;                                                                     \
+  try {                                                                         \
+    var = decoder(info[i]);                                                     \
+  } catch(const std::runtime_error & e) {                                       \
+    v8::Local<v8::String> v8ErrorMessage = (Nan::New(std::string("Argument " #i " could not be decoded with " #decoder " into " #type " : ") + e.what())).ToLocalChecked(); \
+    return Nan::ThrowTypeError(v8ErrorMessage); \
   }
 
 #endif

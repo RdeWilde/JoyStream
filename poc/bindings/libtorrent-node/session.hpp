@@ -6,7 +6,7 @@
 #include "torrent_handle.h"
 #include "add_torrent_params.hpp"
 #include "plugin.hpp"
-#include "info_hash.hpp"
+#include "sha1_hash.hpp"
 #include <iostream>
 #include <libtorrent/session.hpp>
 #include <libtorrent/fingerprint.hpp>

@@ -5,12 +5,12 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, Januar 16 2017
  */
 
-#include "info_hash.hpp"
+#include "sha1_hash.hpp"
 #include "utils.hpp"
 
 namespace libtorrent {
 namespace node {
-namespace info_hash {
+namespace sha1_hash {
 
 v8::Local<v8::String> encode(const libtorrent::sha1_hash & h) {
   return Nan::New(h.to_string()).ToLocalChecked();
@@ -34,4 +34,6 @@ libtorrent::sha1_hash decode(const v8::Local<v8::Value> & o) {
   return sha1FromHex(hexString);
 }
 
-}}}
+}
+}
+}

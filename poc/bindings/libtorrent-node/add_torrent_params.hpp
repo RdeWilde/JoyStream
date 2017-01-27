@@ -39,7 +39,7 @@ namespace add_torrent_params {
    */
 
  v8::Local<v8::Object> encode(const libtorrent::add_torrent_params & atp);
- libtorrent::add_torrent_params decode(const v8::Local<v8::Object> & o);
+ libtorrent::add_torrent_params decode(const v8::Local<v8::Value> & o);
 
 }
 }

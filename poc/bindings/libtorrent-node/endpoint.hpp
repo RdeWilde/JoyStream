@@ -24,7 +24,7 @@ namespace endpoint {
    */
 
   v8::Local<v8::Object> encode(const libtorrent::tcp::endpoint & e);
-  libtorrent::tcp::endpoint fromObject(const v8::Local<v8::Object> & o);
+  libtorrent::tcp::endpoint decode(const v8::Local<v8::Value> & o);
 
 }}}
 

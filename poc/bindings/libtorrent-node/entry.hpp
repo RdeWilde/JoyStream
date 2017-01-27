@@ -11,7 +11,7 @@
 #include <nan.h>
 
 namespace libtorrent {
-  struct entry;
+  class entry;
 
 namespace node {
 namespace entry {
