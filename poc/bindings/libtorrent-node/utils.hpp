@@ -225,6 +225,8 @@ v8::Local<T> ToV8(const v8::Local<v8::Value> val) {
 
 ///////////////////////////////////
 
+#define ARGUMENTS_IS(i) (info.Length() > (i))
+
 // Requires that class has public:
 // static Nan::Persistent<v8::Function> constructor
 #define ARGUMENTS_IS_DIRECT_INSTANCE(i, cls)                                  \
