@@ -277,20 +277,20 @@ NAN_METHOD(Plugin::RemoveTorrent) {
 
 NAN_METHOD(Plugin::PauseTorrent) {
 
-    // Get validated parameters
-    GET_THIS_PLUGIN(plugin)
-    ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
-    ARGUMENTS_REQUIRE_BOOLEAN(1, graceful)
-    ARGUMENTS_REQUIRE_CALLBACK(2, managedCallback)
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+  ARGUMENTS_REQUIRE_BOOLEAN(1, graceful)
+  ARGUMENTS_REQUIRE_CALLBACK(2, managedCallback)
 
-    // Create request
-    joystream::extension::request::PauseTorrent request(infoHash,
-                                                        graceful,
-                                                        detail::CreateGenericSubroutineHandler(managedCallback));
-    // Submit request
-    plugin->_plugin->submit(request);
+  // Create request
+  joystream::extension::request::PauseTorrent request(infoHash,
+                                                      graceful,
+                                                      detail::CreateGenericSubroutineHandler(managedCallback));
+  // Submit request
+  plugin->_plugin->submit(request);
 
-    RETURN_VOID
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::ResumeTorrent) {
