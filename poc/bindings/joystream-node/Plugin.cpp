@@ -7,8 +7,16 @@
 
 #include "Plugin.hpp"
 #include "PluginAlertEncoder.hpp"
+#include "libtorrent-node/utils.hpp"
+#include "libtorrent-node/sha1_hash.hpp"
 
 #include <extension/extension.hpp>
+
+namespace detail {
+
+  joystream::extension::request::SubroutineHandler CreateGenericSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback);
+
+}
 
 /// Plugin utilities
 #define ARGUMENTS_REQUIRE_CALLBACK(i, var)                              \
@@ -53,14 +61,14 @@ NAN_MODULE_INIT(Plugin::Init) {
 }
 
 libtorrent::node::AlertDecoder Plugin::getDecoder() const noexcept {
-  return PluginAlertEncoder;
+  return PluginAlertEncoder::alertEncoder;
 }
 
 boost::shared_ptr<libtorrent::plugin> Plugin::getPlugin() const noexcept {
   return boost::static_pointer_cast<libtorrent::plugin>(_plugin);
 }
 
-Plugin(const boost::shared_ptr<extension::Plugin> & plugin)
+Plugin::Plugin(const boost::shared_ptr<extension::Plugin> & plugin)
   : _plugin(plugin) {
 }
 
@@ -70,7 +78,7 @@ NAN_METHOD(Plugin::New) {
   ARGUMENTS_REQUIRE_NUMBER(0, minimumMessageId)
 
   // Create plugin
-  Plugin p = new Plugin(std::make_shared<extension::Plugin>(minimumMessageId));
+  Plugin * p = new Plugin(boost::make_shared<extension::Plugin>(minimumMessageId));
 
   // Wrap p in this
   p->Wrap(info.This());
@@ -265,31 +273,24 @@ NAN_METHOD(Plugin::AddTorrent) {
 
 NAN_METHOD(Plugin::RemoveTorrent) {
 
-  GET_THIS_PLUGIN(plugin)
-  ARGUMENTS_REQUIRE_DECODED(0, libtorrent::node::sha1_hash, infoHash)
-  ARGUMENTS_REQUIRE_CALLBACK(1, managed_callback)
-
-  plugin._plugin->submit(joystream::extension::request::RemoveTorrent(infoHash, [managed_callback](const std::exception_ptr & ex) {
-
-    /**
-    v8::Local<v8::Value> argv[];
-
-    Process(ex, managagedCallback);
-
-    if(ex)
-      arvc = { Nan::New<v8::String>("Missing Torrent").ToLocalChecked() }
-    else
-      argv[0] = ;
-
-    managed_callback->Call(1, argv);
-    */
-    
-  }));
-
 }
 
 NAN_METHOD(Plugin::PauseTorrent) {
 
+    // Get validated parameters
+    GET_THIS_PLUGIN(plugin)
+    ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+    ARGUMENTS_REQUIRE_BOOLEAN(1, graceful)
+    ARGUMENTS_REQUIRE_CALLBACK(2, managedCallback)
+
+    // Create request
+    joystream::extension::request::PauseTorrent request(infoHash,
+                                                        graceful,
+                                                        detail::CreateGenericSubroutineHandler(managedCallback));
+    // Submit request
+    plugin->_plugin->submit(request);
+
+    RETURN_VOID
 }
 
 NAN_METHOD(Plugin::ResumeTorrent) {
@@ -300,6 +301,64 @@ NAN_METHOD(Plugin::StartDownloading) {
 
 }
 
+namespace detail {
 
+  template<class ...Args>
+  using ValueGenerator = v8::Local<v8::Value>(*)(const std::exception_ptr & ex, Args... args);
+
+  namespace generic_value_generators {
+
+    template<class ...Args>
+    v8::Local<v8::Value> errorValueGn(const std::exception_ptr & ex, Args... args) {
+
+      if(ex) { // failure
+
+        try {
+          std::rethrow_exception(ex);
+        } catch(const std::exception & e) {
+            return Nan::New(e.what()).ToLocalChecked();
+        }
+
+      } else // success
+        return Nan::Null();
+    }
+
+    template<class ...Args>
+    v8::Local<v8::Value> resultValueGn(const std::exception_ptr & ex, Args... args) {
+      if(ex) // failure
+        return Nan::Undefined();
+      else // success
+        return Nan::True();
+    }
+
+  }
+
+  template<class ...Args>
+  joystream::extension::request::SubroutineHandler CreateSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback,
+                                                                           const ValueGenerator<Args...> & errorValueGenerator,
+                                                                           const ValueGenerator<Args...> & resultValueGenerator,
+                                                                           Args... args) {
+
+    auto bounded_error_value_generator = std::bind(errorValueGenerator, std::placeholders::_1, args...);
+    auto bounded_result_value_generator = std::bind(resultValueGenerator, std::placeholders::_1, args...);
+
+    return [callback, bounded_error_value_generator, bounded_result_value_generator] (const std::exception_ptr & ex) -> void {
+      v8::Local<v8::Value> argv[] = { bounded_error_value_generator(ex), bounded_result_value_generator(ex) };
+      callback->Call(2, argv);
+    };
+  }
+
+  joystream::extension::request::SubroutineHandler CreateGenericSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback) {
+      return CreateSubroutineHandler<>(callback, generic_value_generators::errorValueGn<>, generic_value_generators::resultValueGn<>);
+  }
+
+  /**
+  /// This is what I would prefer, but does not build
+  auto CreateGenericSubroutineHandler = std::bind(CreateSubroutineHandler<>,
+                                                  std::placeholders::_1,
+                                                  generic_value_generators::errorValueGn<>,
+                                                  generic_value_generators::resultValueGn<>);
+  */
+}
 }
 }
