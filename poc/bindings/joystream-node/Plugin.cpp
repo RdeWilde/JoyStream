@@ -348,8 +348,12 @@ namespace detail {
     };
   }
 
+  template<class ...Args>
   joystream::extension::request::SubroutineHandler CreateGenericSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback) {
-      return CreateSubroutineHandler<>(callback, generic_value_generators::errorValueGn<>, generic_value_generators::resultValueGn<>);
+
+      return CreateSubroutineHandler<Args...>(callback,
+                                              generic_value_generators::errorValueGn<Args...>,
+                                              generic_value_generators::resultValueGn<Args...>);
   }
 
   /**
