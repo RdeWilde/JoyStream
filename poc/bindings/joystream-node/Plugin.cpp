@@ -54,7 +54,6 @@ NAN_MODULE_INIT(Plugin::Init) {
 
   Nan::SetPrototypeMethod(tpl, "start", Start);
   Nan::SetPrototypeMethod(tpl, "stop", Stop);
-  Nan::SetPrototypeMethod(tpl, "pause", Pause);
   Nan::SetPrototypeMethod(tpl, "update_buyer_terms", UpdateBuyerTerms);
   Nan::SetPrototypeMethod(tpl, "update_seller_terms", UpdateSellerTerms);
   Nan::SetPrototypeMethod(tpl, "to_observe_mode", ToObserveMode);
@@ -62,7 +61,6 @@ NAN_MODULE_INIT(Plugin::Init) {
   Nan::SetPrototypeMethod(tpl, "to_buy_mode", ToBuyMode);
   Nan::SetPrototypeMethod(tpl, "post_torrent_plugin_status_updates", PostTorrentPluginStatusUpdates);
   Nan::SetPrototypeMethod(tpl, "post_peer_plugin_status_updates", PostPeerPluginStatusUpdates);
-  Nan::SetPrototypeMethod(tpl, "stop_all_torrent_plugins", StopAllTorrentPlugins);
   Nan::SetPrototypeMethod(tpl, "pause_libtorrent", PauseLibtorrent);
   Nan::SetPrototypeMethod(tpl, "add_torrent", AddTorrent);
   Nan::SetPrototypeMethod(tpl, "remove_torrent", RemoveTorrent);
