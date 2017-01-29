@@ -188,6 +188,17 @@ NAN_METHOD(Plugin::PostTorrentPluginStatusUpdates) {
 
 NAN_METHOD(Plugin::PostPeerPluginStatusUpdates) {
 
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+
+  // Create request
+  joystream::extension::request::PostPeerPluginStatusUpdates request(infoHash);
+
+  // Submit request
+  plugin->_plugin->submit(request);
+
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::PauseLibtorrent) {
