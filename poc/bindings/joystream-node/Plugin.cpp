@@ -328,19 +328,16 @@ namespace detail {
         try {
           std::rethrow_exception(ex);
         } catch(const std::exception & e) {
-            return Nan::New(e.what()).ToLocalChecked();
+            return ERROR_VALUE_FAILURE(e.what());
         }
 
       } else // success
-        return Nan::Null();
+        return ERROR_VALUE_SUCCESS;
     }
 
     template<class ...Args>
     v8::Local<v8::Value> resultValueGn(const std::exception_ptr & ex, Args... args) {
-      if(ex) // failure
-        return Nan::Undefined();
-      else // success
-        return Nan::True();
+      return RESULT_VALUE(ex);
     }
 
   }
