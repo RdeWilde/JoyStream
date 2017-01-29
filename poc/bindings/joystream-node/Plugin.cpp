@@ -67,6 +67,7 @@ NAN_MODULE_INIT(Plugin::Init) {
   Nan::SetPrototypeMethod(tpl, "pause_torrent", PauseTorrent);
   Nan::SetPrototypeMethod(tpl, "resume_torrent", ResumeTorrent);
   Nan::SetPrototypeMethod(tpl, "start_downloading", StartDownloading);
+  Nan::SetPrototypeMethod(tpl, "start_uploading", StartUploading);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("Plugin").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
@@ -297,6 +298,10 @@ NAN_METHOD(Plugin::ResumeTorrent) {
 }
 
 NAN_METHOD(Plugin::StartDownloading) {
+
+}
+
+NAN_METHOD(Plugin::StartUploading) {
 
 }
 
