@@ -49,7 +49,6 @@ private:
   static NAN_METHOD(ToBuyMode);
   static NAN_METHOD(PostTorrentPluginStatusUpdates);
   static NAN_METHOD(PostPeerPluginStatusUpdates);
-  static NAN_METHOD(StopAllTorrentPlugins);
   static NAN_METHOD(PauseLibtorrent);
   static NAN_METHOD(AddTorrent);
   static NAN_METHOD(RemoveTorrent);

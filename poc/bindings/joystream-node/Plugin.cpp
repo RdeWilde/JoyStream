@@ -182,34 +182,6 @@ NAN_METHOD(Plugin::PostPeerPluginStatusUpdates) {
 
 }
 
-NAN_METHOD(Plugin::StopAllTorrentPlugins) {
-
-  /**
-  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
-
-  std::shared_ptr<Nan::Callback> callback;
-
-  if(info.Length() > 0) {
-      callback.reset(new Nan::Callback(info[0].As<v8::Function>()));
-  }
-
-
-    // Stop all plugins
-    session_wrap->session_.plugin_->submit(joystream::extension::request::StopAllTorrentPlugins([callback]() {
-
-        std::clog << "All plugins stopped" << std::endl;
-
-        // Service user callback
-        if(callback && !callback->IsEmpty()) {
-            callback->Call(0, {});
-        }
-    }));
-
-  info.GetReturnValue().Set(Nan::Undefined());
-  */
-
-}
-
 NAN_METHOD(Plugin::PauseLibtorrent) {
 
   /**
