@@ -42,7 +42,6 @@ private:
   static NAN_METHOD(New);
   static NAN_METHOD(Start);
   static NAN_METHOD(Stop);
-  static NAN_METHOD(Pause);
   static NAN_METHOD(UpdateBuyerTerms);
   static NAN_METHOD(UpdateSellerTerms);
   static NAN_METHOD(ToObserveMode);

@@ -140,28 +140,6 @@ NAN_METHOD(Plugin::Stop) {
 
 }
 
-NAN_METHOD(Plugin::Pause) {
-
-/**
-  // Pause libtorrent session
-  _plugin->submit(extension::request::PauseLibtorrent([this, paused]() {
-
-      std::clog << "Libtorrent session paused" << std::endl;
-
-      // Stop all plugins
-      _plugin->submit(extension::request::StopAllTorrentPlugins([this, paused]() {
-
-          std::clog << "All plugins stopped" << std::endl;
-
-          // Service user callback
-          paused();
-      }));
-
-  }));
-  */
-
-}
-
 NAN_METHOD(Plugin::UpdateBuyerTerms) {
   //_plugin->submit(extension::request::UpdateBuyerTerms(_infoHash, terms, handler));
 }
