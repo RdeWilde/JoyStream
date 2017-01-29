@@ -173,7 +173,17 @@ NAN_METHOD(Plugin::ToBuyMode) {
 }
 
 NAN_METHOD(Plugin::PostTorrentPluginStatusUpdates) {
-  //_plugin->submit(extension::request::PostTorrentPluginStatusUpdates());
+
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+
+  // Create request
+  joystream::extension::request::PostTorrentPluginStatusUpdates request;
+
+  // Submit request
+  plugin->_plugin->submit(request);
+
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::PostPeerPluginStatusUpdates) {
