@@ -9,12 +9,14 @@
 #include "PluginAlertEncoder.hpp"
 #include "libtorrent-node/utils.hpp"
 #include "libtorrent-node/sha1_hash.hpp"
+#include "libtorrent-node/add_torrent_params.hpp"
 
 #include <extension/extension.hpp>
 
 namespace detail {
 
   joystream::extension::request::SubroutineHandler CreateGenericSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback);
+  joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback);
 
 }
 
@@ -258,25 +260,22 @@ NAN_METHOD(Plugin::PauseLibtorrent) {
 
 NAN_METHOD(Plugin::AddTorrent) {
 
-  /*
-  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  libtorrent::add_torrent_params addTorrentParams;
+  // this requires => ARGUMENTS_REQUIRE_DECODED(0, addTorrentParams, libtorrent::add_torrent_params, libtorrent::node::add_torrent_params::decode)
+  ARGUMENTS_REQUIRE_CALLBACK(1, managedCallback)
 
-  Nan::Callback *callback = new Nan::Callback(info[6].As<v8::Function>());
-  session_wrap->session_.plugin_->submit(joystream::extension::request::AddTorrent(params, [callback](libtorrent::error_code ec, libtorrent::torrent_handle th){
+  // Create request
+  joystream::extension::request::AddTorrent request(addTorrentParams,
+                                                    detail::CreateAddTorrentHandler(managedCallback));
 
-    if(ec) {
-        v8::Local<v8::Value> argv[] = { Nan::New(ec.value()) };
+  // Submit request
+  plugin->_plugin->submit(request);
 
-        callback->Call(1, argv);
-        return;
-    }
+  RETURN_VOID
+}
 
-    v8::Local<v8::Value> argv[] = {
-        Nan::Null(),
-        TorrentHandleWrap::New(th)
-    };
-
-    callback->Call(2, argv);
 NAN_METHOD(Plugin::RemoveTorrent) {
 
   // Get validated parameters
@@ -370,6 +369,19 @@ namespace detail {
       return CreateSubroutineHandler<Args...>(callback,
                                               generic_value_generators::errorValueGn<Args...>,
                                               generic_value_generators::resultValueGn<Args...>);
+  }
+
+  joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback) {
+
+    return [callback] (libtorrent::error_code & ec, libtorrent::torrent_handle & h) -> void {
+
+      // Use error_code::encode(ec) when its ready
+      std::string err = (ec ? "<convert error_code to string>" : "");
+
+      v8::Local<v8::Value> argv[] = { ERROR_VALUE(err), RESULT_VALUE(ec) };
+      callback->Call(2, argv);
+    };
+
   }
 
   /**
