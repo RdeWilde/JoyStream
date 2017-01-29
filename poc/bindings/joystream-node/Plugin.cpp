@@ -25,6 +25,18 @@ namespace detail {
 
 #define GET_THIS_PLUGIN(var) Plugin * var = Nan::ObjectWrap::Unwrap<Plugin>(info.This());
 
+/// Returned values
+
+#define TERNARY_CAST(x) ((Nan::To<v8::Object>(x)).ToLocalChecked())
+
+#define RESULT_VALUE_SUCCESS Nan::True()
+#define RESULT_VALUE_FAILURE Nan::Undefined()
+#define RESULT_VALUE(success) (success ? TERNARY_CAST(RESULT_VALUE_SUCCESS) : TERNARY_CAST(RESULT_VALUE_FAILURE))
+
+#define ERROR_VALUE_SUCCESS Nan::Null()
+#define ERROR_VALUE_FAILURE(str) (Nan::New(str).ToLocalChecked())
+#define ERROR_VALUE(err_str) (std::string(err_str).empty() ? TERNARY_CAST(ERROR_VALUE_SUCCESS) : TERNARY_CAST(ERROR_VALUE_FAILURE(err_str)))
+
 namespace joystream {
 namespace node {
 
