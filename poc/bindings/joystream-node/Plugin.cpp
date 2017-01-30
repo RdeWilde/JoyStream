@@ -9,9 +9,12 @@
 #include "PluginAlertEncoder.hpp"
 #include "BuyerTerms.hpp"
 #include "SellerTerms.hpp"
+#include "PrivateKey.hpp"
+#include "PubKeyHash.hpp"
 #include "libtorrent-node/utils.hpp"
 #include "libtorrent-node/sha1_hash.hpp"
 #include "libtorrent-node/add_torrent_params.hpp"
+#include "libtorrent-node/endpoint.hpp"
 
 #include <extension/extension.hpp>
 
@@ -353,6 +356,31 @@ NAN_METHOD(Plugin::StartDownloading) {
 
 NAN_METHOD(Plugin::StartUploading) {
 
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+
+  libtorrent::tcp::endpoint endPoint;
+  //ARGUMENTS_REQUIRE_DECODED(1, endPoint, libtorrent::tcp::endpoint, libtorrent::node::endpoint::fromObject)
+  ARGUMENTS_REQUIRE_DECODED(2, buyerTerms, protocol_wire::BuyerTerms, joystream::node::buyer_terms::decode)
+  ARGUMENTS_REQUIRE_DECODED(3, contractSk, Coin::PrivateKey, joystream::node::private_key::decode)
+  ARGUMENTS_REQUIRE_DECODED(4, finalPkHash, Coin::PubKeyHash, joystream::node::pubkey_hash::decode)
+  ARGUMENTS_REQUIRE_CALLBACK(5, managedCallback)
+
+  Coin::KeyPair contractKeyPair(contractSk);
+
+  // Create request
+  joystream::extension::request::StartUploading request(infoHash,
+                                                        endPoint,
+                                                        buyerTerms,
+                                                        contractKeyPair,
+                                                        finalPkHash,
+                                                        detail::subroutine_handler::CreateGenericHandler(managedCallback));
+
+    // Submit request
+    plugin->_plugin->submit(request);
+
+    RETURN_VOID
 }
 
 namespace detail {
