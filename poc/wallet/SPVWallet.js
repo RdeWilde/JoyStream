@@ -116,11 +116,12 @@ function SPVWallet(options) {
 
   // Create, fund and sign a transaction from array of outputs
   // (commitments of a joystream contract)
-  self.createAndSend = function send(outputs) {
+  self.createAndSend = function createAndSend(outputs, feeRate) {
       // return the transaction (promise)
       return node.wallet.send({
         sort: false,
-        outputs: outputs
+        outputs: outputs,
+        rate: feeRate
       })
   }
 
