@@ -193,13 +193,21 @@ NAN_METHOD(Plugin::ToObserveMode) {
 
 NAN_METHOD(Plugin::ToSellMode) {
 
-  /**
-  libtorrent::sha1_hash infoHash;
-  protocol_wire::SellerTerms terms;
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+  ARGUMENTS_REQUIRE_DECODED(1, sellerTerms, protocol_wire::SellerTerms, node::seller_terms::decode)
+  ARGUMENTS_REQUIRE_CALLBACK(2, managedCallback)
 
-  _plugin->submit(extension::request::ToSellMode(infoHash, terms));
-  */
+  // Create request
+  joystream::extension::request::ToSellMode request(infoHash,
+                                                    sellerTerms,
+                                                    detail::CreateGenericSubroutineHandler(managedCallback));
 
+  // Submit request
+  plugin->_plugin->submit(request);
+
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::ToBuyMode) {
