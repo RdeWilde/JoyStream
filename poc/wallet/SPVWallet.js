@@ -7,6 +7,7 @@ const co = require('co')
 
 const bcoin = require('bcoin')
 
+// set default network to be testnet
 bcoin.set('testnet')
 
 module.exports = SPVWallet;
@@ -15,17 +16,9 @@ function SPVWallet(options) {
 
   let self = {};
 
-  const prefix = options.prefix || __dirname;
-  const network = options.network || 'tesetnet';
+  options.prefix = options.prefix || __dirname;
 
-  let node = new bcoin.spvnode({
-    prefix : prefix,
-    logger : options.logger,
-    db: 'leveldb',
-    maxOutbound: options.maxOutbound || 8,
-    network: network,
-    httpPort: options.httpPort,
-  });
+  let node = new bcoin.spvnode(options);
 
   // add a mempool (advantage: better network fee estimation, or do we need a full chain?)
   // but actually adding it is interfering with watcher attempt to get mempool!
@@ -54,6 +47,7 @@ function SPVWallet(options) {
     yield node.connect()
 
     node.startSync()
+
   })
 
   self.open = function open() {
@@ -109,26 +103,11 @@ function SPVWallet(options) {
   // will try upto three times on pool.options.invTimeout (1minute)
   self.broadcast = co.wrap(function* broadcast(tx) {
 
-    if(!(tx instanceof bcoin.primitives.TX)) {
+    if (!(tx instanceof bcoin.primitives.TX)) {
       tx = bcoin.primitives.TX.fromRaw(tx)
     }
 
-    for(let tries = 0; tries < 3; tries++) {
-      try {
-        //using pool to do our own error handling
-
-        //bool return value, true = successful ack from peer,
-        //false = (tx rejected or pool closed before ack received)
-        // == how to distinguish between reject and network disconnect?
-        return yield node.pool.broadcast(tx)
-
-      } catch(e) {
-        //timeout
-        continue
-      }
-    }
-
-    throw 'timeout'
+    return yield node.broadcast(tx)
   })
 
   self.close = function close() {
@@ -137,14 +116,10 @@ function SPVWallet(options) {
 
   // Create, fund and sign a transaction from array of outputs
   // (commitments of a joystream contract)
-  // https://github.com/bcoin-org/bcoin/pull/122 (disable sorting)
-  self.send = function send(outputs) {
-      //wallet.send (best option) (but it sorts outputs BIP69 when constructing a Tx.. we don't want that!)
-      //using wallet.fund or wallet.sign can result in double spend (there is no utxo locking)
-
+  self.createAndSend = function send(outputs) {
       // return the transaction (promise)
       return node.wallet.send({
-        noSorting: true,
+        sort: false,
         outputs: outputs
       })
   }

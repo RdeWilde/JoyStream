@@ -18,6 +18,7 @@ function logExit(e) {
 }
 
 let buyerWallet = new SPVWallet({
+      db: 'leveldb',
       prefix  : '/Users/mokhtar/test-walleta/',
       network : 'testnet',
       logger  : logger,
@@ -25,6 +26,7 @@ let buyerWallet = new SPVWallet({
     })
 
 let sellerWallet = new SPVWallet({
+      db: 'leveldb',
       prefix  : '/Users/mokhtar/test-walletb/',
       network : 'testnet',
       logger  : logger,
@@ -61,15 +63,15 @@ co.wrap(function*(buyer, seller){
   let output = bcoin.output.fromRaw(rawoutput)
 
   // as the buyer the transaction will go straight into the wallet database
-  let contract = yield buyer.send([output])
+  // as an unconfirmed tx (to ensure no double spend) and attempt is made
+  // to broadcast the tx
+  let contract = yield buyer.createAndSend([output])
+
+  console.log('sent contract txid:', contract.txid())
 
   // getting here doesn't gurantee that the contract was broadcast successfully
   // on the network because the node catches errors from the broadcast method
-  // but it does mean the contract was constructed and is stored in the wallet
-
   // so we need to handle possibility that contract is not in the network
-
-  console.log('sent contract txid:', contract.txid())
 
   try {
     yield buyer.awaitTransaction(contract.hash(), 20000)
