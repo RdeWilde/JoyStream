@@ -265,28 +265,17 @@ NAN_METHOD(Plugin::PostPeerPluginStatusUpdates) {
 
 NAN_METHOD(Plugin::PauseLibtorrent) {
 
-  /**
-  SessionWrap* session_wrap = ObjectWrap::Unwrap<SessionWrap>(info.This());
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_CALLBACK(0, managedCallback)
 
-  std::shared_ptr<Nan::Callback> callback;
+  // Create request
+  joystream::extension::request::PauseLibtorrent request(detail::no_exception_subroutine_handler::CreateGenericHandler(managedCallback));
 
-  if(info.Length() > 0) {
-      callback.reset(new Nan::Callback(info[0].As<v8::Function>()));
-  }
+  // Submit request
+  plugin->_plugin->submit(request);
 
-  // Pause libtorrent session
-  session_wrap->session_.plugin_->submit(joystream::extension::request::PauseLibtorrent([session_wrap, callback]() {
-
-    std::clog << "Libtorrent session paused" << std::endl;
-
-        if(callback && !callback->IsEmpty()) {
-            callback->Call(0, {});
-        }
-  }));
-
-  info.GetReturnValue().Set(Nan::Undefined());
-  */
-
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::AddTorrent) {
