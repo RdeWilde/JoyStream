@@ -7,6 +7,7 @@
 
 #include "Plugin.hpp"
 #include "PluginAlertEncoder.hpp"
+#include "BuyerTerms.hpp"
 #include "libtorrent-node/utils.hpp"
 #include "libtorrent-node/sha1_hash.hpp"
 #include "libtorrent-node/add_torrent_params.hpp"
@@ -135,7 +136,22 @@ NAN_METHOD(Plugin::Stop) {
 }
 
 NAN_METHOD(Plugin::UpdateBuyerTerms) {
-  //_plugin->submit(extension::request::UpdateBuyerTerms(_infoHash, terms, handler));
+
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+  ARGUMENTS_REQUIRE_DECODED(1, buyerTerms, protocol_wire::BuyerTerms, node::buyer_terms::decode)
+  ARGUMENTS_REQUIRE_CALLBACK(2, managedCallback)
+
+  // Create request
+  joystream::extension::request::UpdateBuyerTerms request(infoHash,
+                                                          buyerTerms,
+                                                          detail::CreateGenericSubroutineHandler(managedCallback));
+
+  // Submit request
+  plugin->_plugin->submit(request);
+
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::UpdateSellerTerms) {
