@@ -119,8 +119,19 @@ NAN_METHOD(Plugin::Start) {
 
 NAN_METHOD(Plugin::Stop) {
 
-  // _plugin->submit(extension::request::Stop(_infoHash, handler));
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+  ARGUMENTS_REQUIRE_CALLBACK(1, managedCallback)
 
+  // Create request
+  joystream::extension::request::Stop request(infoHash,
+                                              detail::CreateGenericSubroutineHandler(managedCallback));
+
+  // Submit request
+  plugin->_plugin->submit(request);
+
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::UpdateBuyerTerms) {
