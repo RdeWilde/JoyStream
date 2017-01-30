@@ -47,7 +47,7 @@ public:
     Coin::Transaction transaction() const;
 
     // Transaction fee for contract with given terms
-    static uint64_t totalFee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, uint64_t sizeOfAllInputs);
+    static uint64_t totalFee(uint32_t numberOfCommitments, bool hasChange, uint64_t feePerKb, uint64_t sizeOfAllInputs);
 
 private:
 
