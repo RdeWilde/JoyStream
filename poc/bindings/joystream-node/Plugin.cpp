@@ -19,6 +19,9 @@ namespace detail {
 namespace subroutine_handler {
   joystream::extension::request::SubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback);
 }
+namespace no_exception_subroutine_handler {
+  joystream::extension::request::NoExceptionSubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback);
+}
 
   joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback);
 
@@ -409,11 +412,43 @@ namespace detail {
     }
   }
 
+  /// NoExceptionSubroutineHandler
 
+  namespace no_exception_subroutine_handler {
 
+    template<class ...Args>
+    using ValueGenerator = v8::Local<v8::Value>(*)(Args... args);
 
+    template<class ...Args>
+    joystream::extension::request::NoExceptionSubroutineHandler CreateHandler(const std::shared_ptr<Nan::Callback> & callback,
+                                                                              const ValueGenerator<Args...> errorValueGenerator,
+                                                                              const ValueGenerator<Args...> resultValueGenerator,
+                                                                              Args... args) {
+
+      auto bounded_error_value_generator = std::bind(errorValueGenerator, args...);
+      auto bounded_result_value_generator = std::bind(resultValueGenerator, args...);
+
+      return [callback, bounded_error_value_generator, bounded_result_value_generator] () -> void {
+        v8::Local<v8::Value> argv[] = { bounded_error_value_generator(), bounded_result_value_generator() };
+        callback->Call(2, argv);
+      };
+    }
+
+    v8::Local<v8::Value> genericErrorValueGenerator() {
+      return ERROR_VALUE_SUCCESS;
+    }
+
+    v8::Local<v8::Value> genericResultValueGenerator() {
+      return RESULT_VALUE_SUCCESS;
+    }
+
+    joystream::extension::request::NoExceptionSubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback) {
+      return CreateHandler<>(callback, &genericErrorValueGenerator, &genericResultValueGenerator);
+    }
 
   }
+
+  /// Custome handlers
 
   joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback) {
 
