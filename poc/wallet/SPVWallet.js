@@ -98,9 +98,8 @@ function SPVWallet(options) {
     return watcher.watch(hash, timeout);
   }
 
-  // Broadcast a signed transaction (settlements, refunds)
+  // Broadcast a signed immutable transaction (settlements, refunds)
   // Accepts hex encoded string, Buffer or bcoin.TX
-  // will try upto three times on pool.options.invTimeout (1minute)
   self.broadcast = co.wrap(function* broadcast(tx) {
 
     if (!(tx instanceof bcoin.primitives.TX)) {
