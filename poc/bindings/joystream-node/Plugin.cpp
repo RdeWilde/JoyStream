@@ -102,35 +102,19 @@ NAN_METHOD(Plugin::New) {
 
 NAN_METHOD(Plugin::Start) {
 
-  /**
-  /// Get plugin reference
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+  ARGUMENTS_REQUIRE_CALLBACK(1, managedCallback)
 
-  Plugin * plugin = Nan::ObjectWrap::Unwrap<Plugin>(info.This());
+  // Create request
+  joystream::extension::request::Start request(infoHash,
+                                               detail::CreateGenericSubroutineHandler(managedCallback));
 
-  // read up on unwrapping, this vs holder, and also whether we have to tets resutl
+  // Submit request
+  plugin->_plugin->submit(request);
 
-  if(!plugin)
-    //throw??
-
-  if(info.Length < 2)
-    Nan::ThrowError("......");
-
-  // when decoding, do try catching and throw nan excption if it doent work
-
-  // libtorrent::sha1_hash infoHash = infoHash::fromValue(info[0]);
-  // std::shared_ptr<Nan::Callback> callback = std::make_shared<Nan::Callback>(info[1].As<v8::Function>());
-  // _plugin->submit(extension::request::Start(infoHash, callback));
-
-  plugin->submit(extension::request::RemoveTorrent(info_hash, [callback](const std::exception_ptr &){
-
-    v8::Local<v8::Value> argv[] = {
-        Nan::Null()
-    };
-
-    callback->Call(1, argv);
-  }));
-  */
-
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::Stop) {
