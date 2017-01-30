@@ -86,7 +86,7 @@ template <class ConnectionIdType>
 using ClaimLastPaymentCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, joystream::paymentchannel::Payee>;
 
 template <class ConnectionIdType>
-using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, quint64, Coin::typesafeOutPoint, Coin::PublicKey, Coin::PubKeyHash>;
+using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, uint64_t, Coin::typesafeOutPoint, Coin::PublicKey, Coin::PubKeyHash>;
 
 template <class ConnectionIdType>
 struct ConnectionSpy {
