@@ -153,9 +153,9 @@ NAN_METHOD(Session::add_torrent) {
 
   ARGUMENTS_REQUIRE_DECODED(0, params, libtorrent::add_torrent_params, libtorrent::node::add_torrent_params::decode);
 
-  Session* session_wrap = Nan::ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = Nan::ObjectWrap::Unwrap<Session>(info.This());
 
-  th = session_wrap->session->add_torrent(params, ec);
+  th = session->session->add_torrent(params, ec);
 
   RETURN(TorrentHandle::New(th));
 }
@@ -165,41 +165,41 @@ NAN_METHOD(Session::remove_torrent) {
 
   EXPLOSIVE_ARGUMENT_REQUIRE_WRAPS(0, TorrentHandle, th);
 
-  Session* session_wrap = Nan::ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = Nan::ObjectWrap::Unwrap<Session>(info.This());
 
-  session_wrap->session->remove_torrent(th->th_);
+  session->session->remove_torrent(th->th_);
 
   RETURN_VOID;
 }
 
 
 NAN_METHOD(Session::listen_port) {
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  RETURN(session_wrap->session->listen_port());
+  RETURN(session->session->listen_port());
 }
 
 NAN_METHOD(Session::post_torrent_updates) {
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session_wrap->session->post_torrent_updates();
+  session->session->post_torrent_updates();
 
   RETURN_VOID;
 }
 
 NAN_METHOD(Session::pause) {
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session_wrap->session->resume();
+  session->session->resume();
 
   RETURN_VOID;
 }
 
 NAN_METHOD(Session::is_paused) {
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
   v8::Local<v8::Boolean> isPaused;
-  if (session_wrap->session->is_paused()) {
+  if (session->session->is_paused()) {
     isPaused = Nan::True();
   } else {
     isPaused = Nan::False();
@@ -209,9 +209,9 @@ NAN_METHOD(Session::is_paused) {
 }
 
 NAN_METHOD(Session::resume) {
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session_wrap->session->resume();
+  session->session->resume();
 
   RETURN_VOID;
 }
@@ -221,9 +221,9 @@ NAN_METHOD(Session::find_torrent) {
 
   ARGUMENTS_REQUIRE_DECODED(0,info_hash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode);
 
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  th = session_wrap->session->find_torrent(info_hash);
+  th = session->session->find_torrent(info_hash);
 
   RETURN(TorrentHandle::New(th));
 }
@@ -282,13 +282,13 @@ NAN_METHOD(Session::set_alert_notify) {
   ARGUMENTS_REQUIRE_FUNCTION(0, fn);
 
   // Recover session binding
-  Session* session_wrap = Nan::ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = Nan::ObjectWrap::Unwrap<Session>(info.This());
 
   // Store persistent handle to callback
   _alertNotifier.Reset(fn);
 
   // Set alert notifier on libtorrent session
-  session_wrap->session->set_alert_notify([]() { _alertNotifier(0, {}); });
+  session->session->set_alert_notify([]() { _alertNotifier(0, {}); });
 }
 
 NAN_METHOD(Session::dht_announce) {
@@ -299,9 +299,9 @@ NAN_METHOD(Session::dht_announce) {
   unsigned int listen_port = info[1]->Uint32Value();
 
 
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session_wrap->session->dht_announce(info_hash, listen_port);
+  session->session->dht_announce(info_hash, listen_port);
 
   RETURN_VOID;
 }
@@ -313,9 +313,9 @@ NAN_METHOD(Session::dht_get_peers) {
 
   unsigned int listen_port = info[1]->Uint32Value();
 
-  Session* session_wrap = ObjectWrap::Unwrap<Session>(info.This());
+  Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session_wrap->session->dht_announce(info_hash, listen_port);
+  session->session->dht_announce(info_hash, listen_port);
 
   RETURN_VOID;
 }

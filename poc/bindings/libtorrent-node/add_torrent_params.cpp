@@ -30,7 +30,10 @@ v8::Local<v8::Object> encode(const libtorrent::add_torrent_params & atp) {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    SET_VAL(o, TI_KEY, TorrentInfo::New(atp.ti));
+    if (atp.ti) {
+      SET_VAL(o, TI_KEY, TorrentInfo::New(atp.ti));
+    }
+
     SET_STD_STRING(o, NAME_KEY, atp.name);
     SET_STD_STRING(o, SAVE_PATH_KEY, atp.save_path);
     SET_VAL(o, INFO_HASH_KEY, libtorrent::node::sha1_hash::encode(atp.info_hash));
@@ -50,19 +53,28 @@ libtorrent::add_torrent_params decode(const v8::Local<v8::Value> & v) {
 
   v8::Local<v8::Object> o = v->ToObject();
 
-  v8::Local<v8::Value> ti_value = GET_VAL(o, TI_KEY);
-  boost::shared_ptr<const libtorrent::torrent_info> torrent_info = TorrentInfo::Unwrap(ti_value->ToObject());
-  const libtorrent::torrent_info ti = *torrent_info.get();
-  libtorrent::torrent_info* newTi = new libtorrent::torrent_info(ti);
-  atp.ti = boost::make_shared<libtorrent::torrent_info>(*newTi);
+  if (Nan::Has(o,Nan::New(TI_KEY).ToLocalChecked()).FromJust()) {
+    v8::Local<v8::Value> ti_value = GET_VAL(o, TI_KEY);
+    boost::shared_ptr<const libtorrent::torrent_info> torrent_info = TorrentInfo::Unwrap(ti_value->ToObject());
+    atp.ti = boost::make_shared<libtorrent::torrent_info>(*torrent_info.get());
+  }
+
   atp.name =  GET_STD_STRING(o, NAME_KEY);
   atp.save_path =  GET_STD_STRING(o, SAVE_PATH_KEY);
-  atp.info_hash = libtorrent::node::sha1_hash::decode(GET_VAL(o, INFO_HASH_KEY));
-  atp.url =  GET_STD_STRING(o, URL_KEY);
+
+  if (Nan::Has(o,Nan::New(INFO_HASH_KEY).ToLocalChecked()).FromJust()) {
+    atp.info_hash = libtorrent::node::sha1_hash::decode(GET_VAL(o, INFO_HASH_KEY));
+  }
+
+  if (Nan::Has(o,Nan::New(URL_KEY).ToLocalChecked()).FromJust()) {
+    atp.url =  GET_STD_STRING(o, URL_KEY);
+  }
+
   std::string str = GET_STD_STRING(o, RESUME_DATA_KEY);
   std::copy(str.begin(), str.end(), std::back_inserter(atp.resume_data));
   atp.upload_limit =  GET_INT32(o, UPLOAD_LIMIT_KEY);
   atp.download_limit =  GET_INT32(o, DOWNLOAD_LIMIT_KEY);
+
   return atp;
 }
 
