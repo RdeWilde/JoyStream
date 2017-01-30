@@ -16,8 +16,10 @@
 #include <extension/extension.hpp>
 
 namespace detail {
+namespace subroutine_handler {
+  joystream::extension::request::SubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback);
+}
 
-  joystream::extension::request::SubroutineHandler CreateGenericSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback);
   joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback);
 
 }
@@ -111,7 +113,7 @@ NAN_METHOD(Plugin::Start) {
 
   // Create request
   joystream::extension::request::Start request(infoHash,
-                                               detail::CreateGenericSubroutineHandler(managedCallback));
+                                               detail::subroutine_handler::CreateGenericHandler(managedCallback));
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -128,7 +130,7 @@ NAN_METHOD(Plugin::Stop) {
 
   // Create request
   joystream::extension::request::Stop request(infoHash,
-                                              detail::CreateGenericSubroutineHandler(managedCallback));
+                                              detail::subroutine_handler::CreateGenericHandler(managedCallback));
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -147,7 +149,7 @@ NAN_METHOD(Plugin::UpdateBuyerTerms) {
   // Create request
   joystream::extension::request::UpdateBuyerTerms request(infoHash,
                                                           buyerTerms,
-                                                          detail::CreateGenericSubroutineHandler(managedCallback));
+                                                          detail::subroutine_handler::CreateGenericHandler(managedCallback));
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -166,7 +168,7 @@ NAN_METHOD(Plugin::UpdateSellerTerms) {
   // Create request
   joystream::extension::request::UpdateSellerTerms request(infoHash,
                                                            sellerTerms,
-                                                           detail::CreateGenericSubroutineHandler(managedCallback));
+                                                           detail::subroutine_handler::CreateGenericHandler(managedCallback));
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -183,7 +185,7 @@ NAN_METHOD(Plugin::ToObserveMode) {
 
   // Create request
   joystream::extension::request::ToObserveMode request(infoHash,
-                                                       detail::CreateGenericSubroutineHandler(managedCallback));
+                                                       detail::subroutine_handler::CreateGenericHandler(managedCallback));
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -202,7 +204,7 @@ NAN_METHOD(Plugin::ToSellMode) {
   // Create request
   joystream::extension::request::ToSellMode request(infoHash,
                                                     sellerTerms,
-                                                    detail::CreateGenericSubroutineHandler(managedCallback));
+                                                    detail::subroutine_handler::CreateGenericHandler(managedCallback));
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -221,7 +223,7 @@ NAN_METHOD(Plugin::ToBuyMode) {
   // Create request
   joystream::extension::request::ToBuyMode request(infoHash,
                                                    buyerTerms,
-                                                   detail::CreateGenericSubroutineHandler(managedCallback));
+                                                   detail::subroutine_handler::CreateGenericHandler(managedCallback));
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -311,7 +313,7 @@ NAN_METHOD(Plugin::RemoveTorrent) {
 
   // Create request
   joystream::extension::request::RemoveTorrent request(infoHash,
-                                                       detail::CreateGenericSubroutineHandler(managedCallback));
+                                                       detail::subroutine_handler::CreateGenericHandler(managedCallback));
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -330,7 +332,7 @@ NAN_METHOD(Plugin::PauseTorrent) {
   // Create request
   joystream::extension::request::PauseTorrent request(infoHash,
                                                       graceful,
-                                                      detail::CreateGenericSubroutineHandler(managedCallback));
+                                                      detail::subroutine_handler::CreateGenericHandler(managedCallback));
   // Submit request
   plugin->_plugin->submit(request);
 
@@ -346,7 +348,7 @@ NAN_METHOD(Plugin::ResumeTorrent) {
 
   // Create request
   joystream::extension::request::ResumeTorrent request(infoHash,
-                                                       detail::CreateGenericSubroutineHandler(managedCallback));
+                                                       detail::subroutine_handler::CreateGenericHandler(managedCallback));
   // Submit request
   plugin->_plugin->submit(request);
 
@@ -363,13 +365,28 @@ NAN_METHOD(Plugin::StartUploading) {
 
 namespace detail {
 
-  template<class ...Args>
-  using ValueGenerator = v8::Local<v8::Value>(*)(const std::exception_ptr & ex, Args... args);
-
-  namespace generic_value_generators {
+  /// SubroutineHandler
+  namespace subroutine_handler {
 
     template<class ...Args>
-    v8::Local<v8::Value> errorValueGn(const std::exception_ptr & ex, Args... args) {
+    using ValueGenerator = v8::Local<v8::Value>(*)(const std::exception_ptr & ex, Args... args);
+
+    template<class ...Args>
+    joystream::extension::request::SubroutineHandler CreateSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback,
+                                                                             const ValueGenerator<Args...> & errorValueGenerator,
+                                                                             const ValueGenerator<Args...> & resultValueGenerator,
+                                                                             Args... args) {
+
+      auto bounded_error_value_generator = std::bind(errorValueGenerator, std::placeholders::_1, args...);
+      auto bounded_result_value_generator = std::bind(resultValueGenerator, std::placeholders::_1, args...);
+
+      return [callback, bounded_error_value_generator, bounded_result_value_generator] (const std::exception_ptr & ex) -> void {
+        v8::Local<v8::Value> argv[] = { bounded_error_value_generator(ex), bounded_result_value_generator(ex) };
+        callback->Call(2, argv);
+      };
+    }
+
+    v8::Local<v8::Value> errorValueGn(const std::exception_ptr & ex) {
 
       if(ex) { // failure
 
@@ -383,34 +400,19 @@ namespace detail {
         return ERROR_VALUE_SUCCESS;
     }
 
-    template<class ...Args>
-    v8::Local<v8::Value> resultValueGn(const std::exception_ptr & ex, Args... args) {
+    v8::Local<v8::Value> resultValueGn(const std::exception_ptr & ex) {
       return RESULT_VALUE(ex);
     }
 
+    joystream::extension::request::SubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback) {
+        return CreateSubroutineHandler(callback, &errorValueGn, &resultValueGn);
+    }
   }
 
-  template<class ...Args>
-  joystream::extension::request::SubroutineHandler CreateSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback,
-                                                                           const ValueGenerator<Args...> & errorValueGenerator,
-                                                                           const ValueGenerator<Args...> & resultValueGenerator,
-                                                                           Args... args) {
 
-    auto bounded_error_value_generator = std::bind(errorValueGenerator, std::placeholders::_1, args...);
-    auto bounded_result_value_generator = std::bind(resultValueGenerator, std::placeholders::_1, args...);
 
-    return [callback, bounded_error_value_generator, bounded_result_value_generator] (const std::exception_ptr & ex) -> void {
-      v8::Local<v8::Value> argv[] = { bounded_error_value_generator(ex), bounded_result_value_generator(ex) };
-      callback->Call(2, argv);
-    };
-  }
 
-  template<class ...Args>
-  joystream::extension::request::SubroutineHandler CreateGenericSubroutineHandler(const std::shared_ptr<Nan::Callback> & callback) {
 
-      return CreateSubroutineHandler<Args...>(callback,
-                                              generic_value_generators::errorValueGn<Args...>,
-                                              generic_value_generators::resultValueGn<Args...>);
   }
 
   joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback) {
