@@ -175,7 +175,20 @@ NAN_METHOD(Plugin::UpdateSellerTerms) {
 }
 
 NAN_METHOD(Plugin::ToObserveMode) {
-  //_plugin->submit(extension::request::ToObserveMode(_infoHash, handler));
+
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+  ARGUMENTS_REQUIRE_CALLBACK(1, managedCallback)
+
+  // Create request
+  joystream::extension::request::ToObserveMode request(infoHash,
+                                                       detail::CreateGenericSubroutineHandler(managedCallback));
+
+  // Submit request
+  plugin->_plugin->submit(request);
+
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::ToSellMode) {
