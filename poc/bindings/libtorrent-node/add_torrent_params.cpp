@@ -57,52 +57,36 @@ libtorrent::add_torrent_params decode(const v8::Local<v8::Value> & v) {
     v8::Local<v8::Value> ti_value = GET_VAL(o, TI_KEY);
     boost::shared_ptr<const libtorrent::torrent_info> torrent_info = TorrentInfo::Unwrap(ti_value->ToObject());
     atp.ti = boost::make_shared<libtorrent::torrent_info>(*torrent_info.get());
-  } catch(const std::runtime_error & e) {
-    std::cout << "Field 'ti' missing" << std::endl;
-  }
+  } catch(const std::runtime_error & e) { }
 
   try {
     atp.name =  GET_STD_STRING(o, NAME_KEY);
-  } catch(const std::runtime_error & e) {
-    std::cout << "Field 'name' missing" << std::endl;
-  }
+  } catch(const std::runtime_error & e) { }
 
   try {
     atp.save_path =  GET_STD_STRING(o, SAVE_PATH_KEY);
-  } catch(const std::runtime_error & e) {
-    std::cout << "Field 'save_path' missing" << std::endl;
-  }
+  } catch(const std::runtime_error & e) { }
 
   try {
     atp.info_hash = libtorrent::node::sha1_hash::decode(GET_VAL(o, INFO_HASH_KEY));
-  } catch(const std::runtime_error & e) {
-    std::cout << "Field 'info_hash' missing" << std::endl;
-  }
+  } catch(const std::runtime_error & e) { }
 
   try {
     atp.url =  GET_STD_STRING(o, URL_KEY);
-  } catch(const std::runtime_error & e) {
-    std::cout << "Field 'url' missing" << std::endl;
-  }
+  } catch(const std::runtime_error & e) { }
 
   try {
     std::string str = GET_STD_STRING(o, RESUME_DATA_KEY);
     std::copy(str.begin(), str.end(), std::back_inserter(atp.resume_data));
-  } catch(const std::runtime_error & e) {
-    std::cout << "Field 'resume_data' missing" << std::endl;
-  }
+  } catch(const std::runtime_error & e) { }
 
   try {
     atp.upload_limit =  GET_INT32(o, UPLOAD_LIMIT_KEY);
-  } catch(const std::runtime_error & e) {
-    std::cout << "Field 'resume_data' missing" << std::endl;
-  }
+  } catch(const std::runtime_error & e) { }
 
   try {
     atp.download_limit =  GET_INT32(o, DOWNLOAD_LIMIT_KEY);
-  } catch(const std::runtime_error & e) {
-    std::cout << "Field 'resume_data' missing" << std::endl;
-  }
+  } catch(const std::runtime_error & e) { }
 
   return atp;
 }
