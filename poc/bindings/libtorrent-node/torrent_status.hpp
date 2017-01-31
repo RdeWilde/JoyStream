@@ -31,6 +31,8 @@ namespace torrent_status {
  v8::Local<v8::Object> encode(const libtorrent::torrent_status & s);
  libtorrent::torrent_status decode(const v8::Local<v8::Object> & o);
 
-}}}
+}
+}
+}
 
 #endif // LIBTORRENT_NODE_TORRENT_STATUS_HPP

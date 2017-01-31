@@ -18,9 +18,9 @@ class TorrentHandle : public Nan::ObjectWrap {
       TorrentHandle* th = Nan::ObjectWrap::Unwrap<TorrentHandle>(obj);
       return &th->th_;
     };
+    libtorrent::torrent_handle th_;
 
   private:
-    libtorrent::torrent_handle th_;
     static Nan::Persistent<v8::Function> constructor;
 
     static NAN_METHOD(NewInstance);

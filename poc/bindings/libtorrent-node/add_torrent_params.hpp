@@ -27,7 +27,7 @@ namespace add_torrent_params {
   /**
    * AddTorrentParams is encoded as
    * {
-   *  ti : { see torrentInfoWrap },
+   *  ti : { see String or Buffer },
    *  name : { String },
    *  save_path : { String },
    *  info_hash : { see sha1_hash format },
@@ -39,8 +39,10 @@ namespace add_torrent_params {
    */
 
  v8::Local<v8::Object> encode(const libtorrent::add_torrent_params & atp);
- libtorrent::add_torrent_params fromObject(const v8::Local<v8::Object> & o);
+ libtorrent::add_torrent_params decode(const v8::Local<v8::Value> & o);
 
-}}}
+}
+}
+}
 
 #endif // LIBTORRENT_NODE_ADD_TORRENT_PARAMS_HPP

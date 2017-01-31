@@ -4,32 +4,30 @@
 #include <nan.h>
 #include "alert.hpp"
 #include "torrent_handle.h"
-#include "plugin.hpp" //
+#include "add_torrent_params.hpp"
+#include "plugin.hpp"
+#include "sha1_hash.hpp"
 #include <iostream>
-//#include <extension/extension.hpp>
-#include <joystream_libtorrent_session/Session.hpp>
-
+#include <libtorrent/session.hpp>
+#include <libtorrent/fingerprint.hpp>
 #include <vector>
 
 namespace libtorrent {
 namespace node {
 
-class SessionWrap : public Nan::ObjectWrap {
+class Session : public Nan::ObjectWrap {
   public:
     static NAN_MODULE_INIT(Init);
-    static libtorrent::sha1_hash object_to_sha1_hash(Local<Value> infoHash);
 
   private:
-    Session session_;
+    explicit Session(boost::shared_ptr<libtorrent::session> session) : session(session) {};
+    static libtorrent::settings_pack session_settings(bool enableDHT) noexcept;
 
-    // static boost::shared_ptr<libtorrent::session> createSession( /** some args **/ );
-    // boost::shared_ptr<libtorrent::session> session;
 
+    boost::shared_ptr<libtorrent::session> session;
     static Nan::Persistent<v8::Function> constructor;
-
     // Persistent handle set in set_alert_notify, signaling alert queue becoming non-empty
     static Nan::Callback _alertNotifier;
-
     // Alert decoders used, in order.
     std::vector<AlertDecoder> _decoders;
 

@@ -13,7 +13,7 @@ NAN_MODULE_INIT(TorrentInfo::Init) {
   Nan::Set(target, Nan::New("TorrentInfo").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-Local<Object> TorrentInfo::New(boost::shared_ptr<const libtorrent::torrent_info>& ti) {
+Local<Object> TorrentInfo::New(boost::shared_ptr<const libtorrent::torrent_info> ti) {
     Nan::EscapableHandleScope scope;
 
     Local<Function> cons = Nan::New(constructor);

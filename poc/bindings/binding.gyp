@@ -9,7 +9,7 @@
                 "libtorrent-node/init.cpp",
                 "libtorrent-node/alert.cpp",
                 "libtorrent-node/sha1_hash.cpp",
-                "libtorrent-node/session.cc",
+                "libtorrent-node/session.cpp",
                 "libtorrent-node/torrent_handle.cc",
                 "libtorrent-node/torrent_status.cpp",
                 "libtorrent-node/torrent_info.cc",
@@ -39,9 +39,8 @@
                 "joystream-node/OutPoint.cpp",
                 "joystream-node/TransactionId.cpp",
                 "joystream-node/Connection.cpp",
-                "joystream-node/buffers.cpp",
+                "joystream-node/buffers.cpp"
                 # Others
-                "../src/Session.cpp"
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
             'cflags!': [ '-fno-exceptions', '-fno-rtti' ],
