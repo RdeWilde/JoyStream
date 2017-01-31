@@ -1,6 +1,6 @@
 'use strict'
 
-var NativeExtension = require('../../../')
+var NativeExtension = require('../')
 var debug = require('debug')('node')
 const EventEmitter = require('events')
 

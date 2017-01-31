@@ -7,6 +7,7 @@
                 "NativeExtension.cpp",
                 # libtorrent
                 "libtorrent-node/init.cpp",
+                "libtorrent-node/address.cpp",
                 "libtorrent-node/alert.cpp",
                 "libtorrent-node/sha1_hash.cpp",
                 "libtorrent-node/session.cpp",

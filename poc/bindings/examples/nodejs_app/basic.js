@@ -1,4 +1,4 @@
-var Node = require('./lib/node')
+var Node = require('../../lib/node')
 var debug = require('debug')('basic')
 
 debug('Starting basic.js example')
