@@ -40,16 +40,21 @@ namespace alert {
   struct LastPaymentReceived;
   struct InvalidPieceArrived;
   struct ValidPieceArrived;
+  struct DownloadStarted;
+  struct UploadStarted;
+  struct SendingPieceToBuyer;
+  struct PieceRequestedByBuyer;
+  struct AnchorAnnounced;
 }
 }
 namespace node {
 namespace PluginAlertEncoder {
 
-  libtorrent::node::AlertDecoder alertEncoder;
-
   NAN_MODULE_INIT(InitAlertTypes);
 
-  v8::Local<v8::Object> encode(extension::alert::RequestResult const * p);
+  boost::optional<v8::Local<v8::Object>> alertEncoder(const libtorrent::alert *a);
+
+  void encode(extension::alert::RequestResult const * p);
   v8::Local<v8::Object> encode(extension::alert::TorrentPluginStatusUpdateAlert const * p);
   v8::Local<v8::Object> encode(extension::alert::PeerPluginStatusUpdateAlert const * p);
   v8::Local<v8::Object> encode(extension::alert::TorrentPluginAdded const * p);
@@ -73,6 +78,11 @@ namespace PluginAlertEncoder {
   v8::Local<v8::Object> encode(extension::alert::LastPaymentReceived const * p);
   v8::Local<v8::Object> encode(extension::alert::InvalidPieceArrived const * p);
   v8::Local<v8::Object> encode(extension::alert::ValidPieceArrived const * p);
+  v8::Local<v8::Object> encode(extension::alert::DownloadStarted const * p);
+  v8::Local<v8::Object> encode(extension::alert::UploadStarted const * p);
+  v8::Local<v8::Object> encode(extension::alert::SendingPieceToBuyer const * p);
+  v8::Local<v8::Object> encode(extension::alert::PieceRequestedByBuyer const * p);
+  v8::Local<v8::Object> encode(extension::alert::AnchorAnnounced const * p);
 
 }
 }
