@@ -6,7 +6,7 @@
  */
 
 #include "init.hpp"
-#include "session.h"
+#include "session.hpp"
 #include "torrent_handle.h"
 #include "torrent_info.h"
 #include "bencode.h"
@@ -20,8 +20,7 @@ NAN_MODULE_INIT(Init) {
 
   TorrentHandle::Init(target);
   TorrentInfo::Init(target);
-  libtorrent::node::SessionWrap::Init(target);
+  libtorrent::node::Session::Init(target);
 }
 
-}
-}
+}}

@@ -115,7 +115,7 @@ NAN_METHOD(TorrentHandle::NewInstance) {
   TorrentHandle* obj = new TorrentHandle();
   obj->Wrap(info.This());
 
-  info.GetReturnValue().Set(info.This());
+  RETURN(info.This());
 };
 
 NAN_METHOD(TorrentHandle::get_peer_info) {
@@ -129,7 +129,7 @@ NAN_METHOD(TorrentHandle::get_peer_info) {
     for(libtorrent::peer_info i : res)
       ret->Set(ret->Length(), libtorrent::node::peer_info::encode(i));
 
-    info.GetReturnValue().Set(ret);
+    RETURN(ret);
 };
 
 /*
@@ -185,7 +185,7 @@ NAN_METHOD(TorrentHandle::get_download_queue) {
         ret->Set(ret->Length(), obj);
     }
 
-    info.GetReturnValue().Set(ret);
+    RETURN(ret);
 };
 
 /*NAN_METHOD(TorrentHandle::file_progress) {
@@ -245,14 +245,14 @@ NAN_METHOD(TorrentHandle::add_url_seed) {
 
     TorrentHandle::Unwrap(info.This())->add_url_seed(std::string(*Nan::Utf8String(info[0])));
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::remove_url_seed) {
 
     TorrentHandle::Unwrap(info.This())->remove_url_seed(std::string(*Nan::Utf8String(info[0])));
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::url_seeds) {
@@ -263,7 +263,7 @@ NAN_METHOD(TorrentHandle::url_seeds) {
     for (std::set<std::string>::iterator i(urls.begin()), e(urls.end()); i != e; ++i)
         ret->Set(ret->Length(), Nan::New<String>(*i).ToLocalChecked());
 
-    info.GetReturnValue().Set(ret);
+    RETURN(ret);
 };
 
 NAN_METHOD(TorrentHandle::add_http_seed) {
@@ -277,7 +277,7 @@ NAN_METHOD(TorrentHandle::remove_http_seed) {
 
     TorrentHandle::Unwrap(info.This())->remove_http_seed(std::string(*Nan::Utf8String(info[0])));
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::http_seeds) {
@@ -289,7 +289,7 @@ NAN_METHOD(TorrentHandle::http_seeds) {
     for (std::set<std::string>::iterator i(urls.begin()), e(urls.end()); i != e; ++i)
         ret->Set(ret->Length(), Nan::New<String>((*i).c_str()).ToLocalChecked());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 /*NAN_METHOD(TorrentHandle::get_torrent_info) {
@@ -306,7 +306,7 @@ NAN_METHOD(TorrentHandle::set_metadata) {
 
     TorrentHandle::Unwrap(info.This())->set_metadata(md.c_str(), md.size());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::is_valid) {
@@ -327,75 +327,75 @@ NAN_METHOD(TorrentHandle::pause) {
     else
         TorrentHandle::Unwrap(info.This())->pause();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::resume) {
 
     TorrentHandle::Unwrap(info.This())->resume();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::clear_error) {
 
     TorrentHandle::Unwrap(info.This())->clear_error();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::set_priority) {
 
     TorrentHandle::Unwrap(info.This())->set_priority(info[0]->IntegerValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::super_seeding) {
 
     TorrentHandle::Unwrap(info.This())->super_seeding(info[0]->BooleanValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::auto_managed) {
 
     TorrentHandle::Unwrap(info.This())->auto_managed(info[0]->BooleanValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::queue_position) {
 
-    info.GetReturnValue().Set(Nan::New<Integer>(TorrentHandle::Unwrap(info.This())->queue_position()));
+    RETURN(Nan::New<Integer>(TorrentHandle::Unwrap(info.This())->queue_position()));
 };
 
 NAN_METHOD(TorrentHandle::queue_position_up) {
 
     TorrentHandle::Unwrap(info.This())->queue_position_up();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::queue_position_down) {
 
     TorrentHandle::Unwrap(info.This())->queue_position_down();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::queue_position_top) {
 
     TorrentHandle::Unwrap(info.This())->queue_position_top();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::queue_position_bottom) {
 
     TorrentHandle::Unwrap(info.This())->queue_position_bottom();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 /*#ifndef TORRENT_DISABLE_RESOLVE_COUNTRIES
@@ -422,21 +422,21 @@ NAN_METHOD(TorrentHandle::add_piece) {
     else
         th->add_piece(info[0]->IntegerValue(), data.c_str());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::read_piece) {
 
     TorrentHandle::Unwrap(info.This())->read_piece(info[0]->IntegerValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::have_piece) {
 
     bool ret = TorrentHandle::Unwrap(info.This())->have_piece(info[0]->IntegerValue());
 
-    info.GetReturnValue().Set(Nan::New<Boolean>(ret));
+    RETURN(Nan::New<Boolean>(ret));
 };
 
 NAN_METHOD(TorrentHandle::set_piece_deadline) {
@@ -450,14 +450,14 @@ NAN_METHOD(TorrentHandle::set_piece_deadline) {
     else
         th->set_piece_deadline(index, deadline);
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::reset_piece_deadline) {
 
     TorrentHandle::Unwrap(info.This())->reset_piece_deadline(info[0]->IntegerValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::piece_availability) {
@@ -471,7 +471,7 @@ NAN_METHOD(TorrentHandle::piece_availability) {
 
     TorrentHandle::Unwrap(info.This())->piece_availability(a);
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::piece_priority) {
@@ -480,9 +480,9 @@ NAN_METHOD(TorrentHandle::piece_priority) {
 
     if (info.Length() == 2) {
         th->piece_priority(info[0]->IntegerValue(), info[1]->IntegerValue());
-        info.GetReturnValue().SetUndefined();
+        RETURN_VOID;
     } else {
-        info.GetReturnValue().Set(Nan::New<Integer>(th->piece_priority(info[0]->IntegerValue())));
+        RETURN(Nan::New<Integer>(th->piece_priority(info[0]->IntegerValue())));
     }
 };
 
@@ -497,7 +497,7 @@ NAN_METHOD(TorrentHandle::prioritize_pieces) {
 
     TorrentHandle::Unwrap(info.This())->prioritize_pieces(p);
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::piece_priorities) {
@@ -509,7 +509,7 @@ NAN_METHOD(TorrentHandle::piece_priorities) {
     for (std::vector<int>::iterator i(p.begin()), e(p.end()); i != e; ++i)
         ret->Set(ret->Length(), Nan::New<Integer>(*i));
 
-    info.GetReturnValue().Set(ret);
+    RETURN(ret);
 };
 
 NAN_METHOD(TorrentHandle::prioritize_files) {
@@ -523,7 +523,7 @@ NAN_METHOD(TorrentHandle::prioritize_files) {
 
     TorrentHandle::Unwrap(info.This())->prioritize_files(f);
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::file_priorities) {
@@ -535,7 +535,7 @@ NAN_METHOD(TorrentHandle::file_priorities) {
     for (std::vector<int>::iterator i(f.begin()), e(f.end()); i != e; ++i)
         ret->Set(ret->Length(), Nan::New<Integer>(*i));
 
-    info.GetReturnValue().Set(ret);
+    RETURN(ret);
 };
 
 NAN_METHOD(TorrentHandle::file_priority) {
@@ -549,14 +549,14 @@ NAN_METHOD(TorrentHandle::file_priority) {
         info.GetReturnValue().Set(Nan::New<Integer>(th->file_priority(info[0]->IntegerValue())));
     }
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::use_interface) {
 
     TorrentHandle::Unwrap(info.This())->use_interface(*Nan::Utf8String(info[0]));
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::save_resume_data) {
@@ -566,20 +566,19 @@ NAN_METHOD(TorrentHandle::save_resume_data) {
     else
         TorrentHandle::Unwrap(info.This())->save_resume_data();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::need_save_resume_data) {
-    Nan::HandleScope scope;
 
-    info.GetReturnValue().Set(Nan::New<Boolean>(TorrentHandle::Unwrap(info.This())->need_save_resume_data()));
+    RETURN(Nan::New<Boolean>(TorrentHandle::Unwrap(info.This())->need_save_resume_data()));
 };
 
 NAN_METHOD(TorrentHandle::force_reannounce) {
 
     TorrentHandle::Unwrap(info.This())->force_reannounce();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 #ifndef TORRENT_DISABLE_DHT
@@ -587,7 +586,7 @@ NAN_METHOD(TorrentHandle::force_dht_announce) {
 
     TorrentHandle::Unwrap(info.This())->force_dht_announce();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 #endif
 
@@ -595,7 +594,7 @@ NAN_METHOD(TorrentHandle::scrape_tracker) {
 
     TorrentHandle::Unwrap(info.This())->scrape_tracker();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 /*NAN_METHOD(TorrentHandle::name) {
@@ -608,28 +607,28 @@ NAN_METHOD(TorrentHandle::set_upload_mode) {
 
     TorrentHandle::Unwrap(info.This())->set_upload_mode(info[0]->BooleanValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::set_share_mode) {
 
     TorrentHandle::Unwrap(info.This())->set_share_mode(info[0]->BooleanValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::flush_cache) {
 
     TorrentHandle::Unwrap(info.This())->flush_cache();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::apply_ip_filter) {
 
     TorrentHandle::Unwrap(info.This())->apply_ip_filter(info[0]->BooleanValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::set_upload_limit) {
@@ -638,7 +637,7 @@ NAN_METHOD(TorrentHandle::set_upload_limit) {
 
     th->set_upload_limit(info[0]->Int32Value());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::set_download_limit) {
@@ -647,28 +646,28 @@ NAN_METHOD(TorrentHandle::set_download_limit) {
 
     th->set_download_limit(info[0]->Int32Value());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::upload_limit) {
 
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
 
-    info.GetReturnValue().Set(Nan::New<Int32>(th->upload_limit()));
+    RETURN(Nan::New<Int32>(th->upload_limit()));
 };
 
 NAN_METHOD(TorrentHandle::download_limit) {
 
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
 
-    info.GetReturnValue().Set(Nan::New<Int32>(th->download_limit()));
+    RETURN(Nan::New<Int32>(th->download_limit()));
 };
 
 NAN_METHOD(TorrentHandle::set_sequential_download) {
 
     TorrentHandle::Unwrap(info.This())->set_sequential_download(info[0]->BooleanValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 /*NAN_METHOD(TorrentHandle::make_magnet_link) {
@@ -714,11 +713,11 @@ NAN_METHOD(TorrentHandle::connect_peer) {
 
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
 
-    libtorrent::tcp::endpoint ep = libtorrent::node::endpoint::fromObject(info[0]->ToObject());
+    libtorrent::tcp::endpoint ep = libtorrent::node::endpoint::decode(info[0]);
 
     th->connect_peer(ep);
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 /*NAN_METHOD(TorrentHandle::save_path) {
@@ -731,24 +730,24 @@ NAN_METHOD(TorrentHandle::set_max_uploads) {
 
     TorrentHandle::Unwrap(info.This())->set_max_uploads(info[0]->IntegerValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::max_uploads) {
 
-    info.GetReturnValue().Set(Nan::New<Integer>(TorrentHandle::Unwrap(info.This())->max_uploads()));
+    RETURN(Nan::New<Integer>(TorrentHandle::Unwrap(info.This())->max_uploads()));
 };
 
 NAN_METHOD(TorrentHandle::set_max_connections) {
 
     TorrentHandle::Unwrap(info.This())->set_max_connections(info[0]->IntegerValue());
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::max_connections) {
 
-    info.GetReturnValue().Set(Nan::New<Integer>(TorrentHandle::Unwrap(info.This())->max_connections()));
+    RETURN(Nan::New<Integer>(TorrentHandle::Unwrap(info.This())->max_connections()));
 };
 
 /*NAN_METHOD(TorrentHandle::set_tracker_login) {
@@ -764,21 +763,21 @@ NAN_METHOD(TorrentHandle::move_storage) {
 
     TorrentHandle::Unwrap(info.This())->move_storage(std::string(*Nan::Utf8String(info[0])));
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::info_hash) {
 
     libtorrent::sha1_hash h(TorrentHandle::Unwrap(info.This())->info_hash());
 
-    info.GetReturnValue().Set(Nan::New<String>(libtorrent::to_hex(h.to_string())).ToLocalChecked());
+    RETURN(Nan::New<String>(libtorrent::to_hex(h.to_string())).ToLocalChecked());
 };
 
 NAN_METHOD(TorrentHandle::force_recheck) {
 
     TorrentHandle::Unwrap(info.This())->force_recheck();
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::rename_file) {
@@ -786,7 +785,7 @@ NAN_METHOD(TorrentHandle::rename_file) {
     TorrentHandle::Unwrap(info.This())->rename_file(info[0]->IntegerValue(),
         std::string(*Nan::Utf8String(info[1])));
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::set_ssl_certificate) {
@@ -802,7 +801,7 @@ NAN_METHOD(TorrentHandle::set_ssl_certificate) {
     else
         th->set_ssl_certificate(certificate, private_key, dh_params);
 
-    info.GetReturnValue().SetUndefined();
+    RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::torrent_file) {
@@ -813,9 +812,9 @@ NAN_METHOD(TorrentHandle::torrent_file) {
     boost::shared_ptr<const libtorrent::torrent_info> torrent_info = th->torrent_file();
 
     if (torrent_info.get()) {
-      info.GetReturnValue().Set(TorrentInfo::New(torrent_info));
+      RETURN(TorrentInfo::New(torrent_info));
     } else {
-      info.GetReturnValue().SetUndefined();
+      RETURN_VOID;
     }
 
 };
