@@ -5,7 +5,7 @@
 #include <extension/Status.hpp>
 
 namespace joystream {
-namespace addon {
+namespace node {
 namespace extension {
 
 class TorrentPluginStatus: public Nan::ObjectWrap {
@@ -22,5 +22,8 @@ class TorrentPluginStatus: public Nan::ObjectWrap {
 };
 
 
-}}}
+}
+}
+}
+
 #endif

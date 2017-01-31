@@ -13,4 +13,6 @@ Coin::PubKeyHash decode(const v8::Local<v8::Value>& value) {
     return V8ValueToUCharVectorBased<Coin::PubKeyHash>(value);
 }
 
-}}}
+}
+}
+}

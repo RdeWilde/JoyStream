@@ -14,4 +14,7 @@ Coin::PublicKey decode(const v8::Local<v8::Value>& value) {
     return V8ValueToUCharVectorBased<Coin::PublicKey>(value);
 }
 
-}}}
+}
+}
+}
+

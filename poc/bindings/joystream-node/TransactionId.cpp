@@ -16,4 +16,7 @@ Coin::TransactionId decode(const v8::Local<v8::Value>& value) {
     return Coin::TransactionId::fromRPCByteOrder(data);
 }
 
-}}}
+}
+}
+}
+
