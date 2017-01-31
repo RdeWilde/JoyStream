@@ -25,7 +25,7 @@
 #define SET_JOYSTREAM_PLUGIN_ALERT_TYPE(o, name) SET_VAL(o, #name, Nan::New<v8::Number>(joystream::extension::alert::name::alert_type));
 
 #define ENCODE_PLUGIN_ALERT(name, v) if(joystream::extension::alert::name const * p = libtorrent::alert_cast<joystream::extension::alert::name>(a)) {v = encode(p); return v;}
-#define PROCESS_PLUGIN_ALERT(name, v) if(joystream::extension::alert::name const * p = libtorrent::alert_cast<joystream::extension::alert::name>(a)) { encode(p); return v; }
+#define PROCESS_PLUGIN_ALERT(name, v) if(joystream::extension::alert::name const * p = libtorrent::alert_cast<joystream::extension::alert::name>(a)) { process(p); return v; }
 
 namespace joystream {
 namespace node {
@@ -107,7 +107,7 @@ namespace PluginAlertEncoder {
 
   }
 
-  void encode(joystream::extension::alert::RequestResult const * p) {
+  void process(joystream::extension::alert::RequestResult const * p) {
     // Simply run the loaded callback
     p->loadedCallback();
   }
