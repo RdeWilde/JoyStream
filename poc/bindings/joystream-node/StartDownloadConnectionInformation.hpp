@@ -8,12 +8,12 @@
 #ifndef JOYSTREAM_NODE_STARTDOWNLOADINGCONNECTIONINFORMATION_HPP
 #define JOYSTREAM_NODE_STARTDOWNLOADINGCONNECTIONINFORMATION_HPP
 
+#include <protocol_session/protocol_session.hpp>
+#include <libtorrent/socket.hpp>
+
 #include <nan.h>
 
 namespace joystream {
-namespace protocol_session {
-  struct StartDownloadConnectionInformation;
-}
 namespace node {
 namespace StartDownloadConnectionInformation {
 
@@ -33,12 +33,9 @@ protocol_session::StartDownloadConnectionInformation decode(const v8::Local<v8::
 
 namespace PeerToStartDownloadInformationMap {
 
-  //v8::Local<v8::Object> createObject(const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & information);
+//v8::Local<v8::Object> encode(const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & information);
+protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> decode(const v8::Local<v8::Value> & v);
 
-  /**
-  template <class ConnectionIdType>
-  using PeerToStartDownloadInformationMap = std::unordered_map<ConnectionIdType, StartDownloadConnectionInformation>;
-  */
 }
 
 namespace PeerNotReadyToStartDownloadCause {

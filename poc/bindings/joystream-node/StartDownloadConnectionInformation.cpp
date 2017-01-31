@@ -9,9 +9,9 @@
 #include "SellerTerms.hpp"
 #include "PrivateKey.hpp"
 #include "PubKeyHash.hpp"
+#include "Common.hpp"
+#include "libtorrent-node/endpoint.hpp"
 #include "libtorrent-node/utils.hpp"
-
-#include <protocol_session/protocol_session.hpp>
 
 #define SELLER_TERMS_KEY "sellerTerms"
 #define INDEX_KEY "index"
@@ -24,6 +24,8 @@ namespace node {
 namespace StartDownloadConnectionInformation {
 
 NAN_MODULE_INIT(Init) {
+
+  // export PeerNotReadyToStartDownloadCause
 
 }
 
@@ -42,13 +44,7 @@ v8::Local<v8::Object> encode(const protocol_session::StartDownloadConnectionInfo
 
 protocol_session::StartDownloadConnectionInformation decode(const v8::Local<v8::Value> & v) {
 
-  v8::Local<v8::Object> o;
-
-  try {
-    o = ToV8<v8::Object>(v);
-  } catch(const std::runtime_error &) {
-    throw std::runtime_error("Could not decode: argument was not object type");
-  }
+  v8::Local<v8::Object> o = ToV8<v8::Object>(v);
 
   protocol_wire::SellerTerms terms(seller_terms::decode(GET_VAL(o, SELLER_TERMS_KEY)));
   Coin::PrivateKey sk(private_key::decode(GET_VAL(o, BUYER_CONTRACT_SK_KEY)));
@@ -59,6 +55,19 @@ protocol_session::StartDownloadConnectionInformation decode(const v8::Local<v8::
                                                               GET_INT64(o, VALUE_KEY),
                                                               Coin::KeyPair(sk),
                                                               pubKeyHash);
+}
+namespace PeerToStartDownloadInformationMap {
+
+//v8::Local<v8::Object> encode(const protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> & information) {
+//}
+
+protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> decode(const v8::Local<v8::Value> & v) {
+
+  return UnorderMap::decode<libtorrent::tcp::endpoint, protocol_session::StartDownloadConnectionInformation>(v,
+                                                                                                             &libtorrent::node::endpoint::decode,
+                                                                                                             &joystream::node::StartDownloadConnectionInformation::decode);
+}
+
 }
 
 }
