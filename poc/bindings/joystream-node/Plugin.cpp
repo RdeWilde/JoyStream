@@ -11,6 +11,8 @@
 #include "SellerTerms.hpp"
 #include "PrivateKey.hpp"
 #include "PubKeyHash.hpp"
+#include "Transaction.hpp"
+#include "StartDownloadConnectionInformation.hpp"
 #include "libtorrent-node/utils.hpp"
 #include "libtorrent-node/sha1_hash.hpp"
 #include "libtorrent-node/add_torrent_params.hpp"
@@ -352,6 +354,26 @@ NAN_METHOD(Plugin::ResumeTorrent) {
 
 NAN_METHOD(Plugin::StartDownloading) {
 
+  // Get validated parameters
+  GET_THIS_PLUGIN(plugin)
+  ARGUMENTS_REQUIRE_DECODED(0, infoHash, libtorrent::sha1_hash, libtorrent::node::sha1_hash::decode)
+  ARGUMENTS_REQUIRE_DECODED(1, contractTx, Coin::Transaction, joystream::node::transaction::decode)
+  ARGUMENTS_REQUIRE_DECODED(2,
+                            peerToStartDownloadInformationMap,
+                            protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint>,
+                            joystream::node::PeerToStartDownloadInformationMap::decode)
+  ARGUMENTS_REQUIRE_CALLBACK(3, managedCallback)
+
+  // Create request
+  joystream::extension::request::StartDownloading request(infoHash,
+                                                          contractTx,
+                                                          peerToStartDownloadInformationMap,
+                                                          detail::subroutine_handler::CreateGenericHandler(managedCallback));
+
+  // Submit request
+  plugin->_plugin->submit(request);
+
+  RETURN_VOID
 }
 
 NAN_METHOD(Plugin::StartUploading) {
