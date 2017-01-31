@@ -10,6 +10,8 @@
 
 #include <nan.h>
 
+#include <unordered_map>
+
 /**
 * Guard, used in the context of a function call callback to a constructor function,
 * in order to detect absence of javascript `new` operator. Absence leads to reinvocation
@@ -135,6 +137,17 @@ v8::Local<T> ToV8(const v8::Local<v8::Value> val) {
     throw std::runtime_error("conversion to desired type failed");
   else
     return maybeLocal.ToLocalChecked();
+}
+
+namespace UnorderMap {
+
+template<class R>
+using DecoderFunction = R(*)(const v8::Local<v8::Value> & v);
+
+template<class Key, class Value>
+std::unordered_map<Key, Value> decode(const v8::Local<v8::Value> & v,
+                                      const DecoderFunction<Key> & keyDecoder,
+                                      const DecoderFunction<Value> & valueDecoder);
 }
 
 /**
