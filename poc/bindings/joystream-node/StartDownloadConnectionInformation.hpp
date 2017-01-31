@@ -27,7 +27,7 @@ namespace StartDownloadConnectionInformation {
  */
 
 v8::Local<v8::Object> encode(const protocol_session::StartDownloadConnectionInformation & information);
-protocol_session::StartDownloadConnectionInformation decode(const v8::Local<v8::Object> & v);
+protocol_session::StartDownloadConnectionInformation decode(const v8::Local<v8::Value> & v);
 
 }
 
