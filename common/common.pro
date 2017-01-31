@@ -33,8 +33,6 @@ HEADERS += \
     include/common/Utilities.hpp \
     include/common/TimeTools.hpp \
     include/common/Bitcoin.hpp \
-    include/common/BitcoinDisplaySettings.hpp \
-    include/common/BitcoinRepresentation.hpp \
     include/common/UCharArray.hpp \
     include/common/typesafeOutPoint.hpp \
     include/common/P2SHAddress.hpp \
@@ -71,8 +69,6 @@ SOURCES += \
     src/UnspentP2PKHOutput.cpp \
     src/Utilities.cpp \
     src/TimeTools.cpp \
-    src/BitcoinDisplaySettings.cpp \
-    src/BitcoinRepresentation.cpp \
     src/typesafeOutPoint.cpp \
     src/P2SHAddress.cpp \
     src/Seed.cpp \
