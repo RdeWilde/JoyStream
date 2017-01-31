@@ -27,7 +27,7 @@ public:
 
   static NAN_MODULE_INIT(Init);
 
-  virtual libtorrent::node::AlertDecoder getDecoder() const noexcept;
+  virtual libtorrent::node::AlertEncoder getEncoder() const noexcept;
 
   virtual boost::shared_ptr<libtorrent::plugin> getPlugin() const noexcept;
 

@@ -85,7 +85,7 @@ NAN_MODULE_INIT(Plugin::Init) {
   Nan::Set(target, Nan::New("Plugin").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-libtorrent::node::AlertDecoder Plugin::getDecoder() const noexcept {
+libtorrent::node::AlertEncoder Plugin::getEncoder() const noexcept {
   return PluginAlertEncoder::alertEncoder;
 }
 
