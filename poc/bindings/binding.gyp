@@ -40,7 +40,6 @@
                 "joystream-node/OutPoint.cpp",
                 "joystream-node/TransactionId.cpp",
                 "joystream-node/Connection.cpp",
-                "joystream-node/buffers.cpp"
                 "joystream-node/buffers.cpp",
                 "joystream-node/payment_channel.cpp",
                 # Others
