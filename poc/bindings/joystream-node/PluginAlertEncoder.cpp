@@ -113,7 +113,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::TorrentPluginStatusUpdateAlert const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::alert const *>(p));
 
     auto statuses = Nan::New<v8::Array>();
 
@@ -127,7 +127,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::PeerPluginStatusUpdateAlert const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     auto statuses = Nan::New<v8::Array>();
 
@@ -141,7 +141,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::TorrentPluginAdded const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "status", TorrentPluginStatus::NewInstance(p->status));
 
@@ -149,11 +149,11 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::TorrentPluginRemoved const * p) {
-    return libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    return libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::PeerPluginAdded const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_VAL(v, "status", PeerPluginStatus::NewInstance(p->status));
 
@@ -161,11 +161,11 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::PeerPluginRemoved const * p) {
-    return libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    return libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::ConnectionAddedToSession const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_VAL(v, "status", Connection::NewInstance(p->status));
 
@@ -173,27 +173,27 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::ConnectionRemovedFromSession const * p) {
-    return libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    return libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SessionStarted const * p) {
-    return libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    return libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SessionPaused const * p) {
-    return libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    return libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SessionStopped const * p) {
-    return libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    return libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SessionToObserveMode const * p) {
-    return libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    return libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SessionToSellMode const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "terms", seller_terms::encode(p->terms));
 
@@ -201,7 +201,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SessionToBuyMode const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "terms", buyer_terms::encode(p->terms));
 
@@ -209,7 +209,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::ValidPaymentReceived const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_NUMBER(v, "paymentIncrement", p->paymentIncrement);
     SET_NUMBER(v, "totalNumberOfPayments", p->totalNumberOfPayments);
@@ -219,7 +219,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::InvalidPaymentReceived const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_NUMBER(v, "totalNumberOfPayments", p->totalNumberOfPayments);
     SET_NUMBER(v, "totalAmountPaid", p->totalAmountPaid);
@@ -229,7 +229,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::BuyerTermsUpdated const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "terms", buyer_terms::encode(p->terms));
 
@@ -237,7 +237,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SellerTermsUpdated const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "terms", seller_terms::encode(p->terms));
 
@@ -245,7 +245,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::ContractConstructed const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "tx", transaction::encode(p->tx));
 
@@ -253,7 +253,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SentPayment const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_NUMBER(v, "paymentIncrement", p->paymentIncrement);
     SET_NUMBER(v, "totalNumberOfPayments", p->totalNumberOfPayments);
@@ -264,7 +264,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::LastPaymentReceived const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     // do we need to encode the paymentchannel::Payee ?  p->payee
 
@@ -272,7 +272,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::InvalidPieceArrived const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_NUMBER(v, "pieceIndex", p->pieceIndex);
 
@@ -280,7 +280,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::ValidPieceArrived const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_NUMBER(v, "pieceIndex", p->pieceIndex);
 
@@ -288,7 +288,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::DownloadStarted const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "contractTx", transaction::encode(p->contractTx));
     //SET_VAL(v, "peerToStartDownloadInformationMap", encode(p->peerToStartDownloadInformationMap));
@@ -297,7 +297,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::UploadStarted const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "endPoint", libtorrent::node::endpoint::encode(p->endPoint));
     SET_VAL(v, "terms", buyer_terms::encode(p->terms));
@@ -308,7 +308,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::SendingPieceToBuyer const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_NUMBER(v, "totalNumberOfPiecesSent", p->totalNumberOfPiecesSent);
     SET_NUMBER(v, "pieceIndex", p->pieceIndex);
@@ -317,7 +317,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::PieceRequestedByBuyer const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::peer_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
     SET_NUMBER(v, "pieceIndex", p->pieceIndex);
 
@@ -325,7 +325,7 @@ namespace PluginAlertEncoder {
   }
 
   v8::Local<v8::Object> encode(joystream::extension::alert::AnchorAnnounced const * p) {
-    auto v = libtorrent::node::alert_types::encode(*static_cast<libtorrent::torrent_alert const *>(p));
+    auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::torrent_alert const *>(p));
 
     SET_VAL(v, "endPoint", libtorrent::node::endpoint::encode(p->_endPoint));
     SET_NUMBER(v, "value", p->_value);
