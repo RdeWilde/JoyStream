@@ -33,9 +33,9 @@ public:
 
 private:
 
-  boost::shared_ptr<extension::Plugin> _plugin;
+  boost::shared_ptr<joystream::extension::Plugin> _plugin;
 
-  Plugin(const boost::shared_ptr<extension::Plugin> & plugin);
+  Plugin(const boost::shared_ptr<joystream::extension::Plugin> & plugin);
 
   static Nan::Persistent<v8::Function> constructor;
 
