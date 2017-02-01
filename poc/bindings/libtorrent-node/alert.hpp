@@ -9,6 +9,7 @@
  #define LIBTORRENT_NODE_ALERT_HPP
 
 #include <nan.h>
+#include <boost/optional.hpp>
 
 namespace libtorrent {
     class alert;
@@ -122,100 +123,102 @@ namespace alert_types {
  * only data members are present in alerts.
  */
 
+boost::optional<v8::Local<v8::Object>> alertEncoder(const libtorrent::alert *a);
+
 // Abstract (base) alerts
-v8::Local<v8::Object> encode(const libtorrent::alert &);
-v8::Local<v8::Object> encode(const libtorrent::torrent_alert &);
-v8::Local<v8::Object> encode(const libtorrent::peer_alert &);
-v8::Local<v8::Object> encode(const libtorrent::tracker_alert &);
+v8::Local<v8::Object> encode(const libtorrent::alert *);
+v8::Local<v8::Object> encode(const libtorrent::torrent_alert *);
+v8::Local<v8::Object> encode(const libtorrent::peer_alert *);
+v8::Local<v8::Object> encode(const libtorrent::tracker_alert *);
 
 // Non-virtual alerts
-v8::Local<v8::Object> encode(const libtorrent::udp_error_alert &);
-v8::Local<v8::Object> encode(const libtorrent::external_ip_alert &);
-v8::Local<v8::Object> encode(const libtorrent::listen_failed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::portmap_error_alert &);
-v8::Local<v8::Object> encode(const libtorrent::portmap_alert &);
-//v8::Local<v8::Object> encode(const libtorrent::portmap_log_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_announce_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_get_peers_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_bootstrap_alert &);
-v8::Local<v8::Object> encode(const libtorrent::incoming_connection_alert &);
-v8::Local<v8::Object> encode(const libtorrent::session_stats_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_error_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_immutable_item_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_put_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_outgoing_get_peers_alert &);
-// v8::Local<v8::Object> encode(const libtorrent::log_alert &);
-v8::Local<v8::Object> encode(const libtorrent::lsd_error_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_stats_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_log_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_pkt_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_direct_response_alert &);
-//v8::Local<v8::Object> encode(const libtorrent::session_error_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_get_peers_reply_alert &);
-v8::Local<v8::Object> encode(const libtorrent::listen_succeeded_alert &);
-v8::Local<v8::Object> encode(const libtorrent::state_update_alert &);
+v8::Local<v8::Object> encode(const libtorrent::udp_error_alert *);
+v8::Local<v8::Object> encode(const libtorrent::external_ip_alert *);
+v8::Local<v8::Object> encode(const libtorrent::listen_failed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::portmap_error_alert *);
+v8::Local<v8::Object> encode(const libtorrent::portmap_alert *);
+//v8::Local<v8::Object> encode(const libtorrent::portmap_log_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_announce_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_get_peers_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_bootstrap_alert *);
+v8::Local<v8::Object> encode(const libtorrent::incoming_connection_alert *);
+v8::Local<v8::Object> encode(const libtorrent::session_stats_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_error_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_immutable_item_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_put_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_outgoing_get_peers_alert *);
+// v8::Local<v8::Object> encode(const libtorrent::log_alert *);
+v8::Local<v8::Object> encode(const libtorrent::lsd_error_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_stats_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_log_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_pkt_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_direct_response_alert *);
+//v8::Local<v8::Object> encode(const libtorrent::session_error_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_get_peers_reply_alert *);
+v8::Local<v8::Object> encode(const libtorrent::listen_succeeded_alert *);
+v8::Local<v8::Object> encode(const libtorrent::state_update_alert *);
 
 // Non-virtual (torrent) alerts
-v8::Local<v8::Object> encode(const libtorrent::torrent_added_alert &);
-v8::Local<v8::Object> encode(const libtorrent::metadata_received_alert &);
-v8::Local<v8::Object> encode(const libtorrent::metadata_failed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::add_torrent_alert &);
-v8::Local<v8::Object> encode(const libtorrent::torrent_finished_alert &);
-v8::Local<v8::Object> encode(const libtorrent::torrent_removed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::torrent_resumed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::save_resume_data_alert &);
-v8::Local<v8::Object> encode(const libtorrent::save_resume_data_failed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::torrent_paused_alert &);
-v8::Local<v8::Object> encode(const libtorrent::torrent_checked_alert &);
-v8::Local<v8::Object> encode(const libtorrent::read_piece_alert &);
-v8::Local<v8::Object> encode(const libtorrent::piece_finished_alert &);
-v8::Local<v8::Object> encode(const libtorrent::file_completed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::file_renamed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::performance_alert &);
-v8::Local<v8::Object> encode(const libtorrent::state_changed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::hash_failed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::storage_moved_failed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::torrent_delete_failed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::url_seed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::file_error_alert &);
-v8::Local<v8::Object> encode(const libtorrent::fastresume_rejected_alert &);
-v8::Local<v8::Object> encode(const libtorrent::stats_alert &);
-v8::Local<v8::Object> encode(const libtorrent::cache_flushed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::anonymous_mode_alert &);
-v8::Local<v8::Object> encode(const libtorrent::torrent_need_cert_alert &);
-//v8::Local<v8::Object> encode(const libtorrent::torrent_log_alert &);
-v8::Local<v8::Object> encode(const libtorrent::peer_alert &);
-v8::Local<v8::Object> encode(const libtorrent::tracker_alert &);
+v8::Local<v8::Object> encode(const libtorrent::torrent_added_alert *);
+v8::Local<v8::Object> encode(const libtorrent::metadata_received_alert *);
+v8::Local<v8::Object> encode(const libtorrent::metadata_failed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::add_torrent_alert *);
+v8::Local<v8::Object> encode(const libtorrent::torrent_finished_alert *);
+v8::Local<v8::Object> encode(const libtorrent::torrent_removed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::torrent_resumed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::save_resume_data_alert *);
+v8::Local<v8::Object> encode(const libtorrent::save_resume_data_failed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::torrent_paused_alert *);
+v8::Local<v8::Object> encode(const libtorrent::torrent_checked_alert *);
+v8::Local<v8::Object> encode(const libtorrent::read_piece_alert *);
+v8::Local<v8::Object> encode(const libtorrent::piece_finished_alert *);
+v8::Local<v8::Object> encode(const libtorrent::file_completed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::file_renamed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::performance_alert *);
+v8::Local<v8::Object> encode(const libtorrent::state_changed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::hash_failed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::storage_moved_failed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::torrent_delete_failed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::url_seed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::file_error_alert *);
+v8::Local<v8::Object> encode(const libtorrent::fastresume_rejected_alert *);
+v8::Local<v8::Object> encode(const libtorrent::stats_alert *);
+v8::Local<v8::Object> encode(const libtorrent::cache_flushed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::anonymous_mode_alert *);
+v8::Local<v8::Object> encode(const libtorrent::torrent_need_cert_alert *);
+//v8::Local<v8::Object> encode(const libtorrent::torrent_log_alert *);
+v8::Local<v8::Object> encode(const libtorrent::peer_alert *);
+v8::Local<v8::Object> encode(const libtorrent::tracker_alert *);
 
 
 // Non-virtual (peer) alerts
-v8::Local<v8::Object> encode(const libtorrent::peer_ban_alert &);
-v8::Local<v8::Object> encode(const libtorrent::peer_unsnubbed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::peer_snubbed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::peer_error_alert &);
-v8::Local<v8::Object> encode(const libtorrent::peer_connect_alert &);
-v8::Local<v8::Object> encode(const libtorrent::peer_disconnected_alert &);
-v8::Local<v8::Object> encode(const libtorrent::invalid_request_alert &);
-v8::Local<v8::Object> encode(const libtorrent::request_dropped_alert &);
-v8::Local<v8::Object> encode(const libtorrent::block_finished_alert &);
-v8::Local<v8::Object> encode(const libtorrent::block_timeout_alert &);
-v8::Local<v8::Object> encode(const libtorrent::block_downloading_alert &);
-v8::Local<v8::Object> encode(const libtorrent::unwanted_block_alert &);
-//v8::Local<v8::Object> encode(const libtorrent::peer_blocked_alert &);
-v8::Local<v8::Object> encode(const libtorrent::lsd_peer_alert &);
-//v8::Local<v8::Object> encode(const libtorrent::peer_log_alert &);
-v8::Local<v8::Object> encode(const libtorrent::incoming_request_alert &);
-v8::Local<v8::Object> encode(const libtorrent::picker_log_alert &);
+v8::Local<v8::Object> encode(const libtorrent::peer_ban_alert *);
+v8::Local<v8::Object> encode(const libtorrent::peer_unsnubbed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::peer_snubbed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::peer_error_alert *);
+v8::Local<v8::Object> encode(const libtorrent::peer_connect_alert *);
+v8::Local<v8::Object> encode(const libtorrent::peer_disconnected_alert *);
+v8::Local<v8::Object> encode(const libtorrent::invalid_request_alert *);
+v8::Local<v8::Object> encode(const libtorrent::request_dropped_alert *);
+v8::Local<v8::Object> encode(const libtorrent::block_finished_alert *);
+v8::Local<v8::Object> encode(const libtorrent::block_timeout_alert *);
+v8::Local<v8::Object> encode(const libtorrent::block_downloading_alert *);
+v8::Local<v8::Object> encode(const libtorrent::unwanted_block_alert *);
+//v8::Local<v8::Object> encode(const libtorrent::peer_blocked_alert *);
+v8::Local<v8::Object> encode(const libtorrent::lsd_peer_alert *);
+//v8::Local<v8::Object> encode(const libtorrent::peer_log_alert *);
+v8::Local<v8::Object> encode(const libtorrent::incoming_request_alert *);
+v8::Local<v8::Object> encode(const libtorrent::picker_log_alert *);
 
 // Non-virtual (tracker) alerts
-v8::Local<v8::Object> encode(const libtorrent::tracker_error_alert &);
-v8::Local<v8::Object> encode(const libtorrent::tracker_warning_alert &);
-v8::Local<v8::Object> encode(const libtorrent::scrape_reply_alert &);
-v8::Local<v8::Object> encode(const libtorrent::scrape_failed_alert &);
-v8::Local<v8::Object> encode(const libtorrent::tracker_reply_alert &);
-v8::Local<v8::Object> encode(const libtorrent::dht_reply_alert &);
-v8::Local<v8::Object> encode(const libtorrent::tracker_announce_alert &);
-v8::Local<v8::Object> encode(const libtorrent::trackerid_alert &);
+v8::Local<v8::Object> encode(const libtorrent::tracker_error_alert *);
+v8::Local<v8::Object> encode(const libtorrent::tracker_warning_alert *);
+v8::Local<v8::Object> encode(const libtorrent::scrape_reply_alert *);
+v8::Local<v8::Object> encode(const libtorrent::scrape_failed_alert *);
+v8::Local<v8::Object> encode(const libtorrent::tracker_reply_alert *);
+v8::Local<v8::Object> encode(const libtorrent::dht_reply_alert *);
+v8::Local<v8::Object> encode(const libtorrent::tracker_announce_alert *);
+v8::Local<v8::Object> encode(const libtorrent::trackerid_alert *);
 
 }}}
 
