@@ -24,7 +24,7 @@ class Session : public Nan::ObjectWrap {
     static libtorrent::settings_pack session_settings(bool enableDHT) noexcept;
 
 
-    boost::shared_ptr<libtorrent::session> session;
+    boost::shared_ptr<libtorrent::session> _session;
     static Nan::Persistent<v8::Function> constructor;
     // Persistent handle set in set_alert_notify, signaling alert queue becoming non-empty
     static Nan::Callback _alertNotifier;

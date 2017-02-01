@@ -36,7 +36,7 @@ NAN_MODULE_INIT(Session::Init) {
 }
 
 Session::Session(boost::shared_ptr<libtorrent::session> session)
-: session(session) {
+: _session(session) {
   _encoders.push_back(libtorrent::node::alert_types::alertEncoder);
 };
 
@@ -160,7 +160,7 @@ NAN_METHOD(Session::add_torrent) {
 
   Session* session = Nan::ObjectWrap::Unwrap<Session>(info.This());
 
-  th = session->session->add_torrent(params, ec);
+  th = session->_session->add_torrent(params, ec);
 
   RETURN(TorrentHandle::New(th));
 }
@@ -172,7 +172,7 @@ NAN_METHOD(Session::remove_torrent) {
 
   Session* session = Nan::ObjectWrap::Unwrap<Session>(info.This());
 
-  session->session->remove_torrent(th->th_);
+  session->_session->remove_torrent(th->th_);
 
   RETURN_VOID;
 }
@@ -181,13 +181,13 @@ NAN_METHOD(Session::remove_torrent) {
 NAN_METHOD(Session::listen_port) {
   Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  RETURN(session->session->listen_port());
+  RETURN(session->_session->listen_port());
 }
 
 NAN_METHOD(Session::post_torrent_updates) {
   Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session->session->post_torrent_updates();
+  session->_session->post_torrent_updates();
 
   RETURN_VOID;
 }
@@ -195,7 +195,7 @@ NAN_METHOD(Session::post_torrent_updates) {
 NAN_METHOD(Session::pause) {
   Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session->session->resume();
+  session->_session->resume();
 
   RETURN_VOID;
 }
@@ -204,7 +204,7 @@ NAN_METHOD(Session::is_paused) {
   Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
   v8::Local<v8::Boolean> isPaused;
-  if (session->session->is_paused()) {
+  if (session->_session->is_paused()) {
     isPaused = Nan::True();
   } else {
     isPaused = Nan::False();
@@ -216,7 +216,7 @@ NAN_METHOD(Session::is_paused) {
 NAN_METHOD(Session::resume) {
   Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session->session->resume();
+  session->_session->resume();
 
   RETURN_VOID;
 }
@@ -228,7 +228,7 @@ NAN_METHOD(Session::find_torrent) {
 
   Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  th = session->session->find_torrent(info_hash);
+  th = session->_session->find_torrent(info_hash);
 
   RETURN(TorrentHandle::New(th));
 }
@@ -244,7 +244,7 @@ NAN_METHOD(Session::add_extension) {
   Session * session = Nan::ObjectWrap::Unwrap<Session>(info.This());
 
   // Add underlying plugin to underlying session
-  session->session->add_extension(p->getPlugin());
+  session->_session->add_extension(p->getPlugin());
 
   // Get alert converter for plugin, and add it to list of converters.
   session->_encoders.push_back(p->getEncoder());
@@ -258,7 +258,7 @@ NAN_METHOD(Session::pop_alerts) {
 
   // Get currently pending alerts from libtorrent
   std::vector<libtorrent::alert*> alerts;
-  session->session->pop_alerts(&alerts);
+  session->_session->pop_alerts(&alerts);
 
   // Iterate alerts, and convert to js objects
   v8::Local<v8::Array> ret = Nan::New<v8::Array>();
@@ -293,7 +293,7 @@ NAN_METHOD(Session::set_alert_notify) {
   _alertNotifier.Reset(fn);
 
   // Set alert notifier on libtorrent session
-  session->session->set_alert_notify([]() { _alertNotifier(0, {}); });
+  session->_session->set_alert_notify([]() { _alertNotifier(0, {}); });
 }
 
 NAN_METHOD(Session::dht_announce) {
@@ -306,7 +306,7 @@ NAN_METHOD(Session::dht_announce) {
 
   Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session->session->dht_announce(info_hash, listen_port);
+  session->_session->dht_announce(info_hash, listen_port);
 
   RETURN_VOID;
 }
@@ -320,7 +320,7 @@ NAN_METHOD(Session::dht_get_peers) {
 
   Session* session = ObjectWrap::Unwrap<Session>(info.This());
 
-  session->session->dht_announce(info_hash, listen_port);
+  session->_session->dht_announce(info_hash, listen_port);
 
   RETURN_VOID;
 }
