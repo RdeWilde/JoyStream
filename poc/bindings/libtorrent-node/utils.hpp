@@ -5,10 +5,12 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
 
-#ifndef JOYSTREAM_NODE_ADDON_UTILS_HPP
-#define JOYSTREAM_NODE_ADDON_UTILS_HPP
+#ifndef LIBTORRENT_NODE_UTILS_HPP
+#define LIBTORRENT_NODE_UTILS_HPP
 
 #include <nan.h>
+
+#include <unordered_map>
 
 /**
 * Guard, used in the context of a function call callback to a constructor function,
@@ -137,6 +139,17 @@ v8::Local<T> ToV8(const v8::Local<v8::Value> val) {
     return maybeLocal.ToLocalChecked();
 }
 
+namespace UnorderMap {
+
+template<class R>
+using DecoderFunction = R(*)(const v8::Local<v8::Value> & v);
+
+template<class Key, class Value>
+std::unordered_map<Key, Value> decode(const v8::Local<v8::Value> & v,
+                                      const DecoderFunction<Key> & keyDecoder,
+                                      const DecoderFunction<Value> & valueDecoder);
+}
+
 /**
  * Object getters.
  * @param {v8::Local<v8::Object>} o
@@ -259,4 +272,4 @@ type * var = Nan::ObjectWrap::Unwrap<type>(info[i]->ToObject());
     return Nan::ThrowTypeError(v8ErrorMessage); \
   }
 
-#endif
+#endif // LIBTORRENT_NODE_UTILS_HPP

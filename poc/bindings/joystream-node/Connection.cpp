@@ -1,8 +1,7 @@
 #include "Connection.hpp"
 
 namespace joystream {
-namespace addon {
-namespace protocol_session {
+namespace node {
 
 Nan::Persistent<v8::Function> Connection::constructor;
 
@@ -38,4 +37,5 @@ NAN_METHOD(Connection::New) {
 }
 
 
-}}}
+}
+}

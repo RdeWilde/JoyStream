@@ -53,6 +53,7 @@ T V8ValueToUCharVectorBased(const v8::Local<v8::Value>& buffer) {
     return T(data);
 }
 
-}}
+}
+}
 
 #endif

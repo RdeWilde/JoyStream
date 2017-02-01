@@ -22,6 +22,8 @@ namespace sha1_hash {
  v8::Local<v8::String> encode(const libtorrent::sha1_hash & h);
  libtorrent::sha1_hash decode(const v8::Local<v8::Value> & o);
 
-}}}
+}
+}
+}
 
 #endif // LIBTORRENT_NODE_INFO_HASH_HPP

@@ -23,6 +23,11 @@
                 "libtorrent-node/utils.cpp",
                 # joystream
                 "joystream-node/Init.cpp",
+                "joystream-node/Common.cpp",
+                "joystream-node/StartDownloadConnectionInformation.cpp",
+                "joystream-node/PluginAlertEncoder.cpp",
+                "joystream-node/Plugin.cpp",
+                "joystream-node/RequestResult.cpp",
                 "joystream-node/TorrentPluginStatus.cpp",
                 "joystream-node/PeerPluginStatus.cpp",
                 "joystream-node/BuyerTerms.cpp",

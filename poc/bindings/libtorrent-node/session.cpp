@@ -242,7 +242,7 @@ NAN_METHOD(Session::add_extension) {
   session->session->add_extension(p->getPlugin());
 
   // Get alert converter for plugin, and add it to list of converters.
-  session->_decoders.push_back(p->getDecoder());
+  session->_encoders.push_back(p->getEncoder());
 }
 #endif // TORRENT_DISABLE_EXTENSIONS
 
@@ -259,13 +259,13 @@ NAN_METHOD(Session::pop_alerts) {
   v8::Local<v8::Array> ret = Nan::New<v8::Array>();
   for(const libtorrent::alert * alert : alerts) {
 
-    // Iterate decoders to find match
-    for(AlertDecoder decoder : session->_decoders) {
+    // Iterate encoders to find match
+    for(AlertEncoder encoder : session->_encoders) {
 
-      // decode
-      auto v = decoder(alert);
+      // encode
+      auto v = encoder(alert);
 
-      // if decoded, then store, and break to next alert
+      // if encoded, then store, and break to next alert
       if(v.is_initialized()) {
         ret->Set(ret->Length(), v.get());
         break;

@@ -6,8 +6,7 @@
 #include <libtorrent/socket.hpp>
 
 namespace joystream {
-namespace addon {
-namespace protocol_session {
+namespace node {
 
 class Connection: public Nan::ObjectWrap {
   public:
@@ -22,5 +21,7 @@ class Connection: public Nan::ObjectWrap {
 
 };
 
-}}}
+}
+}
+
 #endif

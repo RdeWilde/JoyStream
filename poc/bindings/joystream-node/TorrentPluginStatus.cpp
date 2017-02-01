@@ -1,8 +1,7 @@
 #include "TorrentPluginStatus.hpp"
 
 namespace joystream {
-namespace addon {
-namespace extension {
+namespace node {
 
 Nan::Persistent<v8::Function> TorrentPluginStatus::constructor;
 
@@ -47,4 +46,6 @@ NAN_GETTER(TorrentPluginStatus::info_hash) {
   info.GetReturnValue().Set(Nan::New<v8::String>(libtorrent::to_hex(info_hash.to_string())).ToLocalChecked());
 }
 
-}}}
+}
+}
+

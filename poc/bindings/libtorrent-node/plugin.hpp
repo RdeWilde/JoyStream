@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 21 2017
  */
 
- #ifndef JOYSTREAM_NODE_PLUGIN_HPP
- #define JOYSTREAM_NODE_PLUGIN_HPP
+ #ifndef LIBTORRENT_NODE_PLUGIN_HPP
+ #define LIBTORRENT_NODE_PLUGIN_HPP
 
 #include <nan.h>
 
@@ -30,7 +30,7 @@ public:
   /**
    * @brief Get alert converter for this plugin.
    */
-  virtual AlertDecoder getDecoder() const noexcept = 0;
+  virtual AlertEncoder getEncoder() const noexcept = 0;
 
   /**
    * @brief Returns reference to this plugin.
@@ -42,4 +42,4 @@ public:
 }
 }
 
-#endif // JOYSTREAM_NODE_PLUGIN_HPP
+#endif // LIBTORRENT_NODE_PLUGIN_HPP

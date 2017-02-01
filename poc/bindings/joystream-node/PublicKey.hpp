@@ -24,5 +24,8 @@ namespace public_key {
       * @throws std::runtime_error if conversion fails
       */
      Coin::PublicKey decode(const v8::Local<v8::Value>&);
-}}}
+}
+}
+}
+
 #endif
