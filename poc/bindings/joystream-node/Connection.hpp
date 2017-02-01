@@ -7,7 +7,6 @@
 
 namespace joystream {
 namespace node {
-namespace protocol_session {
 
 class Connection: public Nan::ObjectWrap {
   public:
@@ -22,7 +21,6 @@ class Connection: public Nan::ObjectWrap {
 
 };
 
-}
 }
 }
 

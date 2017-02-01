@@ -2,7 +2,6 @@
 
 namespace joystream {
 namespace node {
-namespace protocol_session {
 
 Nan::Persistent<v8::Function> Connection::constructor;
 
@@ -38,6 +37,5 @@ NAN_METHOD(Connection::New) {
 }
 
 
-}
 }
 }

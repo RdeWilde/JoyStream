@@ -6,7 +6,6 @@
 
 namespace joystream {
 namespace node {
-namespace extension {
 
 class TorrentPluginStatus: public Nan::ObjectWrap {
   public:
@@ -21,8 +20,6 @@ class TorrentPluginStatus: public Nan::ObjectWrap {
     static NAN_GETTER(info_hash);
 };
 
-
-}
 }
 }
 

@@ -6,7 +6,6 @@
 
 namespace joystream {
 namespace node {
-namespace extension {
 
 class PeerPluginStatus: public Nan::ObjectWrap {
   public:
@@ -21,7 +20,6 @@ class PeerPluginStatus: public Nan::ObjectWrap {
 };
 
 
-}
 }
 }
 
