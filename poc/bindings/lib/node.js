@@ -60,7 +60,7 @@ class Node extends EventEmitter {
     constructor () {
       super()
       this.session = new NativeExtension.Session()
-      this.plugin = null
+      //this.plugin = new NativeExtension.Plugin()
       this.torrents = new Map()
       this.torrentsBySecondaryHash = new Map()
 
@@ -85,8 +85,12 @@ class Node extends EventEmitter {
       return this.session.listenPort()
     }
 
-    addTorrent (uploadLimit, downloadLimit, name, resumeData, savePath, infoHash, callback) {
-      this.session.addTorrent(uploadLimit, downloadLimit, name, resumeData, savePath, infoHash, callback)
+    addTorrent (torrentIdentifier, uploadLimit, downloadLimit, name, resumeData, savePath, callback) {
+
+      var add_torrent_params = {
+      }
+
+      this.session.addTorrent(add_torrent_params, callback)
     }
 
     removeTorrent (infoHash, callback) {
