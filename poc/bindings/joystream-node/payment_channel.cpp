@@ -25,17 +25,19 @@ namespace payment_channel {
 namespace commitment {
 
   NAN_METHOD(CommitmentToOutput) {
-    REQUIRE_ARGUMENTS(1)
+    ARGUMENTS_REQUIRE_DECODED(0, commitment, paymentchannel::Commitment, decode)
+
+    Coin::TxOut txout;
 
     try {
-      paymentchannel::Commitment commitment = decode(info[0]);
-      auto txout = commitment.contractOutput();
-      auto rawoutput = txout.getSerialized();
-      info.GetReturnValue().Set(UCharVectorToNodeBuffer(rawoutput));
+      txout = commitment.contractOutput();
     } catch(std::exception &e) {
-      Nan::ThrowTypeError(e.what());
+      return Nan::ThrowError(e.what());
     }
 
+    auto rawoutput = txout.getSerialized();
+
+    info.GetReturnValue().Set(UCharVectorToNodeBuffer(rawoutput));
   }
 
   paymentchannel::Commitment decode(const v8::Local<v8::Value> &commitment) {
