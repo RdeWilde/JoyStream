@@ -35,6 +35,11 @@ NAN_MODULE_INIT(Session::Init) {
   Nan::Set(target, Nan::New("Session").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
+Session::Session(boost::shared_ptr<libtorrent::session> session)
+: session(session) {
+  _encoders.push_back(libtorrent::node::alert_types::alertEncoder);
+};
+
 libtorrent::settings_pack Session::session_settings(bool enableDHT) noexcept {
 
     // Initialize with default values

@@ -20,7 +20,7 @@ class Session : public Nan::ObjectWrap {
     static NAN_MODULE_INIT(Init);
 
   private:
-    explicit Session(boost::shared_ptr<libtorrent::session> session) : session(session) {};
+    Session(boost::shared_ptr<libtorrent::session> session);
     static libtorrent::settings_pack session_settings(bool enableDHT) noexcept;
 
 
@@ -50,9 +50,6 @@ class Session : public Nan::ObjectWrap {
     static NAN_METHOD(set_alert_notify);
     static NAN_METHOD(dht_announce);
     static NAN_METHOD(dht_get_peers);
-
-    // Default alert encoder
-    static boost::optional<v8::Local<v8::Object>> DefaultAlertEncoder(const libtorrent::alert *);
 
 };
 
