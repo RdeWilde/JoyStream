@@ -26,5 +26,8 @@ namespace transaction_id {
       * @throws std::runtime_error if conversion fails
       */
      Coin::TransactionId decode(const v8::Local<v8::Value>&);
-}}}
+}
+}
+}
+
 #endif

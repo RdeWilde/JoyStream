@@ -5,8 +5,7 @@
 #include <extension/Status.hpp>
 
 namespace joystream {
-namespace addon {
-namespace extension {
+namespace node {
 
 class TorrentPluginStatus: public Nan::ObjectWrap {
   public:
@@ -21,6 +20,7 @@ class TorrentPluginStatus: public Nan::ObjectWrap {
     static NAN_GETTER(info_hash);
 };
 
+}
+}
 
-}}}
 #endif

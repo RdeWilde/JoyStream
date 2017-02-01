@@ -22,5 +22,8 @@ namespace pubkey_hash {
       */
      Coin::PubKeyHash decode(const v8::Local<v8::Value>&);
 
-}}}
+}
+}
+}
+
 #endif

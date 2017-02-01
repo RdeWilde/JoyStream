@@ -5,8 +5,7 @@
 #include <extension/Status.hpp>
 
 namespace joystream {
-namespace addon {
-namespace extension {
+namespace node {
 
 class PeerPluginStatus: public Nan::ObjectWrap {
   public:
@@ -21,5 +20,7 @@ class PeerPluginStatus: public Nan::ObjectWrap {
 };
 
 
-}}}
+}
+}
+
 #endif

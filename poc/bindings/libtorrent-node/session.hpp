@@ -28,8 +28,9 @@ class Session : public Nan::ObjectWrap {
     static Nan::Persistent<v8::Function> constructor;
     // Persistent handle set in set_alert_notify, signaling alert queue becoming non-empty
     static Nan::Callback _alertNotifier;
-    // Alert decoders used, in order.
-    std::vector<AlertDecoder> _decoders;
+
+    // Alert encoders used, in order.
+    std::vector<AlertEncoder> _encoders;
 
     static NAN_METHOD(New);
     static NAN_METHOD(add_torrent);
@@ -50,8 +51,8 @@ class Session : public Nan::ObjectWrap {
     static NAN_METHOD(dht_announce);
     static NAN_METHOD(dht_get_peers);
 
-    // Default alert decoder
-    static boost::optional<v8::Local<v8::Object>> DefaultAlertDecoder(const libtorrent::alert *);
+    // Default alert encoder
+    static boost::optional<v8::Local<v8::Object>> DefaultAlertEncoder(const libtorrent::alert *);
 
 };
 

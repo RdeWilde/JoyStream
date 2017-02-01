@@ -27,15 +27,15 @@ public:
 
   static NAN_MODULE_INIT(Init);
 
-  virtual libtorrent::node::AlertDecoder getDecoder() const noexcept;
+  virtual libtorrent::node::AlertEncoder getEncoder() const noexcept;
 
   virtual boost::shared_ptr<libtorrent::plugin> getPlugin() const noexcept;
 
 private:
 
-  boost::shared_ptr<extension::Plugin> _plugin;
+  boost::shared_ptr<joystream::extension::Plugin> _plugin;
 
-  Plugin(const boost::shared_ptr<extension::Plugin> & plugin);
+  Plugin(const boost::shared_ptr<joystream::extension::Plugin> & plugin);
 
   static Nan::Persistent<v8::Function> constructor;
 

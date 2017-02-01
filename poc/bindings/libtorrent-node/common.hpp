@@ -19,11 +19,9 @@
    /**
     * @brief Alert converter for this plugin.
     * @param a alert for conversion.
-    * @param o object to which alert should be converted.
-    * @param success will be written to to indicate whether the alert was recognized, and written to ´o´.
     * @return optional encoded alert
     */
-   typedef boost::optional<v8::Local<v8::Object>>(*AlertDecoder)(const libtorrent::alert *);
+   typedef boost::optional<v8::Local<v8::Object>>(*AlertEncoder)(const libtorrent::alert *);
 
  }
  }

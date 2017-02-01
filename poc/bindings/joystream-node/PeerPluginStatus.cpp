@@ -1,8 +1,7 @@
 #include "PeerPluginStatus.hpp"
 
 namespace joystream {
-namespace addon {
-namespace extension {
+namespace node {
 
 Nan::Persistent<v8::Function> PeerPluginStatus::constructor;
 
@@ -37,4 +36,5 @@ NAN_METHOD(PeerPluginStatus::New) {
   }
 }
 
-}}}
+}
+}

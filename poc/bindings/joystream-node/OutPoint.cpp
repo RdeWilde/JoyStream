@@ -31,4 +31,6 @@ Coin::typesafeOutPoint decode(const v8::Local<v8::Value>& value) {
     return Coin::typesafeOutPoint(txid, index);
 }
 
-}}}
+}
+}
+}

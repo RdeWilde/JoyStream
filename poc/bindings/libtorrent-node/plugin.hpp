@@ -30,7 +30,7 @@ public:
   /**
    * @brief Get alert converter for this plugin.
    */
-  virtual AlertDecoder getDecoder() const noexcept = 0;
+  virtual AlertEncoder getEncoder() const noexcept = 0;
 
   /**
    * @brief Returns reference to this plugin.

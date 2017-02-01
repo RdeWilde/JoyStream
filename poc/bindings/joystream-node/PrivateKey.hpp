@@ -25,5 +25,8 @@ namespace private_key {
        */
       Coin::PrivateKey decode(const v8::Local<v8::Value>&);
 
-}}}
+}
+}
+}
+
 #endif
