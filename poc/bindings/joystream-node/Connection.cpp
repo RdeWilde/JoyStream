@@ -44,6 +44,18 @@ namespace connection {
       STATE_TO_TYPE_INFO(WaitingForFullPiece),
       STATE_TO_TYPE_INFO(ProcessingPiece)
   };
+
+  NAN_MODULE_INIT(InitInnerStateTypes);
+  NAN_MODULE_INIT(InitInnerStateTypes) {
+
+    v8::Local<v8::Object> o = Nan::New<v8::Object>();
+
+    for(int i = 0;i < InnerStateTypeInfo.size();i++)
+      SET_NUMBER(o, InnerStateTypeInfo[i].second, i);
+
+
+    SET_VAL(target, "InnerStateType", o);
+  }
   v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c) {
 
   }
