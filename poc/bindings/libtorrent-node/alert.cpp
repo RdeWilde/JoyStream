@@ -6,6 +6,7 @@
  */
 
 #include "alert.hpp"
+#include "address.hpp"
 #include "torrent_handle.h"
 #include "add_torrent_params.hpp"
 #include "endpoint.hpp"
@@ -606,8 +607,9 @@ v8::Local<v8::Object> encode(const libtorrent::listen_failed_alert * a) {
 v8::Local<v8::Object> encode(const libtorrent::listen_succeeded_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert *>(a));
 
-  //alert.address;
-  // SET_INT32(o, PORT_KEY, a.port);
+  //libtorrent::address const address
+  SET_VAL(o, ENDPOINT_KEY, endpoint::encode(a->endpoint));
+  //SET_INT32(o, PORT_KEY, a->port);
   //alert.socket_type; // libtorrent::socket_type_t
 
   return o;
