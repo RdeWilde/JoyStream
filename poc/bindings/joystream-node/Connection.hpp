@@ -16,6 +16,14 @@ namespace joystream {
 namespace node {
 namespace connection {
 
+ /* @brief Creates javascript representation of inner (i.e. simple)
+  * states in protocol_statemachine::CBStateMachine.
+
+  * @param i type_index object for state class
+  * @return v8::Local<v8::Uint32> where value the value for state protoco_statemachine::X is the same
+  * as what is found by inspecting InnerStateType.X.
+  */
+  v8::Local<v8::Uint32> encode(const std::type_index & i);
   v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
 
 }
