@@ -123,6 +123,8 @@ namespace alert_types {
  * only data members are present in alerts.
  */
 
+NAN_MODULE_INIT(InitAlertTypes);
+
 boost::optional<v8::Local<v8::Object>> alertEncoder(const libtorrent::alert *a);
 
 // Abstract (base) alerts

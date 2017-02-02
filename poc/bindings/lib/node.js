@@ -49,6 +49,9 @@ const _invalidPieceArrived = Symbol('invalidPieceArrived')
 const _buyerTermsUpdated = Symbol('buyerTermsUpdated')
 const _anchorAnnounced = Symbol('anchorAnnounced')
 
+
+const minimumMessageId = 60
+
 /*
  * Class Node
  * Manage the alerts and execute the differents request (add_torrent, buy_torrent,...)
@@ -60,9 +63,12 @@ class Node extends EventEmitter {
     constructor () {
       super()
       this.session = new NativeExtension.Session()
-      //this.plugin = new NativeExtension.Plugin()
+      this.plugin = new NativeExtension.Plugin(minimumMessageId)
       this.torrents = new Map()
       this.torrentsBySecondaryHash = new Map()
+
+      // Add plugin to session
+      this.session.addExtension(this.plugin)
 
       // Pop alerts every seconde
       setInterval(function () {
@@ -198,6 +204,7 @@ class Node extends EventEmitter {
           break
 
         // RequestResult
+        // NOTE: we don't need this anymore ?
         case 10003:
           this[_requestResult](alert)
           break

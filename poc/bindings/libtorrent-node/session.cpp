@@ -30,6 +30,9 @@ NAN_MODULE_INIT(Session::Init) {
   Nan::SetPrototypeMethod(tpl, "setAlertNotify", set_alert_notify);
   Nan::SetPrototypeMethod(tpl, "dhtAnnounce", dht_announce);
   Nan::SetPrototypeMethod(tpl, "dhtGetPeers", dht_get_peers);
+#ifndef TORRENT_DISABLE_EXTENSIONS
+  Nan::SetPrototypeMethod(tpl, "addExtension", add_extension);
+#endif // TORRENT_DISABLE_EXTENSIONS
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("Session").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
