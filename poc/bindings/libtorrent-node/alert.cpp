@@ -8,6 +8,7 @@
 #include "alert.hpp"
 #include "address.hpp"
 #include "torrent_handle.h"
+#include "torrent_status.hpp"
 #include "add_torrent_params.hpp"
 #include "endpoint.hpp"
 #include "sha1_hash.hpp"
@@ -762,6 +763,13 @@ v8::Local<v8::Object> encode(const libtorrent::add_torrent_alert * a) {
 
 v8::Local<v8::Object> encode(const libtorrent::state_update_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert *>(a));
+
+  auto status = Nan::New<v8::Array>();
+
+  for(auto m: a->status) {
+    status->Set(status->Length(), torrent_status::encode(m));
+  }
+
 
   // std::vector<torrent_status> const status;
 
