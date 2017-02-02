@@ -220,6 +220,8 @@ v8::Local<v8::Object> encode(const libtorrent::dht_reply_alert *);
 v8::Local<v8::Object> encode(const libtorrent::tracker_announce_alert *);
 v8::Local<v8::Object> encode(const libtorrent::trackerid_alert *);
 
-}}}
+}
+}
+}
 
 #endif // LIBTORRENT_NODE_ALERT_HPP

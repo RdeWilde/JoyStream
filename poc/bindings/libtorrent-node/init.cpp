@@ -11,6 +11,8 @@
 #include "torrent_info.h"
 #include "bencode.h"
 
+#include <boost/asio/impl/src.hpp>
+
 namespace libtorrent {
 namespace node {
 

@@ -98,9 +98,9 @@ class Node extends EventEmitter {
     }
 
     process (alert) {
-      debug('Alert ' + alert.what() + ' received !')
+      debug('Alert ' + alert.what + ' received !')
 
-      switch (alert.type()) {
+      switch (alert.type) {
 
         // dht_get_peers_reply_alert
         case 87:
@@ -313,7 +313,7 @@ class Node extends EventEmitter {
           break
 
         default:
-          debug('Alert ' + alert.what() + ' ignored')
+          debug('Alert ' + alert.what + ' ignored')
           break
       }
     }
@@ -323,28 +323,28 @@ class Node extends EventEmitter {
      */
 
     [_processDhtGetPeersReplyAlert](alert) {
-      var torrentSecondaryHash = this.torrentsBySecondaryHash.get(alert.infoHash())
+      var torrentSecondaryHash = this.torrentsBySecondaryHash.get(alert.infoHash)
       var torrent = this.torrents.get(torrentSecondaryHash)
       if (torrent) {
         var timestamp = Date.now()
-        var peers = alert.peers()
+        var peers = alert.peers
         for (var i in peers) {
           torrent.addJSPeerAtTimestamp(peers[i].address, timestamp)
           torrent.handle.connectPeer(peers[i])
           debug('Connection added')
         }
       } else {
-        debug('Torrent with secondaryInfoHash ' + alert.infoHash() + ' not found')
+        debug('Torrent with secondaryInfoHash ' + alert.infoHash + ' not found')
       }
     }
 
     [_listenSucceededAlert](alert) {
-      var endpoint = alert.endpoint()
+      var endpoint = alert.endpoint
       this.emit('listen_succeeded_alert', endpoint)
     }
 
     [_metadataReceivedAlert](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrentInfo = torrentHandle.torrentFile()
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
@@ -361,8 +361,8 @@ class Node extends EventEmitter {
 
     [_addTorrentAlert](alert) {
       if (!alert.error()) {
-        var torrentHandle = alert.handle()
-        var resumeData = alert.params().resumeData
+        var torrentHandle = alert.handle
+        var resumeData = alert.params.resumeData
 
         var torrent = this.torrents.get(torrentHandle.infoHash())
         // Verify if torrent not already in torrents list
@@ -378,8 +378,8 @@ class Node extends EventEmitter {
           this.emit('add_torrent_alert', torrent)
 
           // DHT stuff
-          this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash(), torrentHandle.infoHash())
-          this.session.dhtAnnounce(torrent.secondaryInfoHash(), this.session.listenPort())
+          this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash, torrentHandle.infoHash())
+          this.session.dhtAnnounce(torrent.secondaryInfoHash, this.session.listenPort)
 
         } else {
           torrent.resumeData = resumeData
@@ -397,7 +397,7 @@ class Node extends EventEmitter {
     }
 
     [_stateUpdateAlert](alert) {
-      var status = alert.status()
+      var status = alert.status
 
       for (var i in status) {
         var torrent = this.torrents.get(status[i].infoHash)
@@ -415,7 +415,7 @@ class Node extends EventEmitter {
        * NOTICE: Docs say p->handle may be invalid at this time - likely because this is a removal operation,
        * so we must use p->info_hash instead.
        */
-       var torrent = this.torrents.get(alert.infoHash())
+       var torrent = this.torrents.get(alert.infoHash)
 
        if (torrent) {
          torrent.emit('torrent_removed_alert')
@@ -425,7 +425,7 @@ class Node extends EventEmitter {
     }
 
     [_torrentResumedAlert](alert) {
-      var infoHash = alert.handle().infoHash()
+      var infoHash = alert.handle.infoHash()
       var torrent = this.torrents.get(infoHash)
 
       if (torrent) {
@@ -440,7 +440,7 @@ class Node extends EventEmitter {
     }
 
     [_saveResumeDataAlert](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
 
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
@@ -454,7 +454,7 @@ class Node extends EventEmitter {
     }
 
     [_saveResumeDataFailedAlert](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
 
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
@@ -469,7 +469,7 @@ class Node extends EventEmitter {
     }
 
     [_torrentPausedAlert](alert) {
-      var infoHash = alert.handle().infoHash()
+      var infoHash = alert.handle.infoHash
       var torrent = this.torrents.get(infoHash)
 
       /* Need to verify if is_all_zero() ?
@@ -493,14 +493,14 @@ class Node extends EventEmitter {
     }
 
     [_peerConnectAlert](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var peersInfo = torrentHandle.getPeerInfo()
 
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       if (torrent) {
         for (var i in peersInfo) {
-          if (peersInfo[i].ip == alert.ip()) {
+          if (peersInfo[i].ip == alert.ip) {
             torrent.addPeer(peersInfo[i])
           }
         }
@@ -511,12 +511,12 @@ class Node extends EventEmitter {
     }
 
     [_peerDisconnectedAlert](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
 
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       if (torrent) {
-        torrent.removePeer(alert.ip())
+        torrent.removePeer(alert.ip)
       } else {
         debug('Torrent not found')
       }
@@ -531,11 +531,12 @@ class Node extends EventEmitter {
     }
 
     [_requestResult](alert) {
-      alert.loadedCallback()
+      // This doesn't work like this anymore
+      // alert.loadedCallback()
     }
 
     [_torrentPluginStatusUpdateAlert](alert) {
-      var statuses = alert.statuses()
+      var statuses = alert.statuses
 
       for (var [infoHash, torrentPluginStatus] of statuses) {
         var torrent = this.torrents.get(infoHash)
@@ -546,9 +547,9 @@ class Node extends EventEmitter {
     }
 
     [_peerPluginStatusUpdateAlert](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var statuses = alert.statuses()
+      var statuses = alert.statuses
 
       if (!torrent.plugin) {
         debug('No plugin find')
@@ -566,7 +567,7 @@ class Node extends EventEmitter {
     }
 
     [_torrentPluginAdded](alert) {
-      var torrentHandle = alert.torrentHandle()
+      var torrentHandle = alert.torrentHandle
 
       if (this.torrents.has(torrentHandle.infoHash())) {
         debug('Torrent already creates')
@@ -574,12 +575,12 @@ class Node extends EventEmitter {
         var torrent = new Torrent(torrentHandle, '', this.plugin)
         this.torrents.set(torrentHandle.infoHash(), torrent)
         this.emit('addedTorrent', torrent)
-        torrent.addTorrentPlugin(alert.torrentPluginStatus())
+        torrent.addTorrentPlugin(alert.torrentPluginStatus)
       }
     }
 
     [_torrentPluginRemoved](alert) {
-      var torrentHandle = alert.torrentHandle()
+      var torrentHandle = alert.torrentHandle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       if (torrent) {
@@ -592,13 +593,13 @@ class Node extends EventEmitter {
     }
 
     [_peerPluginAdded](alert) {
-      var torrentHandle = alert.torrentHandle()
+      var torrentHandle = alert.torrentHandle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var peer = torrent.peers.get(alert.ip())
+      var peer = torrent.peers.get(alert.ip)
 
       if (peer) {
         if (!peer.peerPlugin) {
-          peer.addPeerPlugin(alert.status())
+          peer.addPeerPlugin(alert.status)
         } else {
           debug('PeerPlugin already initialized')
         }
@@ -609,9 +610,9 @@ class Node extends EventEmitter {
     }
 
     [_peerPluginRemoved](alert) {
-      var torrentHandle = alert.torrentHandle()
+      var torrentHandle = alert.torrentHandle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var peer = torrent.peers.get(alert.ip())
+      var peer = torrent.peers.get(alert.ip)
 
       if (peer) {
         if (!peer.peerPlugin) {
@@ -625,128 +626,128 @@ class Node extends EventEmitter {
     }
 
     [_connectionAddedToSession](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var peerPlugin = torrent.peers.get(alert.ip()).plugin
+      var peerPlugin = torrent.peers.get(alert.ip).plugin
 
-      peerPlugin.emit('connectionAdded', alert.connectionStatus())
+      peerPlugin.emit('connectionAdded', alert.connectionStatus)
     }
 
     [_connectionRemovedFromSession](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var peer = torrent.peers.get(alert.ip())
+      var peer = torrent.peers.get(alert.ip)
 
       peer.plugin.emit('connectionRemoved')
     }
 
     [_sessionStarted](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('sessionStarted')
     }
 
     [_sessionPaused](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('sessionPause')
     }
 
     [_sessionStopped](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('sessionStopped')
     }
 
     [_sessionToObserveMode](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('sessionToObserveMode')
     }
 
     [_sessionToSellMode](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('SessionToSellMode', alert)
     }
 
     [_sessionToBuyMode](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('SessionToBuyMode', alert)
     }
 
     [_validPaymentReceived](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('validPaymentReceived', alert)
     }
 
     [_invalidPaymentReceived](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('invalidPaymentReceived', alert)
     }
 
     [_buyerTermsUpdated](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('buyerTermsUpdated', alert)
     }
 
     [_sellerTermsUpdated](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('sellerTermsUpdated', alert)
     }
 
     [_contractConstructed](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('contractConstructed', alert)
     }
 
     [_sentPayment](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('sentPayment', alert)
     }
 
     [_lastPaymentReceived](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('lastPaymentReceived', alert)
     }
 
     [_invalidPieceArrived](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('invalidPieceArrived', alert)
     }
 
     [_validPieceArrived](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('validPieceArrived', alert)
     }
 
     [_anchorAnnounced](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       torrent.plugin.emit('AnchorAnnounced', alert)
