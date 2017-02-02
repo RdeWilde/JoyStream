@@ -11,6 +11,7 @@
 #include "torrent_status.hpp"
 #include "add_torrent_params.hpp"
 #include "endpoint.hpp"
+#include "entry.hpp"
 #include "sha1_hash.hpp"
 #include "state_t.hpp"
 #include "utils.hpp"
@@ -509,6 +510,7 @@ v8::Local<v8::Object> encode(const libtorrent::save_resume_data_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert *>(a));
 
 	//std::shared_ptr<entry> const resume_data;
+  SET_VAL(o, "resumeData", entry::encode(*a->resume_data.get()));
 
   return o;
 }
