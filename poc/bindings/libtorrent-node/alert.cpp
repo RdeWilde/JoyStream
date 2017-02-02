@@ -909,8 +909,17 @@ v8::Local<v8::Object> encode(const libtorrent::dht_pkt_alert * a) {
 v8::Local<v8::Object> encode(const libtorrent::dht_get_peers_reply_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert *>(a));
 
+  auto peers = Nan::New<v8::Array>();
+
+  for(auto m: a->peers()) {
+    peers->Set(peers->Length(), libtorrent::node::endpoint::encode(m));
+  }
+
+  SET_VAL(o, "peers", peers);
   SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a->info_hash));
   SET_INT32(o, NUM_PEERS_KEY, a->num_peers());
+
+
   // std::vector<tcp::endpoint> peers() const
 
   return o;
