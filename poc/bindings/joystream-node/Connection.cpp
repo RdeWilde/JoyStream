@@ -68,7 +68,8 @@ namespace connection {
     // Should never get here, means our code is out of synch
     // with structure of statemachine. We throw exception to detect, since
     // bindings never used in debug mode. This *ugly* code is the price of no types :/
-    throw std::runtime_error("InnerStateToInt is out of synch with state machine, bad build!");
+    throw std::runtime_error("out of synch with state machine, bad build!");
+  }
   }
 
   v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c) {
