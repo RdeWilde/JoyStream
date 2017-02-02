@@ -24,49 +24,47 @@
 
 #define SET_JOYSTREAM_PLUGIN_ALERT_TYPE(o, name) SET_VAL(o, #name, Nan::New<v8::Number>(joystream::extension::alert::name::alert_type));
 
-#define ENCODE_PLUGIN_ALERT(name, v) if(joystream::extension::alert::name const * p = libtorrent::alert_cast<joystream::extension::alert::name>(a)) {v = encode(p); return v;}
-#define PROCESS_PLUGIN_ALERT(name, v) if(joystream::extension::alert::name const * p = libtorrent::alert_cast<joystream::extension::alert::name>(a)) { process(p); return v; }
-
 namespace joystream {
 namespace node {
 namespace PluginAlertEncoder {
 
   boost::optional<v8::Local<v8::Object>> alertEncoder(const libtorrent::alert *a) {
 
+    #define PROCESS_REQUEST_RESULT_ALERT if(joystream::extension::alert::RequestResult const * p = libtorrent::alert_cast<joystream::extension::alert::RequestResult>(a)) process(p);
+    #define ENCODE_PLUGIN_ALERT(name) else if(joystream::extension::alert::name const * p = libtorrent::alert_cast<joystream::extension::alert::name>(a)) v = encode(p);
+    
     boost::optional<v8::Local<v8::Object>> v;
 
-    PROCESS_PLUGIN_ALERT(RequestResult, v);
+    PROCESS_REQUEST_RESULT_ALERT
+    ENCODE_PLUGIN_ALERT(TorrentPluginStatusUpdateAlert)
+    ENCODE_PLUGIN_ALERT(PeerPluginStatusUpdateAlert)
+    ENCODE_PLUGIN_ALERT(TorrentPluginAdded)
+    ENCODE_PLUGIN_ALERT(TorrentPluginRemoved)
+    ENCODE_PLUGIN_ALERT(PeerPluginAdded)
+    ENCODE_PLUGIN_ALERT(PeerPluginRemoved)
+    ENCODE_PLUGIN_ALERT(ConnectionAddedToSession)
+    ENCODE_PLUGIN_ALERT(SessionStarted)
+    ENCODE_PLUGIN_ALERT(SessionPaused)
+    ENCODE_PLUGIN_ALERT(SessionStopped)
+    ENCODE_PLUGIN_ALERT(SessionToObserveMode)
+    ENCODE_PLUGIN_ALERT(SessionToSellMode)
+    ENCODE_PLUGIN_ALERT(SessionToBuyMode)
+    ENCODE_PLUGIN_ALERT(ValidPaymentReceived)
+    ENCODE_PLUGIN_ALERT(InvalidPaymentReceived)
+    ENCODE_PLUGIN_ALERT(BuyerTermsUpdated)
+    ENCODE_PLUGIN_ALERT(SellerTermsUpdated)
+    ENCODE_PLUGIN_ALERT(ContractConstructed)
+    ENCODE_PLUGIN_ALERT(SentPayment)
+    ENCODE_PLUGIN_ALERT(LastPaymentReceived)
+    ENCODE_PLUGIN_ALERT(InvalidPieceArrived)
+    ENCODE_PLUGIN_ALERT(ValidPieceArrived)
+    ENCODE_PLUGIN_ALERT(DownloadStarted)
+    ENCODE_PLUGIN_ALERT(UploadStarted)
+    ENCODE_PLUGIN_ALERT(SendingPieceToBuyer)
+    ENCODE_PLUGIN_ALERT(PieceRequestedByBuyer)
+    ENCODE_PLUGIN_ALERT(AnchorAnnounced)
 
-    ENCODE_PLUGIN_ALERT(TorrentPluginStatusUpdateAlert, v);
-    ENCODE_PLUGIN_ALERT(PeerPluginStatusUpdateAlert, v);
-    ENCODE_PLUGIN_ALERT(TorrentPluginAdded, v);
-    ENCODE_PLUGIN_ALERT(TorrentPluginRemoved, v);
-    ENCODE_PLUGIN_ALERT(PeerPluginAdded, v);
-    ENCODE_PLUGIN_ALERT(PeerPluginRemoved, v);
-    ENCODE_PLUGIN_ALERT(ConnectionAddedToSession, v);
-    ENCODE_PLUGIN_ALERT(SessionStarted, v);
-    ENCODE_PLUGIN_ALERT(SessionPaused, v);
-    ENCODE_PLUGIN_ALERT(SessionStopped, v);
-    ENCODE_PLUGIN_ALERT(SessionToObserveMode, v);
-    ENCODE_PLUGIN_ALERT(SessionToSellMode, v);
-    ENCODE_PLUGIN_ALERT(SessionToBuyMode, v);
-    ENCODE_PLUGIN_ALERT(ValidPaymentReceived, v);
-    ENCODE_PLUGIN_ALERT(InvalidPaymentReceived, v);
-    ENCODE_PLUGIN_ALERT(BuyerTermsUpdated, v);
-    ENCODE_PLUGIN_ALERT(SellerTermsUpdated, v);
-    ENCODE_PLUGIN_ALERT(ContractConstructed, v);
-    ENCODE_PLUGIN_ALERT(SentPayment, v);
-    ENCODE_PLUGIN_ALERT(LastPaymentReceived, v);
-    ENCODE_PLUGIN_ALERT(InvalidPieceArrived, v);
-    ENCODE_PLUGIN_ALERT(ValidPieceArrived, v);
-    ENCODE_PLUGIN_ALERT(DownloadStarted, v);
-    ENCODE_PLUGIN_ALERT(UploadStarted, v);
-    ENCODE_PLUGIN_ALERT(SendingPieceToBuyer, v);
-    ENCODE_PLUGIN_ALERT(PieceRequestedByBuyer, v);
-    ENCODE_PLUGIN_ALERT(AnchorAnnounced, v);
-
-    // Make sure we handled all the alert types
-    assert(false);
+    return v;
   }
 
   NAN_MODULE_INIT(InitAlertTypes) {
