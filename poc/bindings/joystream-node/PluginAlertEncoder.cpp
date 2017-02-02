@@ -165,7 +165,7 @@ namespace PluginAlertEncoder {
   v8::Local<v8::Object> encode(joystream::extension::alert::ConnectionAddedToSession const * p) {
     auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
-    SET_VAL(v, "status", Connection::NewInstance(p->status));
+    SET_VAL(v, "status", connection::encode(p->status));
 
     return v;
   }

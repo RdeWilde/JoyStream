@@ -1,27 +1,25 @@
-#ifndef JOYSTREAM_NODE_ADDON_PROTOCOL_SESSION_CONNECTION_H
-#define JOYSTREAM_NODE_ADDON_PROTOCOL_SESSION_CONNECTION_H
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 2 2017
+ */
+
+#ifndef JOYSTREAM_NODE_CONNECTION_HPP
+#define JOYSTREAM_NODE_CONNECTION_HPP
 
 #include <nan.h>
 #include <protocol_session/Status.hpp>
-#include <libtorrent/socket.hpp>
+#include <libtorrent/socket_io.hpp>
 
 namespace joystream {
 namespace node {
+namespace connection {
 
-class Connection: public Nan::ObjectWrap {
-  public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> NewInstance(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
-
-  private:
-    joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint> connection_;
-    static Nan::Persistent<v8::Function> constructor;
-
-    static NAN_METHOD(New);
-
-};
+  v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
 
 }
 }
+}
 
-#endif
+#endif // JOYSTREAM_NODE_CONNECTION_HPP

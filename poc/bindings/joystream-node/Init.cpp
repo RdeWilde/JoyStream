@@ -20,7 +20,6 @@ namespace node {
   NAN_MODULE_INIT(Init) {
     libtorrent_interaction::Init(target);
     RequestResult::Init(target);
-    Connection::Init(target);
     PeerPluginStatus::Init(target);
     TorrentPluginStatus::Init(target);
     Plugin::Init(target);
