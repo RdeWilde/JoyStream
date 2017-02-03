@@ -84,7 +84,7 @@ TEST(protocol_wire_test, joinContract)
 
 TEST(protocol_wire_test, joiningContract)
 {
-    Coin::PublicKey contractPk(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"));
+    Coin::PublicKey contractPk = Coin::PublicKey::fromCompressedRawHex("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8");
     Coin::PubKeyHash finalPkHash(uchar_vector("31149292f8ba11da4aeb833f6cd8ae0650a82340"));
 
     JoiningContract m(contractPk, finalPkHash);
@@ -124,7 +124,7 @@ TEST(protocol_wire_test, ready)
     uint64_t value = 1123;
     Coin::typesafeOutPoint anchor(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
                                   55);
-    Coin::PublicKey contractPk(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"));
+    Coin::PublicKey contractPk = Coin::PublicKey::fromCompressedRawHex("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8");
     Coin::PubKeyHash finalPkHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
 
     Ready m(value, anchor, contractPk, finalPkHash);

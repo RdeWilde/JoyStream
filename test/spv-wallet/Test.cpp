@@ -29,7 +29,7 @@
 
 using namespace joystream::test::bitcoin;
 
-#define DEFAULT_SIGNAL_TIMEOUT 20 * 1000
+#define DEFAULT_SIGNAL_TIMEOUT 25 * 1000
 
 void Test::initTestCase() {
 
@@ -240,7 +240,7 @@ void Test::BalanceCheck() {
     int lastBalanceChangeCount = spy_balance_changed.count();
 
     // Send 0.005BTC to our wallet
-    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.005") == 0);
+    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding(), "0.005") == 0);
 
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, DEFAULT_SIGNAL_TIMEOUT);
@@ -259,7 +259,7 @@ void Test::BalanceCheck() {
     lastBalanceChangeCount = spy_balance_changed.count();
 
     // Send another 0.005BTC to our wallet
-    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.005") == 0);
+    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding(), "0.005") == 0);
 
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, DEFAULT_SIGNAL_TIMEOUT);
@@ -271,7 +271,7 @@ void Test::BalanceCheck() {
 
     int startAtHeight = _walletA->bestHeight() - 1;
     // Send another 0.003BTC to our wallet
-    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding().toStdString(), "0.003") == 0);
+    QVERIFY(regtest::send_to_address(addr.toBase58CheckEncoding(), "0.003") == 0);
     QVERIFY(regtest::generate_blocks(3) == 0);
 
     _walletA->test_syncBlocksStaringAtHeight(startAtHeight);
@@ -293,29 +293,26 @@ void Test::Utxo() {
     auto addr3 = _walletA->generateReceiveAddress();
 
     // 100,000 satoshi (2 conf)
-    QVERIFY(regtest::send_to_address(addr1.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
-    QVERIFY(regtest::generate_blocks(1) == 0);
+    QVERIFY(regtest::send_to_address(addr1.toBase58CheckEncoding(), "0.00100") == 0);
+    QVERIFY(regtest::generate_blocks(3) == 0);
 
     //  50,000 satoshi (1 conf)
-    QVERIFY(regtest::send_to_address(addr2.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
-    QVERIFY(regtest::generate_blocks(1) == 0);
+    QVERIFY(regtest::send_to_address(addr2.toBase58CheckEncoding(), "0.00050") == 0);
+    QVERIFY(regtest::generate_blocks(2) == 0);
 
+    //  25,000 satoshi (0 conf)
+    QVERIFY(regtest::send_to_address(addr3.toBase58CheckEncoding(), "0.00025") == 0);
 
-    QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
+    // balance change spy
+    QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
     // Should connect and synch headers
     _walletA->sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
-
-    QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
-
-    //  25,000 satoshi (0 conf)
-    QVERIFY(regtest::send_to_address(addr3.toBase58CheckEncoding().toStdString(), "0.00025") == 0);
-
     // Wait for balance to change
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, DEFAULT_SIGNAL_TIMEOUT);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() == 3, DEFAULT_SIGNAL_TIMEOUT);
 
+    QCOMPARE(_walletA->balance(), uint64_t(150000));
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(175000));
 
     Coin::UnspentOutputSet lockedOutputs;
@@ -376,8 +373,8 @@ void Test::BroadcastingTx() {
     auto addrA = _walletA->generateReceiveAddress();
     auto addrB = _walletB->generateReceiveAddress();
 
-    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
-    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding(), "0.00050") == 0);
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding(), "0.00050") == 0);
     QVERIFY(regtest::generate_blocks(1) == 0);
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));
@@ -429,7 +426,7 @@ void Test::UsingOptionalDataInP2SHSpend() {
 
     Coin::P2SHAddress addrA = Coin::P2SHAddress(Coin::Network::regtest, Coin::RedeemScriptHash::fromRawScript(script));
 
-    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding(), "0.00100") == 0);
     QVERIFY(regtest::generate_blocks(1) == 0);
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));
@@ -481,8 +478,8 @@ void Test::FinanceTxFromMultipleSets() {
     auto addrA = _walletA->generateReceiveAddress();
     auto addrB = _walletB->generateReceiveAddress();
 
-    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
-    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00050") == 0);
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding(), "0.00050") == 0);
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding(), "0.00050") == 0);
     QVERIFY(regtest::generate_blocks(1) == 0);
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));
@@ -534,7 +531,7 @@ void Test::RedeemScriptFiltering() {
 
     Coin::P2SHAddress addrA = Coin::P2SHAddress(Coin::Network::regtest, Coin::RedeemScriptHash::fromRawScript(script));
 
-    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding().toStdString(), "0.00100") == 0);
+    QVERIFY(regtest::send_to_address(addrA.toBase58CheckEncoding(), "0.00100") == 0);
     QVERIFY(regtest::generate_blocks(1) == 0);
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));

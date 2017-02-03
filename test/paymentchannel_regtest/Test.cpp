@@ -61,7 +61,7 @@ Coin::UnspentOutputSet getFunds(int64_t amount) {
     Coin::P2PKHAddress address(Coin::Network::regtest, sk.toPublicKey().toPubKeyHash());
 
     std::string fundsTxId;
-    if(regtest::send_to_address(address.toBase58CheckEncoding().toStdString(), amount_ss.str(), fundsTxId) != 0) {
+    if(regtest::send_to_address(address.toBase58CheckEncoding(), amount_ss.str(), fundsTxId) != 0) {
         return Coin::UnspentOutputSet();
     }
 
@@ -124,7 +124,7 @@ void Test::RefundLocking() {
     refundTx.version = 2;
 
     // Send the refund to a bitcoind wallet controlled address
-    auto refundDestination = Coin::P2PKHAddress::fromBase58CheckEncoding(QString::fromStdString(regtest::getnewaddress()));
+    auto refundDestination = Coin::P2PKHAddress::fromBase58CheckEncoding(regtest::getnewaddress());
     auto refundOutput = Coin::TxOut(refundAmount, Coin::P2PKHScriptPubKey(refundDestination.pubKeyHash()).serialize());
     refundTx.addOutput(refundOutput);
 

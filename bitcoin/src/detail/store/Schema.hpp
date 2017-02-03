@@ -3,8 +3,6 @@
 
 #include <CoinQ/CoinQ_blocks.h>
 #include <CoinCore/CoinNodeData.h>
-#include <CoinCore/typedefs.h> //bytes_t
-#include <stdutils/uchar_vector.h> //uchar_vector
 
 #include <common/Network.hpp>
 #include <common/Seed.hpp>

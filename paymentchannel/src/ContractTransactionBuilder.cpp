@@ -87,7 +87,7 @@ uint64_t ContractTransactionBuilder::transactionSize(uint32_t numberOfCommitment
 
     // set change
     if(hasChange)
-        c.setChange(Coin::Payment(0, Coin::PrivateKey(uchar_vector("153213303DA61F20BD67FC233AA33262")).toPublicKey().toPubKeyHash()));
+        c.setChange(Coin::Payment(0, Coin::PubKeyHash(uchar_vector(PUBKEY_HASH_BYTE_LENGTH,0xff))));
 
     // Generate transaction
     Coin::Transaction tx = c.transaction();

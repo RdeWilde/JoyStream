@@ -99,11 +99,11 @@ Coin::PrivateKey SessionTest::nextPrivateKey() {
 
     //std::cout << "Generate ---- " << finalHexRepresentation.length() << std::endl;
 
-    Coin::Seed seed(finalHexRepresentation.c_str());
+    Coin::Seed seed = Coin::Seed::fromRawHex(finalHexRepresentation);
 
     Coin::HDKeychain keyChain(seed.generateHDKeychain());
 
-    return Coin::PrivateKey(keyChain.privkey());
+    return Coin::PrivateKey::fromRaw(keyChain.privkey());
 }
 
 paymentchannel::Payor SessionTest::getPayor(const protocol_wire::SellerTerms & sellerTerms,

@@ -111,7 +111,7 @@ namespace store {
     {
         version_ = t.version;
         lockTime_ = t.lockTime;
-        txid_ = Coin::TransactionId::fromTx(t).toHex().toStdString();
+        txid_ = Coin::TransactionId::fromTx(t).getRawHex();
         //seen_ = 0; //should be initialised
     }
 
