@@ -35,7 +35,7 @@ namespace protocol_wire {
     }
 
     uint32_t JoiningContract::length() const {
-        return Coin::PublicKey::length() + Coin::PubKeyHash::length();
+        return Coin::PublicKey::compressedLength() + Coin::PubKeyHash::rawLength();
     }
 
     void JoiningContract::write(std::ostream & stream) const {

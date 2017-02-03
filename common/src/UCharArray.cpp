@@ -38,7 +38,7 @@ void UCharArray<array_length>::reverse() {
 }
 
 template<unsigned int array_length>
-unsigned int UCharArray<array_length>::length() {
+unsigned int UCharArray<array_length>::rawLength() {
     return array_length;
 }
 

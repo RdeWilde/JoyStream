@@ -24,7 +24,7 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x63); // OP_IF
     // Branch for when channel is settled with payment and refund
-    script += Coin::opPushData(COMPRESSED_PUBLIC_KEY_BYTE_LENGTH);
+    script += Coin::opPushData(Coin::PublicKey::compressedLength());
     script += _payeePk.toUCharVector();
     script.push_back(0xad); // OP_CHECKSIGVERIFY
 
@@ -36,7 +36,7 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x68); // OP_ENDIF
     // Check that payor has agreed to this spend
-    script += Coin::opPushData(COMPRESSED_PUBLIC_KEY_BYTE_LENGTH);
+    script += Coin::opPushData(Coin::PublicKey::compressedLength());
     script += _payorPk.toUCharVector();
     script.push_back(0xac); // OP_CHECKSIG
 
@@ -56,7 +56,7 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
 
     subscript = Coin::popData(subscript, rawPayeePk);
 
-    if(rawPayeePk.size() != COMPRESSED_PUBLIC_KEY_BYTE_LENGTH) {
+    if(rawPayeePk.size() != Coin::PublicKey::compressedLength()) {
         throw std::runtime_error("Unable to retreive payee public key from redeem script");
     }
 
@@ -77,7 +77,7 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
     uchar_vector rawPayorPk;
     subscript = Coin::popData(subscript, rawPayorPk);
 
-    if(rawPayorPk.size() != COMPRESSED_PUBLIC_KEY_BYTE_LENGTH) {
+    if(rawPayorPk.size() != Coin::PublicKey::compressedLength()) {
         throw std::runtime_error("Unable to retreive payor public key from redeem script");
     }
 

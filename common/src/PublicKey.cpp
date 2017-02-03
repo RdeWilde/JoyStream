@@ -50,6 +50,10 @@ PublicKey PublicKey::fromCompressedRaw(const std::vector<unsigned char>& raw) {
     return pk;
 }
 
+size_t PublicKey::compressedLength() {
+    return COMPRESSED_PUBLIC_KEY_BYTE_LENGTH;
+}
+
 PubKeyHash PublicKey::toPubKeyHash() const {
     return PubKeyHash(ripemd160(sha256(toUCharVector())));
 }

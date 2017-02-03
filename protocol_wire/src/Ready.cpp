@@ -39,7 +39,7 @@ namespace protocol_wire {
     }
 
     uint32_t Ready::length() const {
-        return sizeof(uint64_t) + Coin::typesafeOutPoint::length() + Coin::PublicKey::length() + Coin::PubKeyHash::length();
+        return sizeof(uint64_t) + Coin::typesafeOutPoint::length() + Coin::PublicKey::compressedLength() + Coin::PubKeyHash::rawLength();
     }
 
     void Ready::write(std::ostream & stream) const {

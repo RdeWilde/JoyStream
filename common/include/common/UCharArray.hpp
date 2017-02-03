@@ -45,10 +45,12 @@ public:
     // for different encoding types
     // Convert to unsigned char vector
     uchar_vector toUCharVector() const;  //lets get rid of this if possible
+
     // Encodes as hex string
-    std::string getRawHex() const; //make it protected
+    std::string getRawHex() const;
+
     // Return length
-    static unsigned int length(); //make it protected and rename to rawLength()
+    static unsigned int rawLength();
 
     // Clear array, i.e. , set to 0s
     void clear();

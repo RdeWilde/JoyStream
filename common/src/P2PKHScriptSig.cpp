@@ -27,7 +27,7 @@ uchar_vector P2PKHScriptSig::serialized() const {
     serialized += _ts.opPushForScriptSigSerialized();
 
     // Add public key length
-    serialized += opPushData(COMPRESSED_PUBLIC_KEY_BYTE_LENGTH);
+    serialized += opPushData(PublicKey::compressedLength());
 
     // Add public key
     serialized += _pk.toUCharVector();
@@ -50,7 +50,7 @@ P2PKHScriptSig P2PKHScriptSig::deserialize(const uchar_vector & script) {
         throw std::runtime_error("error deserializing p2pkhScriptSig: missing signature.");
     }
 
-    if(rawPublicKey.size() != COMPRESSED_PUBLIC_KEY_BYTE_LENGTH) {
+    if(rawPublicKey.size() != PublicKey::compressedLength()) {
         throw std::runtime_error("error deserializing p2pkhScriptSig: no valid public key");
     }
 
