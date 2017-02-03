@@ -5,7 +5,6 @@
 #include <boost/optional.hpp>
 #include <libtorrent/torrent_info.hpp>
 
-<<<<<<< HEAD:poc/bindings/libtorrent-node/torrent_info.h
 using namespace v8;
 
 class TorrentInfo: public Nan::ObjectWrap {
@@ -15,15 +14,6 @@ class TorrentInfo: public Nan::ObjectWrap {
       static boost::shared_ptr<const libtorrent::torrent_info> Unwrap(const Local<Object>& obj) {
         TorrentInfo* ti = Nan::ObjectWrap::Unwrap<TorrentInfo>(obj);
         return ti->torrent_info_;
-=======
-class TorrentInfoWrap: public Nan::ObjectWrap {
-    public:
-      static NAN_MODULE_INIT(Init);
-      static v8::Local<v8::Object> New(boost::shared_ptr<const libtorrent::torrent_info>& ti);
-      static const libtorrent::torrent_info* Unwrap(const v8::Local<v8::Object>& obj) {
-        TorrentInfoWrap* ti = Nan::ObjectWrap::Unwrap<TorrentInfoWrap>(obj);
-        return ti->torrent_info_.get();
->>>>>>> Adding name() binding:poc/bindings/cpp/torrent_info.h
       };
 
     private:

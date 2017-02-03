@@ -130,7 +130,7 @@ NAN_METHOD(TorrentHandle::get_peer_info) {
     RETURN(ret);
 };
 
-/*
+
 NAN_METHOD(TorrentHandle::status) {
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
     libtorrent::torrent_status st;
@@ -140,9 +140,8 @@ NAN_METHOD(TorrentHandle::status) {
     else
         st = th->status();
 
-    info.GetReturnValue().Set(TorrentStatusWrap::New(st));
+    RETURN(libtorrent::node::torrent_status::encode(st));
 }
-
 
 NAN_METHOD(TorrentHandle::get_download_queue) {
     std::vector<libtorrent::partial_piece_info> res;
@@ -184,9 +183,9 @@ NAN_METHOD(TorrentHandle::get_download_queue) {
     RETURN(ret);
 };
 
-/*NAN_METHOD(TorrentHandle::file_progress) {
+NAN_METHOD(TorrentHandle::file_progress) {
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
-    std::vector<libtorrent::size_type> res;
+    std::vector<std::int64_t> res;
 
     res.reserve(th->torrent_file()->num_files());
 
@@ -199,7 +198,7 @@ NAN_METHOD(TorrentHandle::get_download_queue) {
       ret->Set(ret->Length(), Nan::New<v8::Number>(*i));
     }
 
-    info.GetReturnValue().Set(ret);
+    RETURN(ret);
 }
 
 /*NAN_METHOD(TorrentHandle::trackers) {
@@ -257,13 +256,8 @@ NAN_METHOD(TorrentHandle::url_seeds) {
     for (std::set<std::string>::iterator i(urls.begin()), e(urls.end()); i != e; ++i)
         ret->Set(ret->Length(), Nan::New<String>(*i).ToLocalChecked());
 
-<<<<<<< HEAD:poc/bindings/libtorrent-node/torrent_handle.cc
     RETURN(ret);
 };
-=======
-    info.GetReturnValue().Set(ret);
-}
->>>>>>> Adding torrent info:poc/bindings/cpp/torrent_handle.cc
 
 NAN_METHOD(TorrentHandle::add_http_seed) {
 
@@ -290,7 +284,7 @@ NAN_METHOD(TorrentHandle::http_seeds) {
     RETURN_VOID;
 };
 
-NAN_METHOD(TorrentHandleWrap::set_metadata) {
+NAN_METHOD(TorrentHandle::set_metadata) {
     std::string md(*Nan::Utf8String(info[0]));
 
     TorrentHandle::Unwrap(info.This())->set_metadata(md.c_str(), md.size());
@@ -572,7 +566,7 @@ NAN_METHOD(TorrentHandle::scrape_tracker) {
     RETURN_VOID;
 };
 
-NAN_METHOD(TorrentHandleWrap::set_upload_mode) {
+NAN_METHOD(TorrentHandle::set_upload_mode) {
     TorrentHandle::Unwrap(info.This())->set_upload_mode(info[0]->BooleanValue());
     RETURN_VOID;
 };

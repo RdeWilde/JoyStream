@@ -15,11 +15,7 @@ NAN_MODULE_INIT(TorrentInfo::Init) {
   Nan::Set(target, Nan::New("TorrentInfo").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-<<<<<<< HEAD:poc/bindings/libtorrent-node/torrent_info.cc
 Local<Object> TorrentInfo::New(boost::shared_ptr<const libtorrent::torrent_info> ti) {
-=======
-v8::Local<v8::Object> TorrentInfoWrap::New(boost::shared_ptr<const libtorrent::torrent_info>& ti) {
->>>>>>> Adding name() binding:poc/bindings/cpp/torrent_info.cc
     Nan::EscapableHandleScope scope;
 
     v8::Local<v8::Function> cons = Nan::New(constructor);
@@ -39,14 +35,14 @@ NAN_METHOD(TorrentInfo::NewInstance) {
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(TorrentInfoWrap::name) {
+NAN_METHOD(TorrentInfo::name) {
 
-    info.GetReturnValue().Set(Nan::New<v8::String>(TorrentInfoWrap::Unwrap(info.This())->name()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(TorrentInfo::Unwrap(info.This())->name()).ToLocalChecked());
 }
 
-NAN_METHOD(TorrentInfoWrap::total_size) {
+NAN_METHOD(TorrentInfo::total_size) {
 
-    std::int64_t total_size = TorrentInfoWrap::Unwrap(info.This())->total_size();
+    std::int64_t total_size = TorrentInfo::Unwrap(info.This())->total_size();
 
     info.GetReturnValue().Set(Nan::New<v8::Number>(total_size));
 }
