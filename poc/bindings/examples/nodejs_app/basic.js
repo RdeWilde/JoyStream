@@ -1,13 +1,13 @@
-var Node = require('../../lib/node')
+var Joystream = require('../../lib/joystream')
 var debug = require('debug')('basic')
 
 debug('Starting basic.js example')
 
-var node = new Node()
+var app = new Joystream()
 
-console.log(node.isPaused())
+console.log(app.isPaused())
 
-console.log(node.listenPort())
+console.log(app.listenPort())
 
 /*node.addTorrent(0, 0, 'Sintel', null, '/home/lola/joystream/test/', '6a9759bffd5c0af65319979fb7832189f4f3c35d',
   function (err, smth) {

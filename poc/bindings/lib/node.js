@@ -79,6 +79,11 @@ class Node extends EventEmitter {
       }.bind(this), 1000)
     }
 
+    /**********************
+     *
+     *  Session methods
+     *
+     *********************/
     pause (callback) {
       this.session.pause(callback)
     }
@@ -91,18 +96,11 @@ class Node extends EventEmitter {
       return this.session.listenPort()
     }
 
-    addTorrent (torrentIdentifier, uploadLimit, downloadLimit, name, resumeData, savePath, callback) {
-
-      var add_torrent_params = {
-      }
-
-      this.session.addTorrent(add_torrent_params, callback)
-    }
-
-    removeTorrent (infoHash, callback) {
-      this.session.removeTorrent(infoHash, callback)
-    }
-
+    /**********************
+     *
+     *  Alerts
+     *
+     *********************/
     process (alert) {
       debug('Alert ' + alert.what + ' received !')
 
