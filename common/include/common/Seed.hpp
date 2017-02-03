@@ -28,17 +28,14 @@ class Seed : public Coin::UCharArray<WALLET_SEED_BYTE_LENGTH> {
 
 public:
 
-    // Constant set of seeds suitable for testing
-    static const std::vector<Seed> testSeeds;
-
     // Default constructor
     Seed();
 
-    // Constructor from hex encoded C string
-    Seed(const char * hexEncoded);
+    // Named constructor from raw data
+    static Seed fromRaw(const unsigned char*);
 
-    // Constructor from hex encoded string
-    Seed(const std::string & hexEncoded);
+    // Named constructor from hex string
+    static Seed fromRawHex(const std::string&);
 
     /**
      * TODO

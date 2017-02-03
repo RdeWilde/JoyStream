@@ -27,7 +27,7 @@ uchar_vector P2PKHScriptSig::serialized() const {
     serialized += _ts.opPushForScriptSigSerialized();
 
     // Add public key length
-    serialized += opPushData(PublicKey::length());
+    serialized += opPushData(COMPRESSED_PUBLIC_KEY_BYTE_LENGTH);
 
     // Add public key
     serialized += _pk.toUCharVector();
@@ -60,9 +60,7 @@ P2PKHScriptSig P2PKHScriptSig::deserialize(const uchar_vector & script) {
 
     TransactionSignature txSignature(signature, Coin::SigHashType::fromHashCode(hashCode));
 
-    PublicKey pubKey(rawPublicKey);
-
-    return P2PKHScriptSig(pubKey, txSignature);
+    return P2PKHScriptSig(PublicKey::fromCompressedRaw(rawPublicKey), txSignature);
 }
 
 PublicKey P2PKHScriptSig::pk() const {

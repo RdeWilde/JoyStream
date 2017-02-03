@@ -14,15 +14,40 @@
 
 namespace Coin {
 
-PublicKey::PublicKey() {
+PublicKey::PublicKey() : UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH>() {
 }
 
-PublicKey::PublicKey(const uchar_vector & rawCompressedKey)
-    : UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH>(rawCompressedKey) {
+PublicKey PublicKey::fromCompressedRawHex(const std::string &hex) {
+    PublicKey pk;
 
-    // Verify key validity
-    if(!valid(*this))
-        throw InvalidPublicKeyException(*this);
+    pk.setRawHex(hex);
+
+    if(!valid(pk))
+        throw InvalidPublicKeyException(pk);
+
+    return pk;
+}
+
+PublicKey PublicKey::fromCompressedRaw(const unsigned char* raw) {
+    PublicKey pk;
+
+    pk.setRaw(raw);
+
+    if(!valid(pk))
+        throw InvalidPublicKeyException(pk);
+
+    return pk;
+}
+
+PublicKey PublicKey::fromCompressedRaw(const std::vector<unsigned char>& raw) {
+    PublicKey pk;
+
+    pk.setRaw(raw);
+
+    if(!valid(pk))
+        throw InvalidPublicKeyException(pk);
+
+    return pk;
 }
 
 PubKeyHash PublicKey::toPubKeyHash() const {

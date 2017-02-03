@@ -32,58 +32,42 @@ TransactionId::TransactionId(const Coin::Transaction & tx)
 }
 */
 
-TransactionId TransactionId::fromInternalByteOrder(const uchar_vector & vector) {
-
-    // Check length
-    if(vector.size() != TXID_BYTE_LENGTH)
-        throw std::runtime_error("Incorrect size...");
-
-    // Make copy so we can modify it
-    uchar_vector copy(vector);
-
-    // Convert to RPC byte order
-    copy.reverse();
+TransactionId TransactionId::fromInternalByteOrder(const std::vector<unsigned char> & vector) {
 
     // Create blank txid
     TransactionId id;
 
-    // Fill id with copy
-    id.fill(copy.data());
+    id.setRaw(vector);
+
+    // reverse the byte order
+    id.reverse();
 
     return id;
 }
 
 TransactionId TransactionId::fromRPCByteOrder(const std::string & str) {
 
-    // Turn std::string into uchar_vector
-    uchar_vector hexVector(str);
+    // Create blank txid
+    TransactionId id;
 
-    // Use uchar_vector to get TransactionId
-    return TransactionId::fromRPCByteOrder(hexVector);
+    id.setRawHex(str);
+
+    return id;
 }
 
-TransactionId TransactionId::fromRPCByteOrder(const uchar_vector & vector) {
-
-    // Check length
-    if(vector.size() != TXID_BYTE_LENGTH)
-        throw std::runtime_error("Incorrect size..");
+TransactionId TransactionId::fromRPCByteOrder(const std::vector<unsigned char> & vector) {
 
     // Create blank txid
     TransactionId id;
 
-    // Fill id with copy
-    id.fill((const unsigned char *)vector.data());
+    id.setRaw(vector);
 
     return id;
 }
 
 std::string TransactionId::toRPCByteOrder() const {
 
-    // Copy raw into buffer
-    uchar_vector tmp = toUCharVector();
-
-    // Turn into hex string
-    return tmp.getHex();
+    return getRawHex();
 }
 
 }

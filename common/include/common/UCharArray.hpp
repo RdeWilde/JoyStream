@@ -9,6 +9,7 @@
 #define COIN_UCHAR_ARRAY_HPP
 
 #include <array>
+#include <vector>
 #include <string>
 #include <iostream>
 
@@ -35,21 +36,19 @@ public:
 
     // Default constructor
     UCharArray();
+    UCharArray(const std::vector<unsigned char>&);
+    UCharArray(const std::string&);
+    UCharArray(const unsigned char*);
 
-    // Construct form unsigned char vector
-    UCharArray(const uchar_vector & vector);
-
-    // Constructor from hex encoded string
-    UCharArray(const std::string & hexEncodedString);
-
-    // Constructor from hex encoded string
-    UCharArray(const char * hexEncodedString);
-
-    // Reverses representation, to switch between little/big-endian
-    void reverse();
-
+    // TODO : make toUCharVector(), getRawHex() and length() protected to be used only by derived classes
+    // as they deal with internal representation. Derived classes should have equivalent public methods
+    // for different encoding types
+    // Convert to unsigned char vector
+    uchar_vector toUCharVector() const;  //lets get rid of this if possible
+    // Encodes as hex string
+    std::string getRawHex() const; //make it protected
     // Return length
-    static unsigned int length();
+    static unsigned int length(); //make it protected and rename to rawLength()
 
     // Clear array, i.e. , set to 0s
     void clear();
@@ -57,31 +56,23 @@ public:
     // Check if array is clear
     bool isClear() const;
 
-    // Encodes as hex string
-    std::string toHex() const;
-
-    // Convert to unsigned char vector
-    uchar_vector toUCharVector() const;
-
     // Stream operator
     friend std::ostream & operator<< <array_length> (std::ostream & stream, const UCharArray<array_length> & o);
     friend std::istream & operator>> <array_length> (std::istream & stream, UCharArray<array_length> & o);
 
-    /**
-    // Comparison for use with QMap
-    bool operator<(const FixedUCharArray & o) const;
-    bool operator==(const FixedUCharArray & o) const;
-    bool operator!=(const FixedUCharArray & rhs) const;
-    */
-
 protected:
+    // we are taking a copy not a reference to do 0 padding
+    void setRawHex(std::string);
 
     // Try to fill array with content starting at start
-    void fill(const unsigned char * start);
-};
+    void setRaw(const unsigned char* start);
 
-template<unsigned int array_length>
-unsigned int qHash(const UCharArray<array_length> & array);
+    // Copy data from vector into array - size is checked
+    void setRaw(const std::vector<unsigned char>&);
+
+    // Reverses representation, to switch between little/big-endian
+    void reverse();
+};
 
 }
 

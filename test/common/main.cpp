@@ -27,10 +27,96 @@ typedef unsigned char uchar;
 
 TEST(commonTest, UCharArrayTest)
 {
-    std::string str = "41424344454647484940414243444546";
-    Coin::UCharArray<16> array(str);
+    // Zeroed array with default constructor
+    {
+        Coin::UCharArray<16> array;
 
-    EXPECT_EQ(str, array.toHex());
+        for (unsigned int i = 0; i < 16; i++) {
+            EXPECT_EQ(array.at(i), 0x00);
+        }
+    }
+
+    // Set Raw Bytes from unsigned char*
+    {
+        Coin::UCharArray<16> array((unsigned char*)uchar_vector(16, 'A').data()); //16 0x41 bytes
+
+        for (unsigned int i = 0; i < 16; i++) {
+            EXPECT_EQ(array.at(i), 0x41);
+        }
+    }
+
+    // Set Raw Bytes from uchar_vector
+    {
+        Coin::UCharArray<16> array(uchar_vector("41414141414141414141414141414141")); //16 0x41 bytes
+
+        for (unsigned int i = 0; i < 16; i++) {
+            EXPECT_EQ(array.at(i), 0x41);
+        }
+    }
+
+    // Set Raw Bytes
+    {
+        Coin::UCharArray<16> array(uchar_vector(16, 'A')); //16 0x41 bytes
+
+        for (unsigned int i = 0; i < 16; i++) {
+            EXPECT_EQ(array.at(i), 0x41);
+        }
+    }
+
+    // Set Hex
+    {
+        Coin::UCharArray<32> array("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f");
+
+        for (unsigned int i = 0; i < 32; i++) {
+            EXPECT_EQ(array.at(i), i);
+        }
+    }
+
+    // Catch invalid hex characters
+    {
+        try {
+            Coin::UCharArray<1> array("0@"); //invalid hex character
+            FAIL();
+        } catch(std::exception &e) {
+            ASSERT_STREQ("Invalid characters in hex string", e.what());
+        }
+    }
+
+    // Throws error with invalid sizes
+    {
+        try {
+            Coin::UCharArray<1> array1(uchar_vector(2)); //too long
+            FAIL();
+        } catch(std::exception &e) { }
+
+        try {
+            Coin::UCharArray<2> array2(uchar_vector(1)); //too short
+            FAIL();
+        } catch(std::exception &e) { }
+
+        try {
+            Coin::UCharArray<1> array3("0000"); //too long
+            FAIL();
+        } catch(std::exception &e) { }
+
+        try {
+            Coin::UCharArray<2> array4("00"); //too short
+            FAIL();
+        } catch(std::exception &e) { }
+    }
+
+    // 0 padding
+    {
+        Coin::UCharArray<2> array("000");
+        EXPECT_EQ(std::string("0000"), array.getRawHex());
+    }
+
+    // toHex
+    {
+        std::string str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
+        Coin::UCharArray<32> array(str);
+        EXPECT_EQ(str, array.getRawHex());
+    }
 }
 
 TEST(commonTest, transactionId)
@@ -134,10 +220,8 @@ TEST(commonTest, P2PKHScriptPubKey)
      *   <Buffer 76 a9 14 cb f7 30 e0 6e 5f 8e 4f c4 4f 07 1d 43 6a 46 60 dd de 3e 47 88 ac>
      */
 
-    uchar_vector rawPk("030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
+    Coin::PublicKey pk = Coin::PublicKey::fromCompressedRawHex("030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
     uchar_vector serializedP2PKH("76a914cbf730e06e5f8e4fc44f071d436a4660ddde3e4788ac");
-
-    Coin::PublicKey pk(rawPk);
 
     Coin::P2PKHScriptPubKey script(pk);
 
@@ -169,7 +253,7 @@ TEST(commonTest, P2PKHScriptSig)
 
     uchar_vector rawPk("030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
     uchar_vector rawSig("3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6");
-    Coin::PublicKey pk(rawPk);
+    Coin::PublicKey pk = Coin::PublicKey::fromCompressedRaw(rawPk);
     Coin::TransactionSignature ts(Coin::Signature(rawSig), Coin::SigHashType::standard());
     Coin::P2PKHScriptSig sig(pk, ts);
     uchar_vector serializedP2PKHScriptSig("483045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc60121030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
@@ -209,8 +293,8 @@ TEST(commonTest, MultiSigScriptPubKey)
     uchar_vector rawScript("5221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc52ae");
     //uchar_vector rawScriptHash("4fbd6060861fed97ef2b95e6afff4afb2943cc15");
 
-    Coin::PublicKey pk1(rawPk_1);
-    Coin::PublicKey pk2(rawPk_2);
+    Coin::PublicKey pk1 = Coin::PublicKey::fromCompressedRaw(rawPk_1);
+    Coin::PublicKey pk2 = Coin::PublicKey::fromCompressedRaw(rawPk_2);
 
     Coin::MultisigScriptPubKey script(std::vector<Coin::PublicKey>({pk1, pk2}), 2);
 
@@ -293,8 +377,8 @@ TEST(commonTest, P2SHMultisigScriptSig)
     Coin::TransactionSignature ts_1(Coin::Signature(rawSig_1), Coin::SigHashType::standard());
     Coin::TransactionSignature ts_2(Coin::Signature(rawSig_2), Coin::SigHashType::standard());
 
-    Coin::PublicKey pk_1(rawPk_1);
-    Coin::PublicKey pk_2(rawPk_2);
+    Coin::PublicKey pk_1 = Coin::PublicKey::fromCompressedRaw(rawPk_1);
+    Coin::PublicKey pk_2 = Coin::PublicKey::fromCompressedRaw(rawPk_2);
 
     Coin::MultisigScriptPubKey redeemScript(std::vector<Coin::PublicKey>{pk_1, pk_2}, 2);
     Coin::P2SHScriptSig sig(std::vector<Coin::TransactionSignature>{ts_1, ts_2}, redeemScript.serialized());
@@ -309,24 +393,25 @@ TEST(commonTest, BIP39)
     // Test Vectors from
     // https://github.com/trezor/python-mnemonic/blob/master/vectors.json
     {
-        Coin::Entropy entropy(std::string("00000000000000000000000000000000"));
-        EXPECT_STREQ(entropy.getHex().c_str(), "00000000000000000000000000000000");
+        Coin::Entropy entropy = Coin::Entropy::fromRawHex("00000000000000000000000000000000");
+        EXPECT_STREQ(entropy.getRawHex().c_str(), "00000000000000000000000000000000");
         EXPECT_STREQ(entropy.mnemonic().c_str(), "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about");
-        EXPECT_STREQ(Coin::Entropy::fromMnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about").getHex().c_str(), "00000000000000000000000000000000");
-        EXPECT_STREQ(entropy.seed("TREZOR").toHex().c_str(),  "c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04");
+        EXPECT_STREQ(Coin::Entropy::fromMnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about").getRawHex().c_str(), "00000000000000000000000000000000");
+        EXPECT_STREQ(entropy.seed("TREZOR").getRawHex().c_str(),  "c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04");
     }
     {
-        Coin::Entropy entropy(std::string("7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f"));
-        EXPECT_STREQ(entropy.getHex().c_str(), "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f");
+        Coin::Entropy entropy = Coin::Entropy::fromRawHex("7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f");
+        EXPECT_STREQ(entropy.getRawHex().c_str(), "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f");
         EXPECT_STREQ(entropy.mnemonic().c_str(), "legal winner thank year wave sausage worth useful legal winner thank yellow");
-        EXPECT_STREQ(entropy.seed("TREZOR").toHex().c_str(),  "2e8905819b8723fe2c1d161860e5ee1830318dbf49a83bd451cfb8440c28bd6fa457fe1296106559a3c80937a1c1069be3a3a5bd381ee6260e8d9739fce1f607");
+        EXPECT_STREQ(entropy.seed("TREZOR").getRawHex().c_str(),  "2e8905819b8723fe2c1d161860e5ee1830318dbf49a83bd451cfb8440c28bd6fa457fe1296106559a3c80937a1c1069be3a3a5bd381ee6260e8d9739fce1f607");
     }
     {
-        Coin::Entropy entropy(std::string("80808080808080808080808080808080"));
-        EXPECT_STREQ(entropy.getHex().c_str(), "80808080808080808080808080808080");
+        Coin::Entropy entropy = Coin::Entropy::fromRawHex("80808080808080808080808080808080");
+        EXPECT_STREQ(entropy.getRawHex().c_str(), "80808080808080808080808080808080");
         EXPECT_STREQ(entropy.mnemonic().c_str(), "letter advice cage absurd amount doctor acoustic avoid letter advice cage above");
-        EXPECT_STREQ(entropy.seed("TREZOR").toHex().c_str(), "d71de856f81a8acc65e6fc851a38d4d7ec216fd0796d0a6827a3ad6ed5511a30fa280f12eb2e47ed2ac03b5c462a0358d18d69fe4f985ec81778c1b370b652a8");
+        EXPECT_STREQ(entropy.seed("TREZOR").getRawHex().c_str(), "d71de856f81a8acc65e6fc851a38d4d7ec216fd0796d0a6827a3ad6ed5511a30fa280f12eb2e47ed2ac03b5c462a0358d18d69fe4f985ec81778c1b370b652a8");
     }
+
 }
 
 TEST(commonTest, TimeRelativeLockTimeEncoding)

@@ -20,17 +20,22 @@ namespace Coin {
 Entropy::Entropy() {
 }
 
-Entropy::Entropy(const char * raw)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
+Entropy Entropy::fromRaw(const unsigned char * raw) {
+    Entropy e;
+    e.setRaw(raw);
+    return e;
 }
 
-Entropy::Entropy(const uchar_vector &raw)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
-
+Entropy Entropy::fromRaw(const std::vector<unsigned char> &raw) {
+    Entropy e;
+    e.setRaw(raw);
+    return e;
 }
 
-Entropy::Entropy(const std::string & hexEncoded)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(hexEncoded) {
+Entropy Entropy::fromRawHex(const std::string & hexEncoded) {
+    Entropy e;
+    e.setRawHex(hexEncoded);
+    return e;
 }
 
 Entropy::~Entropy(){
@@ -68,24 +73,15 @@ Seed Entropy::seed(std::string passphrase) const {
         throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
     }
 
-    // Construct Seed from raw bytes
-    const unsigned char *seed = (unsigned char*)digest;
-    uchar_vector v(seed, WALLET_SEED_BYTE_LENGTH);
-
-    return Seed(v.getHex().c_str());
+    return Seed::fromRaw(digest);
 }
 
 Entropy Entropy::fromMnemonic(std::string wordList) {
-    uchar_vector raw(Coin::BIP39::fromWordlist(wordList));
-    return Entropy(raw.getHex());
+    return Entropy::fromRaw(Coin::BIP39::fromWordlist(wordList));
 }
 
 std::string Entropy::mnemonic() const {
     return Coin::BIP39::toWordlist(this->toUCharVector());
-}
-
-std::string Entropy::getHex() const {
-    return this->toUCharVector().getHex();
 }
 
 }

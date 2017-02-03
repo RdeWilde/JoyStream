@@ -21,11 +21,11 @@ public:
 
     RedeemScriptHash(const Script &script);
 
-    static RedeemScriptHash fromRawHash(const uchar_vector &hash);
-    static RedeemScriptHash fromRawScript(const uchar_vector &script);
+    static RedeemScriptHash fromRawHash(const std::vector<unsigned char> &hash);
+    static RedeemScriptHash fromRawScript(const std::vector<unsigned char> &script);
 
 private:
-    void setHash(const uchar_vector &hash);
+    void setHash(const std::vector<unsigned char> &hash);
 };
 
 }

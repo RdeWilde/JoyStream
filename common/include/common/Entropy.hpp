@@ -22,14 +22,12 @@ public:
     // Default constructor
     Entropy();
 
-    // Constructor from raw data
-    explicit Entropy(const char * raw);
+    // Named Constructor from raw data
+    static Entropy fromRaw(const unsigned char * raw);
+    static Entropy fromRaw(const std::vector<unsigned char>&);
 
-    // Constructor from raw data
-    explicit Entropy(const uchar_vector & raw);
-
-    // Constructor from hex encoded string
-    explicit Entropy(const std::string & hexEncoded);
+    // Named Constructor from raw hex encoded string
+    static Entropy fromRawHex(const std::string & hexEncoded);
 
     static Entropy generate();
 
@@ -40,9 +38,6 @@ public:
 
     // Entropy encoded as BIP39 mnemonic word list
     std::string mnemonic() const;
-
-    // Entropy as hex encoded string
-    std::string getHex() const;
 
     // Secure destructor
     ~Entropy();

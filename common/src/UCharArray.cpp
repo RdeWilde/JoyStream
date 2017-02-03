@@ -18,58 +18,18 @@ UCharArray<array_length>::UCharArray() {
 }
 
 template<unsigned int array_length>
-UCharArray<array_length>::UCharArray(const uchar_vector & vector) {
-
-    // Check that vector has correct length
-    uchar_vector::size_type vectorLength = vector.size();
-
-    if(vectorLength != array_length) {
-
-        // Create error message
-        std::stringstream s;
-
-        s << "vector argument is of incorrect length, should be "
-          << array_length
-          << ", but was "
-          << vectorLength
-          << ".";
-
-        throw std::runtime_error(s.str());
-
-    } else {
-        fill(static_cast<const unsigned char *>(vector.data()));
-    }
+UCharArray<array_length>::UCharArray(const std::vector<unsigned char>& rawBytes) {
+    setRaw(rawBytes);
 }
 
 template<unsigned int array_length>
-UCharArray<array_length>::UCharArray(const std::string & hexEncoded) {
-
-    // Check that string has correct length
-    if(hexEncoded.length() != 2*array_length) {
-
-        // Create error message
-        std::stringstream s;
-
-        s << "String argument is of incorrect length, should be "
-          << 2*array_length
-          << ", but was "
-          << hexEncoded.length()
-          << ".";
-
-        throw std::runtime_error(s.str());
-
-    } else {
-        /*
-         * TODO: Validate if it's a valid hex string(?)
-         */
-        uchar_vector v(hexEncoded);
-        fill(static_cast<const unsigned char *>(v.data()));
-    }
+UCharArray<array_length>::UCharArray(const std::string &hexString) {
+    setRawHex(hexString);
 }
 
 template<unsigned int array_length>
-UCharArray<array_length>::UCharArray(const char * hexEncodedString)
-    : UCharArray<array_length>(std::string(hexEncodedString)) {
+UCharArray<array_length>::UCharArray(const unsigned char* rawBytes) {
+    setRaw(rawBytes);
 }
 
 template<unsigned int array_length>
@@ -85,14 +45,14 @@ unsigned int UCharArray<array_length>::length() {
 template<unsigned int array_length>
 void UCharArray<array_length>::clear() {
 
-    for(unsigned int i = 0;i < array_length;i++)
+    for(unsigned int i = 0; i < array_length; i++)
         this->at(i) = 0;
 }
 
 template<unsigned int array_length>
 bool UCharArray<array_length>::isClear() const {
 
-    for(int i = 0;i < array_length;i++) {
+    for(int i = 0; i < array_length; i++) {
         if(this[i] != 0)
             return false;
     }
@@ -101,11 +61,8 @@ bool UCharArray<array_length>::isClear() const {
 }
 
 template<unsigned int array_length>
-std::string UCharArray<array_length>::toHex() const {
-
-    const unsigned char * ptr = (const unsigned char *)(this->data()); // this conversion is not safe ? think
-    uchar_vector v(ptr, array_length);
-    return v.getHex();
+std::string UCharArray<array_length>::getRawHex() const {
+    return toUCharVector().getHex();
 }
 
 template<unsigned int array_length>
@@ -119,11 +76,75 @@ uchar_vector UCharArray<array_length>::toUCharVector() const {
 }
 
 template<unsigned int array_length>
-void UCharArray<array_length>::fill(const unsigned char * start) {
+void UCharArray<array_length>::setRawHex(std::string hexString) {
+    static std::string HEXCHARS("0123456789abcdefABCDEF");
+
+
+    // pad on the left if hex contains an odd number of digits.
+    if (hexString.size() % 2 == 1)
+        hexString = "0" + hexString;
+
+    // Check that string has correct length - must be zero padded
+    if(hexString.size() != 2*array_length) {
+
+        // Create error message
+        std::stringstream err;
+
+        err << "String argument is of incorrect length, should be "
+          << 2*array_length
+          << ", but was "
+          << hexString.length()
+          << ".";
+
+        throw std::runtime_error(err.str());
+
+    }
+
+    uint byte;
+    std::string nibbles;
+
+    for(unsigned int i = 0, j = 0; j < array_length; i += 2, j++) {
+       nibbles = hexString.substr(i, 2);
+
+      // verify we have valid hex characters
+      if(HEXCHARS.find(nibbles[0]) == std::string::npos ||
+         HEXCHARS.find(nibbles[1]) == std::string::npos) {
+        throw std::runtime_error("Invalid characters in hex string");
+      }
+
+      sscanf(nibbles.c_str(), "%x", &byte);
+      this->at(j) = byte;
+    }
+}
+
+template<unsigned int array_length>
+void UCharArray<array_length>::setRaw(const unsigned char * start) {
 
     // Copy content into array
-    for(unsigned int i = 0;i < array_length;i++)
+    for(unsigned int i = 0; i < array_length; i++)
         this->at(i) = start[i];
+}
+
+template<unsigned int array_length>
+void UCharArray<array_length>::setRaw(const std::vector<unsigned char> & rawBytes) {
+
+    // Check that vector has correct length
+    if(rawBytes.size() != array_length) {
+
+        // Create error message
+        std::stringstream err;
+
+        err << "vector argument is of incorrect size, should be "
+          << array_length
+          << ", but was "
+          << rawBytes.size()
+          << ".";
+
+        throw std::runtime_error(err.str());
+
+    }
+
+    setRaw(rawBytes.data());
 }
 
 template<unsigned int array_length>
@@ -176,31 +197,6 @@ std::istream & operator>>(std::istream& stream, Coin::UCharArray<array_length> &
     }
 
     return stream;
-}
-
-/**
-template<unsigned int array_length>
-bool FixedUCharArray<array_length>::operator<(const FixedUCharArray<array_length> & o) const {
-    // 0 is most significant byte
-    for(unsigned int i = 0;i < length;i++) {
-        unsigned char a = this->at(i);
-        unsigned char b = o[i];
-        if(a > b)
-            return false;
-        else if(a < b)
-            return true;
-    }
-    return false;
-}
-template<unsigned int array_length>
-bool FixedUCharArray<array_length>::operator==(const FixedUCharArray<array_length> & o) const {
-    return _buffer == o.buffer();
-}
-*/
-
-template<unsigned int array_length>
-uint qHash(const Coin::UCharArray<array_length> & o) {
-    return qHash(o.toHex());
 }
 
 }

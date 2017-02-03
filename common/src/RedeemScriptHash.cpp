@@ -18,19 +18,19 @@ RedeemScriptHash::RedeemScriptHash(const Script &script) {
     setHash(ripemd160(sha256(script.serialize())));
 }
 
-RedeemScriptHash RedeemScriptHash::fromRawHash(const uchar_vector &hash) {
+RedeemScriptHash RedeemScriptHash::fromRawHash(const std::vector<unsigned char> &hash) {
     RedeemScriptHash rsh;
     rsh.setHash(hash);
     return rsh;
 }
 
-RedeemScriptHash RedeemScriptHash::fromRawScript(const uchar_vector &script) {
+RedeemScriptHash RedeemScriptHash::fromRawScript(const std::vector<unsigned char> &script) {
     uchar_vector hash(ripemd160(sha256(script)));
     return fromRawHash(hash);
 }
 
-void RedeemScriptHash::setHash(const uchar_vector &hash) {
-    *(UCharArray<20>*)this = hash;
+void RedeemScriptHash::setHash(const std::vector<unsigned char> &hash) {
+    setRaw(hash);
 }
 
 }
