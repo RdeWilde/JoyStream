@@ -287,8 +287,8 @@ NAN_METHOD(Plugin::AddTorrent) {
 
   // Get validated parameters
   GET_THIS_PLUGIN(plugin)
-  libtorrent::add_torrent_params addTorrentParams;
-  // this requires => ARGUMENTS_REQUIRE_DECODED(0, addTorrentParams, libtorrent::add_torrent_params, libtorrent::node::add_torrent_params::decode)
+
+  ARGUMENTS_REQUIRE_DECODED(0, addTorrentParams, libtorrent::add_torrent_params, libtorrent::node::add_torrent_params::decode)
   ARGUMENTS_REQUIRE_CALLBACK(1, managedCallback)
 
   // Create request

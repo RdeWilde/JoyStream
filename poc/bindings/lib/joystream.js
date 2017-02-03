@@ -1,7 +1,9 @@
 'use strict'
 
-const EventEmitter = require('events')
+const path = require('path')
 const Node = require('./node')
+
+var appDir = path.dirname(require.main.filename)
 
 /**
  * Joystream class.
@@ -9,10 +11,43 @@ const Node = require('./node')
  */
 class Joystream extends Node {
 
-  constructor () {
+  constructor (path = appDir, network='Testnet') {
     super()
+    // Init spvwallet
+    this.wallet = null
   }
 
+  addTorrent (addTorrentParams) {
+
+  }
+
+  buyTorrent () {
+
+  }
+
+  sellTorrent () {
+
+  }
+
+  startTorrent () {
+
+  }
+
+  stopTorrent () {
+    
+  }
+
+  generateSavedTorrents () {
+
+  }
+
+  syncWallet () {
+
+  }
+
+  shutdown () {
+
+  }
 
 }
 
