@@ -16,6 +16,12 @@ namespace joystream {
 namespace node {
 namespace connection {
 
+  /*
+   * Many types badly need to be improved with a type safe representation
+   * in the future, but statechart seems to lack this.
+   */
+
+
  /* @brief Creates javascript representation of inner (i.e. simple)
   * states in protocol_statemachine::CBStateMachine.
 
