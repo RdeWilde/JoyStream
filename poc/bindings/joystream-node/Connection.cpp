@@ -51,6 +51,13 @@ namespace connection {
   };
 
   NAN_MODULE_INIT(InitInnerStateTypes);
+
+  NAN_MODULE_INIT(Init) {
+
+    InitInnerStateTypes(target);
+
+  }
+
   NAN_MODULE_INIT(InitInnerStateTypes) {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();

@@ -21,6 +21,10 @@ namespace connection {
    * in the future, but statechart seems to lack this.
    */
 
+  // Exports
+  // - "InnerStateType" which maps names names of states in protocol_statemachine,
+  // to ::encode of type corresponding to the state
+  NAN_MODULE_INIT(Init);
 
  /* @brief Creates javascript representation of inner (i.e. simple)
   * states in protocol_statemachine::CBStateMachine.
