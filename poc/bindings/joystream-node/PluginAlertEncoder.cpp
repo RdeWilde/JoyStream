@@ -130,7 +130,7 @@ namespace PluginAlertEncoder {
     auto statuses = Nan::New<v8::Array>();
 
     for(auto m: p->statuses) {
-      statuses->Set(statuses->Length(), PeerPluginStatus::NewInstance(m.second));
+      statuses->Set(statuses->Length(), peer_plugin_status::encode(m.second));
     }
 
     SET_VAL(v, "statuses", statuses);
@@ -153,7 +153,7 @@ namespace PluginAlertEncoder {
   v8::Local<v8::Object> encode(joystream::extension::alert::PeerPluginAdded const * p) {
     auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::peer_alert const *>(p));
 
-    SET_VAL(v, "status", PeerPluginStatus::NewInstance(p->status));
+    SET_VAL(v, "status", peer_plugin_status::encode(p->status));
 
     return v;
   }
