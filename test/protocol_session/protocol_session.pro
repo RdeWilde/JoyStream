@@ -4,15 +4,9 @@
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, April 12 2016
 
 TARGET = protocol_session-test
-TEMPLATE = app
-
-CONFIG  += console
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11
-CONFIG  += testcase
-
-QT      += core
-QT      += testlib
+CONFIG  -= core
 
 HEADERS += \
     SessionSpy.hpp \

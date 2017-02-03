@@ -4,12 +4,9 @@
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2015
 
 TARGET = paymentchannel-test
-TEMPLATE = app
-
-CONFIG  += console
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11
-CONFIG  += testcase
+CONFIG  -= core
 
 SOURCES += main.cpp
 
