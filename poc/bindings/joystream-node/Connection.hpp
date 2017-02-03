@@ -79,6 +79,16 @@ namespace connection {
    * {see signature::encode} o.lastValidPayorPaymentSignature - last valid signature
    */
   v8::Local<v8::Object> encode(const paymentchannel::Payee & payee);
+
+  /* @brief Creates javascript representation of joystream::protocol_session::status::Connection.
+   *
+   * @param a to be encoded
+   * @return v8::Local<v8::Object> encoded as o where
+   * { see endpoint::encode } o.endpoint -
+   * { see above } o.innerState - inner state of state machine on connection
+   * { see above } o.payor - payor side of payment channel (only valid on buyer side)
+   * { see above } o.payee - payee side of payment channel (only valid on seller side)
+   */
   v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
 
 }

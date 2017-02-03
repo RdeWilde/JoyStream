@@ -157,6 +157,18 @@ namespace connection {
 
   v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c) {
 
+    v8::Local<v8::Object> o = Nan::New<v8::Object>();
+
+    SET_VAL(o, "endpont", libtorrent::node::endpoint::encode(c.connectionId));
+
+    // machine
+    SET_VAL(o, "innerState", encode(c.machine.innerStateTypeIndex));
+    SET_VAL(o, "payor", encode(c.machine.payor));
+    SET_VAL(o, "payee", encode(c.machine.payee));
+
+    //std::queue<uint32_t> downloadedValidPieces;
+
+    return o;
   }
 
 }
