@@ -7,8 +7,10 @@
 
 #include "Connection.hpp"
 #include "libtorrent-node/utils.hpp"
+#include "libtorrent-node/endpoint.hpp"
 #include "SellerTerms.hpp"
 #include "BuyerTerms.hpp"
+#include "OutPoint.hpp"
 #include "Signature.hpp"
 
 namespace joystream {
