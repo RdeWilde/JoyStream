@@ -9,6 +9,7 @@
 #include "libtorrent-node/utils.hpp"
 #include "SellerTerms.hpp"
 #include "BuyerTerms.hpp"
+#include "Signature.hpp"
 
 namespace joystream {
 namespace node {
@@ -126,6 +127,21 @@ namespace connection {
     SET_NUMBER(o, "settlementFee", payor.settlementFee());
     SET_NUMBER(o, "refundLockTime", payor.refundLockTime().counter());
     SET_VAL(o, "anchor", outpoint::encode(payor.anchor()));
+
+    return o;
+  }
+
+  v8::Local<v8::Object> encode(const paymentchannel::Payee & payee) {
+
+    v8::Local<v8::Object> o = Nan::New<v8::Object>();
+
+    SET_NUMBER(o, "price", payee.price());
+    SET_NUMBER(o, "numberOfPaymentsMade", payee.numberOfPaymentsMade());
+    SET_NUMBER(o, "funds", payee.numberOfPaymentsMade());
+    SET_NUMBER(o, "settlementFee", payee.settlementFee());
+    SET_NUMBER(o, "refundLockTime", payee.lockTime().counter());
+    SET_VAL(o, "anchor", outpoint::encode(payee.contractOutPoint()));
+    SET_VAL(o, "lastValidPayorPaymentSignature", signature::encode(payee.lastValidPayorPaymentSignature()));
 
     return o;
   }

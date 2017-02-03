@@ -60,6 +60,15 @@ namespace connection {
    */
   v8::Local<v8::Object> encode(const paymentchannel::Payor & payor);
 
+  /* @brief Creates javascript representation of paymentchannel::Payor.
+   *
+   * @param a to be encoded
+   * @return v8::Local<v8::Object> encoded as o where
+   *
+   * -- same as encode(const paymentchannel::Payor &) above ---
+   * {see signature::encode} o.lastValidPayorPaymentSignature - last valid signature
+   */
+  v8::Local<v8::Object> encode(const paymentchannel::Payee & payee);
   v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
 
 }
