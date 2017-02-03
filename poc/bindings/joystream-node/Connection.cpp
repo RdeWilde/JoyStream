@@ -116,6 +116,20 @@ namespace connection {
     return o;
   }
 
+  v8::Local<v8::Object> encode(const paymentchannel::Payor & payor) {
+
+    v8::Local<v8::Object> o = Nan::New<v8::Object>();
+
+    SET_NUMBER(o, "price", payor.price());
+    SET_NUMBER(o, "numberOfPaymentsMade", payor.numberOfPaymentsMade());
+    SET_NUMBER(o, "funds", payor.funds());
+    SET_NUMBER(o, "settlementFee", payor.settlementFee());
+    SET_NUMBER(o, "refundLockTime", payor.refundLockTime().counter());
+    SET_VAL(o, "anchor", outpoint::encode(payor.anchor()));
+
+    return o;
+  }
+
   v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c) {
 
   }

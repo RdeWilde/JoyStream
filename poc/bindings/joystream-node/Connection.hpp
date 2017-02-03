@@ -46,6 +46,20 @@ namespace connection {
    */
   v8::Local<v8::Object> encode(const protocol_statemachine::AnnouncedModeAndTerms & a);
 
+  /* @brief Creates javascript representation of paymentchannel::Payor.
+   *
+   * @param a to be encoded
+   * @return v8::Local<v8::Object> encoded as o where
+   *
+   * {Number} o.price - unit price in sats.
+   * {Number} o.numberOfPaymentsMade - number of payment
+   * {Number} o.funds - amount of funds locked up in stats.
+   * {Number} o.settlementFee - tx fee in stats pr. Kb .
+   * {Number} o.refundLockTime - relative lock time in seconds
+   * {see outpoint::encode} o.anchor - channel anchor
+   */
+  v8::Local<v8::Object> encode(const paymentchannel::Payor & payor);
+
   v8::Local<v8::Object> encode(const joystream::protocol_session::status::Connection<libtorrent::tcp::endpoint>& c);
 
 }
