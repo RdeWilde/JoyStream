@@ -94,7 +94,7 @@ namespace connection {
         break;
 
       case protocol_statemachine::ModeAnnounced::observe:
-      
+
         SET_BOOL(o, "observer", true);
         break;
 
@@ -159,7 +159,7 @@ namespace connection {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    SET_VAL(o, "endpont", libtorrent::node::endpoint::encode(c.connectionId));
+    SET_VAL(o, "endpoint", libtorrent::node::endpoint::encode(c.connectionId));
 
     // machine
     SET_VAL(o, "innerState", encode(c.machine.innerStateTypeIndex));
