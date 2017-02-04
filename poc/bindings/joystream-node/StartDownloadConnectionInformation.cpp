@@ -63,7 +63,7 @@ namespace PeerToStartDownloadInformationMap {
 
 protocol_session::PeerToStartDownloadInformationMap<libtorrent::tcp::endpoint> decode(const v8::Local<v8::Value> & v) {
 
-  return UnorderMap::decode<libtorrent::tcp::endpoint, protocol_session::StartDownloadConnectionInformation>(v,
+  return std_lib_utils::decode<libtorrent::tcp::endpoint, protocol_session::StartDownloadConnectionInformation>(v,
                                                                                                              &libtorrent::node::endpoint::decode,
                                                                                                              &joystream::node::StartDownloadConnectionInformation::decode);
 }
