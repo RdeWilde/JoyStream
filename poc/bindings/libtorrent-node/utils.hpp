@@ -369,6 +369,7 @@ namespace std_lib_utils {
     for(auto item : v)
       Nan::Set(array, array->Length(), elementEncoder(v));
 
+    return array;
   }
 
 }
