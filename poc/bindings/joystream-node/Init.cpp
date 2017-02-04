@@ -21,7 +21,7 @@ namespace node {
     libtorrent_interaction::Init(target);
     RequestResult::Init(target);
     peer_plugin_status::Init(target);
-    TorrentPluginStatus::Init(target);
+    torrent_plugin_status::Init(target);
     Plugin::Init(target);
     payment_channel::Init(target);
   }
