@@ -5,7 +5,7 @@
     "preinstall" : "",
     "postinstall" : "sh build_node_module.sh",
     "build-node": "sh build_node_module.sh",
-    "build-electron" : "sh build_electron_module.sh",
+    "build-electron": "sh build_electron_module.sh",
     "test": "mocha --reporter spec --recursive"
   },
   "devDependencies": {
@@ -14,9 +14,10 @@
     "node-gyp": "^1.0.3"
   },
   "dependencies": {
-    "bcoin": "git+https://git@github.com/bcoin-org/bcoin.git",
+    "bcoin": "git+https://git@github.com/bcoin-org/bcoin.git#master",
     "bindings": "^1.2.1",
     "debug": "^2.5.1",
+    "lodash": "^4.17.4",
     "sha1": "^1.1.1"
   }
 }

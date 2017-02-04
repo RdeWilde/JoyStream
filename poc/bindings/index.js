@@ -1,5 +1,5 @@
-var Node = require('./lib/node')
+var Joystream = require('./lib/joystream')
 
 module.exports = {
-  Node
+  Joystream
 }

@@ -1,10 +1,9 @@
 'use strict'
 
-var NativeExtension = require('../')
+var NativeExtension = require('bindings')('NativeExtension')
 var debug = require('debug')('node')
 const EventEmitter = require('events')
 const Torrent = require('./torrent')
-const bcoin = require('bcoin').set('testnet')
 
 const _processDhtGetPeersReplyAlert = Symbol('processDhtGetPeersReplyAlert')
 const _listenSucceededAlert = Symbol('listenSucceededAlert')

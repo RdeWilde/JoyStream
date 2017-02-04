@@ -1,9 +1,7 @@
 'use strict'
 
-const path = require('path')
 const Node = require('./node')
-
-var appDir = path.dirname(require.main.filename)
+const SPVWallet = require('./SPVWallet')
 
 /**
  * Joystream class.
@@ -11,10 +9,12 @@ var appDir = path.dirname(require.main.filename)
  */
 class Joystream extends Node {
 
-  constructor (path = appDir, network='Testnet') {
+  constructor (options) {
     super()
     // Init spvwallet
-    this.wallet = null
+    this.wallet = new SPVWallet(options)
+
+    this.wallet.start()
   }
 
   addTorrent (addTorrentParams) {
@@ -34,7 +34,7 @@ class Joystream extends Node {
   }
 
   stopTorrent () {
-    
+
   }
 
   generateSavedTorrents () {
@@ -43,6 +43,10 @@ class Joystream extends Node {
 
   syncWallet () {
 
+  }
+
+  getBalance () {
+    this.wallet.getBalance()
   }
 
   shutdown () {
