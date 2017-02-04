@@ -11,6 +11,8 @@
 #include <SellingNavigator.hpp>
 #include <BuyingNavigator.hpp>
 
+#define TEST_PRIVATE_KEY "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
+
 void peerToSellMode(CBStateMachine * machine, const event::Recv<protocol_wire::Sell> & e) {
 
     // Recieve mode message from peer
@@ -75,15 +77,14 @@ TEST(statemachineTest, observing)
 TEST(statemachineTest, selling)
 {
     // Setup navigator and spy
-    //Coin::PrivateKey payorContractSk(uchar_vector("E9873D79C6D87DC0FB6A5778633389F4"));
-    Coin::PrivateKey payorContractSk = Coin::PrivateKey::generate();
+    Coin::PrivateKey payorContractSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
 
     SellingNavigator::Fixture f;
     f.peerToBuyMode = event::Recv<protocol_wire::Buy>(protocol_wire::Buy(protocol_wire::BuyerTerms(1,2,3,4)));
     f.sellModeStarted = event::SellModeStarted(protocol_wire::SellerTerms(1,2,3,4,5));
     f.invalidJoinContract = event::Recv<protocol_wire::JoinContract>(protocol_wire::JoinContract(31));
     f.validJoinContract = event::Recv<protocol_wire::JoinContract>(protocol_wire::JoinContract(0));
-    f.joinedContract = event::Joined(Coin::KeyPair(Coin::PrivateKey::generate()), Coin::RedeemScriptHash::fromRawHash(uchar_vector("31149292f8ba11da4aeb833f6cd8ae0650a82340")));
+    f.joinedContract = event::Joined(Coin::KeyPair(Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY)), Coin::RedeemScriptHash::fromRawHash(uchar_vector("31149292f8ba11da4aeb833f6cd8ae0650a82340")));
     f.contractReady = event::Recv<protocol_wire::Ready>(protocol_wire::Ready(1123,
                                                                              Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                                                              payorContractSk.toPublicKey(),
@@ -324,7 +325,7 @@ TEST(statemachineTest, buying)
     f.joiningContract = event::Recv<protocol_wire::JoiningContract>(protocol_wire::JoiningContract(Coin::PublicKey::fromCompressedRawHex("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"),
                                                                                                    Coin::RedeemScriptHash::fromRawHash(uchar_vector("892131b6cbf303692785db2c607fb915ae622203"))));
     f.contractPrepared = event::ContractPrepared(Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("eee2b334dd735dac60ae57893c2528087fd3d386b57cac42f4e6ace6403f16b3")), 78),
-                                                 Coin::KeyPair(Coin::PrivateKey::generate()),
+                                                 Coin::KeyPair(Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY)),
                                                  Coin::RedeemScriptHash::fromRawHash(uchar_vector("3457b36d53494fb1ce39a4500d76373da994585e")),
                                                  2222);
     f.requestPiece = event::RequestPiece(1);

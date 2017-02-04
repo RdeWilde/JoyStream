@@ -6,6 +6,8 @@
 using namespace joystream;
 using namespace joystream::protocol_session;
 
+#define TEST_PRIVATE_KEY "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
+
 TEST_F(SessionTest, observing)
 {
     init();
@@ -92,7 +94,7 @@ TEST_F(SessionTest, selling)
 
     protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
     protocol_wire::BuyerTerms buyerTerms(24, 200, 2, 400);
-    Coin::PrivateKey payorContractSk = Coin::PrivateKey::generate();
+    Coin::PrivateKey payorContractSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
     protocol_wire::Ready ready(1123,
                                Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                payorContractSk.toPublicKey(),
@@ -267,7 +269,7 @@ TEST_F(SessionTest, selling_buyer_sent_invalid_payment)
     ID peer = 0;
 
     // Must have valid public in ready message
-    Coin::PrivateKey payorContractSk = Coin::PrivateKey::generate();
+    Coin::PrivateKey payorContractSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
     protocol_wire::Ready ready = protocol_wire::Ready(1123,
                                                       Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                                       payorContractSk.toPublicKey(),
@@ -308,7 +310,7 @@ TEST_F(SessionTest, selling_buyer_disappears)
 
     protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
     protocol_wire::BuyerTerms buyerTerms(24, 200, 2, 400);
-    Coin::PrivateKey payorContractSk = Coin::PrivateKey::generate();
+    Coin::PrivateKey payorContractSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
     protocol_wire::Ready ready(1123,
                                Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                payorContractSk.toPublicKey(),

@@ -25,6 +25,9 @@
 
 typedef unsigned char uchar;
 
+#define TEST_PRIVATE_KEY1 "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
+#define TEST_PRIVATE_KEY2 "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1faa"
+
 TEST(commonTest, UCharArrayTest)
 {
     // Zeroed array with default constructor
@@ -172,7 +175,7 @@ TEST(commonTest, basic)
 TEST(commonTest, makeAndCheckSig)
 {
     // Generate a new private key
-    Coin::PrivateKey sk = Coin::PrivateKey::generate();
+    Coin::PrivateKey sk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY1);
 
     // Get corresponding public key
     Coin::PublicKey pk = sk.toPublicKey();
@@ -198,7 +201,7 @@ TEST(commonTest, makeAndCheckSig)
 
     // Check that valid signature does not work with incorrect public key
     try {
-        Coin::PrivateKey skNew = Coin::PrivateKey::generate();
+        Coin::PrivateKey skNew = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY2);
         bool valid = skNew.toPublicKey().verify(message, sig);
         EXPECT_TRUE(!valid);
     } catch (const std::runtime_error & e) {
