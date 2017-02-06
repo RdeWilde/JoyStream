@@ -170,7 +170,7 @@ public:
     void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock);
     void confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock &chainmerkleblock);
     void addBlockHeader(const ChainMerkleBlock & chainmerkleblock);
-    uint32_t getBestHeaderHeight() const;
+    int32_t getBestHeaderHeight() const;
 
     void setTxUpdatedCallback(transactionUpdatedCallback callback) { notifyTxUpdated = callback; }
 

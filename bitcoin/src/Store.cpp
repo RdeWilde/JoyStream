@@ -871,9 +871,8 @@ std::vector<Store::StoreControlledOutput> Store::getControlledOutputs(int32_t co
 
     auto main_chain_height = getBestHeaderHeight();
 
-    if(confirmations > 0 && main_chain_height == 0) {
+    if(main_chain_height < 0)
         return std::vector<StoreControlledOutput>();
-    }
 
     if(confirmations > 0 && confirmations > main_chain_height) {
         return std::vector<StoreControlledOutput>();
@@ -910,6 +909,9 @@ uint64_t Store::getWalletBalance(int32_t confirmations) const {
     }
 
     auto main_chain_height = getBestHeaderHeight();
+
+    if(main_chain_height < 0)
+        return 0;
 
     if(confirmations > 0  && main_chain_height == 0) {
         return 0;
@@ -1027,7 +1029,7 @@ std::vector<std::string> Store::getLatestBlockHeaderHashes() {
     return hashes;
 }
 
-uint32_t Store::getBestHeaderHeight() const {
+int32_t Store::getBestHeaderHeight() const {
     typedef odb::query<detail::store::BlockHeader> query;
     typedef odb::result<detail::store::BlockHeader> result;
 
@@ -1035,7 +1037,7 @@ uint32_t Store::getBestHeaderHeight() const {
 
     result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "DESC LIMIT 1"));
     if(headers.empty()) {
-        return 0;
+        return -1;
     }
     std::shared_ptr<detail::store::BlockHeader> best(headers.begin().load());
     return best->height();

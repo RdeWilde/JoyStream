@@ -724,7 +724,7 @@ void SPVWallet::recalculateBalance() {
 
     uint64_t confirmed = 0;
 
-    if(_store.getBestHeaderHeight() != 0) {
+    if(_store.getBestHeaderHeight() > 0) {
         confirmed = _store.getWalletBalance(1);
     }
 
