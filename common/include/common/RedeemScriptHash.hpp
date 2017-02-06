@@ -24,6 +24,8 @@ public:
     static RedeemScriptHash fromRawHash(const std::vector<unsigned char> &hash);
     static RedeemScriptHash fromRawScript(const std::vector<unsigned char> &script);
 
+    std::vector<unsigned char> toRawVector() const;
+
 private:
     void setHash(const std::vector<unsigned char> &hash);
 };

@@ -48,7 +48,7 @@ std::string P2PKHAddress::toBase58CheckEncoding() const {
     std::vector<unsigned char> versionBytes = toVersionBytes(Base58CheckEncodable::P2PKH_ADDRESS, _network);
 
     // Base58Check encode and return result
-    std::string encoded = toBase58Check(_pubKeyHash.toUCharVector(), versionBytes);
+    std::string encoded = toBase58Check(_pubKeyHash.getRawVector(), versionBytes);
 
     return encoded;
 }

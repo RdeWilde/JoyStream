@@ -36,6 +36,8 @@ public:
     static PrivateKey fromRaw(const unsigned char*);
     static PrivateKey fromRaw(const std::vector<unsigned char>&);
 
+    std::vector<unsigned char> toRawVector() const;
+
     // Secure destruction private key
     ~PrivateKey();
 

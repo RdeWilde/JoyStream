@@ -25,7 +25,7 @@ uchar_vector RedeemScript::serialized() const {
     script.push_back(0x63); // OP_IF
     // Branch for when channel is settled with payment and refund
     script += Coin::opPushData(Coin::PublicKey::compressedLength());
-    script += _payeePk.toUCharVector();
+    script += _payeePk.toCompressedRawVector();
     script.push_back(0xad); // OP_CHECKSIGVERIFY
 
     script.push_back(0x67); // OP_ELSE
@@ -37,7 +37,7 @@ uchar_vector RedeemScript::serialized() const {
     script.push_back(0x68); // OP_ENDIF
     // Check that payor has agreed to this spend
     script += Coin::opPushData(Coin::PublicKey::compressedLength());
-    script += _payorPk.toUCharVector();
+    script += _payorPk.toCompressedRawVector();
     script.push_back(0xac); // OP_CHECKSIG
 
     return script;

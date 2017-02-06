@@ -31,7 +31,7 @@ uchar_vector P2SHScriptPubKey::serialize() const {
 
     script.push_back(0xa9); // OP_HASH160
     script.push_back(0x14); // push a 20 byte hash
-    script += _hash.toUCharVector();
+    script += _hash.toRawVector();
     script.push_back(0x87); // OP_EQUAL
 
     return script;

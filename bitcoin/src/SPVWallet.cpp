@@ -654,7 +654,7 @@ void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts,
 
         // For capturing outputs: script hash
         Coin::P2SHAddress address = Coin::P2SHAddress(_network, Coin::RedeemScriptHash::fromRawScript(script));
-        filter.insert(address.redeemScriptHash().toUCharVector());
+        filter.insert(address.redeemScriptHash().getRawVector());
 
         // Generate output scripts for direct comparison in createsWalletOutput() routine
         _scriptPubKeys.insert(address.toP2SHScriptPubKey().serialize());
@@ -662,10 +662,10 @@ void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts,
 
     for(const Coin::PublicKey & pubKey : _bloomFilterPubKeys) {
         // For capturing inputs: input scriptSig will have full public Key
-        filter.insert(pubKey.toUCharVector());
+        filter.insert(pubKey.toCompressedRawVector());
 
         // For capturing outputs: pubkey hash
-        filter.insert(pubKey.toPubKeyHash().toUCharVector());
+        filter.insert(pubKey.toPubKeyHash().getRawVector());
 
         // Generate output scripts for direct comparison in createsWalletOutput() routine
         Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey(pubKey);

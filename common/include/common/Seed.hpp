@@ -37,6 +37,8 @@ public:
     // Named constructor from hex string
     static Seed fromRawHex(const std::string&);
 
+    std::vector<unsigned char> toRawVector() const;
+
     /**
      * TODO
      *

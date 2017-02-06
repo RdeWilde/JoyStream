@@ -30,7 +30,7 @@ uchar_vector P2PKHScriptSig::serialized() const {
     serialized += opPushData(PublicKey::compressedLength());
 
     // Add public key
-    serialized += _pk.toUCharVector();
+    serialized += _pk.toCompressedRawVector();
 
     return serialized;
 

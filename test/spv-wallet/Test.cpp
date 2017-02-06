@@ -416,8 +416,8 @@ void Test::UsingOptionalDataInP2SHSpend() {
 
     Coin::PrivateKey key(_walletA->generateKey([&script, &data](const Coin::PublicKey &pubkey){
         // Push Public Key to script
-        script += Coin::opPushData(0x21);
-        script += pubkey.toUCharVector();
+        script += Coin::opPushData(Coin::PublicKey::compressedLength());
+        script += pubkey.toCompressedRawVector();
 
         script.push_back(0xac); // OP_CHECKSIG
 

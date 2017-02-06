@@ -23,7 +23,7 @@ uchar_vector P2PKScriptPubKey::serialize() const {
     uchar_vector script;
 
     script.push_back(0x21); // push a 33 byte compressed public key
-    script += _pubKey.toUCharVector(); // pubKey
+    script += _pubKey.toCompressedRawVector(); // pubKey
     script.push_back(0xac); // OP_CHECKSIG
 
     return script;

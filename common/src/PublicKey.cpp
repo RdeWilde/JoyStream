@@ -54,8 +54,12 @@ size_t PublicKey::compressedLength() {
     return COMPRESSED_PUBLIC_KEY_BYTE_LENGTH;
 }
 
+std::vector<unsigned char> PublicKey::toCompressedRawVector() const {
+    return getRawVector();
+}
+
 PubKeyHash PublicKey::toPubKeyHash() const {
-    return PubKeyHash(ripemd160(sha256(toUCharVector())));
+    return PubKeyHash(ripemd160(sha256(toCompressedRawVector())));
 }
 
 bool PublicKey::verify(const uchar_vector & message, const Signature & sig) const {
@@ -67,7 +71,7 @@ bool PublicKey::verify(const uchar_vector & message, const Signature & sig) cons
 
     // Create signature checking key for thisp public key
     CoinCrypto::secp256k1_key signatureCheckingKey;
-    signatureCheckingKey.setPubKey(toUCharVector());
+    signatureCheckingKey.setPubKey(toCompressedRawVector());
 
     // Check signature
     bool verified;
@@ -90,7 +94,7 @@ bool PublicKey::valid(const PublicKey & pk) {
     try {
 
         CoinCrypto::secp256k1_key checkingKey;
-        checkingKey.setPubKey(pk.toUCharVector());
+        checkingKey.setPubKey(pk.toCompressedRawVector());
 
         return true;
     } catch (const std::runtime_error &) {

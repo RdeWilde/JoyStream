@@ -67,13 +67,14 @@ std::string UCharArray<array_length>::getRawHex() const {
 }
 
 template<unsigned int array_length>
-uchar_vector UCharArray<array_length>::toUCharVector() const {
+std::vector<unsigned char> UCharArray<array_length>::getRawVector() const {
 
-    // Get pointer to data
-    const unsigned char * data = static_cast<const unsigned char *>(this->data());
+    std::vector<unsigned char> v;
 
-    // Construct vector and return it
-    return uchar_vector(data, array_length);
+    for(unsigned int i = 0; i < array_length; i++)
+        v.push_back(this->at(i));
+
+    return v;
 }
 
 template<unsigned int array_length>

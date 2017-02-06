@@ -31,6 +31,10 @@ Seed Seed::fromRawHex(const std::string & hex) {
     return s;
 }
 
+std::vector<unsigned char> Seed::toRawVector() const {
+    return getRawVector();
+}
+
 Seed::~Seed(){
     clear();
 }
@@ -55,7 +59,7 @@ uint Seed::length() noexcept {
 Coin::HDKeychain Seed::generateHDKeychain() {
 
     // Create keychain
-    Coin::HDSeed hdSeed(this->toUCharVector());
+    Coin::HDSeed hdSeed(this->toRawVector());
     return Coin::HDKeychain(hdSeed.getMasterKey(), hdSeed.getMasterChainCode());
 }
 

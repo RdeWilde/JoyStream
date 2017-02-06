@@ -48,11 +48,10 @@ namespace Coin {
         static TransactionId fromRPCByteOrder(const std::string & str);
         static TransactionId fromRPCByteOrder(const std::vector<unsigned char> &vector);
 
-        // Encodes as internal byte order
-        uchar_vector toInternalByteOrder() const;
-
         // Encodes as hex of RPC byte order
         std::string toRPCByteOrder() const;
+
+        std::vector<unsigned char> toRPCByteOrderVector() const;
     };
 
 }

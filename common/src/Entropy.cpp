@@ -38,6 +38,10 @@ Entropy Entropy::fromRawHex(const std::string & hexEncoded) {
     return e;
 }
 
+std::vector<unsigned char> Entropy::toRawVector() const {
+    return getRawVector();
+}
+
 Entropy::~Entropy(){
     clear();
 }
@@ -55,7 +59,7 @@ Entropy Entropy::generate() {
 
 Seed Entropy::seed(std::string passphrase) const {
     // Convert entropy to mnemonic phrase
-    std::string wordlistString = Coin::BIP39::toWordlist(this->toUCharVector());
+    std::string wordlistString = Coin::BIP39::toWordlist(this->toRawVector());
     const char * password = wordlistString.c_str();
 
     std::string saltString = "mnemonic" + passphrase;
@@ -81,7 +85,7 @@ Entropy Entropy::fromMnemonic(std::string wordList) {
 }
 
 std::string Entropy::mnemonic() const {
-    return Coin::BIP39::toWordlist(this->toUCharVector());
+    return Coin::BIP39::toWordlist(this->toRawVector());
 }
 
 }

@@ -69,7 +69,7 @@ std::string typesafeOutPoint::toLittleEndianTxIdString() const {
 }
 
 Coin::OutPoint typesafeOutPoint::getClassicOutPoint() const {
-    return Coin::OutPoint(_txId.toUCharVector(), _index); // TransactionId uses same byte order as coincore
+    return Coin::OutPoint(_txId.toRPCByteOrderVector(), _index); // TransactionId uses same byte order as coincore
 }
 
 TransactionId typesafeOutPoint::transactionId() const {
@@ -92,7 +92,7 @@ void typesafeOutPoint::setIndex(uint32_t index) {
 
 uint qHash(const Coin::typesafeOutPoint & o) {
 
-    uchar_vector total = o.transactionId().toUCharVector();
+    uchar_vector total = o.transactionId().toRPCByteOrderVector();
     total.push_back((unsigned char)o.index());
 
     std::hash<std::string> hexHash;

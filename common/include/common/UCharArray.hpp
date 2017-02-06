@@ -40,11 +40,7 @@ public:
     UCharArray(const std::string&);
     UCharArray(const unsigned char*);
 
-    // TODO : make toUCharVector(), getRawHex() and length() protected to be used only by derived classes
-    // as they deal with internal representation. Derived classes should have equivalent public methods
-    // for different encoding types
-    // Convert to unsigned char vector
-    uchar_vector toUCharVector() const;  //lets get rid of this if possible
+    std::vector<unsigned char> getRawVector() const;
 
     // Encodes as hex string
     std::string getRawHex() const;

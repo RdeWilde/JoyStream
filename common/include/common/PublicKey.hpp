@@ -37,6 +37,8 @@ public:
 
     static size_t compressedLength();
 
+    std::vector<unsigned char> toCompressedRawVector() const;
+
     // Whether signature <sig> is valid for the private key corresponding
     // public key <pk> on message <message>
     bool verify(const uchar_vector & message, const Signature & sig) const;

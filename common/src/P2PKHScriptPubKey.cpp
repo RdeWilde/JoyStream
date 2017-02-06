@@ -53,7 +53,7 @@ uchar_vector P2PKHScriptPubKey::serialize() const {
     script.push_back(0x76); // OP_DUP
     script.push_back(0xa9); // OP_HASH160
     script.push_back(0x14); // push a 20 byte hash
-    script += _hash.toUCharVector(); // pubkeyhash
+    script += _hash.getRawVector(); // pubkeyhash
     script.push_back(0x88); // OP_EQUALVERIFY
     script.push_back(0xac); // OP_CHECKSIG
 

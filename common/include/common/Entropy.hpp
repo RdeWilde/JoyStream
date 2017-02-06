@@ -29,6 +29,8 @@ public:
     // Named Constructor from raw hex encoded string
     static Entropy fromRawHex(const std::string & hexEncoded);
 
+    std::vector<unsigned char> toRawVector() const;
+
     static Entropy generate();
 
     static Entropy fromMnemonic(std::string wordList);

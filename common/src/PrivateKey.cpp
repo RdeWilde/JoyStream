@@ -60,6 +60,10 @@ PrivateKey PrivateKey::fromRaw(const std::vector<unsigned char>& raw) {
     return sk;
 }
 
+std::vector<unsigned char> PrivateKey::toRawVector() const {
+    return getRawVector();
+}
+
 PrivateKey::~PrivateKey() {
     clear();
 }
@@ -81,7 +85,7 @@ bool PrivateKey::valid(const PrivateKey & sk) {
     try {
 
         CoinCrypto::secp256k1_key checkingKey;
-        checkingKey.setPrivKey(sk.toUCharVector());
+        checkingKey.setPrivKey(sk.toRawVector());
 
         return true;
     } catch (const std::runtime_error &) {
@@ -97,7 +101,7 @@ Signature PrivateKey::sign(const uchar_vector & data) const {
 
     // Create signing key
     CoinCrypto::secp256k1_key signingKey;
-    signingKey.setPrivKey(toUCharVector());
+    signingKey.setPrivKey(toRawVector());
 
     // Comute signature and return
     return Signature(CoinCrypto::secp256k1_sign(signingKey, data));
@@ -111,7 +115,7 @@ PublicKey PrivateKey::toPublicKey() const {
 
     // Wrap in key class
     CoinCrypto::secp256k1_key sk;
-    sk.setPrivKey(toUCharVector());
+    sk.setPrivKey(toRawVector());
 
     // Convert to compressed public key
     bytes_t publicKey = sk.getPubKey(true);

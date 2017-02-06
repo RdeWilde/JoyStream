@@ -70,4 +70,8 @@ std::string TransactionId::toRPCByteOrder() const {
     return getRawHex();
 }
 
+std::vector<unsigned char> TransactionId::toRPCByteOrderVector() const {
+    return getRawVector();
+}
+
 }

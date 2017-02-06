@@ -29,6 +29,10 @@ RedeemScriptHash RedeemScriptHash::fromRawScript(const std::vector<unsigned char
     return fromRawHash(hash);
 }
 
+std::vector<unsigned char> RedeemScriptHash::toRawVector() const {
+    return getRawVector();
+}
+
 void RedeemScriptHash::setHash(const std::vector<unsigned char> &hash) {
     setRaw(hash);
 }
