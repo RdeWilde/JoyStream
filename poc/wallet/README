@@ -1,0 +1,11 @@
+Setup:
+
+   npm install 
+
+Since we are still developing joystream module and bcoin is under development
+npm link the two, by running npm link in each module's directory
+
+Once the modules are linked (symbolic links created)
+
+   npm link joystream
+   npm link bcoin
