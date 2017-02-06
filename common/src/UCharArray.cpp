@@ -62,7 +62,8 @@ bool UCharArray<array_length>::isClear() const {
 
 template<unsigned int array_length>
 std::string UCharArray<array_length>::getRawHex() const {
-    return toUCharVector().getHex();
+
+    return uchar_vector(this->data(), array_length).getHex();
 }
 
 template<unsigned int array_length>
