@@ -5,10 +5,9 @@
 
 namespace joystream {
 namespace protocol_wire {
-namespace stream {
 
 //    uint64_t hostToNetworkLongLong(uint64_t value) {
-//        static const uint8_t one = 1;
+//        static const uint32_t one = 1;
 
 //        // Check the endianness
 //        if (*reinterpret_cast<const char*>(&one) == one) {
@@ -22,6 +21,10 @@ namespace stream {
 //        }
 //    }
 
+bool isLittleEndianMachine() {
+    static const uint32_t one = 1;
+    return (*reinterpret_cast<const char*>(&one) == one);
+}
 
 //// host to network specializations
 
@@ -53,6 +56,16 @@ uint16_t hton(uint16_t v) {
 template<>
 int16_t hton(int16_t v) {
     return htons(v);
+}
+
+template<>
+uint8_t hton(uint8_t v) {
+    return v;
+}
+
+template<>
+int8_t hton(int8_t v) {
+    return v;
 }
 
 //////// network to host specializations
@@ -87,21 +100,44 @@ int16_t ntoh(int16_t v) {
     return ntohs(v);
 }
 
+template<>
+uint8_t ntoh(uint8_t v) {
+    return v;
+}
+
+template<>
+int8_t ntoh(int8_t v) {
+    return v;
+}
+
+template<>
+Coin::UCharArray<1> Serialize(int8_t value) {
+    Coin::UCharArray<1> array;
+    array.at(0) = value;
+    return array;
+}
+
+template<>
+Coin::UCharArray<1> Serialize(uint8_t value) {
+    Coin::UCharArray<1> array;
+    array.at(0) = value;
+    return array;
+}
+
 template<class IntType>
 Coin::UCharArray<sizeof(IntType)> Serialize(IntType value) {
     // convert the value to network byte order
-    IntType beValue = hton<IntType>(value);
+    IntType nboInt = hton<IntType>(value);
 
     // pointer to int memory location
-    IntType *pd=&beValue;
+    IntType *pint = &nboInt;
 
     Coin::UCharArray<sizeof(IntType)> array;
 
-    char *pc = reinterpret_cast<char*>(pd);
-    for(size_t i=0; i<sizeof(IntType); i++)
+    unsigned char *pc = reinterpret_cast<unsigned char*>(pint);
+    for(size_t i = 0; i < sizeof(IntType); i++)
     {
-       unsigned char ch = *pc;
-       array[i]= ch;
+       array[i]= *pc;
        pc++;
     }
 
@@ -109,21 +145,21 @@ Coin::UCharArray<sizeof(IntType)> Serialize(IntType value) {
 }
 
 template<class IntType>
-IntType Deserialize(Coin::UCharArray<sizeof(IntType)> &array) {
+IntType Deserialize(const Coin::UCharArray<sizeof(IntType)> &array) {
 
-    IntType beValue;
+    IntType nboInt;
 
-    // pointer to int array location
-    IntType *pd=&beValue;
+    // pointer to int
+    IntType *pint = &nboInt;
 
-    char *pc = reinterpret_cast<char*>(pd);
-    for(size_t i=0; i<sizeof(IntType); i++)
+    unsigned char *pc = reinterpret_cast<unsigned char*>(pint);
+    for(size_t i = 0; i < sizeof(IntType); i++)
     {
        *pc = array[i];
        pc++;
     }
 
-    return ntoh<IntType>(beValue);
+    return ntoh<IntType>(nboInt);
 }
 
 
@@ -142,6 +178,6 @@ IntType NetworkInt<IntType>::value() const {
     return Deserialize<IntType>(*this);
 }
 
-}
+
 }
 }

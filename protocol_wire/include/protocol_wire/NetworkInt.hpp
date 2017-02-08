@@ -9,13 +9,13 @@
 namespace joystream {
 namespace protocol_wire {
 
-namespace stream {
+bool isLittleEndianMachine();
 
 template<class IntType>
 Coin::UCharArray<sizeof(IntType)> Serialize(IntType value);
 
 template<class IntType>
-IntType Deserialize(Coin::UCharArray<sizeof(IntType)> &array);
+IntType Deserialize(const Coin::UCharArray<sizeof(IntType)> &array);
 
 template<class IntType>
 IntType hton(IntType);
@@ -30,14 +30,11 @@ public:
     NetworkInt();
 
     IntType value() const;
-
-    // Stream operators
-    //friend std::ostream & operator<< (std::ostream & stream, const NetworkInt<IntType> & o);
-    //friend std::istream & operator>> (std::istream & stream, NetworkInt<IntType> & o);
-
 };
 
 }
 }
-}
+
+#include "./NetworkInt.cpp"
+
 #endif // NETWORKINT_HPP

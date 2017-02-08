@@ -49,7 +49,6 @@ SOURCES += \
     src/SellerTerms.cpp \
     src/BuyerTerms.cpp \
     src/PieceData.cpp \
-    include/protocol_wire/NetworkInt.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <protocol_wire/protocol_wire.hpp>
+#include <protocol_wire/NetworkInt.hpp>
 
 using namespace joystream::protocol_wire;
 
@@ -21,6 +22,46 @@ MESSAGE_TYPE writeAndReadFromStream(MESSAGE_TYPE msg)
     MESSAGE_TYPE m2(readStream);
 
     return m2;
+}
+
+TEST(protocol_wire_test, network_int)
+{
+    const int64_t val = 0x0102030405060708;
+    NetworkInt<int64_t> i(val);
+
+    EXPECT_EQ(i.rawLength(), sizeof(int64_t));
+    EXPECT_EQ(i.value(), val);
+
+    EXPECT_EQ(i.at(0), 1);
+    EXPECT_EQ(i.at(1), 2);
+    EXPECT_EQ(i.at(2), 3);
+    EXPECT_EQ(i.at(3), 4);
+    EXPECT_EQ(i.at(4), 5);
+    EXPECT_EQ(i.at(5), 6);
+    EXPECT_EQ(i.at(6), 7);
+    EXPECT_EQ(i.at(7), 8);
+
+    const std::string raw(i.rawLength(), 0);
+
+    std::stringbuf msgBuf(raw);
+    std::ostream writeStream(&msgBuf);
+
+    writeStream << i;
+
+    std::istream readStream(&msgBuf);
+
+    NetworkInt<int64_t> x;
+    readStream >> x;
+    EXPECT_EQ(x.value(), val);
+
+    const int8_t val8 = -1;
+    NetworkInt<int8_t> i8(val8);
+
+    EXPECT_EQ(i8.rawLength(), sizeof(int8_t));
+    EXPECT_EQ(i8.value(), val8);
+
+    EXPECT_EQ(i8.at(0), 0xff);
+
 }
 
 TEST(protocol_wire_test, buy)
