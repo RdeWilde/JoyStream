@@ -43,6 +43,8 @@ std::streamsize OutputWireStream::writeSell(const Sell & sell) {
     written += writeInt<decltype(sell.terms().maxSellers())>(sell.terms().maxSellers());
     written += writeInt<decltype(sell.terms().settlementFee())>(sell.terms().settlementFee());
 
+    written += writeInt<decltype(sell.index())>(sell.index());
+
     return written;
 }
 
