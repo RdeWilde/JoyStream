@@ -12,6 +12,7 @@
 #include "add_torrent_params.hpp"
 #include "endpoint.hpp"
 #include "entry.hpp"
+#include "error_code.hpp"
 #include "sha1_hash.hpp"
 #include "state_t.hpp"
 #include "utils.hpp"
@@ -75,6 +76,7 @@
 #define OBFUCASTED_INFO_HASH_KEY "obfucastedInfoHash"
 #define EVENT_TYPE_KEY "eventType"
 #define LISTEN_INTERFACE_KEY "listenInterface"
+#define ERROR_KEY "error"
 
 #define SET_LIBTORRENT_ALERT_TYPE(o, name) SET_VAL(o, #name, Nan::New<v8::Number>(libtorrent::name::alert_type));
 #define ENCODE_LIBTORRENT_ALERT(name, v) if(const libtorrent::name * p = libtorrent::alert_cast<libtorrent::name>(a)) {v = encode(p); return v;}
@@ -310,7 +312,6 @@ v8::Local<v8::Object> encode(const libtorrent::tracker_alert * a) {
  * * * * * * * * * * * */
 
  v8::Local<v8::Object> encode(const libtorrent::torrent_added_alert * a) {
-   std::cout << "Torrent Added alert !" << std::endl;
    v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert *>(a));
 
    return o;
@@ -853,6 +854,9 @@ v8::Local<v8::Object> encode(const libtorrent::add_torrent_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert *>(a));
 
   SET_VAL(o, ADD_TORRENT_PARAMS_KEY, libtorrent::node::add_torrent_params::encode(a->params));
+  if (a->error) {
+    SET_VAL(o, ERROR_KEY, libtorrent::node::error_code::encode(a->error));
+  }
   //error_code const error;
 
   return o;

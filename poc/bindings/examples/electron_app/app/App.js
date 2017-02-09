@@ -33,24 +33,23 @@ class App extends Component {
       path: '/home/lola/joystream/test/'
     }
 
-    console.log(addTorrentParams)
-
-    joystream.addTorrent(addTorrentParams, () => {
-      console.log('Torrent Added !')
-    })
+    joystream.addTorrent(addTorrentParams, this.torrentAdded)
   }
 
   torrentAdded (err, smth) {
     if (err) {
-      debug(err)
+      console.log(err)
     } else {
-      debug('This has been called once the torrent is added')
+      console.log('This has been called once the torrent is added')
+      console.log(joystream.torrents)
       this.setState({torrents: joystream.torrents})
     }
   }
 
   render () {
     let rows = [];
+
+    console.log(this.state.torrents)
 
     this.state.torrents.forEach((torrent, infoHash) => {
       var torrentHandle = torrent.handle

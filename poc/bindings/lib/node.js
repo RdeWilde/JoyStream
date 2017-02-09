@@ -371,10 +371,9 @@ class Node extends EventEmitter {
     }
 
     [_addTorrentAlert](alert) {
-      console.log('Hey')
       if (!alert.error) {
         var torrentHandle = alert.handle
-        var resumeData = alert.params.resumeData
+        var resumeData = alert.addTorrentParams.resumeData
 
         var torrent = this.torrents.get(torrentHandle.infoHash())
         // Verify if torrent not already in torrents list
@@ -390,8 +389,8 @@ class Node extends EventEmitter {
           this.emit('add_torrent_alert', torrent)
 
           // DHT stuff
-          this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash, torrentHandle.infoHash())
-          this.session.dhtAnnounce(torrent.secondaryInfoHash, this.session.listenPort)
+          this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash(), torrentHandle.infoHash())
+          this.session.dhtAnnounce(torrent.secondaryInfoHash(), this.session.listenPort)
 
         } else {
           torrent.resumeData = resumeData
@@ -404,7 +403,7 @@ class Node extends EventEmitter {
     }
 
     [_torrentFinishedAlert](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
 
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
@@ -431,7 +430,7 @@ class Node extends EventEmitter {
     }
 
     [_stateChangedAlert](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       if (torrent) {
@@ -599,7 +598,7 @@ class Node extends EventEmitter {
     }
 
     [_torrentPluginAdded](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
 
       if (this.torrents.has(torrentHandle.infoHash())) {
         debug('Torrent already creates')

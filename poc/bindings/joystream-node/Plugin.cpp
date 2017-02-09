@@ -417,16 +417,21 @@ namespace detail {
 
     return [callback] (libtorrent::error_code & ec, libtorrent::torrent_handle & h) -> void {
 
-      std::cout << "We are in callback !" << std::endl;
 
-      // Use error_code::encode(ec) when its ready
-      std::string err = (ec ? "<convert error_code to string>" : "");
-
-      v8::Local<v8::Value> argv[] = { ERROR_VALUE(err), RESULT_VALUE(ec) };
-
-      std::cout << "About to send solution !" << std::endl;
-
-      callback->Call(2, argv);
+      if (ec) {
+        v8::Local<v8::Value> argv[] = {
+          // Use error_code::encode(ec) when its ready
+          Nan::New("<convert error_code to string>").ToLocalChecked(),
+          Nan::Undefined()
+        };
+        callback->Call(2, argv);
+      } else {
+        v8::Local<v8::Value> argv[] = {
+          Nan::Null(),
+          Nan::True()
+        };
+        callback->Call(2, argv);
+      }
     };
 
   }
