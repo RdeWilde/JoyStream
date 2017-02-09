@@ -55,8 +55,10 @@ libtorrent::add_torrent_params decode(const v8::Local<v8::Value> & v) {
 
   try {
     v8::Local<v8::Value> ti_value = GET_VAL(o, TI_KEY);
-    boost::shared_ptr<const libtorrent::torrent_info> torrent_info = TorrentInfo::Unwrap(ti_value->ToObject());
-    atp.ti = boost::make_shared<libtorrent::torrent_info>(*torrent_info.get());
+    if (!ti_value->IsUndefined()) {
+      boost::shared_ptr<const libtorrent::torrent_info> torrent_info = TorrentInfo::Unwrap(ti_value->ToObject());
+      atp.ti = boost::make_shared<libtorrent::torrent_info>(*torrent_info.get());
+    }
   } catch(const std::runtime_error &) { }
 
   try {

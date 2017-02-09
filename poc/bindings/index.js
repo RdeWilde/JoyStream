@@ -1,4 +1,4 @@
-var Joystream = require('./lib/joystream')
+var Joystream = require('./dist/joystream')
 
 module.exports = {
   Joystream

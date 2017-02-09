@@ -2,15 +2,17 @@
   "name": "joystream",
   "main": "index.js",
   "scripts": {
-    "preinstall" : "",
-    "postinstall" : "sh build_node_module.sh",
+    "compile": "babel lib -d dist",
+    "postinstall": "sh build_node_module.sh",
     "build-node": "sh build_node_module.sh",
     "build-electron": "sh build_electron_module.sh",
     "test": "mocha --reporter spec --recursive"
   },
   "devDependencies": {
-    "nan": "^2.0.5",
+    "babel-cli": "^6.22.2",
+    "babel-plugin-transform-async-to-generator": "^6.22.0",
     "mocha": "^2.2.5",
+    "nan": "^2.0.5",
     "node-gyp": "^1.0.3"
   },
   "dependencies": {

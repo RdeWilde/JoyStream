@@ -1,0 +1,13 @@
+{
+  "name": "joystream-example",
+  "version": "0.0.0",
+  "description": "",
+  "main": "basic.js",
+  "scripts": {
+    "start": "DEBUG=* LD_LIBRARY_PATH=/home/lola/Qt/5.7/gcc_64/lib node basic.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Me",
+  "license": "ISC",
+  "devDependencies": {}
+}

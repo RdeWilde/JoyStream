@@ -20,18 +20,6 @@
 
 #include <extension/extension.hpp>
 
-namespace detail {
-namespace subroutine_handler {
-  joystream::extension::request::SubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback);
-}
-namespace no_exception_subroutine_handler {
-  joystream::extension::request::NoExceptionSubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback);
-}
-
-  joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback);
-
-}
-
 /// Plugin utilities
 #define ARGUMENTS_REQUIRE_CALLBACK(i, var)                              \
   ARGUMENTS_REQUIRE_FUNCTION(i, _fn)                                           \
@@ -53,6 +41,19 @@ namespace no_exception_subroutine_handler {
 
 namespace joystream {
 namespace node {
+
+namespace detail {
+
+  joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback);
+
+namespace subroutine_handler {
+  joystream::extension::request::SubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback);
+}
+namespace no_exception_subroutine_handler {
+  joystream::extension::request::NoExceptionSubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback);
+}
+}
+
 
 Nan::Persistent<v8::Function> Plugin::constructor;
 
@@ -289,11 +290,14 @@ NAN_METHOD(Plugin::AddTorrent) {
   GET_THIS_PLUGIN(plugin)
 
   ARGUMENTS_REQUIRE_DECODED(0, addTorrentParams, libtorrent::add_torrent_params, libtorrent::node::add_torrent_params::decode)
+
   ARGUMENTS_REQUIRE_CALLBACK(1, managedCallback)
 
+
+  joystream::extension::request::AddTorrent::AddTorrentHandler addTorrentHandler = detail::CreateAddTorrentHandler(managedCallback);
+
   // Create request
-  joystream::extension::request::AddTorrent request(addTorrentParams,
-                                                    detail::CreateAddTorrentHandler(managedCallback));
+  joystream::extension::request::AddTorrent request(addTorrentParams, addTorrentHandler);
 
   // Submit request
   plugin->_plugin->submit(request);
@@ -407,6 +411,26 @@ NAN_METHOD(Plugin::StartUploading) {
 
 namespace detail {
 
+  /// Custom handlers
+
+  joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback) {
+
+    return [callback] (libtorrent::error_code & ec, libtorrent::torrent_handle & h) -> void {
+
+      std::cout << "We are in callback !" << std::endl;
+
+      // Use error_code::encode(ec) when its ready
+      std::string err = (ec ? "<convert error_code to string>" : "");
+
+      v8::Local<v8::Value> argv[] = { ERROR_VALUE(err), RESULT_VALUE(ec) };
+
+      std::cout << "About to send solution !" << std::endl;
+
+      callback->Call(2, argv);
+    };
+
+  }
+
   /// SubroutineHandler
   namespace subroutine_handler {
 
@@ -503,21 +527,6 @@ namespace detail {
         callback->Call(2, argv);
       };
     }
-
-  }
-
-  /// Custome handlers
-
-  joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback) {
-
-    return [callback] (libtorrent::error_code & ec, libtorrent::torrent_handle & h) -> void {
-
-      // Use error_code::encode(ec) when its ready
-      std::string err = (ec ? "<convert error_code to string>" : "");
-
-      v8::Local<v8::Value> argv[] = { ERROR_VALUE(err), RESULT_VALUE(ec) };
-      callback->Call(2, argv);
-    };
 
   }
 

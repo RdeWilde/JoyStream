@@ -26,11 +26,18 @@ class App extends Component {
   }
 
   addTorrent () {
-    joystream.addTorrent(0, 0,
-      '306497171', null,
-      '/home/lola/joystream/test/',
-      '6a9759bffd5c0af65319979fb7832189f4f3c35d',
-      this.torrentAdded)
+
+    let addTorrentParams = {
+      infoHash: '6a9759bffd5c0af65319979fb7832189f4f3c35d',
+      name: '306497171',
+      path: '/home/lola/joystream/test/'
+    }
+
+    console.log(addTorrentParams)
+
+    joystream.addTorrent(addTorrentParams, () => {
+      console.log('Torrent Added !')
+    })
   }
 
   torrentAdded (err, smth) {

@@ -17,8 +17,8 @@ class Joystream extends Node {
     this.wallet.start()
   }
 
-  addTorrent (addTorrentParams) {
-
+  addTorrent (addTorrentParams, callback) {
+    this.plugin.add_torrent(addTorrentParams, callback)
   }
 
   buyTorrent () {

@@ -310,6 +310,7 @@ v8::Local<v8::Object> encode(const libtorrent::tracker_alert * a) {
  * * * * * * * * * * * */
 
  v8::Local<v8::Object> encode(const libtorrent::torrent_added_alert * a) {
+   std::cout << "Torrent Added alert !" << std::endl;
    v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert *>(a));
 
    return o;
@@ -743,7 +744,11 @@ v8::Local<v8::Object> encode(const libtorrent::fastresume_rejected_alert * a) {
 
   // 	error_code const error;
   SET_CONST_CHAR(o, FILE_PATH_KEY, a->file_path());
-  SET_CONST_CHAR(o, OPERATION_KEY, a->operation);
+  if (a->operation) {
+    SET_CONST_CHAR(o, OPERATION_KEY, a->operation);
+  } else {
+    SET_NULL(o, OPERATION_KEY);
+  }
 
   return o;
 }

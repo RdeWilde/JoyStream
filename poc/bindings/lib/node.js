@@ -371,7 +371,8 @@ class Node extends EventEmitter {
     }
 
     [_addTorrentAlert](alert) {
-      if (!alert.error()) {
+      console.log('Hey')
+      if (!alert.error) {
         var torrentHandle = alert.handle
         var resumeData = alert.params.resumeData
 
