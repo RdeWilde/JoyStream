@@ -21,6 +21,7 @@ namespace protocol_wire {
 //        }
 //    }
 
+namespace detail {
 bool isLittleEndianMachine() {
     static const uint32_t one = 1;
     return (*reinterpret_cast<const char*>(&one) == one);
@@ -162,10 +163,29 @@ IntType Deserialize(const Coin::UCharArray<sizeof(IntType)> &array) {
     return ntoh<IntType>(nboInt);
 }
 
+template<class IntType>
+IntType Deserialize(const char* array) {
+
+    IntType nboInt;
+
+    // pointer to int
+    IntType *pint = &nboInt;
+
+    unsigned char *pc = reinterpret_cast<unsigned char*>(pint);
+    for(size_t i = 0; i < sizeof(IntType); i++)
+    {
+       *pc = array[i];
+       pc++;
+    }
+
+    return ntoh<IntType>(nboInt);
+}
+
+} // detail namespace
 
 template<class IntType>
 NetworkInt<IntType>::NetworkInt(IntType v)
-    : Coin::UCharArray<sizeof(IntType)>(Serialize<IntType>(v)) {
+    : Coin::UCharArray<sizeof(IntType)>(detail::Serialize<IntType>(v)) {
 }
 
 template<class IntType>
@@ -175,7 +195,7 @@ NetworkInt<IntType>::NetworkInt()
 
 template<class IntType>
 IntType NetworkInt<IntType>::value() const {
-    return Deserialize<IntType>(*this);
+    return detail::Deserialize<IntType>(*this);
 }
 
 

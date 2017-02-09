@@ -1,5 +1,5 @@
-#ifndef OUTPUTWIRESTREAM_HPP
-#define OUTPUTWIRESTREAM_HPP
+#ifndef JOYSTREAM_PROTOCOL_WIRE_OUTPUT_WIRE_STREAM_HPP
+#define JOYSTREAM_PROTOCOL_WIRE_OUTPUT_WIRE_STREAM_HPP
 
 
 #include <protocol_wire/NetworkInt.hpp>
@@ -35,6 +35,16 @@ public:
     // Construct the stream from streambuf
     OutputWireStream(std::streambuf* buf);
 
+    std::streamsize writeObserve(const Observe&);
+    std::streamsize writeBuy(const Buy&);
+    std::streamsize writeSell(const Sell&);
+    std::streamsize writeJoinContract(const JoinContract&);
+    std::streamsize writeJoiningContract(const JoiningContract&);
+    std::streamsize writeReady(const Ready&);
+    std::streamsize writeRequestFullPiece(const RequestFullPiece&);
+    std::streamsize writeFullPiece(const FullPiece&);
+    std::streamsize writePayment(const Payment&);
+
     virtual OutputWireStream& operator<<(const Observe &obj);
     virtual OutputWireStream& operator<<(const Buy &obj);
     virtual OutputWireStream& operator<<(const Sell &obj);
@@ -59,8 +69,8 @@ protected:
     // write integers
     template<class IntType>
     std::streamsize writeInt(IntType value) {
-        auto encodedInt = Serialize<IntType>(value);
-        return writeBytes(&encodedInt.at(0), encodedInt.rawLength());
+        NetworkInt<IntType> encodedInt(value);
+        return writeBytes(encodedInt.data(), encodedInt.rawLength());
     }
 
     // write raw data
@@ -87,4 +97,7 @@ private:
 
 }
 }
-#endif // OUTPUTWIRESTREAM_HPP
+
+#include "../../src/OutputWireStream.cpp"
+
+#endif // JOYSTREAM_PROTOCOL_WIRE_OUTPUT_WIRE_STREAM_HPP

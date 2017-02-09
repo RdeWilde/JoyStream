@@ -18,155 +18,205 @@ OutputWireStream::OutputWireStream(std::streambuf* buf)
     : _buffer(buf) {
 }
 
-OutputWireStream& OutputWireStream::operator<<(const Observe &) {
-    // empty payload for Observe message
-    return *this;
+std::streamsize OutputWireStream::writeObserve(const Observe &) {
+    // empty payload
+    return 0;
 }
 
-OutputWireStream& OutputWireStream::operator<<(const Buy &buy) {
+std::streamsize OutputWireStream::writeBuy(const Buy & buy) {
     std::streamsize written = 0;
 
-    written += writeInt<uint64_t>(buy.terms().maxContractFeePerKb());
-    written += writeInt<uint16_t>(buy.terms().maxLock());
-    written += writeInt<uint64_t>(buy.terms().maxPrice());
-    written += writeInt<uint32_t>(buy.terms().minNumberOfSellers());
+    written += writeInt<decltype(buy.terms().maxContractFeePerKb())>(buy.terms().maxContractFeePerKb());
+    written += writeInt<decltype(buy.terms().maxLock())>(buy.terms().maxLock());
+    written += writeInt<decltype(buy.terms().maxPrice())>(buy.terms().maxPrice());
+    written += writeInt<decltype(buy.terms().minNumberOfSellers())>(buy.terms().minNumberOfSellers());
 
-    assert(written == sizeOfBuy());
-
-    return *this;
+    return written;
 }
 
-OutputWireStream& OutputWireStream::operator<<(const Sell &sell) {
+std::streamsize OutputWireStream::writeSell(const Sell & sell) {
     std::streamsize written = 0;
 
-    written += writeInt<uint64_t>(sell.terms().minContractFeePerKb());
-    written += writeInt<uint16_t>(sell.terms().minLock());
-    written += writeInt<uint64_t>(sell.terms().minPrice());
-    written += writeInt<uint32_t>(sell.terms().maxSellers());
+    written += writeInt<decltype(sell.terms().minContractFeePerKb())>(sell.terms().minContractFeePerKb());
+    written += writeInt<decltype(sell.terms().minLock())>(sell.terms().minLock());
+    written += writeInt<decltype(sell.terms().minPrice())>(sell.terms().minPrice());
+    written += writeInt<decltype(sell.terms().maxSellers())>(sell.terms().maxSellers());
 
-    assert(written == sizeOfSell());
-
-    return *this;
+    return written;
 }
 
-OutputWireStream& OutputWireStream::operator<<(const JoinContract &join) {
-    auto written = writeInt<uint32_t>(join.index());
-
-    assert(written == sizeOfJoinContract());
-
-    return *this;
-}
-
-OutputWireStream& OutputWireStream::operator<<(const JoiningContract &joining) {
+std::streamsize OutputWireStream::writeJoiningContract(const JoiningContract &joining) {
     std::streamsize written = 0;
 
     written += writePublicKey(joining.contractPk());
     written += writePubKeyHash(joining.finalPkHash());
 
-    assert(written == sizeOfJoiningContract());
-
-    return *this;
+    return written;
 }
 
-OutputWireStream& OutputWireStream::operator<<(const Ready &ready) {
+std::streamsize OutputWireStream::writeJoinContract(const JoinContract & join) {
+    return writeInt<decltype(join.index())>(join.index());
+}
+
+std::streamsize OutputWireStream::writeReady(const Ready &ready) {
     std::streamsize written = 0;
 
-    written += writeInt<uint64_t>(ready.value());
+    written += writeInt<decltype(ready.value())>(ready.value());
     written += writeTypeSafeOutpoint(ready.anchor());
     written += writePublicKey(ready.contractPk());
     written += writePubKeyHash(ready.finalPkHash());
 
-    assert(written == sizeOfReady());
+    return written;
+}
 
+std::streamsize OutputWireStream::writeRequestFullPiece(const RequestFullPiece &request) {
+    return writeInt<uint32_t>(request.pieceIndex());
+}
+
+std::streamsize OutputWireStream::writeFullPiece(const FullPiece &piece) {
+    return writePieceData(piece.pieceData());
+}
+
+std::streamsize OutputWireStream::writePayment(const Payment &payment) {
+    return writeSignature(payment.sig());
+}
+
+OutputWireStream& OutputWireStream::operator<<(const Observe &observe) {
+    writeObserve(observe);
+    return *this;
+}
+
+OutputWireStream& OutputWireStream::operator<<(const Buy &buy) {
+    writeBuy(buy);
+    return *this;
+}
+
+OutputWireStream& OutputWireStream::operator<<(const Sell &sell) {
+    writeSell(sell);
+    return *this;
+}
+
+OutputWireStream& OutputWireStream::operator<<(const JoinContract &join) {
+    writeJoinContract(join);
+    return *this;
+}
+
+OutputWireStream& OutputWireStream::operator<<(const JoiningContract &joining) {
+    writeJoiningContract(joining);
+    return *this;
+}
+
+OutputWireStream& OutputWireStream::operator<<(const Ready &ready) {
+    writeReady(ready);
     return *this;
 }
 
 OutputWireStream& OutputWireStream::operator<<(const RequestFullPiece &request) {
-    std::streamsize written = writeInt<uint32_t>(request.pieceIndex());
-
-    assert(written == sizeOfRequestFullPiece());
-
+    writeRequestFullPiece(request);
     return *this;
 }
 
 OutputWireStream& OutputWireStream::operator<<(const FullPiece &piece) {
-    std::streamsize written = writePieceData(piece.pieceData());
-
-    assert(written == sizeOfFullPiece(piece));
-
+    writeFullPiece(piece);
     return *this;
 }
 
 OutputWireStream& OutputWireStream::operator<<(const Payment &payment) {
-    std::streamsize written = writeSignature(payment.sig());
-
-    assert(written == sizeOfPayment(payment));
-
+    writePayment(payment);
     return *this;
 }
 
 std::streamsize OutputWireStream::sizeOfObserve() {
-    return 0;
+    const static std::streamsize size = [](){
+        Observe msg;
+        std::stringbuf buf;
+        OutputWireStream stream(&buf);
+        return stream.writeObserve(msg);
+    }();
+
+    return size;
 }
 
 std::streamsize OutputWireStream::sizeOfBuy() {
-
-    const static std::streamsize size =   8  // feerate  - uint64_t
-                                        + 2  // locktime - uint16_t
-                                        + 8  // price    - uint64_t
-                                        + 4; // sellers  - uint32_t
+    const static std::streamsize size = [](){
+        Buy msg;
+        std::stringbuf buf;
+        OutputWireStream stream(&buf);
+        return stream.writeBuy(msg);
+    }();
 
     return size;
 }
 
 std::streamsize OutputWireStream::sizeOfSell() {
-    const static std::streamsize size =   8  // feerate  - uint64_t
-                                        + 2  // locktime - uint16_t
-                                        + 8  // price    - uint64_t
-                                        + 4; // sellers  - uint32_t
+    const static std::streamsize size = [](){
+        Sell msg;
+        std::stringbuf buf;
+        OutputWireStream stream(&buf);
+        return stream.writeSell(msg);
+    }();
+
     return size;
 }
 
 std::streamsize OutputWireStream::sizeOfJoinContract() {
-    const static std::streamsize size =   4;  // index  - uint32_t
+    const static std::streamsize size = [](){
+        JoinContract msg;
+        std::stringbuf buf;
+        OutputWireStream stream(&buf);
+        return stream.writeJoinContract(msg);
+    }();
+
     return size;
 }
 
 std::streamsize OutputWireStream::sizeOfJoiningContract() {
-    const static std::streamsize size =   Coin::PublicKey::compressedLength() // public key
-                                        + Coin::PubKeyHash::rawLength(); // pubkeyhash
+    const static std::streamsize size = [](){
+        JoiningContract msg;
+        std::stringbuf buf;
+        OutputWireStream stream(&buf);
+        return stream.writeJoiningContract(msg);
+    }();
+
     return size;
 }
 
 std::streamsize OutputWireStream::sizeOfReady() {
-    const static std::streamsize size =    8 // value - uint64_t
-                                         + Coin::TransactionId::rawLength() // outpoint - txid
-                                         + 4 // outpoint index - uint32_t
-                                         + Coin::PublicKey::compressedLength()
-                                         + Coin::PubKeyHash::rawLength();
+    const static std::streamsize size = [](){
+        Ready msg;
+        std::stringbuf buf;
+        OutputWireStream stream(&buf);
+        return stream.writeReady(msg);
+    }();
 
     return size;
 }
 
 std::streamsize OutputWireStream::sizeOfRequestFullPiece() {
-    const static std::streamsize size =   4;  // piece index  - uint32_t
+    const static std::streamsize size = [](){
+        RequestFullPiece msg;
+        std::stringbuf buf;
+        OutputWireStream stream(&buf);
+        return stream.writeRequestFullPiece(msg);
+    }();
+
     return size;
 }
 
 std::streamsize OutputWireStream::sizeOfFullPiece(const FullPiece& piece) {
-    const static std::streamsize size =   4  // piece length uint32_t
-                                         + piece.pieceData().length(); // piece data
+    std::streamsize size =   sizeof(uint32_t)  // piece length uint32_t
+                           + piece.pieceData().length(); // piece data
     return size;
 }
 
 std::streamsize OutputWireStream::sizeOfPayment(const Payment& payment) {
-    const static std::streamsize size =   4  // signature length uint32_t
-                                         + payment.sig().length(); // signature
+    std::streamsize size =   sizeof(uint8_t)  // signature length uint32_t
+                           + payment.sig().length(); // signature
     return size;
 }
 
-std::streamsize OutputWireStream::writeBytes(const unsigned char* data, std::streamsize size) {
-    auto ptr = reinterpret_cast<const char*>(data);
+std::streamsize OutputWireStream::writeBytes(const unsigned char* from, std::streamsize size) {
+    auto ptr = reinterpret_cast<const char*>(from);
 
     auto written = _buffer->sputn(ptr, size);
 
@@ -177,8 +227,8 @@ std::streamsize OutputWireStream::writeBytes(const unsigned char* data, std::str
     return written;
 }
 
-std::streamsize OutputWireStream::writeBytes(const char* data, std::streamsize size) {
-    auto written = _buffer->sputn(data, size);
+std::streamsize OutputWireStream::writeBytes(const char* from, std::streamsize size) {
+    auto written = _buffer->sputn(from, size);
 
     if(written != size) {
         throw std::runtime_error("stream buffer full, writing failed");
@@ -188,12 +238,12 @@ std::streamsize OutputWireStream::writeBytes(const char* data, std::streamsize s
 }
 
 
-std::streamsize OutputWireStream::writeBytes(const std::vector<unsigned char> & data) {
-    return writeBytes(&data[0], data.size());
+std::streamsize OutputWireStream::writeBytes(const std::vector<unsigned char> & from) {
+    return writeBytes(from.data(), from.size());
 }
 
 std::streamsize OutputWireStream::writePubKeyHash(const Coin::PubKeyHash& hash) {
-    return writeBytes(&hash[0], hash.rawLength());
+    return writeBytes(hash.data(), hash.rawLength());
 }
 
 std::streamsize OutputWireStream::writePublicKey(const Coin::PublicKey& pk){
@@ -203,7 +253,7 @@ std::streamsize OutputWireStream::writePublicKey(const Coin::PublicKey& pk){
 std::streamsize OutputWireStream::writeTypeSafeOutpoint(const Coin::typesafeOutPoint& outPoint) {
     std::streamsize written = 0;
     written += writeTransactionId(outPoint.transactionId());
-    written += writeInt<uint32_t>(outPoint.index());
+    written += writeInt<decltype(outPoint.index())>(outPoint.index());
     return written;
 }
 
@@ -214,7 +264,7 @@ std::streamsize OutputWireStream::writeTransactionId(const Coin::TransactionId& 
 std::streamsize OutputWireStream::writeSignature(const Coin::Signature& sig) {
     std::streamsize written = 0;
     auto data = sig.raw();
-    written += writeInt<uint32_t>(data.size());
+    written += writeInt<uint8_t>(data.size());
     written += writeBytes(data);
     return written;
 }
