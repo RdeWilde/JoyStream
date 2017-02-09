@@ -3,6 +3,7 @@
 
 
 #include <protocol_wire/NetworkInt.hpp>
+#include <protocol_wire/MessageType.hpp>
 
 #include <common/PubKeyHash.hpp>
 
@@ -29,11 +30,15 @@ class PieceData;
 class BuyerTerms;
 class SellerTerms;
 
+class ExtendedMessagePayload;
+
 class InputWireStream {
 public:
 
     // Construct the stream from streambuf
     InputWireStream(std::streambuf* buf);
+
+    std::shared_ptr<ExtendedMessagePayload> readMessage(MessageType type);
 
     virtual InputWireStream& operator>>(Observe &obj);
     virtual InputWireStream& operator>>(Buy &obj);
@@ -49,18 +54,7 @@ protected:
 
     // read integers
     template<class IntType>
-    IntType readInt() {
-        const auto size = NetworkInt<IntType>::size();
-
-        char data[size];
-
-        auto read = readBytes(data, size);
-
-        if(read != size)
-            throw std::runtime_error("reading from stream buffer failed");
-
-        return NetworkInt<IntType>(data).value();
-    }
+    IntType readInt();
 
     std::streamsize readBytes(unsigned char *destination, std::streamsize size);
     std::streamsize readBytes(char* destination, std::streamsize size);
@@ -83,9 +77,22 @@ private:
     std::streambuf* _buffer;
 };
 
+template<class IntType>
+IntType InputWireStream::readInt() {
+    const auto size = NetworkInt<IntType>::size();
+
+    char data[size];
+
+    auto read = readBytes(data, size);
+
+    if(read != size)
+        throw std::runtime_error("reading from stream buffer failed");
+
+    return NetworkInt<IntType>(data).value();
+}
+
 }
 }
 
-#include "../../src/InputWireStream.cpp"
 
 #endif // JOYSTREAM_PROTOCOL_WIRE_INPUT_WIRE_STREAM_HPP

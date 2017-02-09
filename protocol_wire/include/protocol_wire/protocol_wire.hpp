@@ -23,5 +23,7 @@
 #include <protocol_wire/RequestFullPiece.hpp>
 #include <protocol_wire/Sell.hpp>
 #include <protocol_wire/SellerTerms.hpp>
+#include <protocol_wire/InputWireStream.hpp>
+#include <protocol_wire/OutputWireStream.hpp>
 
 #endif // JOYSTREAM_PROTOCOLWIRE_HPP

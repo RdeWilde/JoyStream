@@ -18,6 +18,64 @@ InputWireStream::InputWireStream(std::streambuf* buf)
     : _buffer(buf) {
 }
 
+std::shared_ptr<ExtendedMessagePayload> InputWireStream::readMessage(MessageType type) {
+    std::shared_ptr<ExtendedMessagePayload> m;
+
+    switch(type) {
+
+    case MessageType::observe: {
+            m.reset(new protocol_wire::Observe());
+            *this >> *dynamic_cast<protocol_wire::Observe*>(m.get());
+            break;
+        }
+    case MessageType::buy: {
+            m.reset(new protocol_wire::Buy());
+            *this >> *dynamic_cast<protocol_wire::Buy*>(m.get());
+            break;
+        }
+    case MessageType::sell: {
+            m.reset(new protocol_wire::Sell());
+            *this >> *dynamic_cast<protocol_wire::Sell*>(m.get());
+            break;
+        }
+    case MessageType::join_contract: {
+            m.reset(new protocol_wire::JoinContract());
+            *this >> *dynamic_cast<protocol_wire::JoinContract*>(m.get());
+            break;
+        }
+    case MessageType::joining_contract: {
+            m.reset(new protocol_wire::JoiningContract());
+            *this >> *dynamic_cast<protocol_wire::JoiningContract*>(m.get());
+            break;
+        }
+    case MessageType::ready: {
+            m.reset(new protocol_wire::Ready());
+            *this >> *dynamic_cast<protocol_wire::Ready*>(m.get());
+            break;
+        }
+    case MessageType::request_full_piece: {
+            m.reset(new protocol_wire::RequestFullPiece());
+            *this >> *dynamic_cast<protocol_wire::RequestFullPiece*>(m.get());
+            break;
+        }
+    case MessageType::full_piece: {
+            m.reset(new protocol_wire::FullPiece());
+            *this >> *dynamic_cast<protocol_wire::FullPiece*>(m.get());
+            break;
+        }
+    case MessageType::payment: {
+            m.reset(new protocol_wire::Payment());
+            *this >> *dynamic_cast<protocol_wire::Payment*>(m.get());
+            break;
+        }
+
+    default:
+        assert(false); // We are not covering full value range of enum
+   }
+
+    return m;
+}
+
 InputWireStream& InputWireStream::operator>>(Observe &) {
     // empty payload for Observe message
     return *this;
@@ -187,7 +245,9 @@ PieceData InputWireStream::readPieceData() {
 
     auto size = readInt<uint32_t>();
 
-    // check size limit - to avoid
+    // check size limit
+
+    // seek and makesure we have enough data in streambuf
 
     // allocate memory for piece
     char* data = static_cast<char*>(malloc(size));

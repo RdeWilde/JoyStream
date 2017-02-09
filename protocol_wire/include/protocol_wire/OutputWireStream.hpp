@@ -64,14 +64,12 @@ public:
     static std::streamsize sizeOfRequestFullPiece();
     static std::streamsize sizeOfFullPiece(const FullPiece&);
     static std::streamsize sizeOfPayment(const Payment&);
+
 protected:
 
     // write integers
     template<class IntType>
-    std::streamsize writeInt(IntType value) {
-        NetworkInt<IntType> encodedInt(value);
-        return writeBytes(encodedInt.data(), encodedInt.rawLength());
-    }
+    std::streamsize writeInt(IntType value);
 
     // write raw data
     std::streamsize writeBytes(const unsigned char *, std::streamsize);
@@ -95,9 +93,14 @@ private:
     std::streambuf* _buffer;
 };
 
+template<class IntType>
+std::streamsize OutputWireStream::writeInt(IntType value) {
+    NetworkInt<IntType> encodedInt(value);
+    return writeBytes(encodedInt.data(), encodedInt.rawLength());
+}
+
 }
 }
 
-#include "../../src/OutputWireStream.cpp"
 
 #endif // JOYSTREAM_PROTOCOL_WIRE_OUTPUT_WIRE_STREAM_HPP

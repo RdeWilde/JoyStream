@@ -1,4 +1,4 @@
-#include "NetworkInt.hpp"
+#include <protocol_wire/NetworkInt.hpp>
 
 #include <arpa/inet.h>
 #include <common/UCharArray.hpp>
@@ -22,6 +22,7 @@ namespace protocol_wire {
 //    }
 
 namespace detail {
+
 bool isLittleEndianMachine() {
     static const uint32_t one = 1;
     return (*reinterpret_cast<const char*>(&one) == one);
@@ -125,83 +126,7 @@ Coin::UCharArray<1> Serialize(uint8_t value) {
     return array;
 }
 
-template<class IntType>
-Coin::UCharArray<sizeof(IntType)> Serialize(IntType value) {
-    // convert the value to network byte order
-    IntType nboInt = hton<IntType>(value);
-
-    // pointer to int memory location
-    IntType *pint = &nboInt;
-
-    Coin::UCharArray<sizeof(IntType)> array;
-
-    unsigned char *pc = reinterpret_cast<unsigned char*>(pint);
-    for(size_t i = 0; i < sizeof(IntType); i++)
-    {
-       array[i]= *pc;
-       pc++;
-    }
-
-    return array;
-}
-
-template<class IntType>
-IntType Deserialize(const Coin::UCharArray<sizeof(IntType)> &array) {
-
-    IntType nboInt;
-
-    // pointer to int
-    IntType *pint = &nboInt;
-
-    unsigned char *pc = reinterpret_cast<unsigned char*>(pint);
-    for(size_t i = 0; i < sizeof(IntType); i++)
-    {
-       *pc = array[i];
-       pc++;
-    }
-
-    return ntoh<IntType>(nboInt);
-}
-
-template<class IntType>
-IntType Deserialize(const char* array) {
-
-    IntType nboInt;
-
-    // pointer to int
-    IntType *pint = &nboInt;
-
-    unsigned char *pc = reinterpret_cast<unsigned char*>(pint);
-    for(size_t i = 0; i < sizeof(IntType); i++)
-    {
-       *pc = array[i];
-       pc++;
-    }
-
-    return ntoh<IntType>(nboInt);
-}
 
 } // detail namespace
-
-template<class IntType>
-NetworkInt<IntType>::NetworkInt(IntType v)
-    : Coin::UCharArray<sizeof(IntType)>(detail::Serialize<IntType>(v)) {
-}
-
-template<class IntType>
-NetworkInt<IntType>::NetworkInt()
-    : Coin::UCharArray<sizeof(IntType)>() {
-}
-
-template<class IntType>
-IntType NetworkInt<IntType>::value() const {
-    return detail::Deserialize<IntType>(*this);
-}
-
-template<class IntType>
-NetworkInt<IntType>::NetworkInt(const char* raw)
-    : Coin::UCharArray<sizeof(IntType)>(reinterpret_cast<const unsigned char*>(raw)) {
-}
-
 }
 }

@@ -36,7 +36,6 @@ HEADERS += \
     include/protocol_wire/InputWireStream.hpp
 
 SOURCES += \
-    src/ExtendedMessagePayload.cpp \
     src/Sell.cpp \
     src/RequestFullPiece.cpp \
     src/Ready.cpp \
@@ -51,6 +50,10 @@ SOURCES += \
     src/SellerTerms.cpp \
     src/BuyerTerms.cpp \
     src/PieceData.cpp \
+    src/NetworkInt.cpp \
+    src/OutputWireStream.cpp \
+    src/InputWireStream.cpp \
+
 
 # common
 INCLUDEPATH += $$PWD/../common/include

@@ -207,13 +207,13 @@ std::streamsize OutputWireStream::sizeOfRequestFullPiece() {
 }
 
 std::streamsize OutputWireStream::sizeOfFullPiece(const FullPiece& piece) {
-    std::streamsize size =   sizeof(uint32_t)  // piece length uint32_t
+    std::streamsize size =   sizeof(uint32_t)  // piece length
                            + piece.pieceData().length(); // piece data
     return size;
 }
 
 std::streamsize OutputWireStream::sizeOfPayment(const Payment& payment) {
-    std::streamsize size =   sizeof(uint8_t)  // signature length uint32_t
+    std::streamsize size =   sizeof(uint8_t)  // signature length
                            + payment.sig().length(); // signature
     return size;
 }
