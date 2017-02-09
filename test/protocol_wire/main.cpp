@@ -68,6 +68,16 @@ TEST(protocol_wire_test, network_int)
 
 }
 
+TEST(protocol_wire_test, observe)
+{
+    Observe m;
+
+    EXPECT_EQ(MessageType::observe, m.messageType());
+
+    Observe m2 = writeAndReadFromStream<Observe>(m);
+
+}
+
 TEST(protocol_wire_test, buy)
 {
     BuyerTerms terms(2,4,5,6);
