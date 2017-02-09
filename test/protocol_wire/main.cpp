@@ -101,17 +101,7 @@ TEST(protocol_wire_test, fullPiece)
     EXPECT_EQ(data, m.pieceData());
     EXPECT_EQ(MessageType::full_piece, m.messageType());
 
-    // Can't use macro
-    //writeAndReadFromStream(m, FullPiece)
-
-    const std::string raw(m.length(), 0);
-    std::stringbuf msgBuf(raw);
-    std::ostream writeStream(&msgBuf);
-
-    m.write(writeStream);
-
-    std::istream readStream(&msgBuf);
-    FullPiece m2(readStream, m.length());
+    FullPiece m2 = writeAndReadFromStream<FullPiece>(m);
 
     EXPECT_EQ(m, m2);
 }
@@ -149,17 +139,7 @@ TEST(protocol_wire_test, payment)
     EXPECT_EQ(m.sig(), sig);
     EXPECT_EQ(m.messageType(), MessageType::payment);
 
-    // Can't use macro
-    //writeAndReadFromStream<Payment>(m);
-
-    const std::string raw(m.length(), 0);
-    std::stringbuf msgBuf(raw);
-    std::ostream writeStream(&msgBuf);
-
-    m.write(writeStream);
-
-    std::istream readStream(&msgBuf);
-    Payment m2(readStream, m.length());
+    Payment m2 = writeAndReadFromStream<Payment>(m);
 
     EXPECT_EQ(m, m2);
 }
