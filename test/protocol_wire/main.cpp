@@ -6,6 +6,8 @@
 
 #include <protocol_wire/protocol_wire.hpp>
 #include <protocol_wire/NetworkInt.hpp>
+#include <protocol_wire/OutputWireStream.hpp>
+#include <protocol_wire/InputWireStream.hpp>
 
 using namespace joystream::protocol_wire;
 
@@ -14,12 +16,14 @@ MESSAGE_TYPE writeAndReadFromStream(MESSAGE_TYPE msg)
 {
     const std::string raw(msg.length(), 0);
     std::stringbuf msgBuf(raw);
-    std::ostream writeStream(&msgBuf);
+    OutputWireStream writeStream(&msgBuf);
 
-    msg.write(writeStream);
+    writeStream << msg;
 
-    std::istream readStream(&msgBuf);
-    MESSAGE_TYPE m2(readStream);
+    InputWireStream readStream(&msgBuf);
+    MESSAGE_TYPE m2;
+
+    readStream >> m2;
 
     return m2;
 }

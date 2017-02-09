@@ -177,7 +177,7 @@ Coin::Signature InputWireStream::readSignature() {
     if(sigSize > Coin::Signature::maxLength)
         throw std::runtime_error("signature size larger than maximum");
 
-    readBytes(rawSig.data(), sigSize);
+    readBytes(rawSig, sigSize);
 
     return Coin::Signature(rawSig);
 }
