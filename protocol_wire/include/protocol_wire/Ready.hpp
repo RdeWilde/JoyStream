@@ -41,6 +41,15 @@ namespace protocol_wire {
 
         Coin::PubKeyHash finalPkHash() const;
 
+        // Getters
+        void setValue(uint64_t);
+
+        void setAnchor(const Coin::typesafeOutPoint&);
+
+        void setContractPk(const Coin::PublicKey&);
+
+        void setFinalPkHash(const Coin::PubKeyHash&);
+
     private:
 
         // Value locked up

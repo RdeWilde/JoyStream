@@ -43,5 +43,9 @@ namespace protocol_wire {
         return _index;
     }
 
+    void JoinContract::setIndex(uint32_t index) {
+        _index = index;
+    }
+
 }
 }

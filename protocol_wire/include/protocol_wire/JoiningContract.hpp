@@ -37,6 +37,10 @@ namespace protocol_wire {
 
         Coin::PubKeyHash finalPkHash() const;
 
+        void setContractPk(const Coin::PublicKey&);
+
+        void setFinalPkHash(const Coin::PubKeyHash&);
+
     private:
 
         // Contract output seller multisig key

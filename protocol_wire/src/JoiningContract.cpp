@@ -50,5 +50,13 @@ namespace protocol_wire {
         return _finalPkHash;
     }
 
+    void JoiningContract::setContractPk(const Coin::PublicKey &pk) {
+        _contractPk = pk;
+    }
+
+    void JoiningContract::setFinalPkHash(const Coin::PubKeyHash & pkHash) {
+        _finalPkHash = pkHash;
+    }
+
 }
 }

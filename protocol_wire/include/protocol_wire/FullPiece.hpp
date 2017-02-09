@@ -36,6 +36,7 @@ namespace protocol_wire {
         // Getters
         PieceData pieceData() const;
 
+        void setPieceData(const PieceData&);
     private:
 
         // Piece data;

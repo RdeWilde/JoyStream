@@ -198,6 +198,10 @@ IntType NetworkInt<IntType>::value() const {
     return detail::Deserialize<IntType>(*this);
 }
 
+template<class IntType>
+NetworkInt<IntType>::NetworkInt(const char* raw)
+    : Coin::UCharArray<sizeof(IntType)>(reinterpret_cast<const unsigned char*>(raw)) {
+}
 
 }
 }

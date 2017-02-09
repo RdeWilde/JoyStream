@@ -34,6 +34,8 @@ public:
     NetworkInt(IntType);
     NetworkInt();
 
+    NetworkInt(const char* raw);
+
     IntType value() const;
 
     static std::streamsize size() { return sizeof(IntType); }

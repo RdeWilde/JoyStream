@@ -41,5 +41,9 @@ namespace protocol_wire {
     PieceData FullPiece::pieceData() const {
         return _pieceData;
     }
+
+    void FullPiece::setPieceData(const PieceData & pieceData) {
+        _pieceData = pieceData;
+    }
 }
 }

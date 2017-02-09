@@ -33,6 +33,7 @@ namespace protocol_wire {
         // Getters
         uint32_t index() const;
 
+        void setIndex(uint32_t);
     private:
 
         // Seller terms index

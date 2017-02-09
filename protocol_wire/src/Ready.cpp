@@ -62,5 +62,20 @@ namespace protocol_wire {
         return _finalPkHash;
     }
 
+    void Ready::setAnchor(const Coin::typesafeOutPoint &anchor) {
+        _anchor = anchor;
+    }
+
+    void Ready::setContractPk(const Coin::PublicKey & contractPk) {
+        _contractPk = contractPk;
+    }
+
+    void Ready::setFinalPkHash(const Coin::PubKeyHash & finalPkHash) {
+        _finalPkHash = finalPkHash;
+    }
+
+    void Ready::setValue(uint64_t value) {
+        _value = value;
+    }
 }
 }
