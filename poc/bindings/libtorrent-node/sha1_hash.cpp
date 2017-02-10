@@ -13,7 +13,7 @@ namespace node {
 namespace sha1_hash {
 
 v8::Local<v8::String> encode(const libtorrent::sha1_hash & h) {
-  return Nan::New(h.to_string()).ToLocalChecked();
+  return Nan::New(libtorrent::to_hex(h.to_string())).ToLocalChecked();
 }
 
 libtorrent::sha1_hash sha1FromHex(const std::string & hex) {
