@@ -21,7 +21,6 @@ namespace protocol_wire {
 
         Ready();
         Ready(uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
-        Ready(std::istream &);
 
         virtual ~Ready() {}
 
@@ -29,8 +28,6 @@ namespace protocol_wire {
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual uint32_t length() const;
-        virtual void write(std::ostream &) const;
 
         // Getters
         uint64_t value() const;

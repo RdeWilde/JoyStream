@@ -24,17 +24,12 @@ namespace protocol_wire {
         // Constructor based on members
         Sell(const SellerTerms & terms, uint32_t index);
 
-        // Constructor based on raw data
-        Sell(std::istream & stream);
-
         virtual ~Sell() {}
 
         bool operator==(const Sell &) const;
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual uint32_t length() const;
-        virtual void write(std::ostream & stream) const;
 
         // Getters and setters
         SellerTerms terms() const;

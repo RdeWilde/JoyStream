@@ -22,20 +22,8 @@ namespace protocol_wire {
         return _terms == o.terms();
     }
 
-    Buy::Buy(std::istream & stream) {
-        stream >> _terms;
-    }
-
     MessageType Buy::messageType() const {
         return MessageType::buy;
-    }
-
-    uint32_t Buy::length() const {
-        return _terms.length();
-    }
-
-    void Buy::write(std::ostream & stream) const {
-        stream << _terms;
     }
 
     BuyerTerms Buy::terms() const {

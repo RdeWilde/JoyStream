@@ -25,13 +25,8 @@ namespace protocol_wire {
 
         bool operator==(const FullPiece &) const;
 
-        // Constructor based on raw payload
-        FullPiece(std::istream & stream, int length);
-
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual uint32_t length() const;
-        virtual void write(std::ostream & stream) const;
 
         // Getters
         PieceData pieceData() const;

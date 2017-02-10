@@ -41,19 +41,6 @@ namespace protocol_wire {
         return PieceData(piece, length);
     }
 
-    PieceData::PieceData(std::istream & stream, unsigned int length)
-        : _piece(new char[length])
-        , _length(length) {
-
-        // Try to fill buffer
-        stream.read(_piece.get(), _length);
-        int result = stream.gcount();
-
-        // Check that we were able to read full piece
-        if(result != (int)_length)
-            throw std::runtime_error("Was unable to read full piece from stream.");
-    }
-
     bool PieceData::operator==(const PieceData & rhs) const {
 
         // Compare lengths
@@ -69,12 +56,6 @@ namespace protocol_wire {
         }
 
         return true;
-    }
-
-    int PieceData::write(std::ostream & stream) const {
-        auto initial = stream.tellp();
-        stream.write(_piece.get(), _length);
-        return stream.tellp() - initial;
     }
 
     boost::shared_array<char> PieceData::piece() const {

@@ -19,7 +19,6 @@ namespace protocol_wire {
 
         JoinContract();
         JoinContract(uint32_t index);
-        JoinContract(std::istream & stream);
 
         virtual ~JoinContract() {}
 
@@ -27,8 +26,6 @@ namespace protocol_wire {
 
         // Virtual methods that subclassing messages have to implement
         MessageType messageType() const;
-        uint32_t length() const;
-        void write(std::ostream & stream) const;
 
         // Getters
         uint32_t index() const;

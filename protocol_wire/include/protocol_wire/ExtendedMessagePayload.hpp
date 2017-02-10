@@ -9,7 +9,6 @@
 #define JOYSTREAM_PROTOCOL_WIRE_EXTENDEDMESSAGEPAYLOAD_HPP
 
 #include <cstdint>
-#include <iostream>
 
 namespace joystream {
 namespace protocol_wire {

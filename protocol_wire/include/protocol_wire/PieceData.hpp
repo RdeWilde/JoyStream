@@ -24,11 +24,7 @@ namespace protocol_wire {
 
         static PieceData fromHex(const char *);
 
-        PieceData(std::istream &, unsigned int);
-
         bool operator==(const PieceData &) const;
-
-        int write(std::ostream &) const;
 
         boost::shared_array<char> piece() const;
 

@@ -23,10 +23,6 @@ namespace protocol_wire {
         , _finalPkHash(finalPkHash) {
     }
 
-    Ready::Ready(std::istream & stream) {
-        stream >> _value >> _anchor >> _contractPk >> _finalPkHash;
-    }
-
     bool Ready::operator==(const Ready & rhs) const {
         return _value == rhs.value() &&
                _anchor == rhs.anchor() &&
@@ -36,14 +32,6 @@ namespace protocol_wire {
 
     MessageType Ready::messageType() const {
         return MessageType::ready;
-    }
-
-    uint32_t Ready::length() const {
-        return sizeof(uint64_t) + Coin::typesafeOutPoint::length() + Coin::PublicKey::compressedLength() + Coin::PubKeyHash::rawLength();
-    }
-
-    void Ready::write(std::ostream & stream) const {
-        stream << _value << _anchor << _contractPk << _finalPkHash;
     }
 
     uint64_t Ready::value() const {

@@ -18,24 +18,12 @@ namespace protocol_wire {
         : _pieceData(pieceData) {
     }
 
-    FullPiece::FullPiece(std::istream & stream, int length)
-        : _pieceData(stream, length) {
-    }
-
     bool FullPiece::operator==(const FullPiece & rhs) const {
         return _pieceData == rhs.pieceData();
     }
 
     MessageType FullPiece::messageType() const {
         return MessageType::full_piece;
-    }
-
-    uint32_t FullPiece::length() const {
-        return _pieceData.length();
-    }
-
-    void FullPiece::write(std::ostream & stream) const {
-        _pieceData.write(stream);
     }
 
     PieceData FullPiece::pieceData() const {

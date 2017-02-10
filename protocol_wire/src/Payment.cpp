@@ -18,30 +18,12 @@ namespace protocol_wire {
         : _sig(sig) {
     }
 
-    Payment::Payment(std::istream & stream, uint8_t lengthOfSignature) {
-
-        // Check that signature has valid length
-        if(lengthOfSignature > Coin::Signature::maxLength)
-            throw std::runtime_error("Maximum signature length exceeded.");
-
-        // Read signature
-        _sig.readFromStream(stream, (unsigned int)lengthOfSignature);
-    }
-
     bool Payment::operator==(const Payment & rhs) const {
         return _sig == rhs.sig();
     }
 
     MessageType Payment::messageType() const {
         return MessageType::payment;
-    }
-
-    uint32_t Payment::length() const {
-        return _sig.length();
-    }
-
-    void Payment::write(std::ostream & stream) const {
-        _sig.writeToStream(stream);
     }
 
     Coin::Signature Payment::sig() const {

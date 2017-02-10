@@ -20,10 +20,6 @@ namespace protocol_wire {
         , _index(index) {
     }
 
-    Sell::Sell(std::istream & stream) {
-        stream >> _terms >> _index;
-    }
-
     MessageType Sell::messageType() const {
         return MessageType::sell;
     }
@@ -31,14 +27,6 @@ namespace protocol_wire {
     bool Sell::operator==(const Sell & rhs) const {
         return _terms == rhs.terms() &&
                _index == rhs.index();
-    }
-
-    uint32_t Sell::length() const {
-        return _terms.length() + sizeof(_index);
-    }
-
-    void Sell::write(std::ostream & stream) const {
-        stream << _terms << _index;
     }
 
     SellerTerms Sell::terms() const  {

@@ -26,20 +26,8 @@ namespace protocol_wire {
                rhs.finalPkHash() == rhs.finalPkHash();
     }
 
-    JoiningContract::JoiningContract(std::istream & stream) {
-        stream >> _contractPk >> _finalPkHash;
-    }
-
     MessageType JoiningContract::messageType() const {
         return MessageType::joining_contract;
-    }
-
-    uint32_t JoiningContract::length() const {
-        return Coin::PublicKey::compressedLength() + Coin::PubKeyHash::rawLength();
-    }
-
-    void JoiningContract::write(std::ostream & stream) const {
-        stream << _contractPk << _finalPkHash;
     }
 
     Coin::PublicKey JoiningContract::contractPk() const {

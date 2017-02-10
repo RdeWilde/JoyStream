@@ -24,19 +24,12 @@ namespace protocol_wire {
         // Constructor from members
         Payment(const Coin::Signature & sig);
 
-        // Constructor based on raw payload
-        // NB: Substitute with static factory in future, so that you cannot create stale
-        // payload objects if there is an error in the reading from stream
-        Payment(std::istream & stream, uint8_t lengthOfSignature);
-
         virtual ~Payment() {}
 
         bool operator==(const Payment &) const;
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual uint32_t length() const;
-        virtual void write(std::ostream & stream) const;
 
         // Getters and setters
         Coin::Signature sig() const;

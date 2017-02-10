@@ -19,24 +19,12 @@ namespace protocol_wire {
         : _pieceIndex(pieceIndex) {
     }
 
-    RequestFullPiece::RequestFullPiece(std::istream & stream) {
-        stream >> _pieceIndex;
-    }
-
     bool RequestFullPiece::operator==(const RequestFullPiece & rhs) const {
         return _pieceIndex == rhs.pieceIndex();
     }
 
     MessageType RequestFullPiece::messageType() const {
         return MessageType::request_full_piece;
-    }
-
-    uint32_t RequestFullPiece::length() const {
-        return sizeof(_pieceIndex);
-    }
-
-    void RequestFullPiece::write(std::ostream & stream) const {
-        stream << _pieceIndex;
     }
 
     int RequestFullPiece::pieceIndex() const {

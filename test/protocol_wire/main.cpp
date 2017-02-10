@@ -5,16 +5,13 @@
 #include <gtest/gtest.h>
 
 #include <protocol_wire/protocol_wire.hpp>
-#include <protocol_wire/NetworkInt.hpp>
-#include <protocol_wire/OutputWireStream.hpp>
-#include <protocol_wire/InputWireStream.hpp>
 
 using namespace joystream::protocol_wire;
 
 template <class MESSAGE_TYPE>
 MESSAGE_TYPE writeAndReadFromStream(MESSAGE_TYPE msg)
 {
-    const std::string raw(msg.length(), 0);
+    const std::string raw;
     std::stringbuf msgBuf(raw);
     OutputWireStream writeStream(&msgBuf);
 

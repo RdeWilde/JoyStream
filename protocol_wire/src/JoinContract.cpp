@@ -19,20 +19,8 @@ namespace protocol_wire {
         : _index(index) {
     }
 
-    JoinContract::JoinContract(std::istream & stream) {
-        stream >> _index;
-    }
-
     bool JoinContract::operator==(const JoinContract & rhs) const {
         return _index == rhs.index();
-    }
-
-    uint32_t JoinContract::length() const {
-        return sizeof(_index);
-    }
-
-    void JoinContract::write(std::ostream & stream) const {
-        stream << _index;
     }
 
     MessageType JoinContract::messageType() const {

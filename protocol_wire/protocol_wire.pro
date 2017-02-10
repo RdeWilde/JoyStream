@@ -20,7 +20,6 @@ HEADERS += \
     include/protocol_wire/Ready.hpp \
     include/protocol_wire/Payment.hpp \
     include/protocol_wire/Observe.hpp \
-    include/protocol_wire/NoPayloadMessage.hpp \
     include/protocol_wire/MessageType.hpp \
     include/protocol_wire/JoiningContract.hpp \
     include/protocol_wire/JoinContract.hpp \
@@ -33,14 +32,14 @@ HEADERS += \
     include/protocol_wire/protocol_wire.hpp \
     include/protocol_wire/NetworkInt.hpp \
     include/protocol_wire/OutputWireStream.hpp \
-    include/protocol_wire/InputWireStream.hpp
+    include/protocol_wire/InputWireStream.hpp \
+    include/protocol_wire/char_array_buffer.hpp
 
 SOURCES += \
     src/Sell.cpp \
     src/RequestFullPiece.cpp \
     src/Ready.cpp \
     src/Payment.cpp \
-    src/NoPayloadMessage.cpp \
     src/MessageType.cpp \
     src/JoiningContract.cpp \
     src/JoinContract.cpp \
@@ -53,7 +52,7 @@ SOURCES += \
     src/NetworkInt.cpp \
     src/OutputWireStream.cpp \
     src/InputWireStream.cpp \
-
+    src/char_array_buffer.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
