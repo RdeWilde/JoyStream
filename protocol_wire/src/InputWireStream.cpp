@@ -246,9 +246,21 @@ PieceData InputWireStream::readPieceData() {
 
     auto size = readInt<uint32_t>();
 
-    // check size limit
+    // check max size limit?
 
     // seek and make sure we have enough data in streambuf
+    std::streampos cur = _buffer->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
+
+    std::streampos end = _buffer->pubseekoff(0, std::ios_base::end, std::ios_base::in);
+
+    auto remaining = end - cur;
+
+    if(size > remaining) {
+        throw std::runtime_error("unable to read piece data, not enough data in stream buffer");
+    }
+
+    // reset position
+    _buffer->pubseekpos(cur, std::ios_base::in);
 
     // http://www.boost.org/doc/libs/1_63_0/libs/smart_ptr/shared_array.htm
     boost::shared_array<char> piece(new char[size]);
