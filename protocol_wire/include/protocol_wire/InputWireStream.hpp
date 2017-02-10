@@ -38,7 +38,7 @@ public:
     // Construct the stream from streambuf
     InputWireStream(std::streambuf* buf);
 
-    std::shared_ptr<ExtendedMessagePayload> readMessage(MessageType type);
+    std::shared_ptr<ExtendedMessagePayload> readMessage(MessageType);
 
     virtual InputWireStream& operator>>(Observe &obj);
     virtual InputWireStream& operator>>(Buy &obj);

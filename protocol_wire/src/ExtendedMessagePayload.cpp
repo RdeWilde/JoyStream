@@ -47,5 +47,63 @@ namespace protocol_wire {
             return NULL;
         }
     }
+
+    std::shared_ptr<ExtendedMessagePayload> ExtendedMessagePayload::fromWireStream(MessageType type, InputWireStream & stream) {
+        std::shared_ptr<ExtendedMessagePayload> m;
+
+        switch(type) {
+
+        case MessageType::observe: {
+                m.reset(new protocol_wire::Observe());
+                stream >> *dynamic_cast<protocol_wire::Observe*>(m.get());
+                break;
+            }
+        case MessageType::buy: {
+                m.reset(new protocol_wire::Buy());
+                stream >> *dynamic_cast<protocol_wire::Buy*>(m.get());
+                break;
+            }
+        case MessageType::sell: {
+                m.reset(new protocol_wire::Sell());
+                stream >> *dynamic_cast<protocol_wire::Sell*>(m.get());
+                break;
+            }
+        case MessageType::join_contract: {
+                m.reset(new protocol_wire::JoinContract());
+                stream >> *dynamic_cast<protocol_wire::JoinContract*>(m.get());
+                break;
+            }
+        case MessageType::joining_contract: {
+                m.reset(new protocol_wire::JoiningContract());
+                stream >> *dynamic_cast<protocol_wire::JoiningContract*>(m.get());
+                break;
+            }
+        case MessageType::ready: {
+                m.reset(new protocol_wire::Ready());
+                stream >> *dynamic_cast<protocol_wire::Ready*>(m.get());
+                break;
+            }
+        case MessageType::request_full_piece: {
+                m.reset(new protocol_wire::RequestFullPiece());
+                stream >> *dynamic_cast<protocol_wire::RequestFullPiece*>(m.get());
+                break;
+            }
+        case MessageType::full_piece: {
+                m.reset(new protocol_wire::FullPiece());
+                stream >> *dynamic_cast<protocol_wire::FullPiece*>(m.get());
+                break;
+            }
+        case MessageType::payment: {
+                m.reset(new protocol_wire::Payment());
+                stream >> *dynamic_cast<protocol_wire::Payment*>(m.get());
+                break;
+            }
+
+        default:
+            assert(false); // We are not covering full value range of enum
+       }
+
+        return m;
+    }
 }
 }

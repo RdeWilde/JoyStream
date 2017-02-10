@@ -20,24 +20,11 @@ namespace protocol_wire {
 
     public:
 
-        // Message factory based on only payload, header is encoded in type argument
-        static ExtendedMessagePayload * fromRaw(MessageType type, std::istream & stream, int lengthOfExtendedMessagePayload);
-
-        /**
-         * Virtual methods that subclassing messages have to implement
-         */
-
         // Required for safe deletion through pointer of this base type
         virtual ~ExtendedMessagePayload() {};
 
         // Get type of message
         virtual MessageType messageType() const = 0;
-
-        // Length of payload of extended message (not full message, hence BEP10 id field not counted)
-        virtual uint32_t length() const = 0;
-
-        // Write wire form of extended message payload (not payload of full message, hence BEP10 header not written)
-        virtual void write(std::ostream & stream) const = 0;
     };
 
 }

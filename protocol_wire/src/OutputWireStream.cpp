@@ -10,6 +10,7 @@
 #include <protocol_wire/FullPiece.hpp>
 #include <protocol_wire/Payment.hpp>
 
+#include <protocol_wire/MessageType.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -84,6 +85,46 @@ std::streamsize OutputWireStream::writePayment(const Payment &payment) {
     return writeSignature(payment.sig());
 }
 
+std::streamsize OutputWireStream::writeMessage(const ExtendedMessagePayload *payload) {
+    auto type = payload->messageType();
+
+    switch(type) {
+
+    case MessageType::observe: {
+            return writeObserve(*dynamic_cast<const protocol_wire::Observe*>(payload));
+        }
+    case MessageType::buy: {
+            return writeBuy(*dynamic_cast<const protocol_wire::Buy*>(payload));
+        }
+    case MessageType::sell: {
+            return writeSell(*dynamic_cast<const protocol_wire::Sell*>(payload));
+        }
+    case MessageType::join_contract: {
+            return writeJoinContract(*dynamic_cast<const protocol_wire::JoinContract*>(payload));
+        }
+    case MessageType::joining_contract: {
+            return writeJoiningContract(*dynamic_cast<const protocol_wire::JoiningContract*>(payload));
+        }
+    case MessageType::ready: {
+            return writeReady(*dynamic_cast<const protocol_wire::Ready*>(payload));
+        }
+    case MessageType::request_full_piece: {
+            return writeRequestFullPiece(*dynamic_cast<const protocol_wire::RequestFullPiece*>(payload));
+        }
+    case MessageType::full_piece: {
+            return writeFullPiece(*dynamic_cast<const protocol_wire::FullPiece*>(payload));
+        }
+    case MessageType::payment: {
+            return writePayment(*dynamic_cast<const protocol_wire::Payment*>(payload));
+        }
+
+    default:
+        assert(false); // We are not covering full value range of enum
+   }
+
+   return -1;
+}
+
 OutputWireStream& OutputWireStream::operator<<(const Observe &observe) {
     writeObserve(observe);
     return *this;
@@ -128,6 +169,17 @@ OutputWireStream& OutputWireStream::operator<<(const Payment &payment) {
     writePayment(payment);
     return *this;
 }
+
+OutputWireStream& OutputWireStream::operator <<(uint8_t value) {
+    writeInt<uint8_t>(value);
+    return *this;
+}
+
+OutputWireStream& OutputWireStream::operator <<(uint32_t value) {
+    writeInt<uint32_t>(value);
+    return *this;
+}
+
 
 std::streamsize OutputWireStream::sizeOfObserve() {
     const static std::streamsize size = [](){
@@ -216,6 +268,49 @@ std::streamsize OutputWireStream::sizeOfPayment(const Payment& payment) {
     std::streamsize size =   sizeof(uint8_t)  // signature length
                            + payment.sig().length(); // signature
     return size;
+}
+
+std::streamsize OutputWireStream::sizeOf(const ExtendedMessagePayload * payload) {
+
+    auto type = payload->messageType();
+
+    switch(type) {
+
+    case MessageType::observe: {
+            return sizeOfObserve();
+        }
+    case MessageType::buy: {
+            return sizeOfBuy();
+        }
+    case MessageType::sell: {
+            return sizeOfSell();
+        }
+    case MessageType::join_contract: {
+            return sizeOfJoinContract();
+        }
+    case MessageType::joining_contract: {
+            return sizeOfJoiningContract();
+        }
+    case MessageType::ready: {
+            return sizeOfReady();
+        }
+    case MessageType::request_full_piece: {
+            return sizeOfRequestFullPiece();
+        }
+    case MessageType::full_piece: {
+            const FullPiece* fullPiece = dynamic_cast<const FullPiece*>(payload);
+            return sizeOfFullPiece(*fullPiece);
+        }
+    case MessageType::payment: {
+            const Payment* payment = dynamic_cast<const Payment*>(payload);
+            return sizeOfPayment(*payment);
+        }
+
+    default:
+        assert(false); // We are not covering full value range of enum
+   }
+
+   return -1;
 }
 
 std::streamsize OutputWireStream::writeBytes(const unsigned char* from, std::streamsize size) {
