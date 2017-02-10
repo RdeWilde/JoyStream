@@ -116,6 +116,17 @@ TEST(protocol_wire_test, fullPiece)
     EXPECT_EQ(m, m2);
 }
 
+TEST(protocol_wire_test, invalid_fullPiece) {
+
+    const std::string raw(4, 0);
+    std::stringbuf msgBuf(raw);
+    OutputWireStream writeStream(&msgBuf);
+    writeStream << (uint32_t)20;
+
+    InputWireStream readStream(&msgBuf);
+    EXPECT_THROW(readStream.readMessage(MessageType::full_piece), std::exception);
+}
+
 TEST(protocol_wire_test, joinContract)
 {
     uint32_t index = 32;
