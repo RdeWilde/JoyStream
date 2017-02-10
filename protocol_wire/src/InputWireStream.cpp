@@ -10,6 +10,7 @@
 #include <protocol_wire/FullPiece.hpp>
 #include <protocol_wire/Payment.hpp>
 
+#include <boost/smart_ptr/make_shared_array.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -247,18 +248,12 @@ PieceData InputWireStream::readPieceData() {
 
     // check size limit
 
-    // seek and makesure we have enough data in streambuf
+    // seek and make sure we have enough data in streambuf
 
-    // allocate memory for piece
-    char* data = static_cast<char*>(malloc(size));
+    // http://www.boost.org/doc/libs/1_63_0/libs/smart_ptr/shared_array.htm
+    boost::shared_array<char> piece(new char[size]);
 
-    if(data == nullptr) {
-        throw std::runtime_error("unable to allocate memory for piece");
-    }
-
-    boost::shared_array<char> piece(data);
-
-    readBytes(data, size);
+    readBytes(&piece[0], size);
 
     return PieceData(piece, size);
 }
