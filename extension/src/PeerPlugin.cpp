@@ -522,14 +522,7 @@ namespace extension {
             return true;
         }
 
-        if(!m) {
-            std::clog << "Extended Message Not parsed" << std::endl;
-
-            // Remove this peer
-            libtorrent::error_code ec; // <-- "Malformed extended message received, removing."
-            drop(ec);
-            return true;
-        }
+        assert(m);
 
         // Process message
         try {
