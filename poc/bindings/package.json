@@ -1,6 +1,7 @@
 {
   "name": "joystream",
   "main": "index.js",
+  "version": "0.0.1",
   "scripts": {
     "compile": "babel lib -d dist",
     "postinstall": "sh build_node_module.sh",

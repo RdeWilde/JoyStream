@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Joystream } from '../../../'
+var debug = require('debug')('electron:app')
 
 var joystream = new Joystream()
 
@@ -41,15 +42,12 @@ class App extends Component {
       console.log(err)
     } else {
       console.log('This has been called once the torrent is added')
-      console.log(joystream.torrents)
       this.setState({torrents: joystream.torrents})
     }
   }
 
   render () {
     let rows = [];
-
-    console.log(this.state.torrents)
 
     this.state.torrents.forEach((torrent, infoHash) => {
       var torrentHandle = torrent.handle

@@ -18,6 +18,7 @@
     "electron-prebuilt-compile": "^1.4.14"
   },
   "dependencies": {
+    "debug": "^2.6.0",
     "lodash": "^4.17.4",
     "react": "^15.4.2",
     "react-dom": "^15.4.2"

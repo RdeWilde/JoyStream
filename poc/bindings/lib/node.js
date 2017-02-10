@@ -345,6 +345,7 @@ class Node extends EventEmitter {
           debug('Connection added')
         }
       } else {
+        console.log(alert)
         debug('Torrent with secondaryInfoHash ' + alert.infoHash + ' not found')
       }
     }
