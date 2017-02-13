@@ -91,7 +91,7 @@ namespace alert {
         AnchorAnnounced(libtorrent::aux::stack_allocator & alloc,
                         const libtorrent::torrent_handle & h,
                         const libtorrent::tcp::endpoint & endPoint,
-                        quint64 value,
+                        uint64_t value,
                         const Coin::typesafeOutPoint & anchor,
                         const Coin::PublicKey & contractPk,
                         const Coin::PubKeyHash & finalPkHash)
@@ -109,7 +109,7 @@ namespace alert {
         }
 
         libtorrent::tcp::endpoint _endPoint;
-        quint64 _value;
+        uint64_t _value;
         Coin::typesafeOutPoint _anchor;
         Coin::PublicKey _contractPk;
         Coin::PubKeyHash _finalPkHash;

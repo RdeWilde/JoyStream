@@ -7,13 +7,12 @@
 
 #include <common/DataSizeRepresentation.hpp>
 
-#include <QString>
-
 #include <cmath>
+#include <cassert>
 
-const quint8 DataSizeRepresentation::maxPower = 8;
+const uint8_t DataSizeRepresentation::maxPower = 8;
 
-DataSizeRepresentation::DataSizeRepresentation(quint64 numberOfBaseUnits, Base base)
+DataSizeRepresentation::DataSizeRepresentation(uint64_t numberOfBaseUnits, Base base)
     : _numberOfBaseUnits(numberOfBaseUnits)
     , _base(base) {
 }
@@ -24,12 +23,12 @@ DataSizeRepresentation::DataSizeRepresentation(const DataSizeRepresentation & o)
 
 DataSizeRepresentation::Prefix DataSizeRepresentation::bestPrefix() const {
 
-    quint16 size = sizeOfBase(_base);
+    uint16_t size = sizeOfBase(_base);
 
     // Find greatest power of base size which is greater than _numberOfBaseUnits
 
     // Keeps track of power found so far
-    quint64 accumulator = 1;
+    uint64_t accumulator = 1;
 
     // Exponent of base size used in accumulator
     int exponent = 0;
@@ -43,7 +42,7 @@ DataSizeRepresentation::Prefix DataSizeRepresentation::bestPrefix() const {
 
     // Taking no exponent was big enough
     if(exponent == 0) {
-        Q_ASSERT(_numberOfBaseUnits == 0);
+        assert(_numberOfBaseUnits == 0);
         return Prefix::None;
     }
 
@@ -53,8 +52,8 @@ DataSizeRepresentation::Prefix DataSizeRepresentation::bestPrefix() const {
 
     // Return the prefix corresponding to the power, among i and i-1 of base size,
     // to which _numberOfBaseUnits is closest
-    quint64 distanceToIthPower = accumulator - _numberOfBaseUnits;
-    quint64 distanceToIthMinusOnePower = -(accumulator/size - _numberOfBaseUnits);
+    uint64_t distanceToIthPower = accumulator - _numberOfBaseUnits;
+    uint64_t distanceToIthMinusOnePower = -(accumulator/size - _numberOfBaseUnits);
 
     if(distanceToIthPower <= distanceToIthMinusOnePower)
         return exponentToPrefix(exponent);
@@ -66,19 +65,20 @@ double DataSizeRepresentation::unitsWithPrefix(Prefix prefix) const {
     return ((double)_numberOfBaseUnits) / pow(sizeOfBase(_base), prefixToExponent(prefix));
 }
 
-QString DataSizeRepresentation::toString(Prefix prefix, TextFormat format, int precision) const {
-    return QString::number(unitsWithPrefix(prefix), 'f', precision) + " " + prefixToString(prefix, format) + baseToString(_base, format);
+std::string DataSizeRepresentation::toString(Prefix prefix, TextFormat format, int precision) const {
+    return std::to_string(roundf(unitsWithPrefix(prefix) * pow(10, precision))/pow(10, precision)) +
+        " " + prefixToString(prefix, format) + baseToString(_base, format);
 }
 
-QString DataSizeRepresentation::toString(TextFormat format, int precision) const {
+std::string DataSizeRepresentation::toString(TextFormat format, int precision) const {
     return toString(bestPrefix(), format, precision);
 }
 
-quint64 DataSizeRepresentation::numberOfBaseUnits() const {
+uint64_t DataSizeRepresentation::numberOfBaseUnits() const {
     return _numberOfBaseUnits;
 }
 
-void DataSizeRepresentation::setNumberOfBaseUnits(quint64 quantity) {
+void DataSizeRepresentation::setNumberOfBaseUnits(uint64_t quantity) {
     _numberOfBaseUnits = quantity;
 }
 
@@ -91,7 +91,7 @@ void DataSizeRepresentation::setBase(Base base) {
 }
 
 
-QString DataSizeRepresentation::prefixToString(Prefix prefix, TextFormat format) {
+std::string DataSizeRepresentation::prefixToString(Prefix prefix, TextFormat format) {
 
     switch(prefix) {
         case Prefix::None: return "";
@@ -104,21 +104,21 @@ QString DataSizeRepresentation::prefixToString(Prefix prefix, TextFormat format)
         case Prefix::Zetta: return (format == TextFormat::Short ? "Z" : "zetta");
         case Prefix::Yotta: return (format == TextFormat::Short ? "Y" : "yotta");
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
-QString DataSizeRepresentation::baseToString(Base base, TextFormat format) {
+std::string DataSizeRepresentation::baseToString(Base base, TextFormat format) {
 
     switch(base) {
         case Base::Bit: return "bit"; // is insensitive to format
         case Base::Byte: return (format == TextFormat::Short ? "B" : "byte");
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
-quint8 DataSizeRepresentation::prefixToExponent(Prefix prefix) {
+uint8_t DataSizeRepresentation::prefixToExponent(Prefix prefix) {
 
     switch(prefix) {
         case Prefix::None: return 0;
@@ -131,12 +131,12 @@ quint8 DataSizeRepresentation::prefixToExponent(Prefix prefix) {
         case Prefix::Zetta: return 7;
         case Prefix::Yotta: return 8;
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
 
-DataSizeRepresentation::Prefix DataSizeRepresentation::exponentToPrefix(quint8 exponent) {
+DataSizeRepresentation::Prefix DataSizeRepresentation::exponentToPrefix(uint8_t exponent) {
 
     switch(exponent) {
         case 0: return Prefix::None;
@@ -149,16 +149,16 @@ DataSizeRepresentation::Prefix DataSizeRepresentation::exponentToPrefix(quint8 e
         case 7: return Prefix::Zetta;
         case 8: return Prefix::Yotta;
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }
 
-quint16 DataSizeRepresentation::sizeOfBase(Base base) {
+uint16_t DataSizeRepresentation::sizeOfBase(Base base) {
 
     switch(base) {
         case Base::Bit: return 1024;
         case Base::Byte: return 1000;
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 }

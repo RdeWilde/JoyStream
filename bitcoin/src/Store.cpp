@@ -11,8 +11,6 @@
 
 #include <boost/filesystem.hpp>
 
-#include <QString>
-
 #include <openssl/rand.h>
 #include <openssl/err.h>
 #include <openssl/aes.h>
@@ -170,7 +168,7 @@ bool Store::open(std::string file, Coin::Network network) {
             std::cerr << "Store opened in locked state\n";
         }else {
             _locked = false;
-            _entropy = Coin::Entropy(metadata->entropy());
+            _entropy = Coin::Entropy::fromRawHex(metadata->entropy());
             _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
         }
 
@@ -225,7 +223,7 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
         _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
         _accountPubKeychain = _accountPrivKeychain.getPublic();
         _timestamp = timestamp;
-        detail::store::Metadata metadata(_entropy.getHex(), uchar_vector(_accountPubKeychain.extkey()).getHex(), timestamp, network);
+        detail::store::Metadata metadata(_entropy.getRawHex(), uchar_vector(_accountPubKeychain.extkey()).getHex(), timestamp, network);
         _timestamp = timestamp;
         _locked = false;
         _db->persist(metadata);
@@ -281,9 +279,7 @@ uchar_vector Store::keyFromPassphrase(std::string passphrase, uchar_vector rando
         throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
     }
 
-    Coin::UCharArray<32> key(QByteArray((char*)digest, 32));
-
-    return key.toUCharVector();
+    return uchar_vector(digest, 32);
 }
 
 void Store::encrypt(std::string passphrase) {
@@ -340,7 +336,7 @@ void Store::decrypt(std::string passphrase) {
     t.commit();
 
     // decrypting wallet also unlocks it
-    _entropy = Coin::Entropy(metadata->entropy());
+    _entropy = Coin::Entropy::fromRawHex(metadata->entropy());
     _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
     _locked = false;
 }
@@ -364,7 +360,7 @@ void Store::unlock(std::string passphrase) {
 
     auto plaintext_entropy = aes_128_gcm_decrypt(entropy, key);
 
-    _entropy = Coin::Entropy(plaintext_entropy);
+    _entropy = Coin::Entropy::fromRaw(plaintext_entropy);
     _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
     _locked = false;
 }
@@ -543,18 +539,14 @@ Coin::PrivateKey Store::derivePrivateKey(KeychainType chainType, uint32_t index)
 
     Coin::HDKeychain hdKeyChain = _accountPrivKeychain.getChild((uint32_t)chainType).getChild(index);
 
-    Coin::PrivateKey sk(hdKeyChain.privkey());
-
-    return sk;
+    return Coin::PrivateKey::fromRaw(hdKeyChain.privkey());
 }
 
 Coin::PublicKey Store::derivePublicKey(KeychainType chainType, uint32_t index) const {
 
     Coin::HDKeychain hdKeyChain = _accountPubKeychain.getChild((uint32_t)chainType).getChild(index);
 
-    Coin::PublicKey pk(hdKeyChain.pubkey());
-
-    return pk;
+    return Coin::PublicKey::fromCompressedRaw(hdKeyChain.pubkey());
 }
 
 std::vector<Coin::PublicKey> Store::listPublicKeys(KeychainType chainType) const {
@@ -656,7 +648,7 @@ bool Store::transactionExists(const Coin::TransactionId & txid) {
 
     odb::transaction t(_db->begin());
 
-    odb::result<detail::store::Transaction> r(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txid.toHex().toStdString()));
+    odb::result<detail::store::Transaction> r(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txid.getRawHex()));
     return !r.empty();
 }
 
@@ -671,7 +663,7 @@ void Store::addTransaction(const Coin::Transaction & cointx) {
     auto tx = transactionSave(_db, cointx);
     t.commit();
 
-    Q_ASSERT(tx);
+    assert(tx);
 
     notifyTxUpdated(Coin::TransactionId::fromTx(cointx), 0);
 }
@@ -696,7 +688,7 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
         //create new tx or retreive existing one
         std::shared_ptr<detail::store::Transaction> tx = transactionSave(_db, cointx);
 
-        Q_ASSERT(tx);
+        assert(tx);
 
         tx->header(header);
         _db->update(tx);
@@ -812,7 +804,7 @@ void Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock 
 
         //retreive existing transaction and update it
         std::shared_ptr<detail::store::Transaction> tx;
-        odb::result<detail::store::Transaction> transactions(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txid.toHex().toStdString()));
+        odb::result<detail::store::Transaction> transactions(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txid.getRawHex()));
         if(!transactions.empty()) {
             tx = transactions.begin().load();
             tx->header(header);
@@ -879,9 +871,8 @@ std::vector<Store::StoreControlledOutput> Store::getControlledOutputs(int32_t co
 
     auto main_chain_height = getBestHeaderHeight();
 
-    if(confirmations > 0 && main_chain_height == 0) {
+    if(main_chain_height < 0)
         return std::vector<StoreControlledOutput>();
-    }
 
     if(confirmations > 0 && confirmations > main_chain_height) {
         return std::vector<StoreControlledOutput>();
@@ -918,6 +909,9 @@ uint64_t Store::getWalletBalance(int32_t confirmations) const {
     }
 
     auto main_chain_height = getBestHeaderHeight();
+
+    if(main_chain_height < 0)
+        return 0;
 
     if(confirmations > 0  && main_chain_height == 0) {
         return 0;
@@ -1035,7 +1029,7 @@ std::vector<std::string> Store::getLatestBlockHeaderHashes() {
     return hashes;
 }
 
-uint32_t Store::getBestHeaderHeight() const {
+int32_t Store::getBestHeaderHeight() const {
     typedef odb::query<detail::store::BlockHeader> query;
     typedef odb::result<detail::store::BlockHeader> result;
 
@@ -1043,7 +1037,7 @@ uint32_t Store::getBestHeaderHeight() const {
 
     result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "DESC LIMIT 1"));
     if(headers.empty()) {
-        return 0;
+        return -1;
     }
     std::shared_ptr<detail::store::BlockHeader> best(headers.begin().load());
     return best->height();

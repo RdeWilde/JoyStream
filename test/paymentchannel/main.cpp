@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 6 2015
  */
 
-#include <Test.hpp>
+#include <gtest/gtest.h>
 
 #include <common/Seed.hpp>
 #include <common/Payment.hpp>
@@ -22,27 +22,30 @@
 
 #include <ctime>
 
-using namespace joystream::paymentchannel;
+#define WALLET_FILE_NAME "test-paymentchannel"
+#define WALLET_SEED Coin::Seed::testSeeds[0]
+#define NETWORK_TYPE Coin::Network::testnet3
 
-void Test::redeemScript() {
-
-    Coin::KeyPair payorPair = Coin::KeyPair::generate();
-
-    Coin::KeyPair payeePair = Coin::KeyPair::generate();
-
-    Coin::RelativeLockTime locktime;
-
-    RedeemScript rs(payorPair.pk(), payeePair.pk(), locktime);
-
-    uchar_vector serialized = rs.serialized();
-
-    RedeemScript rs_des = RedeemScript::deserialize(serialized);
-
-    QCOMPARE(serialized, rs_des.serialized());
+namespace Coin {
+    class Transaction;
 }
 
-void Test::refund() {
+using namespace joystream::paymentchannel;
 
+TEST(paymentchannelTest, redeemScript)
+{
+    Coin::KeyPair payorPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeePair = Coin::KeyPair::generate();
+    Coin::RelativeLockTime locktime;
+    RedeemScript rs(payorPair.pk(), payeePair.pk(), locktime);
+    uchar_vector serialized = rs.serialized();
+    RedeemScript rs_des = RedeemScript::deserialize(serialized);
+
+    EXPECT_EQ(serialized, rs_des.serialized());
+}
+
+TEST(paymentchannelTest, refund)
+{
     Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
     Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
     Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
@@ -61,24 +64,21 @@ void Test::refund() {
     uint64_t channelValue = 180;
 
     joystream::paymentchannel::Payor p(1, 0, channelValue, 1000, lockTime,contractOutPoint, payorContractPair, payorScriptHash, payeeContractPair.pk(), payeeScriptHash);
-
     joystream::paymentchannel::Refund R(p.refund());
 
-    QCOMPARE(R.getUnspentOutput()->value(), channelValue);
-
-    QVERIFY(R.getUnspentOutput()->outPoint() == contractOutPoint);
+    EXPECT_EQ(R.getUnspentOutput()->value(), channelValue);
+    EXPECT_TRUE(R.getUnspentOutput()->outPoint() == contractOutPoint);
 
     // The output is locked until 3 * 512 seconds pass from the time that the contracted was mined (T = 0)
-    QCOMPARE((unsigned int)lockTime.getDuration().count(), (unsigned int)1536);
-    QCOMPARE((unsigned int)R.lockedUntil(0), (unsigned int)1536);
-    QCOMPARE(R.isLocked( 512, 0), true); // locked
-    QCOMPARE(R.isLocked(1024, 0), true); // locked
-    QCOMPARE(R.isLocked(1536, 0), false); // unlocked
-
+    EXPECT_EQ((unsigned int)lockTime.getDuration().count(), (unsigned int)1536);
+    EXPECT_EQ((unsigned int)R.lockedUntil(0), (unsigned int)1536);
+    EXPECT_TRUE(R.isLocked( 512, 0)); // locked
+    EXPECT_TRUE(R.isLocked(1024, 0)); // locked
+    EXPECT_FALSE(R.isLocked(1536, 0)); // unlocked
 }
 
-void Test::settlement() {
-
+TEST(paymentchannelTest, settlement)
+{
     Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
     Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
     Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
@@ -107,21 +107,20 @@ void Test::settlement() {
     Coin::TransactionSignature payorPaySig = s.transactionSignature(payorContractPair.sk());
 
     bool validPayeeSettlementSig = s.validatePayeeSignature(payeePaySig.sig());
-    QVERIFY(validPayeeSettlementSig);
+    EXPECT_TRUE(validPayeeSettlementSig);
 
     bool validPayorSettlementSig = s.validatePayorSignature(payorPaySig.sig());
-    QVERIFY(validPayorSettlementSig);
+    EXPECT_TRUE(validPayorSettlementSig);
 
-    QVERIFY(s.fee() == 0);
-
+    EXPECT_TRUE(s.fee() == 0);
 }
 
-void Test::channel() {
-
+TEST(paymentchannelTest, channel)
+{
 }
 
-void Test::paychan_one_to_one() {
-
+TEST(paymentchannelTest, paychan_one_to_one)
+{
     // replace all "generate" with fixed private keys from bitcore playground
 
     // Setup keys
@@ -185,15 +184,17 @@ void Test::paychan_one_to_one() {
     int number_of_payments = 10;
 
     for(int i = 0; i < number_of_payments; i++) {
-
         // Payor makes payment i
         Coin::Signature paymentSignature = payor.makePayment();
 
         // Payee validates payment i
-        QVERIFY(payee.registerPayment(paymentSignature));
+        EXPECT_TRUE(payee.registerPayment(paymentSignature));
     }
 
 }
 
-QTEST_MAIN(Test)
-#include "moc_Test.cpp"
+int main(int argc, char *argv[])
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

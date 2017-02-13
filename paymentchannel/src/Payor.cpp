@@ -28,10 +28,10 @@ namespace paymentchannel {
         , _refundLockTime() {
     }
 
-    Payor::Payor(quint64 price,
-                     quint64 numberOfPaymentsMade,
-                     quint64 funds,
-                     quint64 settlementFee,
+    Payor::Payor(uint64_t price,
+                     uint64_t numberOfPaymentsMade,
+                     uint64_t funds,
+                     uint64_t settlementFee,
                      Coin::RelativeLockTime refundLockTime,
                      const Coin::typesafeOutPoint & anchor,
                      const Coin::KeyPair & payorContractKeyPair,
@@ -90,7 +90,7 @@ namespace paymentchannel {
         return generatePayorSettlementSignature();
     }
 
-    quint64 Payor::amountPaid() const {
+    uint64_t Payor::amountPaid() const {
         return _price*_numberOfPaymentsMade;
     }
 
@@ -104,35 +104,35 @@ namespace paymentchannel {
 
     }
 
-    quint64 Payor::price() const {
+    uint64_t Payor::price() const {
         return _price;
     }
 
-    void Payor::setPrice(quint64 price) {
+    void Payor::setPrice(uint64_t price) {
         _price = price;
     }
 
-    quint64 Payor::numberOfPaymentsMade() const {
+    uint64_t Payor::numberOfPaymentsMade() const {
         return _numberOfPaymentsMade;
     }
 
-    void Payor::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
+    void Payor::setNumberOfPaymentsMade(uint64_t numberOfPaymentsMade) {
         _numberOfPaymentsMade = numberOfPaymentsMade;
     }
 
-    quint64 Payor::funds() const {
+    uint64_t Payor::funds() const {
         return _funds;
     }
 
-    void Payor::setFunds(quint64 funds) {
+    void Payor::setFunds(uint64_t funds) {
         _funds = funds;
     }
 
-    quint64 Payor::settlementFee() const {
+    uint64_t Payor::settlementFee() const {
         return _settlementFee;
     }
 
-    void Payor::setSettlementFee(quint64 settlementFee) {
+    void Payor::setSettlementFee(uint64_t settlementFee) {
         _settlementFee = settlementFee;
     }
 

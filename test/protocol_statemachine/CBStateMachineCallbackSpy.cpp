@@ -6,7 +6,7 @@
  */
 
 #include <CBStateMachineCallbackSpy.hpp>
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 
 CBStateMachineCallbackSpy::CBStateMachineCallbackSpy()
     : _message(nullptr) {
@@ -28,7 +28,7 @@ protocol_statemachine::CBStateMachine * CBStateMachineCallbackSpy::createMonitor
     [this]() {
         _hasBeenInvitedToJoinContract = true;
     },
-    [this](const protocol_wire::ExtendedMessagePayload * m) {
+    [this](const protocol_wire::Message * m) {
 
         std::cout << "Sending message: " <<  protocol_wire::messageName(m->messageType()) << std::endl;
 
@@ -39,7 +39,7 @@ protocol_statemachine::CBStateMachine * CBStateMachineCallbackSpy::createMonitor
 
         _message = m;
     },
-    [this](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
+    [this](uint64_t value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
         _contractHasBeenPrepared = true;
         _anchor = anchor;
         _value = value;
@@ -226,7 +226,7 @@ Coin::typesafeOutPoint CBStateMachineCallbackSpy::anchor() const {
     return _anchor;
 }
 
-quint64 CBStateMachineCallbackSpy::value() const {
+uint64_t CBStateMachineCallbackSpy::value() const {
     return _value;
 }
 

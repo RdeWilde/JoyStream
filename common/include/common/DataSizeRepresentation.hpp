@@ -8,9 +8,7 @@
 #ifndef COIN_DATA_SIZE_REPRESENTATION_HPP
 #define COIN_DATA_SIZE_REPRESENTATION_HPP
 
-#include <QtGlobal>
-
-class QString;
+#include <string>
 
 // Manages data size representations
 // Based on http://en.wikipedia.org/wiki/JEDEC_memory_standards#Unit_prefixes_for_semiconductor_storage_capacity
@@ -34,7 +32,7 @@ public:
         Yotta  //^8
     };
 
-    static const quint8 maxPower; // = 8
+    static const uint8_t maxPower; // = 8
 
     // Base of representation
     // ======================
@@ -59,7 +57,7 @@ public:
     };
 
     // Constructor
-    DataSizeRepresentation(quint64 numberOfBaseUnits, Base base);
+    DataSizeRepresentation(uint64_t numberOfBaseUnits, Base base);
 
     // Copy constructor
     DataSizeRepresentation(const DataSizeRepresentation & o);
@@ -71,12 +69,12 @@ public:
     double unitsWithPrefix(Prefix prefix) const;
 
     // Returns string form of representation
-    QString toString(Prefix prefix, TextFormat format = TextFormat::Short, int precision = 1) const;
-    QString toString(TextFormat format = TextFormat::Short, int precision = 1) const;
+    std::string toString(Prefix prefix, TextFormat format = TextFormat::Short, int precision = 1) const;
+    std::string toString(TextFormat format = TextFormat::Short, int precision = 1) const;
 
     // Getters and setters
-    quint64 numberOfBaseUnits() const;
-    void setNumberOfBaseUnits(quint64 numberOfBaseUnits);
+    uint64_t numberOfBaseUnits() const;
+    void setNumberOfBaseUnits(uint64_t numberOfBaseUnits);
 
     Base base() const;
     void setBase(Base base);
@@ -84,18 +82,18 @@ public:
 private:
 
     // The number of base units of data
-    quint64 _numberOfBaseUnits;
+    uint64_t _numberOfBaseUnits;
 
     // Base for representation
     Base _base;
 
     // Static utilities
-    static QString prefixToString(Prefix prefix, TextFormat format = TextFormat::Short);
-    static QString baseToString(Base base, TextFormat format = TextFormat::Short);
+    static std::string prefixToString(Prefix prefix, TextFormat format = TextFormat::Short);
+    static std::string baseToString(Base base, TextFormat format = TextFormat::Short);
 
-    static quint8 prefixToExponent(Prefix prefix);
-    static Prefix exponentToPrefix(quint8 power);
-    static quint16 sizeOfBase(Base base);
+    static uint8_t prefixToExponent(Prefix prefix);
+    static Prefix exponentToPrefix(uint8_t power);
+    static uint16_t sizeOfBase(Base base);
 };
 
 #endif // COIN_DATA_SIZE_REPRESENTATION_HPP

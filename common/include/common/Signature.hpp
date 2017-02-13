@@ -5,14 +5,13 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 9 2015
  */
 
+#include <string>
+#include <istream>
+#include <ostream>
 #include <stdutils/uchar_vector.h>
 
 #ifndef COIN_SIGNATURE_HPP
 #define COIN_SIGNATURE_HPP
-
-class QString;
-class QDataStream;
-class QByteArray;
 
 namespace Coin {
 
@@ -33,10 +32,9 @@ public:
     Signature();
 
     // Constructor from members
-    Signature(const uchar_vector & raw);
+    static Signature fromRawDER(const std::vector<unsigned char> &);
 
-    // Hex encoded signature
-    Signature(const QString & signature);
+    static Signature fromRawDERHex(const std::string&);
 
     // Copy constructor
     Signature(const Signature & signature);
@@ -53,28 +51,15 @@ public:
     // Length of signature
     unsigned int length() const;
 
-    // Hex encoded signature
-    QString toString() const;
-
-    // Raw data
-    QByteArray toByteArray() const;
-
-    // Raw data
-    uchar_vector toUCharVector() const;
-
-    // Stream processing
-    int readFromStream(QDataStream & stream, unsigned int length);
-    int writeToStream(QDataStream & stream) const;
-
     // Getters and setters
-    uchar_vector raw() const;
-    void setRaw(const uchar_vector & raw);
+    std::vector<unsigned char> rawDER() const;
 
 private:
+    void setRawDER(const std::vector<unsigned char> &raw);
 
     // (Strict?) DER encoded signature
     // 0 is most significant byte for comparisons
-    uchar_vector _raw;
+    std::vector<unsigned char> _raw;
 };
 
 }

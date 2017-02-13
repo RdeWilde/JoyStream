@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     std::cout << "Wallet contains the following receive addresses:\n";
 
     for(auto addr : recvAddresses) {
-        std::cout << addr.toBase58CheckEncoding().toStdString() << std::endl;
+        std::cout << addr.toBase58CheckEncoding() << std::endl;
     }
 
     std::cout << std::endl << "Balance: " << wallet.unconfirmedBalance() << std::endl;

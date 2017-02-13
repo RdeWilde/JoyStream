@@ -69,10 +69,10 @@ Coin::Transaction ContractTransactionBuilder::transaction() const {
     return transaction;
 }
 
-uint64_t ContractTransactionBuilder::totalFee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb, uint64_t sizeOfAllInputs) {
+uint64_t ContractTransactionBuilder::totalFee(uint32_t numberOfCommitments, bool hasChange, uint64_t feePerKb, uint64_t sizeOfAllInputs) {
 
     // Sizeof transaction
-    quint64 txByteSize = transactionSize(numberOfCommitments, hasChange) + sizeOfAllInputs;
+    uint64_t txByteSize = transactionSize(numberOfCommitments, hasChange) + sizeOfAllInputs;
 
     // Seed on fee estimate at http://bitcoinfees.com/
     return ceil(feePerKb*((float)txByteSize/1024));
@@ -87,7 +87,7 @@ uint64_t ContractTransactionBuilder::transactionSize(uint32_t numberOfCommitment
 
     // set change
     if(hasChange)
-        c.setChange(Coin::Payment(0, Coin::PrivateKey("153213303DA61F20BD67FC233AA33262").toPublicKey().toPubKeyHash()));
+        c.setChange(Coin::Payment(0, Coin::PubKeyHash(uchar_vector(PUBKEY_HASH_BYTE_LENGTH,0xff))));
 
     // Generate transaction
     Coin::Transaction tx = c.transaction();

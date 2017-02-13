@@ -8,13 +8,13 @@
 #ifndef JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
 #define JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 #include <protocol_wire/BuyerTerms.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Buy : public ExtendedMessagePayload {
+    class Buy : public Message {
 
     public:
 
@@ -28,19 +28,15 @@ namespace protocol_wire {
 
         bool operator==(const Buy &) const;
 
-        // Constructor based on raw payload
-        // NB: Substitute with static factory in future, so that you cannot create stale
-        // payload objects if there is an error in the reading from stream
-        Buy(QDataStream & stream);
-
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
 
         // Getters and setters
         BuyerTerms terms() const;
         void setTerms(const BuyerTerms &);
+
+        // Overload the << operator for easiness in debugging with GTest
+        friend std::ostream& operator<<(std::ostream &os, const Buy &obj);
 
     private:
 

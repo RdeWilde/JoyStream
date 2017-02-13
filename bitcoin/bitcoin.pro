@@ -3,7 +3,6 @@
 # Proprietary and confidential
 
 QT -= gui
-QT += network # required for blockcypher module
 
 TARGET = bitcoin
 TEMPLATE = lib

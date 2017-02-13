@@ -18,14 +18,14 @@ P2SHAddress::P2SHAddress(Network network, const RedeemScriptHash & redeemScriptH
 {
 }
 
-P2SHAddress P2SHAddress::fromBase58CheckEncoding(const QString & encoded) {
+P2SHAddress P2SHAddress::fromBase58CheckEncoding(const std::string & encoded) {
 
     // Decode
     Base58CheckEncodable encodedType;
     Network network;
     uchar_vector redeemScriptHash;
 
-    decodeBase58CheckEncoding(encoded.toStdString(), encodedType, network, redeemScriptHash);
+    decodeBase58CheckEncoding(encoded, encodedType, network, redeemScriptHash);
 
     // Check that input is indeed a p2pkh address
     if(encodedType != Base58CheckEncodable::P2SH_ADDRESS)
@@ -35,15 +35,15 @@ P2SHAddress P2SHAddress::fromBase58CheckEncoding(const QString & encoded) {
     return P2SHAddress(network, RedeemScriptHash::fromRawHash(redeemScriptHash));
 }
 
-QString P2SHAddress::toBase58CheckEncoding() const {
+std::string P2SHAddress::toBase58CheckEncoding() const {
 
     // Create version bytes
     std::vector<unsigned char> versionBytes = toVersionBytes(Base58CheckEncodable::P2SH_ADDRESS, _network);
 
     // Base58Check encode and return result
-    std::string encoded = toBase58Check(_redeemScriptHash.toUCharVector(), versionBytes);
+    std::string encoded = toBase58Check(_redeemScriptHash.toRawVector(), versionBytes);
 
-    return QString::fromStdString(encoded);
+    return encoded;
 }
 
 P2SHScriptPubKey P2SHAddress::toP2SHScriptPubKey() const {

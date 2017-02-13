@@ -20,21 +20,26 @@ namespace Coin {
 Entropy::Entropy() {
 }
 
-Entropy::Entropy(const char * raw)
-    : Entropy(QByteArray(raw, WALLET_ENTROPY_BYTE_LENGTH)) {
+Entropy Entropy::fromRaw(const unsigned char * raw) {
+    Entropy e;
+    e.setRaw(raw);
+    return e;
 }
 
-Entropy::Entropy(const QByteArray & raw)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
+Entropy Entropy::fromRaw(const std::vector<unsigned char> &raw) {
+    Entropy e;
+    e.setRaw(raw);
+    return e;
 }
 
-Entropy::Entropy(const uchar_vector &raw)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
-
+Entropy Entropy::fromRawHex(const std::string & hexEncoded) {
+    Entropy e;
+    e.setRawHex(hexEncoded);
+    return e;
 }
 
-Entropy::Entropy(const std::string & hexEncoded)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(hexEncoded) {
+std::vector<unsigned char> Entropy::toRawVector() const {
+    return getRawVector();
 }
 
 Entropy::~Entropy(){
@@ -54,7 +59,7 @@ Entropy Entropy::generate() {
 
 Seed Entropy::seed(std::string passphrase) const {
     // Convert entropy to mnemonic phrase
-    std::string wordlistString = Coin::BIP39::toWordlist(this->toUCharVector());
+    std::string wordlistString = Coin::BIP39::toWordlist(this->toRawVector());
     const char * password = wordlistString.c_str();
 
     std::string saltString = "mnemonic" + passphrase;
@@ -72,23 +77,15 @@ Seed Entropy::seed(std::string passphrase) const {
         throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
     }
 
-    // Construct Seed from raw bytes
-    QByteArray seed((char*)digest, WALLET_SEED_BYTE_LENGTH);
-
-    return Seed(seed);
+    return Seed::fromRaw(digest);
 }
 
 Entropy Entropy::fromMnemonic(std::string wordList) {
-    uchar_vector raw(Coin::BIP39::fromWordlist(wordList));
-    return Entropy(raw.getHex());
+    return Entropy::fromRaw(Coin::BIP39::fromWordlist(wordList));
 }
 
 std::string Entropy::mnemonic() const {
-    return Coin::BIP39::toWordlist(this->toUCharVector());
-}
-
-std::string Entropy::getHex() const {
-    return this->toUCharVector().getHex();
+    return Coin::BIP39::toWordlist(this->toRawVector());
 }
 
 }

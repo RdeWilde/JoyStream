@@ -8,12 +8,12 @@
 #ifndef JOYSTREAM_WIRE_REQUEST_FULL_PIECE_HPP
 #define JOYSTREAM_WIRE_REQUEST_FULL_PIECE_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class RequestFullPiece : public ExtendedMessagePayload {
+    class RequestFullPiece : public Message {
 
     public:
 
@@ -23,19 +23,12 @@ namespace protocol_wire {
         // Constructor based on members
         RequestFullPiece(int pieceIndex);
 
-        // Constructor based on raw payload
-        // NB: Substitute with static factory in future, so that you cannot create stale
-        // payload objects if there is an error in the reading from stream
-        RequestFullPiece(QDataStream & stream);
-
         virtual ~RequestFullPiece() {}
 
         bool operator==(const RequestFullPiece &) const;
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
 
         // Getters and setters
         int pieceIndex() const;

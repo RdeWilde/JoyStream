@@ -4,21 +4,20 @@
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, April 14 2016
 
 TARGET = protocol_wire-test
-TEMPLATE = app
-
-CONFIG  += console
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11
-CONFIG  += testcase
+CONFIG  -= core
 
-QT      += core
-QT      += testlib
-
-HEADERS += \
-    Test.hpp
+#HEADERS += \
+#    Test.hpp
 
 SOURCES += \
-    Test.cpp
+    main.cpp
+
+# GTest configs
+QMAKE_CXXFLAGS += -pthread
+LIBS += -pthread
+LIBS += -lgtest
 
 # protocol_wire ###################################################################################
 

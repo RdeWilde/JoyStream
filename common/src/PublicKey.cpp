@@ -14,19 +14,52 @@
 
 namespace Coin {
 
-PublicKey::PublicKey() {
+PublicKey::PublicKey() : UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH>() {
 }
 
-PublicKey::PublicKey(const uchar_vector & rawCompressedKey)
-    : UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH>(rawCompressedKey) {
+PublicKey PublicKey::fromCompressedRawHex(const std::string &hex) {
+    PublicKey pk;
 
-    // Verify key validity
-    if(!valid(*this))
-        throw InvalidPublicKeyException(*this);
+    pk.setRawHex(hex);
+
+    if(!valid(pk))
+        throw InvalidPublicKeyException(pk);
+
+    return pk;
+}
+
+PublicKey PublicKey::fromCompressedRaw(const unsigned char* raw) {
+    PublicKey pk;
+
+    pk.setRaw(raw);
+
+    if(!valid(pk))
+        throw InvalidPublicKeyException(pk);
+
+    return pk;
+}
+
+PublicKey PublicKey::fromCompressedRaw(const std::vector<unsigned char>& raw) {
+    PublicKey pk;
+
+    pk.setRaw(raw);
+
+    if(!valid(pk))
+        throw InvalidPublicKeyException(pk);
+
+    return pk;
+}
+
+size_t PublicKey::compressedLength() {
+    return COMPRESSED_PUBLIC_KEY_BYTE_LENGTH;
+}
+
+std::vector<unsigned char> PublicKey::toCompressedRawVector() const {
+    return getRawVector();
 }
 
 PubKeyHash PublicKey::toPubKeyHash() const {
-    return PubKeyHash(ripemd160(sha256(toUCharVector())));
+    return PubKeyHash(ripemd160(sha256(toCompressedRawVector())));
 }
 
 bool PublicKey::verify(const uchar_vector & message, const Signature & sig) const {
@@ -38,14 +71,14 @@ bool PublicKey::verify(const uchar_vector & message, const Signature & sig) cons
 
     // Create signature checking key for thisp public key
     CoinCrypto::secp256k1_key signatureCheckingKey;
-    signatureCheckingKey.setPubKey(toUCharVector());
+    signatureCheckingKey.setPubKey(toCompressedRawVector());
 
     // Check signature
     bool verified;
 
     try {
 
-        verified = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig.toUCharVector(), CoinCrypto::SignatureFlag::SIGNATURE_ENFORCE_LOW_S);
+        verified = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig.rawDER(), CoinCrypto::SignatureFlag::SIGNATURE_ENFORCE_LOW_S);
 
     } catch(const std::runtime_error & e) {
 
@@ -61,7 +94,7 @@ bool PublicKey::valid(const PublicKey & pk) {
     try {
 
         CoinCrypto::secp256k1_key checkingKey;
-        checkingKey.setPubKey(pk.toUCharVector());
+        checkingKey.setPubKey(pk.toCompressedRawVector());
 
         return true;
     } catch (const std::runtime_error &) {

@@ -29,9 +29,14 @@ public:
     // Default constructor with blank key
     PrivateKey();
 
-    // Constructor from raw key
-    PrivateKey(const uchar_vector & vector);
-    PrivateKey(const QByteArray & array);
+    // Named constructor from raw hex encoded string
+    static PrivateKey fromRawHex(const std::string &);
+
+    // Named constructors from raw key
+    static PrivateKey fromRaw(const unsigned char*);
+    static PrivateKey fromRaw(const std::vector<unsigned char>&);
+
+    std::vector<unsigned char> toRawVector() const;
 
     // Secure destruction private key
     ~PrivateKey();
@@ -39,14 +44,8 @@ public:
     // Generates fresh key
     static PrivateKey generate();
 
-    // Factory from WIF encoded private key (for compressed pubkey)
-    static PrivateKey fromWIF(const QString & encoded);
-
     // Validity of key
     static bool valid(const PrivateKey &);
-
-    // WIF Encode private key
-    QString toWIF(Network network, PublicKeyCompression compression) const;
 
     // Sign raw data
     Signature sign(const uchar_vector & message) const;

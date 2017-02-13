@@ -4,23 +4,37 @@
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, April 12 2016
 
 TARGET = protocol_session-test
-TEMPLATE = app
-
-CONFIG  += console
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11
-CONFIG  += testcase
-
-QT      += core
-QT      += testlib
+CONFIG  -= core
 
 HEADERS += \
-    Test.hpp \
-    SessionSpy.hpp
+    SessionSpy.hpp \
+    SessionTest.hpp
 
 SOURCES += \
-    Test.cpp \
-    SessionSpy.cpp
+    SessionSpy.cpp \
+    SessionTest.cpp \
+    main.cpp
+
+# GTest configs
+QMAKE_CXXFLAGS +=-pthread
+LIBS += -pthread
+LIBS += -lgtest
+
+# paymentchannels #################################################################################
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/release/ -lpaymentchannel
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/debug/ -lpaymentchannel
+else:unix: LIBS += -L$$OUT_PWD/../../paymentchannel/ -lpaymentchannel
+
+INCLUDEPATH += $$PWD/../../paymentchannel/include
+DEPENDPATH += $$PWD/../../paymentchannel/
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/libpaymentchannel.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/libpaymentchannel.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/paymentchannel.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/paymentchannel.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/libpaymentchannel.a
 
 # protocol_session ################################################################################
 
@@ -66,20 +80,6 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../p
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_wire/release/protocol_wire.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_wire/debug/protocol_wire.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../protocol_wire/libprotocol_wire.a
-
-# paymentchannels #################################################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/release/ -lpaymentchannel
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/debug/ -lpaymentchannel
-else:unix: LIBS += -L$$OUT_PWD/../../paymentchannel/ -lpaymentchannel
-
-INCLUDEPATH += $$PWD/../../paymentchannel/include
-DEPENDPATH += $$PWD/../../paymentchannel/
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/libpaymentchannel.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/libpaymentchannel.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/paymentchannel.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/paymentchannel.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/libpaymentchannel.a
 
 # common ###################################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/release/ -lcommon

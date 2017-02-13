@@ -8,8 +8,6 @@
 #include <protocol_wire/JoinContract.hpp>
 #include <protocol_wire/MessageType.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -21,20 +19,8 @@ namespace protocol_wire {
         : _index(index) {
     }
 
-    JoinContract::JoinContract(QDataStream & stream) {
-        stream >> _index;
-    }
-
     bool JoinContract::operator==(const JoinContract & rhs) const {
         return _index == rhs.index();
-    }
-
-    quint32 JoinContract::length() const {
-        return sizeof(_index);
-    }
-
-    void JoinContract::write(QDataStream & stream) const {
-        stream << _index;
     }
 
     MessageType JoinContract::messageType() const {
@@ -43,6 +29,10 @@ namespace protocol_wire {
 
     uint32_t JoinContract::index() const {
         return _index;
+    }
+
+    void JoinContract::setIndex(uint32_t index) {
+        _index = index;
     }
 
 }

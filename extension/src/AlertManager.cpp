@@ -28,7 +28,7 @@ void AlertManager::request_emplace_alert(extension::alert::LoadedCallBack &c)
 
 void AlertManager::anchorAnnounced_emplace_alert(
     libtorrent::torrent_handle h, libtorrent::tcp::endpoint &endPoint,
-    quint64 value, const Coin::typesafeOutPoint &anchor,
+    uint64_t value, const Coin::typesafeOutPoint &anchor,
     const Coin::PublicKey &contractPk, const Coin::PubKeyHash &finalPkHash
 )
 {

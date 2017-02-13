@@ -8,6 +8,10 @@
 #ifndef COIN_typesafeOUT_POINT_HPP
 #define COIN_typesafeOUT_POINT_HPP
 
+#include <string>
+#include <istream>
+#include <ostream>
+
 #include <common/TransactionId.hpp>
 
 namespace Coin {
@@ -22,7 +26,7 @@ public:
     typesafeOutPoint();
 
     // Constructor
-    typesafeOutPoint(const TransactionId & transactionId, quint32 index);
+    typesafeOutPoint(const TransactionId & transactionId, uint32_t index);
 
     // Copy constructor
     typesafeOutPoint(const typesafeOutPoint& outPoint);
@@ -41,13 +45,13 @@ public:
     friend bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs);
 
     // Stream i/o operators
-    friend QDataStream & operator<<(QDataStream & stream, const typesafeOutPoint &);
-    friend QDataStream & operator>>(QDataStream & stream, typesafeOutPoint &);
+    friend std::ostream & operator<<(std::ostream & stream, const typesafeOutPoint &);
+    friend std::istream & operator>>(std::istream & stream, typesafeOutPoint &);
 
     // Flat representation, so outpoint can be used as json key
-    typesafeOutPoint(const QString & string);
+    typesafeOutPoint(const std::string & string);
 
-    QString toLittleEndianTxIdString() const;
+    std::string toLittleEndianTxIdString() const;
 
     Coin::OutPoint getClassicOutPoint() const;
 
@@ -55,8 +59,8 @@ public:
     TransactionId transactionId() const;
     void setTransactionId(const TransactionId & transactionId);
 
-    quint32 index() const;
-    void setIndex(quint32 index);
+    uint32_t index() const;
+    void setIndex(uint32_t index);
 
 private:
 
@@ -64,7 +68,7 @@ private:
     TransactionId _txId;
 
     // Output index
-    quint32 _index;
+    uint32_t _index;
 };
 
 }

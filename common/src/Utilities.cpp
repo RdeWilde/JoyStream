@@ -5,6 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
+#include <cassert>
+
 #include <common/Utilities.hpp>
 
 #include <stdutils/uchar_vector.h>
@@ -15,28 +17,35 @@
 #include <common/P2PKHScriptSig.hpp>
 #include <common/typesafeOutPoint.hpp>
 
-#include <QByteArray>
-#include <QDebug>
-
 namespace Coin {
 
-    QByteArray toByteArray(const uchar_vector & raw) {
+    std::vector<unsigned char> hexToUCharVector(std::string hexString) {
+        const static std::string HEXCHARS("0123456789abcdefABCDEF");
 
-        // Get pointer to data
-        const char * data = (const char *)raw.data();
+        std::vector<unsigned char> vector;
 
-        // Construct byte array and return it
-        return QByteArray(data, raw.size());
-    }
+        // pad on the left if hex contains an odd number of digits.
+        if (hexString.size() % 2 == 1)
+            hexString = "0" + hexString;
 
-    uchar_vector toUCharVector(const QByteArray & array) {
+        unsigned char byte;
+        std::string nibbles;
+        const auto length = hexString.size();
 
-        // Get pointer to data
-        const unsigned char * data = (const unsigned char *)array.data();
+        for(unsigned int i = 0, j = 0; i < length; i += 2, j++) {
+           nibbles = hexString.substr(i, 2);
 
-        // Construct uchar_vector
-        return uchar_vector(data, array.size());
+          // verify we have valid hex characters
+          if(HEXCHARS.find(nibbles[0]) == std::string::npos ||
+             HEXCHARS.find(nibbles[1]) == std::string::npos) {
+            throw std::runtime_error("Invalid characters in hex string");
+          }
 
+          sscanf(nibbles.c_str(), "%x", &byte);
+          vector.push_back(byte);
+        }
+
+        return vector;
     }
 
     const unsigned char * networkToAddressVersions(Network network) {
@@ -46,7 +55,7 @@ namespace Coin {
             case Network::mainnet: return mainnetAddressVersions;
             case Network::regtest: return testnet3AddressVersions;
             default:
-                    Q_ASSERT(false);
+                    assert(false);
         }
     }
 
@@ -86,7 +95,7 @@ namespace Coin {
         }
 
         if(value < 17) {
-            return uchar_vector(1, 0x51 + (uchar)value - 1);
+            return uchar_vector(1, 0x51 + (unsigned char)value - 1);
         }
 
         uchar_vector encodedNumber = serializeScriptNum(value);
@@ -264,7 +273,7 @@ namespace Coin {
                 serialized += (*i).opPushForScriptSigSerialized();
 
         } else
-            Q_ASSERT(false);
+            assert(false);
 
         return serialized;
 
