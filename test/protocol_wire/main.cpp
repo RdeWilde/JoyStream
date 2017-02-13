@@ -12,7 +12,7 @@ using namespace joystream::protocol_wire;
 template <class MESSAGE_TYPE>
 MESSAGE_TYPE writeAndReadFromStream(const MESSAGE_TYPE &msg)
 {
-    std::vector<char> raw(1024);
+    std::vector<char> raw(OutputWireStream::sizeOf(&msg));
 
     char_array_buffer buff(raw);
 
@@ -31,6 +31,8 @@ MESSAGE_TYPE writeAndReadFromStream(const MESSAGE_TYPE &msg)
 TEST(protocol_wire_test, char_array_buffer) {
     char data[] = {0, 0, 0, 0, 0};
     char_array_buffer buff(data, data + sizeof(data));
+
+    EXPECT_EQ(buff.in_avail(), sizeof(data));
 
     buff.sputc(0xbe);
     buff.sputc(0xef);
@@ -56,6 +58,7 @@ TEST(protocol_wire_test, char_array_buffer) {
 
     // seek to absolute position
     EXPECT_EQ(buff.pubseekpos(1, std::ios::in), 1);
+    EXPECT_EQ(buff.in_avail(), 4);
     EXPECT_EQ((unsigned int)buff.sgetc(), 0xef);
 
     // seek to relative position
