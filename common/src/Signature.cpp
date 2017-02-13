@@ -16,10 +16,47 @@ Signature::Signature()
     : _raw(maxLength, 0) {
 }
 
-Signature::Signature(const uchar_vector & raw) {
+Signature Signature::fromRawDER(const std::vector<unsigned char> & raw) {
+    Signature sig;
+    sig.setRawDER(raw);
+    return sig;
+}
 
+Signature Signature::fromRawDERHex(const std::string& hex) {
+    auto raw = Coin::hexToUCharVector(hex);
+    Signature sig;
+    sig.setRawDER(raw);
+    return sig;
+}
+
+Signature::Signature(const Signature & signature)
+    : _raw(signature.rawDER()) {
+}
+
+Signature::~Signature() {
+    _raw.clear();
+}
+
+Signature & Signature::operator=(const Signature & signature) {
+    _raw = signature.rawDER();
+    return *this;
+}
+
+bool Signature::operator==(const Signature & rhs) const {
+    return _raw == rhs.rawDER();
+}
+
+unsigned int Signature::length() const {
+    return _raw.size();
+}
+
+std::vector<unsigned char> Signature::rawDER() const {
+    return _raw;
+}
+
+void Signature::setRawDER(const std::vector<unsigned char> & raw) {
     // Check that input is no longer than
-    uchar_vector::size_type inputLength = raw.size();
+    auto inputLength = raw.size();
 
     if(inputLength > maxLength) {
 
@@ -32,110 +69,9 @@ Signature::Signature(const uchar_vector & raw) {
           << inputLength;
 
         throw std::runtime_error(s.str());
-    } else
-        setRaw(raw);
+    }
 
-}
-
-Signature::Signature(const std::string & string) {
-
-    // Check that string has correct length
-
-    unsigned int stringLength = string.length();
-
-    if(stringLength > 2*maxLength)
-        throw std::runtime_error("String argument is of incorrect length, should be 2*MAX_SIGNATURE_LENGTH.");
-    else
-        _raw = Coin::toUCharVector(string);
-}
-
-Signature::Signature(const Signature & signature)
-    : _raw(signature.raw()) {
-}
-
-Signature::~Signature() {
-    _raw.clear();
-}
-
-Signature & Signature::operator=(const Signature & signature) {
-    _raw = signature.raw();
-    return *this;
-}
-
-bool Signature::operator==(const Signature & rhs) const {
-    return _raw == rhs.raw();
-}
-
-unsigned int Signature::length() const {
-    return _raw.size();
-}
-
-std::string Signature::toString() const {
-
-    const char * begin = (const char *)_raw.data();
-    return std::string(begin);
-}
-
-uchar_vector Signature::toUCharVector() const {
-
-    // Get pointer to data
-    const unsigned char * data = reinterpret_cast<const unsigned char *>(_raw.data());
-
-    // Construct byte array and return it
-    return uchar_vector(data, _raw.size());
-}
-
-int Signature::readFromStream(std::istream & stream, unsigned int length) {
-
-    // Check that signature is not to large
-    if(length > maxLength)
-        throw std::runtime_error("Length argument is to large, should be MAX_SIGNATURE_LENGTH.");
-
-    // Allocate buffer
-    _raw = std::vector<unsigned char>(length, 0);
-
-    // Read from stream
-    char * data = (char *)_raw.data();
-    stream.read(data, length);
-    unsigned int bytesRead = stream.gcount();
-
-    if(bytesRead != length)
-        throw new std::runtime_error("Could not read length bytes.");
-
-    return bytesRead;
-}
-
-int Signature::writeToStream(std::ostream & stream) const {
-
-    if(_raw.size() == 0)
-        return 0;
-
-    unsigned int bytesWritten;
-
-    // Write to stream
-    const char * data = (const char *)_raw.data();
-
-    auto begin = stream.tellp();
-    stream.write(data, _raw.size());
-    auto end = stream.tellp();
-
-    if (begin != -1 && end != -1)
-        bytesWritten = end - begin;
-    else
-        bytesWritten = -1;
-
-    if(bytesWritten != _raw.size())
-        throw new std::runtime_error("Could not write length bytes.");
-
-    return bytesWritten;
-}
-
-uchar_vector Signature::raw() const {
-    return _raw;
-}
-
-void Signature::setRaw(const uchar_vector & buffer) {
-    _raw = buffer;
+    _raw = raw;
 }
 
 }

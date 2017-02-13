@@ -19,14 +19,33 @@
 
 namespace Coin {
 
-    uchar_vector toUCharVector(const std::string & array) {
+    std::vector<unsigned char> hexToUCharVector(std::string hexString) {
+        const static std::string HEXCHARS("0123456789abcdefABCDEF");
 
-        // Get pointer to data
-        const unsigned char * data = (const unsigned char *)array.data();
+        std::vector<unsigned char> vector;
 
-        // Construct uchar_vector
-        return uchar_vector(data, array.size());
+        // pad on the left if hex contains an odd number of digits.
+        if (hexString.size() % 2 == 1)
+            hexString = "0" + hexString;
 
+        unsigned char byte;
+        std::string nibbles;
+        const auto length = hexString.size();
+
+        for(unsigned int i = 0, j = 0; i < length; i += 2, j++) {
+           nibbles = hexString.substr(i, 2);
+
+          // verify we have valid hex characters
+          if(HEXCHARS.find(nibbles[0]) == std::string::npos ||
+             HEXCHARS.find(nibbles[1]) == std::string::npos) {
+            throw std::runtime_error("Invalid characters in hex string");
+          }
+
+          sscanf(nibbles.c_str(), "%x", &byte);
+          vector.push_back(byte);
+        }
+
+        return vector;
     }
 
     const unsigned char * networkToAddressVersions(Network network) {

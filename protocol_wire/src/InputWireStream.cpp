@@ -236,7 +236,7 @@ Coin::Signature InputWireStream::readSignature() {
 
     readBytes(rawSig, sigSize);
 
-    return Coin::Signature(rawSig);
+    return Coin::Signature::fromRawDER(rawSig);
 }
 
 

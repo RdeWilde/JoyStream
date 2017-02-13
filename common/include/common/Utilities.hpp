@@ -17,7 +17,7 @@
 
 namespace Coin {
 
-    uchar_vector toUCharVector(const std::string & array);
+    std::vector<unsigned char> hexToUCharVector(std::string hex);
 
     // Used to provide version array for mSIGNA libs.
     // Returns 1 byte version byte for p2pkh and p2sh addresses on given network

@@ -91,7 +91,7 @@ TEST(statemachineTest, selling)
                                                                              Coin::RedeemScriptHash::fromRawHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671"))));
     f.invalidPieceRequest = event::Recv<protocol_wire::RequestFullPiece>(protocol_wire::RequestFullPiece(9999));
     f.validPieceRequest = event::Recv<protocol_wire::RequestFullPiece>(protocol_wire::RequestFullPiece(1));
-    f.badPayment = event::Recv<protocol_wire::Payment>(protocol_wire::Payment(Coin::Signature("8185781409579048901234890234")));
+    f.badPayment = event::Recv<protocol_wire::Payment>(protocol_wire::Payment(Coin::Signature::fromRawDERHex("8185781409579048901234890234")));
 
     const char * rawData = "datadataajfkdløajdklføasjdklføadsjkfløasdjkfløadata";
     int rawDataLength = strlen(rawData);

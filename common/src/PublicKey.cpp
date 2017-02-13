@@ -78,7 +78,7 @@ bool PublicKey::verify(const uchar_vector & message, const Signature & sig) cons
 
     try {
 
-        verified = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig.toUCharVector(), CoinCrypto::SignatureFlag::SIGNATURE_ENFORCE_LOW_S);
+        verified = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig.rawDER(), CoinCrypto::SignatureFlag::SIGNATURE_ENFORCE_LOW_S);
 
     } catch(const std::runtime_error & e) {
 

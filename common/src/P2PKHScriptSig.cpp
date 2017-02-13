@@ -16,7 +16,7 @@ P2PKHScriptSig::P2PKHScriptSig(const PublicKey & pk, const TransactionSignature 
 }
 
 uint32_t P2PKHScriptSig::maxLength() {
-    return P2PKHScriptSig(PublicKey(), TransactionSignature(uchar_vector(Signature::maxLength), SigHashType())).serialized().size();
+    return P2PKHScriptSig(PublicKey(), TransactionSignature(Signature(), SigHashType())).serialized().size();
 }
 
 uchar_vector P2PKHScriptSig::serialized() const {
@@ -54,7 +54,7 @@ P2PKHScriptSig P2PKHScriptSig::deserialize(const uchar_vector & script) {
         throw std::runtime_error("error deserializing p2pkhScriptSig: no valid public key");
     }
 
-    Signature signature(uchar_vector(&rawTxSignatureAndCode[0], &rawTxSignatureAndCode[rawTxSignatureAndCode.size()-1]));
+    Signature signature = Signature::fromRawDER(uchar_vector(&rawTxSignatureAndCode[0], &rawTxSignatureAndCode[rawTxSignatureAndCode.size()-1]));
 
     uint32_t hashCode = rawTxSignatureAndCode[rawTxSignatureAndCode.size()-1];
 

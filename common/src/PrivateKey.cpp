@@ -104,7 +104,7 @@ Signature PrivateKey::sign(const uchar_vector & data) const {
     signingKey.setPrivKey(toRawVector());
 
     // Comute signature and return
-    return Signature(CoinCrypto::secp256k1_sign(signingKey, data));
+    return Signature::fromRawDER(CoinCrypto::secp256k1_sign(signingKey, data));
 }
 
 PublicKey PrivateKey::toPublicKey() const {

@@ -361,7 +361,7 @@ std::streamsize OutputWireStream::writeTransactionId(const Coin::TransactionId& 
 
 std::streamsize OutputWireStream::writeSignature(const Coin::Signature& sig) {
     std::streamsize written = 0;
-    auto data = sig.raw();
+    auto data = sig.rawDER();
     written += writeInt<uint8_t>(data.size());
     written += writeBytes(data);
     return written;

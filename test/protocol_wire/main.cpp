@@ -191,7 +191,7 @@ TEST(protocol_wire_test, joiningContract)
 
 TEST(protocol_wire_test, payment)
 {
-    Coin::Signature sig("8185781409579048901234890234");
+    Coin::Signature sig = Coin::Signature::fromRawDERHex("8185781409579048901234890234");
     Payment m(sig);
 
     EXPECT_EQ(m.sig(), sig);

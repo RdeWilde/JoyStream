@@ -32,10 +32,9 @@ public:
     Signature();
 
     // Constructor from members
-    Signature(const uchar_vector & raw);
+    static Signature fromRawDER(const std::vector<unsigned char> &);
 
-    // Hex encoded signature
-    Signature(const std::string & signature);
+    static Signature fromRawDERHex(const std::string&);
 
     // Copy constructor
     Signature(const Signature & signature);
@@ -52,25 +51,15 @@ public:
     // Length of signature
     unsigned int length() const;
 
-    // Hex encoded signature
-    std::string toString() const;
-
-    // Raw data
-    uchar_vector toUCharVector() const;
-
-    // Stream processing
-    int readFromStream(std::istream & stream, unsigned int length);
-    int writeToStream(std::ostream & stream) const;
-
     // Getters and setters
-    uchar_vector raw() const;
-    void setRaw(const uchar_vector & raw);
+    std::vector<unsigned char> rawDER() const;
 
 private:
+    void setRawDER(const std::vector<unsigned char> &raw);
 
     // (Strict?) DER encoded signature
     // 0 is most significant byte for comparisons
-    uchar_vector _raw;
+    std::vector<unsigned char> _raw;
 };
 
 }
