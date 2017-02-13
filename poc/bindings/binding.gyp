@@ -26,7 +26,7 @@
                 "joystream-node/Common.cpp",
                 "joystream-node/StartDownloadConnectionInformation.cpp",
                 "joystream-node/PluginAlertEncoder.cpp",
-                #"joystream-node/Plugin.cpp",
+                "joystream-node/Plugin.cpp",
                 "joystream-node/RequestResult.cpp",
                 "joystream-node/TorrentPluginStatus.cpp",
                 "joystream-node/PeerPluginStatus.cpp",
