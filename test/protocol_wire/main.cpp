@@ -5,24 +5,62 @@
 #include <gtest/gtest.h>
 
 #include <protocol_wire/protocol_wire.hpp>
+#include <protocol_wire/char_array_buffer.hpp>
 
 using namespace joystream::protocol_wire;
 
 template <class MESSAGE_TYPE>
-MESSAGE_TYPE writeAndReadFromStream(MESSAGE_TYPE msg)
+MESSAGE_TYPE writeAndReadFromStream(const MESSAGE_TYPE &msg)
 {
-    const std::string raw;
-    std::stringbuf msgBuf(raw);
-    OutputWireStream writeStream(&msgBuf);
+    std::vector<unsigned char> raw(1024);
+
+    char_array_buffer buff(raw);
+
+    OutputWireStream writeStream(&buff);
 
     writeStream << msg;
 
-    InputWireStream readStream(&msgBuf);
+    InputWireStream readStream(&buff);
     MESSAGE_TYPE m2;
 
     readStream >> m2;
 
     return m2;
+}
+
+TEST(protocol_wire_test, char_array_buffer) {
+    char data[] = {0, 0, 0, 0, 0};
+    char_array_buffer buff(data, data + sizeof(data));
+
+    buff.sputc(0xbe);
+    buff.sputc(0xef);
+
+    EXPECT_EQ((unsigned char)data[0], 0xbe);
+    EXPECT_EQ((unsigned char)data[1], 0xef);
+
+    // seek write position
+    EXPECT_EQ(buff.pubseekpos(3, std::ios::out), 3);
+
+    char AB[2] = {'A', 'B'};
+    buff.sputn(AB, 2);
+
+    EXPECT_EQ(data[3], 'A');
+    EXPECT_EQ(data[4], 'B');
+
+    // cannot write beyond the limits of the array - bytes written should equal 0
+    EXPECT_EQ(buff.sputn(AB, 2), 0);
+
+    // fail to seek outside bounds of array
+    EXPECT_EQ(buff.pubseekpos(sizeof(data), std::ios::in), -1);
+    EXPECT_EQ(buff.pubseekpos(-1, std::ios::in), -1);
+
+    // seek to absolute position
+    EXPECT_EQ(buff.pubseekpos(1, std::ios::in), 1);
+    EXPECT_EQ((unsigned int)buff.sgetc(), 0xef);
+
+    // seek to relative position
+    EXPECT_EQ(buff.pubseekoff(0, std::ios_base::end, std::ios::in), sizeof(data) - 1);
+    EXPECT_EQ(buff.sgetc(), 'B');
 }
 
 TEST(protocol_wire_test, network_int)
