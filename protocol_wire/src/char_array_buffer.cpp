@@ -12,7 +12,7 @@ char_array_buffer::char_array_buffer(char *begin, char *end) {
     setp(begin, end);
 }
 
-char_array_buffer::char_array_buffer(std::vector<unsigned char>& buff) {
+char_array_buffer::char_array_buffer(std::vector<char>& buff) {
     // end pointer should be one location past the last element in the array
 
     char* begin = reinterpret_cast<char*>(buff.data());

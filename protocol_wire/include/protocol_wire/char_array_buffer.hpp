@@ -8,7 +8,7 @@ class char_array_buffer : public std::streambuf
 {
     public:
         char_array_buffer(char *begin, char *end);
-        char_array_buffer(std::vector<unsigned char>&);
+        char_array_buffer(std::vector<char> &);
 
     private:
         // seek operations only for get pointer

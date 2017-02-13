@@ -12,7 +12,7 @@ using namespace joystream::protocol_wire;
 template <class MESSAGE_TYPE>
 MESSAGE_TYPE writeAndReadFromStream(const MESSAGE_TYPE &msg)
 {
-    std::vector<unsigned char> raw(1024);
+    std::vector<char> raw(1024);
 
     char_array_buffer buff(raw);
 

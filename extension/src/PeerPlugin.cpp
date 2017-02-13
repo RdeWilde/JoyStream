@@ -16,6 +16,7 @@
 #include <extension/Alert.hpp>
 #include <extension/detail.hpp>
 #include <protocol_wire/protocol_wire.hpp>
+#include <protocol_wire/char_array_buffer.hpp>
 
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
@@ -498,11 +499,9 @@ namespace extension {
         */
 
 
-        // NOTE: Wrap in std::stringbuf: No copying is done, and no ownership is taken!(??Unsure??)
-        std::stringbuf buffer;
-        buffer.pubsetbuf(const_cast<char *>(body.begin), lengthOfExtendedMessagePayload);
+        char* begin = const_cast<char *>(body.begin);
+        char_array_buffer buffer(begin, begin + lengthOfExtendedMessagePayload);
         protocol_wire::InputWireStream stream(&buffer);
-
 
         std::shared_ptr<protocol_wire::ExtendedMessagePayload> m;
 
@@ -598,9 +597,8 @@ namespace extension {
          */
 
         // Allocate message array buffer
-        std::stringbuf buffer;
-        std::vector<char> v_buffer(fullMessageLength);
-        buffer.pubsetbuf(&v_buffer[0], fullMessageLength);
+        std::vector<char> msgBuffer(fullMessageLength);
+        char_array_buffer buffer(msgBuffer);
 
         protocol_wire::OutputWireStream stream(&buffer);
 
@@ -633,13 +631,8 @@ namespace extension {
 
         // If message was written properly into buffer, then send buffer to peer
 
-        // Get raw buffer // getting a std::string from the buffer is bad idea
-        // nulls written into it will terminate the string prematurely
-        // replace stringbuf with our own 'char array' streambuf
-        const char * constData = (buffer.str()).c_str();
-
         // Send message buffer
-        _connection.send_buffer(constData, (buffer.str()).size());
+        _connection.send_buffer(msgBuffer.data(), msgBuffer.size());
 
         // Do some sort of catching of error if sending did not work??
 
