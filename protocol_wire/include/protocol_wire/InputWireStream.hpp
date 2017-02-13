@@ -7,6 +7,8 @@
 
 #include <common/PubKeyHash.hpp>
 
+#include <memory>
+
 namespace Coin {
     class PublicKey;
     class typesafeOutPoint;

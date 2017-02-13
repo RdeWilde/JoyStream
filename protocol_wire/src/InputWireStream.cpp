@@ -10,8 +10,6 @@
 #include <protocol_wire/FullPiece.hpp>
 #include <protocol_wire/Payment.hpp>
 
-#include <boost/smart_ptr/make_shared_array.hpp>
-
 namespace joystream {
 namespace protocol_wire {
 

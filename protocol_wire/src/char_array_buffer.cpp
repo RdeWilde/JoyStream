@@ -1,5 +1,6 @@
 #include <protocol_wire/char_array_buffer.hpp>
-
+#include <stdexcept>
+#include <iostream>
 
 char_array_buffer::char_array_buffer(char *begin, char *end) {
     // end pointer should be one location past the last element in the array
