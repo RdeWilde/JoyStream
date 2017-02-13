@@ -18,14 +18,13 @@ MESSAGE_TYPE writeAndReadFromStream(const MESSAGE_TYPE &msg)
 
     OutputWireStream writeStream(&buff);
 
-    writeStream << msg;
+    writeStream.writeMessage(&msg);
 
     InputWireStream readStream(&buff);
-    MESSAGE_TYPE m2;
 
-    readStream >> m2;
-
-    return m2;
+    auto m2 = readStream.readMessage(msg.messageType());
+    MESSAGE_TYPE* m2_ = dynamic_cast<MESSAGE_TYPE*>(m2.get());
+    return *m2_;
 }
 
 TEST(protocol_wire_test, char_array_buffer) {
