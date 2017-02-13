@@ -74,7 +74,7 @@ using GenerateReceiveAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Co
 template <class ConnectionIdType>
 using GenerateChangeAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
 
-typedef SubroutineCallbackSlot<const protocol_wire::ExtendedMessagePayload *> SendMessageOnConnectionCallbackSlot;
+typedef SubroutineCallbackSlot<const protocol_wire::Message *> SendMessageOnConnectionCallbackSlot;
 
 template <class ConnectionIdType>
 using FullPieceArrivedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, protocol_wire::PieceData, int>;
@@ -118,7 +118,7 @@ private:
 
         for(auto f : sendMessageOnConnectionCallbackSlot) {
 
-            const protocol_wire::ExtendedMessagePayload * c = std::get<0>(f);
+            const protocol_wire::Message * c = std::get<0>(f);
 
             delete c;
         }

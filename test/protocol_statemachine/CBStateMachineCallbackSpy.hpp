@@ -18,7 +18,7 @@ namespace protocol_wire {
 
     class BuyerTerms;
     class SellerTerms;
-    class ExtendedMessagePayload;
+    class Message;
 
 }
 }
@@ -112,7 +112,7 @@ private:
 
     // Send
     bool _messageSent;
-    const protocol_wire::ExtendedMessagePayload * _message;
+    const protocol_wire::Message * _message;
     /**
     protocol_wire::MessageType _messageType;
     protocol_wire::Buy _buyMessage;

@@ -21,7 +21,7 @@
 
 namespace joystream {
 namespace protocol_wire {
-    class ExtendedMessagePayload;
+    class Message;
 }
 namespace protocol_session {
 namespace detail {
@@ -129,7 +129,7 @@ namespace detail {
         std::set<ConnectionIdType> connectionIds() const;
 
         // Process given message on given connection with given ID
-        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload &);
+        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::Message &);
 
         //// Buying
 

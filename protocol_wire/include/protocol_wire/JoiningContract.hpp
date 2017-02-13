@@ -8,14 +8,14 @@
 #ifndef JOYSTREAM_WIRE_JOINING_CONTRACT_HPP
 #define JOYSTREAM_WIRE_JOINING_CONTRACT_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 #include <common/PublicKey.hpp>
 
 
 namespace joystream {
 namespace protocol_wire {
 
-    class JoiningContract : public ExtendedMessagePayload {
+    class JoiningContract : public Message {
 
     public:
 

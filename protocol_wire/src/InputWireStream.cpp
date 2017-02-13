@@ -19,8 +19,8 @@ InputWireStream::InputWireStream(std::streambuf* buf)
     : _buffer(buf) {
 }
 
-std::shared_ptr<ExtendedMessagePayload> InputWireStream::readMessage(MessageType type) {
-    std::shared_ptr<ExtendedMessagePayload> m;
+std::shared_ptr<Message> InputWireStream::readMessage(MessageType type) {
+    std::shared_ptr<Message> m;
 
     switch(type) {
 

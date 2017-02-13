@@ -31,7 +31,7 @@
 
 namespace joystream {
 namespace protocol_wire {
-    class ExtendedMessagePayload;
+    class Message;
 }
 namespace extension {
 namespace status {
@@ -143,7 +143,7 @@ namespace status {
         virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
         // Sends extended message to peer, does not take ownership of pointer
-        void send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessage);
+        void send(const joystream::protocol_wire::Message * extendedMessage);
 
         // Status of plugin
         status::PeerPlugin status(const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections) const;
@@ -208,7 +208,7 @@ namespace status {
         //std::chrono::time_point<std::chrono::system_clock> _whenLastMessageSent;
 
         // Last message arriving in on_extended() which was malformed according
-        // to ExtendedMessagePayload::fromRaw().
+        // to Message::fromRaw().
         //bool _lastReceivedMessageWasMalformed;
 
         // Set when peer plugin should be disconnected and deleted by corresponding torrent plugin

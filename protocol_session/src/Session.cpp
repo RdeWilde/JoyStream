@@ -460,7 +460,7 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::ExtendedMessagePayload & m) {
+    void Session<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::Message & m) {
 
         if(_mode == SessionMode::not_set)
             throw exception::SessionModeNotSetException();
@@ -920,7 +920,7 @@ namespace protocol_session {
         [this, id](const protocol_statemachine::AnnouncedModeAndTerms & a) { this->peerAnnouncedModeAndTerms(id, a); },
         [this, id](void) { this->invitedToOutdatedContract(id); },
         [this, id]() { this->invitedToJoinContract(id); },
-        [this, callback](const protocol_wire::ExtendedMessagePayload * m) { callback(m); },
+        [this, callback](const protocol_wire::Message * m) { callback(m); },
         [this, id](uint64_t value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
         [this, id](int i) { this->pieceRequested(id, i); },
         [this, id]() { this->invalidPieceRequested(id); },

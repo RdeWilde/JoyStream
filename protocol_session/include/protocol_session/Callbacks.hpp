@@ -74,7 +74,7 @@ typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateChangeAddres
 */
 
 // Send a message to be sent
-typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendMessageOnConnection;
+typedef std::function<void(const protocol_wire::Message *)> SendMessageOnConnection;
 
 //// Buying
 

@@ -8,13 +8,13 @@
 #ifndef JOYSTREAM_WIRE_PAYMENT_HPP
 #define JOYSTREAM_WIRE_PAYMENT_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 #include <common/Signature.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Payment : public ExtendedMessagePayload {
+    class Payment : public Message {
 
     public:
 

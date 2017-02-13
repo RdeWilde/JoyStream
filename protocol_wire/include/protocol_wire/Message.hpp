@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef JOYSTREAM_PROTOCOL_WIRE_EXTENDEDMESSAGEPAYLOAD_HPP
-#define JOYSTREAM_PROTOCOL_WIRE_EXTENDEDMESSAGEPAYLOAD_HPP
+#ifndef JOYSTREAM_PROTOCOL_WIRE_MESSAGE_HPP
+#define JOYSTREAM_PROTOCOL_WIRE_MESSAGE_HPP
 
 #include <cstdint>
 
@@ -15,12 +15,12 @@ namespace protocol_wire {
 
     enum class MessageType;
 
-    class ExtendedMessagePayload {
+    class Message {
 
     public:
 
         // Required for safe deletion through pointer of this base type
-        virtual ~ExtendedMessagePayload() {};
+        virtual ~Message() {};
 
         // Get type of message
         virtual MessageType messageType() const = 0;
@@ -29,4 +29,4 @@ namespace protocol_wire {
 }
 }
 
-#endif // JOYSTREAM_PROTOCOL_WIRE_EXTENDEDMESSAGEPAYLOAD_HPP
+#endif // JOYSTREAM_PROTOCOL_WIRE_MESSAGE_HPP

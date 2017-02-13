@@ -8,12 +8,12 @@
 #ifndef JOYSTREAM_WIRE_REQUEST_FULL_PIECE_HPP
 #define JOYSTREAM_WIRE_REQUEST_FULL_PIECE_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class RequestFullPiece : public ExtendedMessagePayload {
+    class RequestFullPiece : public Message {
 
     public:
 

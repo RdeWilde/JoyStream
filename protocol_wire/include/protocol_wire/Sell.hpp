@@ -8,13 +8,13 @@
 #ifndef JOYSTREAM_WIRE_SELL_HPP
 #define JOYSTREAM_WIRE_SELL_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 #include <protocol_wire/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Sell : public ExtendedMessagePayload {
+    class Sell : public Message {
 
     public:
 

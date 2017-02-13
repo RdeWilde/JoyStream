@@ -163,7 +163,7 @@ public:
             SendMessageOnConnectionCallbackSlot & slot = spy->sendMessageOnConnectionCallbackSlot;
 
             EXPECT_TRUE((int)slot.size() > 0);
-            const protocol_wire::ExtendedMessagePayload * m = std::get<0>(slot.front());
+            const protocol_wire::Message * m = std::get<0>(slot.front());
 
             EXPECT_EQ(m->messageType(), protocol_wire::MessageType::ready);
 
@@ -193,7 +193,7 @@ public:
             if(spy->sendMessageOnConnectionCallbackSlot.size() != 1)
                 return false;
 
-            const protocol_wire::ExtendedMessagePayload * m = std::get<0>(spy->sendMessageOnConnectionCallbackSlot.front());
+            const protocol_wire::Message * m = std::get<0>(spy->sendMessageOnConnectionCallbackSlot.front());
             return m->messageType() == protocol_wire::MessageType::request_full_piece;
         }
 

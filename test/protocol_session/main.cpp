@@ -620,7 +620,7 @@ TEST_F(SessionTest, buying_seller_sent_invalid_piece)
     {
         ConnectionSpy<ID> * c = first.spy;
         EXPECT_EQ((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
-        const protocol_wire::ExtendedMessagePayload * m;
+        const protocol_wire::Message * m;
         std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
 
         EXPECT_EQ(m->messageType(), protocol_wire::MessageType::request_full_piece);

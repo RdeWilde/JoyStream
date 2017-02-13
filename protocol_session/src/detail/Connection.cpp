@@ -50,7 +50,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    void Connection<ConnectionIdType>::processMessage(const protocol_wire::ExtendedMessagePayload & message) {
+    void Connection<ConnectionIdType>::processMessage(const protocol_wire::Message & message) {
 
         // Get message type
         protocol_wire::MessageType messageType = message.messageType();

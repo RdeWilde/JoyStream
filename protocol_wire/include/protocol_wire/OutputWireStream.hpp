@@ -16,7 +16,7 @@ namespace Coin {
 namespace joystream {
 namespace protocol_wire {
 
-class ExtendedMessagePayload;
+class Message;
 class Observe;
 class Buy;
 class Sell;
@@ -47,7 +47,7 @@ public:
     std::streamsize writeFullPiece(const FullPiece&);
     std::streamsize writePayment(const Payment&);
 
-    std::streamsize writeMessage(const ExtendedMessagePayload*);
+    std::streamsize writeMessage(const Message*);
 
     virtual OutputWireStream& operator<<(const Observe &obj);
     virtual OutputWireStream& operator<<(const Buy &obj);
@@ -73,7 +73,7 @@ public:
     static std::streamsize sizeOfFullPiece(const FullPiece&);
     static std::streamsize sizeOfPayment(const Payment&);
 
-    static std::streamsize sizeOf(const ExtendedMessagePayload *);
+    static std::streamsize sizeOf(const Message *);
 
 protected:
 

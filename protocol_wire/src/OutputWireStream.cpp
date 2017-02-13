@@ -85,7 +85,7 @@ std::streamsize OutputWireStream::writePayment(const Payment &payment) {
     return writeSignature(payment.sig());
 }
 
-std::streamsize OutputWireStream::writeMessage(const ExtendedMessagePayload *payload) {
+std::streamsize OutputWireStream::writeMessage(const Message *payload) {
     auto type = payload->messageType();
 
     switch(type) {
@@ -270,7 +270,7 @@ std::streamsize OutputWireStream::sizeOfPayment(const Payment& payment) {
     return size;
 }
 
-std::streamsize OutputWireStream::sizeOf(const ExtendedMessagePayload * payload) {
+std::streamsize OutputWireStream::sizeOf(const Message * payload) {
 
     auto type = payload->messageType();
 

@@ -6,7 +6,7 @@
  */
 
 #include <CBStateMachineCallbackSpy.hpp>
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 
 CBStateMachineCallbackSpy::CBStateMachineCallbackSpy()
     : _message(nullptr) {
@@ -28,7 +28,7 @@ protocol_statemachine::CBStateMachine * CBStateMachineCallbackSpy::createMonitor
     [this]() {
         _hasBeenInvitedToJoinContract = true;
     },
-    [this](const protocol_wire::ExtendedMessagePayload * m) {
+    [this](const protocol_wire::Message * m) {
 
         std::cout << "Sending message: " <<  protocol_wire::messageName(m->messageType()) << std::endl;
 

@@ -8,14 +8,14 @@
 #ifndef JOYSTREAM_WIRE_READY_HPP
 #define JOYSTREAM_WIRE_READY_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/PublicKey.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Ready : public ExtendedMessagePayload {
+    class Ready : public Message {
 
     public:
 

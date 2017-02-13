@@ -30,7 +30,7 @@ class PieceData;
 class BuyerTerms;
 class SellerTerms;
 
-class ExtendedMessagePayload;
+class Message;
 
 class InputWireStream {
 public:
@@ -38,7 +38,7 @@ public:
     // Construct the stream from streambuf
     InputWireStream(std::streambuf* buf);
 
-    std::shared_ptr<ExtendedMessagePayload> readMessage(MessageType);
+    std::shared_ptr<Message> readMessage(MessageType);
 
     virtual InputWireStream& operator>>(Observe &obj);
     virtual InputWireStream& operator>>(Buy &obj);

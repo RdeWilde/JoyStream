@@ -451,13 +451,13 @@ namespace extension {
         assert(_peerPaymentBEPSupportStatus == BEPSupportStatus::supported);
 
         // Length of extended message, excluding the bep 10 id and extended message id.
-        int lengthOfExtendedMessagePayload = body.left();
+        int lengthOfMessage = body.left();
 
         // Do we have full message
-        if(length != lengthOfExtendedMessagePayload) {
+        if(length != lengthOfMessage) {
 
             // Output progress
-            std::clog << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length << std::endl;
+            std::clog << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfMessage))/length << std::endl;
 
             // No other plugin should look at this
             return true;
@@ -500,10 +500,10 @@ namespace extension {
 
 
         char* begin = const_cast<char *>(body.begin);
-        char_array_buffer buffer(begin, begin + lengthOfExtendedMessagePayload);
+        char_array_buffer buffer(begin, begin + lengthOfMessage);
         protocol_wire::InputWireStream stream(&buffer);
 
-        std::shared_ptr<protocol_wire::ExtendedMessagePayload> m;
+        std::shared_ptr<protocol_wire::Message> m;
 
         // Parse message
         try {
@@ -574,23 +574,23 @@ namespace extension {
             return false; // allow sending request
     }
 
-    void PeerPlugin::send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessagePayload) {
+    void PeerPlugin::send(const joystream::protocol_wire::Message * Message) {
 
         // Get length of
-        std::streamsize extendedMessagePayloadLength = protocol_wire::OutputWireStream::sizeOf(extendedMessagePayload);
+        std::streamsize MessageLength = protocol_wire::OutputWireStream::sizeOf(Message);
 
-        assert(extendedMessagePayloadLength != -1);
+        assert(MessageLength != -1);
 
         // Length of message full message
         uint32_t fullMessageLength = protocol_wire::NetworkInt<uint32_t>::size()
                                     +protocol_wire::NetworkInt<uint8_t>::size()
                                     +protocol_wire::NetworkInt<uint8_t>::size()
-                                    +extendedMessagePayloadLength;
+                                    +MessageLength;
 
         // Length value in outer BitTorrent header
         uint32_t fullMessageLengthFieldValue = protocol_wire::NetworkInt<uint8_t>::size()
                                               +protocol_wire::NetworkInt<uint8_t>::size()
-                                              +extendedMessagePayloadLength;
+                                              +MessageLength;
         /**
          * Write both headers to stream:
          * [messageLength():uint32_t][(bt_peer_connection::msg_extended):uint8_t][id:uint8_t]
@@ -609,25 +609,25 @@ namespace extension {
         stream << static_cast<uint8_t>(libtorrent::bt_peer_connection::msg_extended);
 
         // Extended message id
-        stream << static_cast<uint8_t>(_peerMapping.id(extendedMessagePayload->messageType()));
+        stream << static_cast<uint8_t>(_peerMapping.id(Message->messageType()));
 
         // Write message into buffer through stream
         std::streamsize written = 0;
         try {
 
-            written = stream.writeMessage(extendedMessagePayload);
+            written = stream.writeMessage(Message);
 
         } catch(std::exception &e) {
             std::clog << "Output stream in bad state after message write, message not sent." << std::endl;
             return;
         }
 
-        if(written != extendedMessagePayloadLength) {
+        if(written != MessageLength) {
             std::clog << "Message payload not fully written, message not sent." << std::endl;
             return;
         }
 
-        std::clog << "SENT:" << joystream::protocol_wire::messageName(extendedMessagePayload->messageType()) << " = " << written << "bytes" << std::endl;
+        std::clog << "SENT:" << joystream::protocol_wire::messageName(Message->messageType()) << " = " << written << "bytes" << std::endl;
 
         // If message was written properly into buffer, then send buffer to peer
 

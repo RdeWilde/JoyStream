@@ -8,13 +8,13 @@
 #ifndef JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
 #define JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 #include <protocol_wire/BuyerTerms.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Buy : public ExtendedMessagePayload {
+    class Buy : public Message {
 
     public:
 
