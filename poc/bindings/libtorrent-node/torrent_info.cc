@@ -1,4 +1,5 @@
 #include "torrent_info.h"
+#include "utils.hpp"
 
 
 Nan::Persistent<v8::Function> TorrentInfo::constructor;
@@ -27,11 +28,24 @@ Local<Object> TorrentInfo::New(boost::shared_ptr<const libtorrent::torrent_info>
 }
 
 NAN_METHOD(TorrentInfo::NewInstance) {
-  Nan::HandleScope scope;
+  if (!info.IsConstructCall()) return;
 
-  TorrentInfo* obj = new TorrentInfo();
+  boost::shared_ptr<libtorrent::torrent_info> ti;
+  libtorrent::error_code ec;
+  if (ARGUMENTS_IS_STRING(0)) {
+    std::string filename(*Nan::Utf8String(info[0]));
+    ti = boost::shared_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(filename, ec));
+  } else {
+    return Nan::ThrowTypeError("Arguments must be String");
+  }
+
+  /* Wee need boost::system::error
+  if (ec != boost::system::errc::success) {
+    return Nan::ThrowError(ec.message().c_str());
+  }*/
+
+  TorrentInfo* obj = new TorrentInfo(ti);
   obj->Wrap(info.This());
-
   info.GetReturnValue().Set(info.This());
 }
 

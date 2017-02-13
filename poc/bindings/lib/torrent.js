@@ -13,7 +13,7 @@ class Torrent extends EventEmitter {
     this.plugin = plugin
     this.torrentPlugin = null
     this.peers = new Map()
-    this.announcedJSPeersAtTimestamp = new Map()
+    this.announcedJSPeersAtTimestamp = new Map()  
   }
 
   // Review needed !

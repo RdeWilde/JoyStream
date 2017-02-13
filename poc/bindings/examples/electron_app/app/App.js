@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Joystream } from '../../../'
+import { Joystream, TorrentInfo } from '../../../'
 var debug = require('debug')('electron:app')
 
 var joystream = new Joystream()
@@ -19,19 +19,23 @@ class App extends Component {
   }
 
   addTorrentFile () {
-    joystream.addTorrent(0, 0,
-      'Sintel', null,
-      '/home/lola/joystream/test/',
-      '6a9759bffd5c0af65319979fb7832189f4f3c35d',
-      this.torrentAdded)
+    console.log(TorrentInfo)
+
+    let addTorrentParams = {
+      ti: new TorrentInfo('/home/lola/joystream/test/306497171.torrent'),
+      savePath: '/home/lola/joystream/test/'
+    }
+
+    joystream.addTorrent(addTorrentParams, this.torrentAdded)
+
   }
 
   addTorrent () {
 
     let addTorrentParams = {
       infoHash: '6a9759bffd5c0af65319979fb7832189f4f3c35d',
-      name: '306497171',
-      path: '/home/lola/joystream/test/'
+      name: 'sintel.mp4',
+      savePath: '/home/lola/joystream/test/'
     }
 
     joystream.addTorrent(addTorrentParams, this.torrentAdded)
@@ -41,8 +45,9 @@ class App extends Component {
     if (err) {
       console.log(err)
     } else {
-      console.log('This has been called once the torrent is added')
-      this.setState({torrents: joystream.torrents})
+      joystream.on('add_torrent_alert', () => {
+        this.setState({torrents: joystream.torrents})
+      })
     }
   }
 
