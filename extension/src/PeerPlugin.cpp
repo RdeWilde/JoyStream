@@ -577,33 +577,31 @@ namespace extension {
     void PeerPlugin::send(const joystream::protocol_wire::Message * Message) {
 
         // Get length of
-        std::streamsize MessageLength = protocol_wire::OutputWireStream::sizeOf(Message);
+        std::streamsize protocolMessageLength = protocol_wire::OutputWireStream::sizeOf(Message);
 
-        assert(MessageLength != -1);
+        assert(protocolMessageLength != -1);
 
         // Length of message full message
-        uint32_t fullMessageLength = protocol_wire::NetworkInt<uint32_t>::size()
-                                    +protocol_wire::NetworkInt<uint8_t>::size()
-                                    +protocol_wire::NetworkInt<uint8_t>::size()
-                                    +MessageLength;
+        uint32_t extendedMessageLength = protocol_wire::NetworkInt<uint32_t>::size()
+                                        +protocol_wire::NetworkInt<uint8_t>::size()
+                                        +protocol_wire::NetworkInt<uint8_t>::size()
+                                        +protocolMessageLength;
 
         // Length value in outer BitTorrent header
-        uint32_t fullMessageLengthFieldValue = protocol_wire::NetworkInt<uint8_t>::size()
-                                              +protocol_wire::NetworkInt<uint8_t>::size()
-                                              +MessageLength;
+        uint32_t extendedPayloadLength = extendedMessageLength - protocol_wire::NetworkInt<uint32_t>::size();
         /**
          * Write both headers to stream:
          * [messageLength():uint32_t][(bt_peer_connection::msg_extended):uint8_t][id:uint8_t]
          */
 
         // Allocate message array buffer
-        std::vector<char> msgBuffer(fullMessageLength);
+        std::vector<char> msgBuffer(extendedMessageLength);
         char_array_buffer buffer(msgBuffer);
 
         protocol_wire::OutputWireStream stream(&buffer);
 
         // Message length
-        stream << static_cast<uint32_t>(fullMessageLengthFieldValue);
+        stream << static_cast<uint32_t>(extendedPayloadLength);
 
         // BEP10 message id: should always be 20 according to BEP10 spec
         stream << static_cast<uint8_t>(libtorrent::bt_peer_connection::msg_extended);
@@ -622,7 +620,7 @@ namespace extension {
             return;
         }
 
-        if(written != MessageLength) {
+        if(written != protocolMessageLength) {
             std::clog << "Message payload not fully written, message not sent." << std::endl;
             return;
         }
