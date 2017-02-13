@@ -8,7 +8,9 @@ namespace transaction_id {
 
 
 v8::Local<v8::Object> encode(const Coin::TransactionId &id) {
-    return UCharVectorBasedToV8Value<Coin::TransactionId>(id);
+    auto raw = id.toRPCByteOrderVector();
+    auto buffer = UCharVectorToNodeBuffer(raw);
+    return buffer;
 }
 
 Coin::TransactionId decode(const v8::Local<v8::Value>& value) {

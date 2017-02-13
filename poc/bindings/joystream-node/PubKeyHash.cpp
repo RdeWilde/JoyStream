@@ -6,11 +6,13 @@ namespace node {
 namespace pubkey_hash {
 
 v8::Local<v8::Object> encode(const Coin::PubKeyHash &hash) {
-    return UCharVectorBasedToV8Value<Coin::PubKeyHash>(hash);
+    auto raw = hash.getRawVector();
+    auto buffer = UCharVectorToNodeBuffer(raw);
+    return buffer;
 }
 
 Coin::PubKeyHash decode(const v8::Local<v8::Value>& value) {
-    return V8ValueToUCharVectorBased<Coin::PubKeyHash>(value);
+    return Coin::PubKeyHash(NodeBufferToUCharVector(value));
 }
 
 }

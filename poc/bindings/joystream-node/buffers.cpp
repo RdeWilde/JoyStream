@@ -1,29 +1,36 @@
 #include "buffers.hpp"
 #include "libtorrent-node/utils.hpp"
+#include <common/Utilities.hpp>
 
 namespace joystream {
 namespace node {
 
-uchar_vector NodeBufferToUCharVector(v8::Local<v8::Value> buffer) {
+std::vector<unsigned char> NodeBufferToUCharVector(v8::Local<v8::Value> buffer) {
     if(!buffer->IsUint8Array()){
         throw std::runtime_error("argument is not a node buffer");
     }
-    return uchar_vector((const unsigned char *)::node::Buffer::Data(buffer), ::node::Buffer::Length(buffer));
+
+    auto length = ::node::Buffer::Length(buffer);
+
+    std::vector<unsigned char> vector(length);
+
+    auto begin = ::node::Buffer::Data(buffer);
+
+    std::copy(begin, begin + length, vector.data());
+
+    return vector;
 }
 
-uchar_vector StringToUCharVector(v8::Local<v8::Value> value) {
-    auto hex = ToNative<std::string>(value);
-    uchar_vector data = uchar_vector(hex);
-    return data;
+std::vector<unsigned char> StringToUCharVector(v8::Local<v8::Value> value) {
+    std::string hex = ToNative<std::string>(value);
+    return Coin::hexToUCharVector(hex);
 }
 
-v8::Local<v8::Object> UCharVectorToNodeBuffer(uchar_vector &data) {
-    auto buf = Nan::NewBuffer(data.size()).ToLocalChecked();
-    auto pbuf = ::node::Buffer::Data(buf);
-    //copyToArray should really have been marked const since it doesn't modify s_frk_state
-    //to allow us to also pass in a const arg to UCharVectorToNodeBuffer
-    data.copyToArray((unsigned char*)pbuf);
-    return buf;
+v8::Local<v8::Object> UCharVectorToNodeBuffer(std::vector<unsigned char> &data) {
+    auto buffer = Nan::NewBuffer(data.size()).ToLocalChecked();
+    auto pbuf = ::node::Buffer::Data(buffer);
+    std::copy(data.begin(), data.end(), pbuf);
+    return buffer;
 }
 
 }}
