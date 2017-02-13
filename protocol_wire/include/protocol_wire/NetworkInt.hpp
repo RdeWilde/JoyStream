@@ -10,8 +10,6 @@ namespace joystream {
 namespace protocol_wire {
 namespace detail {
 
-bool isLittleEndianMachine();
-
 template<class IntType>
 Coin::UCharArray<sizeof(IntType)> Serialize(IntType value);
 
