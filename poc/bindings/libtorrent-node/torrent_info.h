@@ -20,6 +20,7 @@ class TorrentInfo: public Nan::ObjectWrap {
       boost::shared_ptr<const libtorrent::torrent_info> torrent_info_;
       static Nan::Persistent<v8::Function> constructor;
 
+      explicit TorrentInfo() {};
       explicit TorrentInfo(boost::shared_ptr<libtorrent::torrent_info> ti) : torrent_info_(ti) {};
 
       static NAN_METHOD(NewInstance);

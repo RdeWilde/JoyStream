@@ -293,7 +293,6 @@ NAN_METHOD(Plugin::AddTorrent) {
 
   ARGUMENTS_REQUIRE_CALLBACK(1, managedCallback)
 
-
   joystream::extension::request::AddTorrent::AddTorrentHandler addTorrentHandler = detail::CreateAddTorrentHandler(managedCallback);
 
   // Create request

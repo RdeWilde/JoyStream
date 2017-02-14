@@ -611,7 +611,7 @@ class Node extends EventEmitter {
     }
 
     [_torrentPluginRemoved](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       if (torrent) {
@@ -624,7 +624,7 @@ class Node extends EventEmitter {
     }
 
     [_peerPluginAdded](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
       var peer = torrent.peers.get(alert.ip)
 
@@ -641,7 +641,7 @@ class Node extends EventEmitter {
     }
 
     [_peerPluginRemoved](alert) {
-      var torrentHandle = alert.handle()
+      var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
       var peer = torrent.peers.get(alert.ip)
 
