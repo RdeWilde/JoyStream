@@ -49,7 +49,6 @@ const _invalidPieceArrived = Symbol('invalidPieceArrived')
 const _buyerTermsUpdated = Symbol('buyerTermsUpdated')
 const _anchorAnnounced = Symbol('anchorAnnounced')
 
-
 const minimumMessageId = 60
 
 /*
@@ -500,7 +499,7 @@ class Node extends EventEmitter {
     }
 
     [_torrentPausedAlert](alert) {
-      var infoHash = alert.handle.infoHash
+      var infoHash = alert.handle.infoHash()
       var torrent = this.torrents.get(infoHash)
 
       /* Need to verify if is_all_zero() ?

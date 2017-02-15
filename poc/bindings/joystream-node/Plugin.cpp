@@ -16,6 +16,7 @@
 #include "libtorrent-node/utils.hpp"
 #include "libtorrent-node/sha1_hash.hpp"
 #include "libtorrent-node/add_torrent_params.hpp"
+#include "libtorrent-node/torrent_handle.h"
 #include "libtorrent-node/endpoint.hpp"
 
 #include <extension/extension.hpp>
@@ -427,7 +428,7 @@ namespace detail {
       } else {
         v8::Local<v8::Value> argv[] = {
           Nan::Null(),
-          Nan::True()
+          TorrentHandle::New(h)
         };
         callback->Call(2, argv);
       }

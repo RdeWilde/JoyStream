@@ -18,14 +18,23 @@ class Joystream extends Node {
   }
 
   addTorrent (addTorrentParams, callback) {
-    this.plugin.add_torrent(addTorrentParams, callback)
+    this.plugin.add_torrent(addTorrentParams, (err, result) => {
+      if (!err)
+        console.log(result)
+      callback(err, result)
+    })
   }
 
   buyTorrent () {
 
   }
 
-  sellTorrent () {
+  // If torrent not find try to add ?
+  sellTorrent (infoHash, sellerTerms, callback) {
+    this.plugin.to_sell_mode(infoHash, sellerTerms, callback)
+  }
+
+  observeTorrent () {
 
   }
 
