@@ -49,6 +49,7 @@ const _invalidPieceArrived = Symbol('invalidPieceArrived')
 const _buyerTermsUpdated = Symbol('buyerTermsUpdated')
 const _anchorAnnounced = Symbol('anchorAnnounced')
 
+
 const minimumMessageId = 60
 
 /*

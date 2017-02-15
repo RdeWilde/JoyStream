@@ -3,6 +3,7 @@
 var sha1 = require('sha1')
 const EventEmitter = require('events')
 var Peer = require('./peer')
+var debug = require('debug')('torrent')
 
 class Torrent extends EventEmitter {
 
@@ -13,7 +14,7 @@ class Torrent extends EventEmitter {
     this.plugin = plugin
     this.torrentPlugin = null
     this.peers = new Map()
-    this.announcedJSPeersAtTimestamp = new Map()  
+    this.announcedJSPeersAtTimestamp = new Map()
   }
 
   // Review needed !
