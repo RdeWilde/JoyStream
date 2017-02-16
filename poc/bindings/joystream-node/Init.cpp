@@ -13,6 +13,8 @@
 #include "PeerPluginStatus.hpp"
 #include "TorrentPluginStatus.hpp"
 #include "payment_channel.hpp"
+#include "BEPSupportStatus.hpp"
+#include "Session.hpp"
 
 namespace joystream {
 namespace node {
@@ -24,6 +26,9 @@ namespace node {
     torrent_plugin_status::Init(target);
     Plugin::Init(target);
     payment_channel::Init(target);
+    bep_support_status::Init(target);
+    connection::Init(target);
+    session::Init(target);
   }
 
 }
