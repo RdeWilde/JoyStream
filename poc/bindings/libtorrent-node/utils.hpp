@@ -325,7 +325,7 @@ namespace std_lib_utils {
     v8::Local<v8::Array> array_encoded_map = raw_map->AsArray();
 
     std::unordered_map<Key, Value> result;
-    for(int i = 0;i < array_encoded_map->Length(); i += 2) {
+    for(uint32_t i = 0;i < array_encoded_map->Length(); i += 2) {
 
       // Decode key
       Key key = keyDecoder(Nan::Get(array_encoded_map, i).ToLocalChecked());

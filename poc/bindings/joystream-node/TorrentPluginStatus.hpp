@@ -13,7 +13,7 @@
 namespace joystream {
 namespace extension {
 namespace status {
-  class TorrentPlugin;
+  struct TorrentPlugin;
 }
 }
 namespace node {
