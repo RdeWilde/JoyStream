@@ -447,7 +447,17 @@ namespace detail {
     }
 
     joystream::extension::request::SubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback) {
-        return CreateSubroutineHandler(callback, &errorValueGn, &resultValueGn);
+
+        // Due to clang variadic template handling bug
+        // http://stackoverflow.com/questions/42277528/why-does-the-following-example-not-compile-on-clang?noredirect=1#comment71713002_42277528
+        // we cannot do this
+        // return CreateSubroutineHandler(callback, &errorValueGn, &resultValueGn);
+
+        return [callback] (const std::exception_ptr & ex) -> void {
+          v8::Local<v8::Value> argv[] = { errorValueGn(ex), resultValueGn(ex) };
+          callback->Call(2, argv);
+        };
+
     }
   }
 
@@ -482,7 +492,16 @@ namespace detail {
     }
 
     joystream::extension::request::NoExceptionSubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback) {
-      return CreateHandler<>(callback, &genericErrorValueGenerator, &genericResultValueGenerator);
+
+      // Due to clang variadic template handling bug
+      // http://stackoverflow.com/questions/42277528/why-does-the-following-example-not-compile-on-clang?noredirect=1#comment71713002_42277528
+      // we cannot do this
+      // return CreateHandler<>(callback, &genericErrorValueGenerator, &genericResultValueGenerator);
+
+      return [callback] () -> void {
+        v8::Local<v8::Value> argv[] = { genericErrorValueGenerator(), genericResultValueGenerator() };
+        callback->Call(2, argv);
+      };
     }
 
   }
