@@ -9,10 +9,12 @@
 #include "LibtorrentInteraction.hpp"
 #include "RequestResult.hpp"
 #include "Connection.hpp"
-#include "PeerPluginStatus.hpp"
 #include "Plugin.hpp"
+#include "PeerPluginStatus.hpp"
 #include "TorrentPluginStatus.hpp"
 #include "payment_channel.hpp"
+#include "BEPSupportStatus.hpp"
+#include "Session.hpp"
 
 namespace joystream {
 namespace node {
@@ -20,11 +22,13 @@ namespace node {
   NAN_MODULE_INIT(Init) {
     libtorrent_interaction::Init(target);
     RequestResult::Init(target);
-    Connection::Init(target);
-    PeerPluginStatus::Init(target);
-    TorrentPluginStatus::Init(target);
+    peer_plugin_status::Init(target);
+    torrent_plugin_status::Init(target);
     Plugin::Init(target);
     payment_channel::Init(target);
+    bep_support_status::Init(target);
+    connection::Init(target);
+    session::Init(target);
   }
 
 }

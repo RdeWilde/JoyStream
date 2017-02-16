@@ -39,9 +39,12 @@
                 "joystream-node/PublicKey.cpp",
                 "joystream-node/OutPoint.cpp",
                 "joystream-node/TransactionId.cpp",
+                "joystream-node/Signature.cpp",
                 "joystream-node/Connection.cpp",
-                "joystream-node/buffers.cpp",
                 "joystream-node/payment_channel.cpp",
+                "joystream-node/Session.cpp",
+                "joystream-node/BEPSupportStatus.cpp",
+                "joystream-node/buffers.cpp"
                 # Others
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],

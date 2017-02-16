@@ -1,26 +1,30 @@
-#ifndef JOYSTREAM_NODE_ADDON_EXTENSION_TORRENT_PLUGIN_STATUS_H
-#define JOYSTREAM_NODE_ADDON_EXTENSION_TORRENT_PLUGIN_STATUS_H
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 3 2017
+ */
+
+#ifndef JOYSTREAM_NODE_TORRENT_PLUGIN_STATUS_HPP
+#define JOYSTREAM_NODE_TORRENT_PLUGIN_STATUS_HPP
 
 #include <nan.h>
-#include <extension/Status.hpp>
 
 namespace joystream {
+namespace extension {
+namespace status {
+  class TorrentPlugin;
+}
+}
 namespace node {
+namespace torrent_plugin_status {
 
-class TorrentPluginStatus: public Nan::ObjectWrap {
-  public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> NewInstance(const joystream::extension::status::TorrentPlugin& tp);
+  NAN_MODULE_INIT(Init);
 
-  private:
-    joystream::extension::status::TorrentPlugin torrent_plugin_status_;
-    static Nan::Persistent<v8::Function> constructor;
-
-    static NAN_METHOD(New);
-    static NAN_GETTER(info_hash);
-};
+  v8::Local<v8::Object> encode(const extension::status::TorrentPlugin & t);
 
 }
 }
+}
 
-#endif
+#endif // JOYSTREAM_NODE_TORRENT_PLUGIN_STATUS_HPP
