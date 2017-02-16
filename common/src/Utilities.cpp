@@ -19,14 +19,13 @@
 
 namespace Coin {
 
-    std::vector<unsigned char> hexToUCharVector(std::string hexString) {
+    std::vector<unsigned char> hexToUCharVector(const std::string & hexString) {
         const static std::string HEXCHARS("0123456789abcdefABCDEF");
 
         std::vector<unsigned char> vector;
 
-        // pad on the left if hex contains an odd number of digits.
         if (hexString.size() % 2 == 1)
-            hexString = "0" + hexString;
+            throw std::runtime_error("hex string not even length");
 
         unsigned char byte;
         std::string nibbles;

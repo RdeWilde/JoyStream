@@ -108,10 +108,9 @@ TEST(commonTest, UCharArrayTest)
         } catch(std::exception &e) { }
     }
 
-    // 0 padding
+    // hex string must be even length
     {
-        Coin::UCharArray<2> array("000");
-        EXPECT_EQ(std::string("0000"), array.getRawHex());
+        EXPECT_THROW(new Coin::UCharArray<3>("000"), std::runtime_error);
     }
 
     // toHex
