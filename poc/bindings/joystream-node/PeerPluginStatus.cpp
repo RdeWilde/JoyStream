@@ -1,40 +1,39 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 3 2017
+ */
+
 #include "PeerPluginStatus.hpp"
+#include "libtorrent-node/utils.hpp"
+#include "libtorrent-node/endpoint.hpp"
+#include "BEPSupportStatus.hpp"
+#include "Connection.hpp"
 
 namespace joystream {
 namespace node {
+namespace peer_plugin_status {
 
-Nan::Persistent<v8::Function> PeerPluginStatus::constructor;
-
-NAN_MODULE_INIT(PeerPluginStatus::Init) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("PeerPluginStatus").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("PeerPluginStatus").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+NAN_MODULE_INIT(Init) {
+  bep_support_status::Init(target);
+  connection::Init(target);
 }
 
-v8::Local<v8::Object> PeerPluginStatus::NewInstance(const joystream::extension::status::PeerPlugin& pp) {
-  Nan::EscapableHandleScope scope;
+v8::Local<v8::Object> encode(const extension::status::PeerPlugin & s) {
 
-  v8::Local<v8::Function> cons = Nan::New(constructor);
-  Nan::MaybeLocal<v8::Object> obj = cons->NewInstance(Nan::GetCurrentContext());
+  v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-  Nan::ObjectWrap::Unwrap<PeerPluginStatus>(obj.ToLocalChecked())->peer_plugin_status_ = pp;
+  SET_VAL(o, "endPoint", libtorrent::node::endpoint::encode(s.endPoint));
+  SET_VAL(o, "peerBEP10SupportStatus", bep_support_status::encode(s.peerBEP10SupportStatus));
+  SET_VAL(o, "peerBitSwaprBEPSupportStatus", bep_support_status::encode(s.peerBitSwaprBEPSupportStatus));
 
-  return scope.Escape(obj.ToLocalChecked());
+  if(s.connection)
+    SET_VAL(o, "connection", connection::encode(s.connection.get()));
+
+  return o;
 }
 
-NAN_METHOD(PeerPluginStatus::New) {
-  if (info.IsConstructCall()) {
-    PeerPluginStatus* obj = new PeerPluginStatus();
-    obj->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
-  } else {
-    v8::Local<v8::Function> cons = Nan::New(constructor);
-    info.GetReturnValue().Set(cons->NewInstance(Nan::GetCurrentContext()).ToLocalChecked());
-  }
 }
-
 }
 }

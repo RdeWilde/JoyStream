@@ -11,6 +11,8 @@
 #include <nan.h>
 
 #include <unordered_map>
+#include <map>
+#include <vector>
 
 /**
 * Guard, used in the context of a function call callback to a constructor function,
@@ -139,15 +141,41 @@ v8::Local<T> ToV8(const v8::Local<v8::Value> val) {
     return maybeLocal.ToLocalChecked();
 }
 
-namespace UnorderMap {
+namespace std_lib_utils {
 
-template<class R>
-using DecoderFunction = R(*)(const v8::Local<v8::Value> & v);
+  /// Implementations are in bottom of file for readability
 
-template<class Key, class Value>
-std::unordered_map<Key, Value> decode(const v8::Local<v8::Value> & v,
-                                      const DecoderFunction<Key> & keyDecoder,
-                                      const DecoderFunction<Value> & valueDecoder);
+  /// Decoders
+
+  template<class T>
+  using DecoderFunction = T(*)(const v8::Local<v8::Value> & v);
+
+  template<class K, class V>
+  std::unordered_map<K, V> decode(const v8::Local<v8::Value> & v,
+                                  const DecoderFunction<K> & keyDecoder,
+                                  const DecoderFunction<V> & valueDecoder);
+
+  /// Encoders
+
+  template<class T>
+  using EncoderFunction = v8::Local<v8::Value>(*)(const T &);
+
+  // Switch to v8::Map in return type when Nan is updated, and node 7.4.0 is more common
+  template <class K, class V>
+  v8::Local<v8::Object> encode(const std::map<K,V> & map,
+                               const EncoderFunction<K> & keyEncoder,
+                               const EncoderFunction<V> & valueEncoder);
+
+  // Switch to v8::Map in return type when Nan is updated, and node 7.4.0 is more common
+  template <class K, class V>
+  v8::Local<v8::Object> encode(const std::unordered_map<K,V> & map,
+                               const EncoderFunction<K> & keyEncoder,
+                               const EncoderFunction<V> & valueEncoder);
+
+  template <class V>
+  v8::Local<v8::Array> encode(const std::vector<V> & v,
+                              const EncoderFunction<V> & elementEncoder);
+
 }
 
 /**
@@ -271,5 +299,80 @@ type * var = Nan::ObjectWrap::Unwrap<type>(info[i]->ToObject());
     v8::Local<v8::String> v8ErrorMessage = (Nan::New(std::string("Argument " #i " could not be decoded with " #decoder " into " #type " : ") + e.what())).ToLocalChecked(); \
     return Nan::ThrowTypeError(v8ErrorMessage); \
   }
+
+
+///////////////// templated function implementations
+
+namespace std_lib_utils {
+
+  /// Implementations are in bottom of file for clarity
+
+  /// Decoders
+
+  template<class Key, class Value>
+  std::unordered_map<Key, Value> decode(const v8::Local<v8::Value> & v,
+                                        const DecoderFunction<Key> & keyDecoder,
+                                        const DecoderFunction<Value> & valueDecoder) {
+    /// Recover map
+    if(!v->IsMap())
+      throw std::runtime_error("argument must be a map");
+
+    const v8::Map * const raw_map = v8::Map::Cast(*v);
+
+    /// Recover array, so that we can iterate pairs
+
+    // ::AsArray returns an array of length Size() * 2, where index N is the Nth key and index N + 1 is the Nth value.
+    v8::Local<v8::Array> array_encoded_map = raw_map->AsArray();
+
+    std::unordered_map<Key, Value> result;
+    for(int i = 0;i < array_encoded_map->Length(); i += 2) {
+
+      // Decode key
+      Key key = keyDecoder(Nan::Get(array_encoded_map, i).ToLocalChecked());
+
+      // Check that key is not already present in map
+      if(result.count(key))
+        throw std::runtime_error("duplicate keys in map");
+
+      // Decode value
+      Value value = valueDecoder(Nan::Get(array_encoded_map, i + 1).ToLocalChecked());
+
+      // Insert pair in mapping
+      result.insert(std::make_pair(key, value));
+    }
+
+    return result;
+  }
+
+  /// Encoders
+
+  template <class K, class V>
+  v8::Local<v8::Object> encode(const std::map<K, V> & map,
+                               const EncoderFunction<K> & keyEncoder,
+                               const EncoderFunction<V> & valueEncoder) {
+    return Nan::New<v8::Object>();
+  }
+
+  template <class K, class V>
+  v8::Local<v8::Object> encode(const std::unordered_map<K, V> & map,
+                               const EncoderFunction<K> & keyEncoder,
+                               const EncoderFunction<V> & valueEncoder) {
+    return Nan::New<v8::Object>();
+  }
+
+  template <class V>
+  v8::Local<v8::Array> encode(const std::vector<V> & v,
+                              const EncoderFunction<V> & elementEncoder) {
+
+    v8::Local<v8::Array> array = Nan::New<v8::Array>();
+
+    for(auto item : v)
+      Nan::Set(array, array->Length(), elementEncoder(v));
+
+    return array;
+  }
+
+}
+
 
 #endif // LIBTORRENT_NODE_UTILS_HPP

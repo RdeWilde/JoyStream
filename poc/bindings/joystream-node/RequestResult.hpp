@@ -28,7 +28,7 @@ private:
   // Alert fields
   extension::alert::LoadedCallback _loadedCallback;
   int _type;
-  static char const * _what;
+  char const * _what;
   std::string _message;
   int _category;
 
