@@ -8,6 +8,8 @@
 #include "libtorrent-node/init.hpp"
 #include "joystream-node/Init.hpp"
 
+#include <boost/asio/impl/src.hpp>
+
 NAN_MODULE_INIT(InitNativeExtension) {
   libtorrent::node::Init(target);
   joystream::node::Init(target);
