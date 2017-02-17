@@ -17,34 +17,69 @@
 #include <common/P2PKHScriptSig.hpp>
 #include <common/typesafeOutPoint.hpp>
 
+#include <algorithm>
+#include <stdexcept>
+#include <string>
+#include <cassert>
+
 namespace Coin {
 
-    std::vector<unsigned char> hexToUCharVector(const std::string & hexString) {
-        const static std::string HEXCHARS("0123456789abcdefABCDEF");
+    std::string toHex(const std::vector<unsigned char> &input) {
+        return toHex(input.data(), input.size());
+    }
 
-        std::vector<unsigned char> vector;
+    std::string toHex(const unsigned char * input, size_t length) {
+        static const char* const lut = "0123456789abcdef";
 
-        if (hexString.size() % 2 == 1)
-            throw std::runtime_error("hex string not even length");
+        std::string output;
 
-        unsigned char byte;
-        std::string nibbles;
-        const auto length = hexString.size();
+        output.reserve(2 * length);
 
-        for(unsigned int i = 0, j = 0; i < length; i += 2, j++) {
-           nibbles = hexString.substr(i, 2);
-
-          // verify we have valid hex characters
-          if(HEXCHARS.find(nibbles[0]) == std::string::npos ||
-             HEXCHARS.find(nibbles[1]) == std::string::npos) {
-            throw std::runtime_error("Invalid characters in hex string");
-          }
-
-          sscanf(nibbles.c_str(), "%x", &byte);
-          vector.push_back(byte);
+        for (size_t i = 0; i < length; ++i)
+        {
+            const unsigned char c = input[i];
+            output.push_back(lut[c >> 4]);
+            output.push_back(lut[c & 15]);
         }
 
-        return vector;
+        return output;
+    }
+
+    std::vector<unsigned char> fromHex(const std::string& hex) {
+        static const char hex_chars[] = "0123456789abcdef";
+
+        static const size_t hex_chars_len = strlen(hex_chars);
+
+        assert(hex_chars_len == 16);
+
+        size_t length = hex.length();
+
+        if (length % 2 == 1) throw std::runtime_error("odd length");
+
+        std::string input = hex;
+
+        std::transform(input.begin(), input.end(), input.begin(), tolower);
+
+        std::vector<unsigned char> output;
+
+        for (size_t i = 0; i < length; i += 2)
+        {
+            char c;
+
+            c = input[i];
+            const char* n1 = std::lower_bound(hex_chars, hex_chars + hex_chars_len, c);
+            if (*n1 != c) throw std::runtime_error("not a hex digit");
+
+            c = input[i + 1];
+            const char* n2 = std::lower_bound(hex_chars, hex_chars + hex_chars_len, c);
+            if (*n2 != c) throw std::runtime_error("not a hex digit");
+
+            output.push_back(((n1 - hex_chars) << 4) | (n2 - hex_chars));
+        }
+
+        assert(output.size() * 2 == length);
+
+        return output;
     }
 
     const unsigned char * networkToAddressVersions(Network network) {

@@ -81,7 +81,7 @@ TEST(commonTest, UCharArrayTest)
             Coin::UCharArray<1> array("0@"); //invalid hex character
             FAIL();
         } catch(std::exception &e) {
-            ASSERT_STREQ("Invalid characters in hex string", e.what());
+            ASSERT_STREQ("not a hex digit", e.what());
         }
     }
 
@@ -118,6 +118,17 @@ TEST(commonTest, UCharArrayTest)
         std::string str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
         Coin::UCharArray<32> array(str);
         EXPECT_EQ(str, array.getRawHex());
+    }
+
+    // fromHex - allows capital and lowercase letters
+    {
+        std::string str1 = "ABCDEF";
+        Coin::UCharArray<3> array1(str1);
+
+        std::string str2 = "abcdef";
+        Coin::UCharArray<3> array2(str2);
+
+        EXPECT_EQ(array1, array2);
     }
 }
 

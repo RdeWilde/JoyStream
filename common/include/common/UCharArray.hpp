@@ -125,7 +125,7 @@ bool UCharArray<array_length>::isClear() const {
 template<unsigned int array_length>
 std::string UCharArray<array_length>::getRawHex() const {
 
-    return uchar_vector(this->data(), array_length).getHex();
+    return Coin::toHex(this->data(), array_length);
 }
 
 template<unsigned int array_length>
@@ -158,7 +158,7 @@ void UCharArray<array_length>::setRawHex(const std::string &hexString) {
 
     }
 
-    auto bytes = hexToUCharVector(hexString);
+    auto bytes = Coin::fromHex(hexString);
 
     setRaw(bytes);
 }
