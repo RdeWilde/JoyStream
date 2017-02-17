@@ -33,7 +33,9 @@ HEADERS += \
     include/protocol_wire/NetworkInt.hpp \
     include/protocol_wire/OutputWireStream.hpp \
     include/protocol_wire/InputWireStream.hpp \
-    include/protocol_wire/char_array_buffer.hpp
+    include/protocol_wire/char_array_buffer.hpp \
+    include/protocol_wire/BinaryStreamWriter.hpp \
+    include/protocol_wire/BinaryStreamReader.hpp
 
 SOURCES += \
     src/Sell.cpp \
@@ -52,7 +54,9 @@ SOURCES += \
     src/NetworkInt.cpp \
     src/OutputWireStream.cpp \
     src/InputWireStream.cpp \
-    src/char_array_buffer.cpp
+    src/char_array_buffer.cpp \
+    src/BinaryStreamWriter.cpp \
+    src/BinaryStreamReader.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
