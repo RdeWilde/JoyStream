@@ -182,8 +182,8 @@ IntType NetworkInt<IntType>::value() const {
 }
 
 template<class IntType>
-NetworkInt<IntType>::NetworkInt(const char* raw)
-    : Coin::UCharArray<sizeof(IntType)>(reinterpret_cast<const unsigned char*>(raw)) {
+NetworkInt<IntType>::NetworkInt(const char* raw) {
+    this->setRaw(reinterpret_cast<const unsigned char*>(raw));
 }
 
 }

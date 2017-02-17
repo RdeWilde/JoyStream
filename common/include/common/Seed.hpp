@@ -32,7 +32,7 @@ public:
     Seed();
 
     // Named constructor from raw data
-    static Seed fromRaw(const unsigned char*);
+    static Seed fromRaw(const std::vector<unsigned char> &);
 
     // Named constructor from hex string
     static Seed fromRawHex(const std::string&);

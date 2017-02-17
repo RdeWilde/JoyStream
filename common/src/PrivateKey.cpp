@@ -38,17 +38,6 @@ PrivateKey PrivateKey::fromRawHex(const std::string &hex) {
     return sk;
 }
 
-PrivateKey PrivateKey::fromRaw(const unsigned char* raw) {
-    PrivateKey sk;
-
-    sk.setRaw(raw);
-
-    if(!valid(sk))
-        throw InvalidPrivateKeyException(sk);
-
-    return sk;
-}
-
 PrivateKey PrivateKey::fromRaw(const std::vector<unsigned char>& raw) {
     PrivateKey sk;
 

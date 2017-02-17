@@ -32,7 +32,6 @@ public:
     static PublicKey fromCompressedRawHex(const std::string &);
 
     // Named constructors from raw key
-    static PublicKey fromCompressedRaw(const unsigned char*);
     static PublicKey fromCompressedRaw(const std::vector<unsigned char>&);
 
     static size_t compressedLength();

@@ -38,9 +38,9 @@ public:
 
     // Default constructor
     UCharArray();
+
     UCharArray(const std::vector<unsigned char>&);
     UCharArray(const std::string&);
-    UCharArray(const unsigned char*);
 
     std::vector<unsigned char> getRawVector() const;
 
@@ -87,11 +87,6 @@ UCharArray<array_length>::UCharArray(const std::vector<unsigned char>& rawBytes)
 template<unsigned int array_length>
 UCharArray<array_length>::UCharArray(const std::string &hexString) {
     setRawHex(hexString);
-}
-
-template<unsigned int array_length>
-UCharArray<array_length>::UCharArray(const unsigned char* rawBytes) {
-    setRaw(rawBytes);
 }
 
 template<unsigned int array_length>

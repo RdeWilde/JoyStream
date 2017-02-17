@@ -28,17 +28,6 @@ PublicKey PublicKey::fromCompressedRawHex(const std::string &hex) {
     return pk;
 }
 
-PublicKey PublicKey::fromCompressedRaw(const unsigned char* raw) {
-    PublicKey pk;
-
-    pk.setRaw(raw);
-
-    if(!valid(pk))
-        throw InvalidPublicKeyException(pk);
-
-    return pk;
-}
-
 PublicKey PublicKey::fromCompressedRaw(const std::vector<unsigned char>& raw) {
     PublicKey pk;
 

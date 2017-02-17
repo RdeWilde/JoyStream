@@ -23,7 +23,6 @@ public:
     Entropy();
 
     // Named Constructor from raw data
-    static Entropy fromRaw(const unsigned char * raw);
     static Entropy fromRaw(const std::vector<unsigned char>&);
 
     // Named Constructor from raw hex encoded string

@@ -41,7 +41,7 @@ TEST(commonTest, UCharArrayTest)
 
     // Set Raw Bytes from unsigned char*
     {
-        Coin::UCharArray<16> array((unsigned char*)uchar_vector(16, 'A').data()); //16 0x41 bytes
+        Coin::UCharArray<16> array(uchar_vector(16, 'A')); //16 0x41 bytes
 
         for (unsigned int i = 0; i < 16; i++) {
             EXPECT_EQ(array.at(i), 0x41);

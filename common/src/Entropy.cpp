@@ -20,12 +20,6 @@ namespace Coin {
 Entropy::Entropy() {
 }
 
-Entropy Entropy::fromRaw(const unsigned char * raw) {
-    Entropy e;
-    e.setRaw(raw);
-    return e;
-}
-
 Entropy Entropy::fromRaw(const std::vector<unsigned char> &raw) {
     Entropy e;
     e.setRaw(raw);
@@ -65,7 +59,7 @@ Seed Entropy::seed(std::string passphrase) const {
     std::string saltString = "mnemonic" + passphrase;
     const char * salt = saltString.c_str();
 
-    unsigned char digest[WALLET_SEED_BYTE_LENGTH];
+    std::vector<unsigned char> digest(WALLET_SEED_BYTE_LENGTH);
 
     /* https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
      * To create a binary seed from the mnemonic, we use the PBKDF2 function with a mnemonic sentence
@@ -73,7 +67,7 @@ Seed Entropy::seed(std::string passphrase) const {
      * used as the salt. The iteration count is set to 2048 and HMAC-SHA512 is used as the pseudo-random function.
      * The length of the derived key is 512 bits (= 64 bytes).
      */
-    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, strlen(salt), 2048, EVP_sha512(), sizeof(digest), digest)){
+    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, strlen(salt), 2048, EVP_sha512(), digest.size(), digest.data())){
         throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
     }
 
