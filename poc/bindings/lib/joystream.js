@@ -1,7 +1,9 @@
 'use strict'
 
 const Node = require('./node')
+const Torrent = require('./torrent')
 const SPVWallet = require('./SPVWallet')
+var debug = require('debug')('joystream')
 
 /**
  * Joystream class.
@@ -25,9 +27,8 @@ class Joystream extends Node {
         if (!torrent) {
 
           var torrent = new Torrent(torrentHandle,
-                                    '',
+                                    null,
                                     this.plugin)
-
           // Add torrent to torrents map
           this.torrents.set(torrentHandle.infoHash(),torrent)
           // Emit event 'addTorrentAlert'
@@ -41,11 +42,12 @@ class Joystream extends Node {
           torrent.resumeData = resumeData
         }
         debug('Adding torrent succeeded.')
+        callback(err, torrent)
       } else {
         // Need error wrapper for message
-        debug('Adding torrent failed:')
+        debug('Adding torrent failed')
+        callback(err, null)
       }
-      callback(err, torrentHandle)
     })
   }
 
@@ -55,7 +57,23 @@ class Joystream extends Node {
 
   // If torrent not find try to add ?
   sellTorrent (infoHash, sellerTerms, callback) {
-    this.plugin.to_sell_mode(infoHash, sellerTerms, callback)
+    var torrent = this.torrents.get(infoHash)
+
+    if (torrent) {
+      if (torrent.torrentPlugin) {
+        if (torrent.handle.status()) {
+          console.log(torrent.handle.status())
+          this.plugin.to_sell_mode(infoHash, sellerTerms, callback)
+        }
+      } else {
+        debug('TorrentPlugin not set for this torrent')
+        callback(new Error('TorrentPlugin not set for this torrent'), null)
+      }
+    } else {
+      debug('Torrent not present in node !')
+      // Add torrent to node ?
+      callback(new Error('Torrent not present in node !'), null)
+    }
   }
 
   observeTorrent () {

@@ -146,7 +146,6 @@ class Node extends EventEmitter {
           this[_stateChangedAlert](alert)
           break
 
-
         // torrent_removed_alert
         case 4:
           this[_torrentRemovedAlert](alert)
@@ -605,7 +604,7 @@ class Node extends EventEmitter {
       } else {
         var torrent = new Torrent(torrentHandle, '', this.plugin)
         this.torrents.set(torrentHandle.infoHash(), torrent)
-        this.emit('addedTorrent', torrent)
+        this.emit('torrentPluginAdded', torrent)
         torrent.addTorrentPlugin(alert.torrentPluginStatus)
       }
     }

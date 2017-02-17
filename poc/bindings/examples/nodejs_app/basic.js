@@ -30,17 +30,17 @@ let addTorrentParams = {
   savePath: '/home/lola/joystream/test/'
 }*/
 
-app.addTorrent(addTorrentParams, (err, torrentHandle) => {
+app.addTorrent(addTorrentParams, (err, torrent) => {
   if (!err) {
 
     //50, 1, 10, 15000, 5000
-    /*let sellerTerm = {
+    let sellerTerm = {
       minPrice: 50,
       minLock: 1,
       maxNumberOfSellers: 10,
       minContractFeePerKb: 15000,
       settlementFee: 5000
-    }*/
+    }
 
     //100, 5, 1, 20000
     let buyerTerm = {
@@ -50,11 +50,18 @@ app.addTorrent(addTorrentParams, (err, torrentHandle) => {
       maxContractFeePerKb: 20000
     }
 
-    app.buyTorrent('6a9759bffd5c0af65319979fb7832189f4f3c35d', buyerTerm, (err, result) => {
-      if (!err)
-        debug("We are selling")
+    // we wait for the plugin to be added
+    //torrent.on('torrentPluginAdded', () => {})
+      app.sellTorrent('6a9759bffd5c0af65319979fb7832189f4f3c35d', sellerTerm, (err, result) => {
 
-    })
+        if (!err) {
+          debug("We are buying")
+        } else {
+          console.log(err)
+        }
+
+      })
+
   } else {
     debug(err)
   }
