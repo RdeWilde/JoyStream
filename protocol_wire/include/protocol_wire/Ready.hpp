@@ -8,26 +8,20 @@
 #ifndef JOYSTREAM_WIRE_READY_HPP
 #define JOYSTREAM_WIRE_READY_HPP
 
-#include <protocol_wire/Message.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/PublicKey.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Ready : public Message {
+    class Ready {
 
     public:
 
         Ready();
         Ready(uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
 
-        virtual ~Ready() {}
-
         bool operator==(const Ready &) const;
-
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
 
         // Getters
         uint64_t value() const;

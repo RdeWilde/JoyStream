@@ -6,7 +6,7 @@
  */
 
 #include <protocol_wire/Ready.hpp>
-#include <protocol_wire/MessageType.hpp>
+
 #include <CoinCore/CoinNodeData.h> // Coin::OutPoint
 
 namespace joystream {
@@ -28,10 +28,6 @@ namespace protocol_wire {
                _anchor == rhs.anchor() &&
                _contractPk == rhs.contractPk() &&
                _finalPkHash == rhs.finalPkHash();
-    }
-
-    MessageType Ready::messageType() const {
-        return MessageType::ready;
     }
 
     uint64_t Ready::value() const {

@@ -6,7 +6,6 @@
  */
 
 #include <protocol_wire/FullPiece.hpp>
-#include <protocol_wire/MessageType.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -20,10 +19,6 @@ namespace protocol_wire {
 
     bool FullPiece::operator==(const FullPiece & rhs) const {
         return _pieceData == rhs.pieceData();
-    }
-
-    MessageType FullPiece::messageType() const {
-        return MessageType::full_piece;
     }
 
     PieceData FullPiece::pieceData() const {

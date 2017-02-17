@@ -14,7 +14,6 @@ CONFIG  -= core
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-    include/protocol_wire/Message.hpp \
     include/protocol_wire/Sell.hpp \
     include/protocol_wire/RequestFullPiece.hpp \
     include/protocol_wire/Ready.hpp \

@@ -6,7 +6,6 @@
  */
 
 #include <protocol_wire/Buy.hpp>
-#include <protocol_wire/MessageType.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -20,10 +19,6 @@ namespace protocol_wire {
 
     bool Buy::operator==(const Buy & o) const {
         return _terms == o.terms();
-    }
-
-    MessageType Buy::messageType() const {
-        return MessageType::buy;
     }
 
     BuyerTerms Buy::terms() const {

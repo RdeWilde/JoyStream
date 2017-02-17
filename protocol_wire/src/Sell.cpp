@@ -6,7 +6,6 @@
  */
 
 #include <protocol_wire/Sell.hpp>
-#include <protocol_wire/MessageType.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -18,10 +17,6 @@ namespace protocol_wire {
     Sell::Sell(const SellerTerms & terms, uint32_t index)
         : _terms(terms)
         , _index(index) {
-    }
-
-    MessageType Sell::messageType() const {
-        return MessageType::sell;
     }
 
     bool Sell::operator==(const Sell & rhs) const {

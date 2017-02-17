@@ -8,13 +8,12 @@
 #ifndef JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
 #define JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
 
-#include <protocol_wire/Message.hpp>
 #include <protocol_wire/BuyerTerms.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Buy : public Message {
+    class Buy {
 
     public:
 
@@ -24,12 +23,7 @@ namespace protocol_wire {
         // Constructor based on members
         Buy(const BuyerTerms & terms);
 
-        virtual ~Buy() {}
-
         bool operator==(const Buy &) const;
-
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
 
         // Getters and setters
         BuyerTerms terms() const;
