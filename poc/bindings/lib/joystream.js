@@ -3,6 +3,7 @@
 const Node = require('./node')
 const Torrent = require('./torrent')
 const SPVWallet = require('./SPVWallet')
+const StateT = require('./StateT')
 var debug = require('debug')('joystream')
 
 /**
@@ -51,14 +52,31 @@ class Joystream extends Node {
     })
   }
 
+  removeTorrent (infoHash, callback) {
+    var torrent = this.torrents.get(infoHash)
+
+    if (torrent) {
+      this.plugin.remove_torrent(infoHash, (err, result) => {
+        if (!err)
+          this.torrents.delete(infoHash)
+      })
+    } else {
+      debug('Cannot remove torrent : Torrent not found')
+      callback(new Error('Cannot remove torrent : Torrent not found'), null)
+    }
+
+  }
+
   buyTorrent (infoHash, buyerTerms, callback) {
     var torrent = this.torrents.get(infoHash)
 
     if (torrent) {
       if (torrent.torrentPlugin) {
-        if (torrent.handle.status()) {
-          console.log(torrent.handle.status())
+        if (torrent.handle.status() === StateT.DOWNLOADING ) {
           this.plugin.to_buy_mode(infoHash, buyerTerms, callback)
+        } else {
+          debug('Torrent not in downloading state')
+          callback(new Error('Torrent not in downloading state'), null)
         }
       } else {
         debug('TorrentPlugin not set for this torrent')
@@ -77,9 +95,11 @@ class Joystream extends Node {
 
     if (torrent) {
       if (torrent.torrentPlugin) {
-        if (torrent.handle.status()) {
-          console.log(torrent.handle.status())
+        if (torrent.handle.status() === StateT.SEEDING) {
           this.plugin.to_sell_mode(infoHash, sellerTerms, callback)
+        } else {
+          debug('Torrent not in seeding state')
+          callback(new Error('Torrent not in seeding state'), null)
         }
       } else {
         debug('TorrentPlugin not set for this torrent')
