@@ -46,35 +46,50 @@ namespace Coin {
     }
 
     std::vector<unsigned char> fromHex(const std::string& hex) {
-        static const char hex_chars[] = "0123456789abcdef";
+        // the order of the characters must match their order as per their ascii value
+        // for std::lower_bound to work as expected
+        static const char* hex_chars_begin = "0123456789abcdef";
 
-        static const size_t hex_chars_len = strlen(hex_chars);
+        static const char* hex_chars_end = hex_chars_begin + strlen(hex_chars_begin);
 
-        assert(hex_chars_len == 16);
+        assert(strlen(hex_chars_begin) == 16);
 
         size_t length = hex.length();
 
+        // Hex string must already be 0 padded - only even length string allowed
         if (length % 2 == 1) throw std::runtime_error("odd length");
 
+        // make a copy to convert to lowercase
         std::string input = hex;
 
+        // convert to lowercase to support both cases
         std::transform(input.begin(), input.end(), input.begin(), tolower);
 
+        // byte array to store result
         std::vector<unsigned char> output;
 
+        // process two hex digits at a time
         for (size_t i = 0; i < length; i += 2)
         {
             char c;
 
+            // verify first hex digit (4 most significant bits in byte)
+            // is in valid range of characters
             c = input[i];
-            const char* n1 = std::lower_bound(hex_chars, hex_chars + hex_chars_len, c);
+            const char* n1 = std::lower_bound(hex_chars_begin, hex_chars_end, c);
+
+            // if c was not found in the hex chars range, the last value in the array is returned
+            // 'f' so if the character at n1 is not c the character was not found
             if (*n1 != c) throw std::runtime_error("not a hex digit");
 
+            // verify second hex digit (4 least significant bits)
+            // is in valid range of characters
             c = input[i + 1];
-            const char* n2 = std::lower_bound(hex_chars, hex_chars + hex_chars_len, c);
+            const char* n2 = std::lower_bound(hex_chars_begin, hex_chars_end, c);
             if (*n2 != c) throw std::runtime_error("not a hex digit");
 
-            output.push_back(((n1 - hex_chars) << 4) | (n2 - hex_chars));
+            // convert both pointers to decimal value (position in
+            output.push_back(((n1 - hex_chars_begin) << 4) | (n2 - hex_chars_begin));
         }
 
         assert(output.size() * 2 == length);
