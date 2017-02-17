@@ -52,7 +52,23 @@ class Joystream extends Node {
   }
 
   buyTorrent (infoHash, buyerTerms, callback) {
-    this.plugin.to_buy_mode(infoHash, buyerTerms, callback)
+    var torrent = this.torrents.get(infoHash)
+
+    if (torrent) {
+      if (torrent.torrentPlugin) {
+        if (torrent.handle.status()) {
+          console.log(torrent.handle.status())
+          this.plugin.to_buy_mode(infoHash, buyerTerms, callback)
+        }
+      } else {
+        debug('TorrentPlugin not set for this torrent')
+        callback(new Error('TorrentPlugin not set for this torrent'), null)
+      }
+    } else {
+      debug('Torrent not present in node !')
+      // Add torrent to node ?
+      callback(new Error('Torrent not present in node !'), null)
+    }
   }
 
   // If torrent not find try to add ?

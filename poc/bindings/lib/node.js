@@ -421,6 +421,7 @@ class Node extends EventEmitter {
         var torrent = this.torrents.get(status[i].infoHash)
 
         if (torrent) {
+          console.log(status[i].state)
           torrent.emit('state_update_alert', status[i].state, status[i].progress)
         } else {
           debug('Torrent not found !')

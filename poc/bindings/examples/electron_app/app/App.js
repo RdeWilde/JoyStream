@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Joystream, TorrentInfo } from '../../../'
+import { Joystream, TorrentInfo, StateT } from '../../../'
 var debug = require('debug')('electron:app')
 
 var joystream = new Joystream()
@@ -19,8 +19,6 @@ class App extends Component {
   }
 
   addTorrentFile () {
-    console.log(TorrentInfo)
-
     let addTorrentParams = {
       ti: new TorrentInfo('/home/lola/joystream/test/306497171.torrent'),
       savePath: '/home/lola/joystream/test/'
@@ -45,9 +43,7 @@ class App extends Component {
     if (err) {
       console.log(err)
     } else {
-      joystream.on('add_torrent_alert', () => {
-        this.setState({torrents: joystream.torrents})
-      })
+      this.setState({torrents: joystream.torrents})
     }
   }
 
@@ -74,39 +70,10 @@ class App extends Component {
           this.forceUpdate()
         })
 
-        var statusText;
-
-        switch(status.state) {
-          case 0:
-            statusText = 'Queued for checking'
-            break
-          case 1:
-            statusText = 'Checking files'
-            break
-          case 2:
-            statusText = 'Downloading metadata'
-            break
-          case 3:
-            statusText = 'Downloading'
-            break
-          case 4:
-            statusText = 'Finished'
-            break
-          case 5:
-            statusText = 'Seeding'
-            break
-          case 6:
-            statusText = 'Allocating'
-            break
-          case 6:
-            statusText = 'Checking resume data'
-            break
-          default:
-            statusText = 'Unknown'
-        }
+        var statusText = StateT.properties[status.state].name
 
         rows.push(
-          <tr>
+          <tr key={torrentHandle.infoHash()}>
             <td>{torrentInfo.name()}</td>
             <td>{Number(torrentInfo.totalSize() / 1000000).toFixed(2)} Mb</td>
             <td>{Number(status.progress*100).toFixed(0)}%</td>
