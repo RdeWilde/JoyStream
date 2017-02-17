@@ -18,7 +18,7 @@ namespace node {
 namespace connection {
 
   typedef std::pair<std::type_index, const char *> TypeInfo;
-  #define STATE_TO_TYPE_INFO(name) std::make_pair(std::type_index(typeid(protocol_statemachine::name)), #name)
+  #define STATE_TO_TYPE_INFO(name) (std::make_pair(std::type_index(typeid(protocol_statemachine::name)), #name))
 
   static const std::array<TypeInfo, 14> InnerStateTypeInfo = {
 
@@ -62,8 +62,8 @@ namespace connection {
 
     v8::Local<v8::Object> o = Nan::New<v8::Object>();
 
-    for(int i = 0;i < InnerStateTypeInfo.size();i++)
-      SET_NUMBER(o, InnerStateTypeInfo[i].second, i);
+    for(std::size_t i = 0;i < InnerStateTypeInfo.size();i++)
+      SET_NUMBER(o, InnerStateTypeInfo[i].second, (uint32_t)i);
 
 
     SET_VAL(target, "InnerStateType", o);
@@ -71,10 +71,10 @@ namespace connection {
 
   v8::Local<v8::Uint32> encode(const std::type_index & index){
 
-    for(int i = 0;i < InnerStateTypeInfo.size();i++) {
+    for(std::size_t i = 0;i < InnerStateTypeInfo.size();i++) {
 
       if(InnerStateTypeInfo[i].first == index)
-        return Nan::New<v8::Uint32>(i);
+        return Nan::New<v8::Uint32>((uint32_t)i);
     }
 
     // Should never get here, means our code is out of synch
