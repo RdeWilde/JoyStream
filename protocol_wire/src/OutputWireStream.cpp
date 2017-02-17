@@ -27,10 +27,10 @@ std::streamsize OutputWireStream::writeObserve(const Observe &) {
 std::streamsize OutputWireStream::writeBuy(const Buy & buy) {
     std::streamsize written = 0;
 
-    written += writeInt<decltype(buy.terms().maxContractFeePerKb())>(buy.terms().maxContractFeePerKb());
-    written += writeInt<decltype(buy.terms().maxLock())>(buy.terms().maxLock());
-    written += writeInt<decltype(buy.terms().maxPrice())>(buy.terms().maxPrice());
-    written += writeInt<decltype(buy.terms().minNumberOfSellers())>(buy.terms().minNumberOfSellers());
+    written += writeInt<>(buy.terms().maxContractFeePerKb());
+    written += writeInt<>(buy.terms().maxLock());
+    written += writeInt<>(buy.terms().maxPrice());
+    written += writeInt<>(buy.terms().minNumberOfSellers());
 
     return written;
 }
@@ -38,13 +38,13 @@ std::streamsize OutputWireStream::writeBuy(const Buy & buy) {
 std::streamsize OutputWireStream::writeSell(const Sell & sell) {
     std::streamsize written = 0;
 
-    written += writeInt<decltype(sell.terms().minContractFeePerKb())>(sell.terms().minContractFeePerKb());
-    written += writeInt<decltype(sell.terms().minLock())>(sell.terms().minLock());
-    written += writeInt<decltype(sell.terms().minPrice())>(sell.terms().minPrice());
-    written += writeInt<decltype(sell.terms().maxSellers())>(sell.terms().maxSellers());
-    written += writeInt<decltype(sell.terms().settlementFee())>(sell.terms().settlementFee());
+    written += writeInt<>(sell.terms().minContractFeePerKb());
+    written += writeInt<>(sell.terms().minLock());
+    written += writeInt<>(sell.terms().minPrice());
+    written += writeInt<>(sell.terms().maxSellers());
+    written += writeInt<>(sell.terms().settlementFee());
 
-    written += writeInt<decltype(sell.index())>(sell.index());
+    written += writeInt<>(sell.index());
 
     return written;
 }
@@ -59,13 +59,13 @@ std::streamsize OutputWireStream::writeJoiningContract(const JoiningContract &jo
 }
 
 std::streamsize OutputWireStream::writeJoinContract(const JoinContract & join) {
-    return writeInt<decltype(join.index())>(join.index());
+    return writeInt<>(join.index());
 }
 
 std::streamsize OutputWireStream::writeReady(const Ready &ready) {
     std::streamsize written = 0;
 
-    written += writeInt<decltype(ready.value())>(ready.value());
+    written += writeInt<>(ready.value());
     written += writeTypeSafeOutpoint(ready.anchor());
     written += writePublicKey(ready.contractPk());
     written += writePubKeyHash(ready.finalPkHash());
@@ -351,7 +351,7 @@ std::streamsize OutputWireStream::writePublicKey(const Coin::PublicKey& pk){
 std::streamsize OutputWireStream::writeTypeSafeOutpoint(const Coin::typesafeOutPoint& outPoint) {
     std::streamsize written = 0;
     written += writeTransactionId(outPoint.transactionId());
-    written += writeInt<decltype(outPoint.index())>(outPoint.index());
+    written += writeInt<>(outPoint.index());
     return written;
 }
 
