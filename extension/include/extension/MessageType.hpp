@@ -5,13 +5,13 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef JOYSTREAM_WIRE_MESSAGE_TYPE_HPP
-#define JOYSTREAM_WIRE_MESSAGE_TYPE_HPP
+#ifndef JOYSTREAM_EXTENSION_MESSAGE_TYPE_HPP
+#define JOYSTREAM_EXTENSION_MESSAGE_TYPE_HPP
 
 #include <string>
 
 namespace joystream {
-namespace protocol_wire {
+namespace extension {
 
     enum class MessageType {
         observe,
@@ -22,9 +22,8 @@ namespace protocol_wire {
         ready,
         request_full_piece,
         full_piece,
-        payment //, end
+        payment
     };
-
 
     // Get name of message type
     const char * messageName(MessageType type);
@@ -34,4 +33,4 @@ namespace protocol_wire {
 }
 }
 
-#endif // JOYSTREAM_WIRE_MESSAGE_TYPE_HPP
+#endif // JOYSTREAM_EXTENSION_MESSAGE_TYPE_HPP

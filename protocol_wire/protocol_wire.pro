@@ -19,12 +19,10 @@ HEADERS += \
     include/protocol_wire/Ready.hpp \
     include/protocol_wire/Payment.hpp \
     include/protocol_wire/Observe.hpp \
-    include/protocol_wire/MessageType.hpp \
     include/protocol_wire/JoiningContract.hpp \
     include/protocol_wire/JoinContract.hpp \
     include/protocol_wire/FullPiece.hpp \
     include/protocol_wire/Buy.hpp \
-    include/protocol_wire/MessageType.hpp \
     include/protocol_wire/SellerTerms.hpp \
     include/protocol_wire/BuyerTerms.hpp \
     include/protocol_wire/PieceData.hpp \
@@ -41,7 +39,6 @@ SOURCES += \
     src/RequestFullPiece.cpp \
     src/Ready.cpp \
     src/Payment.cpp \
-    src/MessageType.cpp \
     src/JoiningContract.cpp \
     src/JoinContract.cpp \
     src/FullPiece.cpp \

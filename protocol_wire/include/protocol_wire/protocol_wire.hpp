@@ -8,7 +8,6 @@
 #ifndef JOYSTREAM_PROTOCOLWIRE_HPP
 #define JOYSTREAM_PROTOCOLWIRE_HPP
 
-#include <protocol_wire/MessageType.hpp>
 #include <protocol_wire/Buy.hpp>
 #include <protocol_wire/BuyerTerms.hpp>
 #include <protocol_wire/FullPiece.hpp>

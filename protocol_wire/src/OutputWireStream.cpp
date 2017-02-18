@@ -10,8 +10,6 @@
 #include <protocol_wire/FullPiece.hpp>
 #include <protocol_wire/Payment.hpp>
 
-#include <protocol_wire/MessageType.hpp>
-
 namespace joystream {
 namespace protocol_wire {
 
