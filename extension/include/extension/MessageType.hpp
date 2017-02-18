@@ -26,10 +26,10 @@ namespace extension {
     };
 
     // Get name of message type
-    const char * messageName(MessageType type);
+    const char * getMessageName(MessageType type);
 
     // Get type based on name
-    MessageType messageType(const std::string &);
+    MessageType getMessageType(const std::string &);
 }
 }
 

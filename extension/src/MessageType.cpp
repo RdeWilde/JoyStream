@@ -5,15 +5,15 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, October 4 2015
  */
 
-#include <protocol_wire/MessageType.hpp>
+#include <extension/MessageType.hpp>
 #include <cassert>
 #include <string>
 #include <stdexcept>
 
 namespace joystream {
-namespace protocol_wire {
+namespace extension {
 
-    const char * messageName(MessageType type) {
+    const char * getMessageName(MessageType type) {
 
         switch(type){
             case MessageType::observe: return "observe";
@@ -30,25 +30,25 @@ namespace protocol_wire {
         }
     }
 
-    MessageType messageType(const std::string & name) {
+    MessageType getMessageType(const std::string & name) {
 
-        if(messageName(MessageType::observe) == name)
+        if(getMessageName(MessageType::observe) == name)
             return MessageType::observe;
-        else if(messageName(MessageType::buy) == name)
+        else if(getMessageName(MessageType::buy) == name)
             return MessageType::buy;
-        else if(messageName(MessageType::sell) == name)
+        else if(getMessageName(MessageType::sell) == name)
             return MessageType::sell;
-        else if(messageName(MessageType::join_contract) == name)
+        else if(getMessageName(MessageType::join_contract) == name)
             return MessageType::join_contract;
-        else if(messageName(MessageType::joining_contract) == name)
+        else if(getMessageName(MessageType::joining_contract) == name)
             return MessageType::joining_contract;
-        else if(messageName(MessageType::ready) == name)
+        else if(getMessageName(MessageType::ready) == name)
             return MessageType::ready;
-        else if(messageName(MessageType::request_full_piece) == name)
+        else if(getMessageName(MessageType::request_full_piece) == name)
             return MessageType::request_full_piece;
-        else if(messageName(MessageType::full_piece) == name)
+        else if(getMessageName(MessageType::full_piece) == name)
             return MessageType::full_piece;
-        else if(messageName(MessageType::payment) == name)
+        else if(getMessageName(MessageType::payment) == name)
             return MessageType::payment;
         else
             throw std::runtime_error("Invalid");
