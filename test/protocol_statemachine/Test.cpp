@@ -59,7 +59,7 @@ TEST(statemachineTest, observing)
 
     // Check that observe mode message was sent
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::observe);
+    EXPECT_EQ(spy.messageType(), MessageType::observe);
 
     //// In Observing state
 
@@ -114,7 +114,7 @@ TEST(statemachineTest, selling)
 
     // Check that sell message was sent with correct terms
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::sell);
+    EXPECT_EQ(spy.messageType(), MessageType::sell);
     EXPECT_EQ(spy.sellMessage().terms(), f.sellModeStarted.terms());
 
     spy.reset();
@@ -129,7 +129,7 @@ TEST(statemachineTest, selling)
 
     // Check that mode message was sent
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::sell);
+    EXPECT_EQ(spy.messageType(), MessageType::sell);
     EXPECT_EQ(spy.sellMessage().terms(), newSellTerms);
 
     // Peer invites us (seller), with valid index, but before announcing being in any mode
@@ -173,7 +173,7 @@ TEST(statemachineTest, selling)
 
     // Check that joining_contract message was sent with correct rsvp
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::joining_contract);
+    EXPECT_EQ(spy.messageType(), MessageType::joining_contract);
     EXPECT_EQ(spy.joiningContractMessage().contractPk(), f.joinedContract.contractKeys().pk());
     EXPECT_EQ(spy.joiningContractMessage().finalPkHash(), f.joinedContract.finalPkHash());
 
@@ -267,7 +267,7 @@ TEST(statemachineTest, selling)
     machine->processEvent(f.fullPiece);
 
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::full_piece);
+    EXPECT_EQ(spy.messageType(), MessageType::full_piece);
     EXPECT_EQ(spy.fullPieceMessage().pieceData(), f.fullPiece.pieceData());
 
     spy.reset();
@@ -309,7 +309,7 @@ TEST(statemachineTest, selling)
 
     // Check that mode message was sent
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::buy);
+    EXPECT_EQ(spy.messageType(), MessageType::buy);
     EXPECT_EQ(spy.buyMessage().terms(), newBuyerTerms);
 
     // Clean up machine
@@ -347,7 +347,7 @@ TEST(statemachineTest, buying)
 
     // Check that sell message was sent with correct terms
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::buy);
+    EXPECT_EQ(spy.messageType(), MessageType::buy);
     EXPECT_EQ(spy.buyMessage().terms(), f.buyModeStarted.terms());
 
     spy.reset();
@@ -374,7 +374,7 @@ TEST(statemachineTest, buying)
     machine->processEvent(f.inviteSeller);
 
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::join_contract);
+    EXPECT_EQ(spy.messageType(), MessageType::join_contract);
     //QCOMPARE(spy.joinContractMessage().index(), machine->pe
 
     spy.reset();
@@ -424,7 +424,7 @@ TEST(statemachineTest, buying)
     machine->processEvent(f.contractPrepared);
 
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::ready);
+    EXPECT_EQ(spy.messageType(), MessageType::ready);
     EXPECT_EQ(spy.readyMessage().anchor(), f.contractPrepared.anchor());
     EXPECT_EQ(spy.readyMessage().value(), f.contractPrepared.value());
     EXPECT_EQ(spy.readyMessage().contractPk(), f.contractPrepared.contractKeyPair().pk());
@@ -438,7 +438,7 @@ TEST(statemachineTest, buying)
     machine->processEvent(f.requestPiece);
 
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::request_full_piece);
+    EXPECT_EQ(spy.messageType(), MessageType::request_full_piece);
     EXPECT_EQ(spy.requestFullPieceMessage().pieceIndex(), f.requestPiece.pieceIndex());
 
     spy.reset();
@@ -459,7 +459,7 @@ TEST(statemachineTest, buying)
     machine->processEvent(event::SendPayment());
 
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::payment);
+    EXPECT_EQ(spy.messageType(), MessageType::payment);
     EXPECT_TRUE(f.validatePayment(spy.paymentMessage().sig(), 0));
 
     spy.reset();
@@ -469,7 +469,7 @@ TEST(statemachineTest, buying)
     machine->processEvent(event::UpdateTerms<protocol_wire::BuyerTerms>(testTerms));
 
     EXPECT_TRUE(spy.messageSent());
-    EXPECT_EQ(spy.messageType(), protocol_wire::MessageType::buy);
+    EXPECT_EQ(spy.messageType(), MessageType::buy);
     EXPECT_EQ(spy.buyMessage().terms(), testTerms);
 
     spy.reset();

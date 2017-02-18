@@ -26,6 +26,18 @@ namespace protocol_wire {
 using namespace joystream;
 using namespace joystream::protocol_statemachine;
 
+enum class MessageType {
+    observe,
+    buy,
+    sell,
+    join_contract,
+    joining_contract,
+    ready,
+    request_full_piece,
+    full_piece,
+    payment
+};
+
 class CBStateMachineCallbackSpy {
 
 public:
@@ -50,7 +62,7 @@ public:
 
     protocol_wire::PieceData pieceData() const;
 
-    protocol_wire::MessageType messageType() const;
+    MessageType messageType() const;
 
     protocol_wire::Buy buyMessage() const;
 
@@ -112,9 +124,8 @@ private:
 
     // Send
     bool _messageSent;
-    const protocol_wire::Message * _message;
-    /**
-    protocol_wire::MessageType _messageType;
+
+    MessageType _messageType;
     protocol_wire::Buy _buyMessage;
     protocol_wire::FullPiece _fullPieceMessage;
     protocol_wire::JoinContract _joinContractMessage;
@@ -122,11 +133,8 @@ private:
     protocol_wire::Observe _observeMessage;
     protocol_wire::Payment _paymentMessage;
     protocol_wire::Ready _readyMessage;
-    protocol_wire::RefundSigned _refundSignedMessage;
     protocol_wire::RequestFullPiece _requestFullPieceMessage;
     protocol_wire::Sell _sellMessage;
-    protocol_wire::SignRefund _signRefundMessage;
-    */
 
     // ContractIsReady
     bool _contractHasBeenPrepared;
