@@ -40,7 +40,6 @@ HEADERS += \
     include/common/PubKeyHash.hpp \
     include/common/Seed.hpp \
     include/common/Entropy.hpp \
-    include/common/LibtorrentUtilities.hpp \
     include/common/RedeemScriptHash.hpp \
     include/common/SigHashType.hpp \
     include/common/MultisigScriptPubKey.hpp \
@@ -74,7 +73,6 @@ SOURCES += \
     src/P2SHAddress.cpp \
     src/Seed.cpp \
     src/Entropy.cpp \
-    src/LibtorrentUtilities.cpp \
     src/Network.cpp \
     src/SigHashType.cpp \
     src/MultisigScriptPubKey.cpp \
