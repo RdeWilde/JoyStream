@@ -606,7 +606,8 @@ void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libto
         _peers.erase(it);
 }
 
-void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const joystream::protocol_wire::Message & extendedMessage){
+template<class M>
+void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const M &extendedMessage){
 
     if(_session.mode() == protocol_session::SessionMode::not_set) {
         std::clog << "Ignoring extended message - session mode not set" << std::endl;
@@ -618,7 +619,7 @@ void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & end
         return;
     }
     // Have session process message
-    _session.processMessageOnConnection(endPoint, extendedMessage);
+    _session.processMessageOnConnection<M>(endPoint, extendedMessage);
 }
 
 protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> TorrentPlugin::removeConnection() {

@@ -475,7 +475,7 @@ namespace extension {
         }
 
         // Is it a message for this extension?
-        joystream::protocol_wire::MessageType messageType;
+        MessageType messageType;
 
         try {
             messageType = _peerMapping.messageType(msg);
@@ -503,12 +503,48 @@ namespace extension {
         char_array_buffer buffer(begin, begin + lengthOfMessage);
         protocol_wire::InputWireStream stream(&buffer);
 
-        std::shared_ptr<protocol_wire::Message> m;
-
         // Parse message
         try {
-
-            m = stream.readMessage(messageType);
+            switch(messageType) {
+                case MessageType::observe : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readObserve());
+                    break;
+                }
+                case MessageType::buy : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readBuy());
+                    break;
+                }
+                case MessageType::sell : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readSell());
+                    break;
+                }
+                case MessageType::join_contract : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readJoinContract());
+                    break;
+                }
+                case MessageType::joining_contract : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readJoiningContract());
+                    break;
+                }
+                case MessageType::ready : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readReady());
+                    break;
+                }
+                case MessageType::request_full_piece : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readRequestFullPiece());
+                    break;
+                }
+                case MessageType::full_piece : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readFullPiece());
+                    break;
+                }
+                case MessageType::payment : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readPayment());
+                    break;
+                }
+                default:
+                    assert(false);
+            }
 
         } catch (std::exception & e) {
 
@@ -518,21 +554,6 @@ namespace extension {
             libtorrent::error_code ec; // <-- "Malformed extended message received, removing."
 
             drop(ec);
-            return true;
-        }
-
-        assert(m);
-
-        // Process message
-        try {
-            _plugin->processExtendedMessage(_endPoint, *m);
-        } catch(std::exception &e) {
-
-            std::clog << "Error processing Extended Message "<< e.what() << std::endl;
-
-            libtorrent::error_code ec;
-            drop(ec);
-            return true;
         }
 
         // No other plugin should process message

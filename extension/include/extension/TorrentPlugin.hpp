@@ -168,7 +168,8 @@ private:
     void drop(const libtorrent::tcp::endpoint &, const libtorrent::error_code &, bool disconnect = true);
 
     // Determines the message type, calls correct handler, then frees message
-    void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::Message & extendedMessage);
+    template<class M>
+    void processExtendedMessage(const libtorrent::tcp::endpoint &, const M & extendedMessage);
 
     /// Protocol session hooks
 
