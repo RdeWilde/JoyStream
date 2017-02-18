@@ -460,7 +460,8 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::Message & m) {
+    template<class M>
+    void Session<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const M &m) {
 
         if(_mode == SessionMode::not_set)
             throw exception::SessionModeNotSetException();

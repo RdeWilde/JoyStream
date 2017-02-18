@@ -129,7 +129,8 @@ namespace detail {
         std::set<ConnectionIdType> connectionIds() const;
 
         // Process given message on given connection with given ID
-        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::Message &);
+        template<class M>
+        void processMessageOnConnection(const ConnectionIdType &, const M &);
 
         //// Buying
 
