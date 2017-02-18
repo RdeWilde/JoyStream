@@ -107,7 +107,7 @@ namespace detail {
         void tick();
 
         // Adds connection, and return the current number of connections
-        uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
+        uint addConnection(const ConnectionIdType &, const SendMessageOnConnectionCallbacks &);
 
         // Whether there is a connection with given id
         bool hasConnection(const ConnectionIdType &) const;
@@ -248,7 +248,7 @@ namespace detail {
         //// Utility routines
 
         // Creates a connection
-        detail::Connection<ConnectionIdType> * createConnection(const ConnectionIdType & id, const SendMessageOnConnection &);
+        detail::Connection<ConnectionIdType> * createConnection(const ConnectionIdType & id, const SendMessageOnConnectionCallbacks &);
 
         // not sure, should we return connection pointer, or just id?
         std::vector<detail::Connection<ConnectionIdType> *> connectionsWithPeerInMode(protocol_statemachine::ModeAnnounced m);
@@ -265,7 +265,7 @@ namespace detail {
         typename detail::ConnectionMap<ConnectionIdType>::const_iterator destroyConnection(const ConnectionIdType &);
 
         // If possible, creates connection and adds to map
-        detail::Connection<ConnectionIdType> * createAndAddConnection(const ConnectionIdType &, const SendMessageOnConnection &);
+        detail::Connection<ConnectionIdType> * createAndAddConnection(const ConnectionIdType &, const SendMessageOnConnectionCallbacks &);
     };
 
 }

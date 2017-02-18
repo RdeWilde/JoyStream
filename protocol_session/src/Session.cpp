@@ -355,7 +355,7 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    uint Session<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
+    uint Session<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnectionCallbacks & callbacks) {
 
         switch(_mode) {
 
@@ -367,17 +367,17 @@ namespace protocol_session {
             case SessionMode::observing:
 
                 assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
-                return _observing->addConnection(id, callback);
+                return _observing->addConnection(id, callbacks);
 
             case SessionMode::buying:
 
                 assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
-                return _buying->addConnection(id, callback);
+                return _buying->addConnection(id, callbacks);
 
             case SessionMode::selling:
 
                 assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
-                return _selling->addConnection(id, callback);
+                return _selling->addConnection(id, callbacks);
 
             default:
 
@@ -914,14 +914,14 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    detail::Connection<ConnectionIdType> * Session<ConnectionIdType>::createConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
+    detail::Connection<ConnectionIdType> * Session<ConnectionIdType>::createConnection(const ConnectionIdType & id, const SendMessageOnConnectionCallbacks & sendMessageCallbacks) {
 
         return new detail::Connection<ConnectionIdType>(
         id,
         [this, id](const protocol_statemachine::AnnouncedModeAndTerms & a) { this->peerAnnouncedModeAndTerms(id, a); },
         [this, id](void) { this->invitedToOutdatedContract(id); },
         [this, id]() { this->invitedToJoinContract(id); },
-        [this, callback](const protocol_wire::Message * m) { callback(m); },
+        sendMessageCallbacks,
         [this, id](uint64_t value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
         [this, id](int i) { this->pieceRequested(id, i); },
         [this, id]() { this->invalidPieceRequested(id); },
@@ -995,7 +995,7 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    detail::Connection<ConnectionIdType> * Session<ConnectionIdType>::createAndAddConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
+    detail::Connection<ConnectionIdType> * Session<ConnectionIdType>::createAndAddConnection(const ConnectionIdType & id, const SendMessageOnConnectionCallbacks & callbacks) {
 
         // Do not accept new connection if session is stopped
         if(_state == SessionState::stopped)
@@ -1006,7 +1006,7 @@ namespace protocol_session {
             throw exception::ConnectionAlreadyAddedException<ConnectionIdType>(id);
 
         // Create a new connection
-        detail::Connection<ConnectionIdType> * connection = createConnection(id, callback);
+        detail::Connection<ConnectionIdType> * connection = createConnection(id, callbacks);
 
         // Add to map
         _connections.insert(std::make_pair(id, connection));
