@@ -37,6 +37,7 @@ HEADERS += \
     include/extension/interface/TorrentInterface.hpp \
     include/extension/Common.hpp \
     include/extension/MessageType.hpp \
+    include/extension/ExtendedMessage.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
@@ -48,7 +49,8 @@ SOURCES += \
     src/Torrent.cpp \
     src/Session.cpp \
     src/AlertManager.cpp \
-    src/MessageType.cpp
+    src/MessageType.cpp \
+    src/ExtendedMessage.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

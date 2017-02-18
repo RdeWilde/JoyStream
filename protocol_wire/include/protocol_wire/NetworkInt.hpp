@@ -163,7 +163,7 @@ public:
 
     IntType value() const;
 
-    static std::streamsize size() { return sizeof(IntType); }
+    constexpr static std::streamsize size() { return sizeof(IntType); }
 };
 
 template<class IntType>

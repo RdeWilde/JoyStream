@@ -30,10 +30,9 @@
 #include <chrono>
 
 namespace joystream {
-namespace protocol_wire {
-    class Message;
-}
 namespace extension {
+    class ExtendedMessage;
+
 namespace status {
     struct PeerPlugin;
 }
@@ -142,8 +141,9 @@ namespace status {
         // no other plugin will have this function called.
         virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
-        // Sends extended message to peer, does not take ownership of pointer
-        void send(const joystream::protocol_wire::Message * extendedMessage);
+        // Sends extended message to peer
+        template<class T>
+        void send(const T&);
 
         // Status of plugin
         status::PeerPlugin status(const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections) const;

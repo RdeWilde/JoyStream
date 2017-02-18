@@ -53,5 +53,41 @@ namespace extension {
         else
             throw std::runtime_error("Invalid");
     }
+
+    MessageType getMessageType(const protocol_wire::Observe &) {
+        return MessageType::observe;
+    }
+
+    MessageType getMessageType(const protocol_wire::Buy &) {
+        return MessageType::buy;
+    }
+
+    MessageType getMessageType(const protocol_wire::Sell &) {
+        return MessageType::sell;
+    }
+
+    MessageType getMessageType(const protocol_wire::JoinContract &) {
+        return MessageType::join_contract;
+    }
+
+    MessageType getMessageType(const protocol_wire::JoiningContract &) {
+        return MessageType::joining_contract;
+    }
+
+    MessageType getMessageType(const protocol_wire::Ready &) {
+        return MessageType::ready;
+    }
+
+    MessageType getMessageType(const protocol_wire::RequestFullPiece &) {
+        return MessageType::request_full_piece;
+    }
+
+    MessageType getMessageType(const protocol_wire::FullPiece &) {
+        return MessageType::full_piece;
+    }
+
+    MessageType getMessageType(const protocol_wire::Payment &) {
+        return MessageType::payment;
+    }
 }
 }

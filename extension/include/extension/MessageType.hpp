@@ -9,6 +9,7 @@
 #define JOYSTREAM_EXTENSION_MESSAGE_TYPE_HPP
 
 #include <string>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
 namespace extension {
@@ -30,6 +31,16 @@ namespace extension {
 
     // Get type based on name
     MessageType getMessageType(const std::string &);
+
+    MessageType getMessageType(const protocol_wire::Observe &);
+    MessageType getMessageType(const protocol_wire::Buy &);
+    MessageType getMessageType(const protocol_wire::Sell &);
+    MessageType getMessageType(const protocol_wire::JoinContract &);
+    MessageType getMessageType(const protocol_wire::JoiningContract &);
+    MessageType getMessageType(const protocol_wire::Ready &);
+    MessageType getMessageType(const protocol_wire::RequestFullPiece &);
+    MessageType getMessageType(const protocol_wire::FullPiece &);
+    MessageType getMessageType(const protocol_wire::Payment &);
 }
 }
 

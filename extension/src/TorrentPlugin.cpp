@@ -537,13 +537,34 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
     // Create callback which asserts presence of plugin
     boost::weak_ptr<PeerPlugin> wPeerPlugin = it->second;
 
-    protocol_session::SendMessageOnConnection send = [wPeerPlugin] (const protocol_wire::Message * m) -> void {
+    protocol_session::SendMessageOnConnectionCallbacks send;
 
+    send.observe = [wPeerPlugin] (const protocol_wire::Observe &m) -> void {
         boost::shared_ptr<PeerPlugin> plugin;
         plugin = wPeerPlugin.lock();
         assert(plugin);
-        plugin->send(m);
-        delete m;
+        plugin->send<>(m);
+    };
+
+    send.buy = [wPeerPlugin] (const protocol_wire::Buy &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.sell = [wPeerPlugin] (const protocol_wire::Sell &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.joining_contract = [wPeerPlugin] (const protocol_wire::JoiningContract &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
     };
 
     // add peer to sesion
