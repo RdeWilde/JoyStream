@@ -28,7 +28,7 @@ namespace protocol_statemachine {
             throw exception::CannotInviteNonSeller();
 
         // Send invitation message to seller
-        context<CBStateMachine>()._sendMessage(new protocol_wire::JoinContract(peerMode.index()));
+        context<CBStateMachine>()._sendJoinContractMessage(protocol_wire::JoinContract(peerMode.index()));
 
         // Start waiting for the seller to join
         return transit<WaitingForSellerToJoin>();
