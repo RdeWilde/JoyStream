@@ -303,6 +303,7 @@ void RequestVariantVisitor::sendRequestResult(const alert::LoadedCallback & c) {
     _alertManager->emplace_alert<alert::RequestResult>(c);
 }
 
+
 }
 }
 }

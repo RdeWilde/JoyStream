@@ -10,6 +10,7 @@ TARGET = bitcoin_regtest_framework
 TEMPLATE = lib
 
 CONFIG  += c++11
+CONFIG  -= core
 
 DEFINES += BITCOIN_REGTEST_FRAMEWORK_LIBRARY
 

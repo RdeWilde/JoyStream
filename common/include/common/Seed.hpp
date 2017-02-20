@@ -8,6 +8,9 @@
 #ifndef SEED_HPP
 #define SEED_HPP
 
+#include <string>
+#include <vector>
+
 #include <common/UCharArray.hpp>
 
 #define WALLET_SEED_BYTE_LENGTH 64 //64 bytes == 512 bits
@@ -25,20 +28,16 @@ class Seed : public Coin::UCharArray<WALLET_SEED_BYTE_LENGTH> {
 
 public:
 
-    // Constant set of seeds suitable for testing
-    static const QList<Seed> testSeeds;
-
     // Default constructor
     Seed();
 
-    // Constructor from raw data
-    Seed(const QByteArray & raw);
+    // Named constructor from raw data
+    static Seed fromRaw(const std::vector<unsigned char> &);
 
-    // Constructor from hex encoded C string
-    Seed(const char * hexEncoded);
+    // Named constructor from hex string
+    static Seed fromRawHex(const std::string&);
 
-    // Constructor from hex encoded string
-    Seed(const QString & hexEncoded);
+    std::vector<unsigned char> toRawVector() const;
 
     /**
      * TODO
@@ -65,7 +64,7 @@ public:
     //void startAsyncGenerating();
     //void stopAsyncGenerating();
 
-signals:
+//signals:
 
     // Done generating signal
     //void finishedAsyncGenerating(Seed s);

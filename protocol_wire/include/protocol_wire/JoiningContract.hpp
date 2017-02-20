@@ -8,34 +8,29 @@
 #ifndef JOYSTREAM_WIRE_JOINING_CONTRACT_HPP
 #define JOYSTREAM_WIRE_JOINING_CONTRACT_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
 #include <common/PublicKey.hpp>
 
 
 namespace joystream {
 namespace protocol_wire {
 
-    class JoiningContract : public ExtendedMessagePayload {
+    class JoiningContract {
 
     public:
 
         JoiningContract();
         JoiningContract(const Coin::PublicKey &, const Coin::PubKeyHash &finalPkHash);
-        JoiningContract(QDataStream & stream);
-
-        virtual ~JoiningContract() {}
 
         bool operator==(const JoiningContract &) const;
-
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
-        virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
 
         // Getters
         Coin::PublicKey contractPk() const;
 
         Coin::PubKeyHash finalPkHash() const;
+
+        void setContractPk(const Coin::PublicKey&);
+
+        void setFinalPkHash(const Coin::PubKeyHash&);
 
     private:
 

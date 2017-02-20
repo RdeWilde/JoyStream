@@ -24,8 +24,8 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x63); // OP_IF
     // Branch for when channel is settled with payment and refund
-    script += Coin::opPushData(Coin::PublicKey::length());
-    script += _payeePk.toUCharVector();
+    script += Coin::opPushData(Coin::PublicKey::compressedLength());
+    script += _payeePk.toCompressedRawVector();
     script.push_back(0xad); // OP_CHECKSIGVERIFY
 
     script.push_back(0x67); // OP_ELSE
@@ -36,8 +36,8 @@ uchar_vector RedeemScript::serialized() const {
 
     script.push_back(0x68); // OP_ENDIF
     // Check that payor has agreed to this spend
-    script += Coin::opPushData(Coin::PublicKey::length());
-    script += _payorPk.toUCharVector();
+    script += Coin::opPushData(Coin::PublicKey::compressedLength());
+    script += _payorPk.toCompressedRawVector();
     script.push_back(0xac); // OP_CHECKSIG
 
     return script;
@@ -56,11 +56,11 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
 
     subscript = Coin::popData(subscript, rawPayeePk);
 
-    if(rawPayeePk.size() != Coin::PublicKey::length()) {
+    if(rawPayeePk.size() != Coin::PublicKey::compressedLength()) {
         throw std::runtime_error("Unable to retreive payee public key from redeem script");
     }
 
-    Coin::PublicKey payeePk(rawPayeePk);
+    Coin::PublicKey payeePk = Coin::PublicKey::fromCompressedRaw(rawPayeePk);
 
     // get a subscript to the start of the locktime push data operation
     subscript = uchar_vector(subscript.begin() + 2, subscript.end());
@@ -77,11 +77,11 @@ RedeemScript RedeemScript::deserialize(const uchar_vector & script) {
     uchar_vector rawPayorPk;
     subscript = Coin::popData(subscript, rawPayorPk);
 
-    if(rawPayorPk.size() != Coin::PublicKey::length()) {
+    if(rawPayorPk.size() != Coin::PublicKey::compressedLength()) {
         throw std::runtime_error("Unable to retreive payor public key from redeem script");
     }
 
-    Coin::PublicKey payorPk(rawPayorPk);
+    Coin::PublicKey payorPk = Coin::PublicKey::fromCompressedRaw(rawPayorPk);
 
     RedeemScript result(payorPk, payeePk, locktime);
 

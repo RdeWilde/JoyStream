@@ -8,13 +8,12 @@
 #ifndef JOYSTREAM_WIRE_SELL_HPP
 #define JOYSTREAM_WIRE_SELL_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
 #include <protocol_wire/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Sell : public ExtendedMessagePayload {
+    class Sell {
 
     public:
 
@@ -24,17 +23,7 @@ namespace protocol_wire {
         // Constructor based on members
         Sell(const SellerTerms & terms, uint32_t index);
 
-        // Constructor based on raw data
-        Sell(QDataStream & stream);
-
-        virtual ~Sell() {}
-
         bool operator==(const Sell &) const;
-
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
-        virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
 
         // Getters and setters
         SellerTerms terms() const;
@@ -43,6 +32,8 @@ namespace protocol_wire {
         uint32_t index() const;
         void setIndex(uint32_t index);
 
+        // Overload << operator for easiness in debugging GTest output
+        friend std::ostream& operator<<(std::ostream &os, const Sell &obj);
     private:
 
         // Sales terms

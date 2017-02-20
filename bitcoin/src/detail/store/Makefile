@@ -1,32 +1,20 @@
-#store depends on joystream common lib which still depends on Qt so we need
-#to access to the Qt Core headers during build
-#since we are not using qmake .. a bit of hacking...
 
-#determine target platform from qmake
+#determine target platform with qmake (update this in future to use cmake
+#to find the location of mSIGNA headers (CoinQ, CoinCore, stdutils)
 SPEC=$(shell qmake -query QMAKE_XSPEC)
-
-#for including Qt headers using this pattern: #include <QtCore/QString>
-$(shell sh ./config-qt-headers.sh)
-INCLUDES=-I./qt_headers/
-
-
-#for including headers using this pattern:    #include <QString>  (without QtCore/ prefix)
 
 #OSX
 ifeq ($(SPEC), macx-clang)
-  INCLUDES+=-I$(shell qmake -query QT_INSTALL_LIBS)/QtCore.framework/Headers/
   INCLUDES+=-I../../../../deps/osx/src/mSIGNA-joystream/sysroot/include
 endif
 
 #linux
 ifeq ($(SPEC), linux-g++)
-  INCLUDES+=-I$(shell qmake -query QT_INSTALL_HEADERS)/QtCore
   INCLUDES+=-I../../../../deps/linux/src/mSIGNA-joystream/sysroot/include
 endif
 
 #win32
 ifeq ($(SPEC), win32-g++)
-  INCLUDES+=-I$(shell qmake -query QT_INSTALL_HEADERS)/QtCore
   INCLUDES+=-I../../../../deps/win32/src/mSIGNA-joystream/sysroot/include
 endif
 

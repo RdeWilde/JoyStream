@@ -5,10 +5,13 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 5 2016
  */
 
-#include <Test.hpp>
+#include <gtest/gtest.h>
+
 #include <CBStateMachineCallbackSpy.hpp>
 #include <SellingNavigator.hpp>
 #include <BuyingNavigator.hpp>
+
+#define TEST_PRIVATE_KEY "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
 
 void peerToSellMode(CBStateMachine * machine, const event::Recv<protocol_wire::Sell> & e) {
 
@@ -17,9 +20,9 @@ void peerToSellMode(CBStateMachine * machine, const event::Recv<protocol_wire::S
 
     // Check that new peer state recorded is valid
     AnnouncedModeAndTerms announced = machine->announcedModeAndTermsFromPeer();
-    QCOMPARE(announced.modeAnnounced(), ModeAnnounced::sell);
-    QCOMPARE(announced.sellModeTerms(), e.message().terms());
-    QCOMPARE(announced.index(), e.message().index());
+    EXPECT_EQ(announced.modeAnnounced(), ModeAnnounced::sell);
+    EXPECT_EQ(announced.sellModeTerms(), e.message().terms());
+    EXPECT_EQ(announced.index(), e.message().index());
 }
 
 void peerToBuyMode(CBStateMachine * machine, const event::Recv<protocol_wire::Buy> & e) {
@@ -29,8 +32,8 @@ void peerToBuyMode(CBStateMachine * machine, const event::Recv<protocol_wire::Bu
 
     // test deep history transition at various times?
     AnnouncedModeAndTerms announced = machine->announcedModeAndTermsFromPeer();
-    QCOMPARE(announced.modeAnnounced(), ModeAnnounced::buy);
-    QCOMPARE(announced.buyModeTerms(), e.message().terms());
+    EXPECT_EQ(announced.modeAnnounced(), ModeAnnounced::buy);
+    EXPECT_EQ(announced.buyModeTerms(), e.message().terms());
 }
 
 void peerToObserveMode(CBStateMachine * machine) {
@@ -39,28 +42,28 @@ void peerToObserveMode(CBStateMachine * machine) {
     machine->processEvent(event::Recv<protocol_wire::Observe>(protocol_wire::Observe()));
 
     // test deep history transition at various times?
-    QCOMPARE(machine->announcedModeAndTermsFromPeer().modeAnnounced(), ModeAnnounced::observe);
+    EXPECT_EQ(machine->announcedModeAndTermsFromPeer().modeAnnounced(), ModeAnnounced::observe);
 }
 
-void Test::observing() {
-
+TEST(statemachineTest, observing)
+{
     CBStateMachineCallbackSpy spy;
 
     //// Create machine in ChooseMode state
     CBStateMachine * machine = spy.createMonitoredMachine();
 
-    QVERIFY(machine->inState<ChooseMode>());
+    EXPECT_TRUE(machine->inState<ChooseMode>());
 
     // Issue client event to change mode
     machine->processEvent(event::ObserveModeStarted());
 
     // Check that observe mode message was sent
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::observe);
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::observe);
 
     //// In Observing state
 
-    QVERIFY(machine->inState<Observing>());
+    EXPECT_TRUE(machine->inState<Observing>());
 
     // Have peer mode switch modes
     peerToSellMode(machine, event::Recv<protocol_wire::Sell>(protocol_wire::Sell(protocol_wire::SellerTerms(1,2,3,4,5), 0)));
@@ -71,24 +74,24 @@ void Test::observing() {
     delete machine;
 }
 
-void Test::selling() {
-
+TEST(statemachineTest, selling)
+{
     // Setup navigator and spy
-    Coin::PrivateKey payorContractSk("E9873D79C6D87DC0FB6A5778633389F4");
+    Coin::PrivateKey payorContractSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
 
     SellingNavigator::Fixture f;
     f.peerToBuyMode = event::Recv<protocol_wire::Buy>(protocol_wire::Buy(protocol_wire::BuyerTerms(1,2,3,4)));
     f.sellModeStarted = event::SellModeStarted(protocol_wire::SellerTerms(1,2,3,4,5));
     f.invalidJoinContract = event::Recv<protocol_wire::JoinContract>(protocol_wire::JoinContract(31));
     f.validJoinContract = event::Recv<protocol_wire::JoinContract>(protocol_wire::JoinContract(0));
-    f.joinedContract = event::Joined(Coin::KeyPair(Coin::PrivateKey("b8aa30d8f1d398883f0eeb5079777c42")), Coin::RedeemScriptHash::fromRawHash(uchar_vector("31149292f8ba11da4aeb833f6cd8ae0650a82340")));
+    f.joinedContract = event::Joined(Coin::KeyPair(Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY)), Coin::RedeemScriptHash::fromRawHash(uchar_vector("31149292f8ba11da4aeb833f6cd8ae0650a82340")));
     f.contractReady = event::Recv<protocol_wire::Ready>(protocol_wire::Ready(1123,
                                                                              Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                                                              payorContractSk.toPublicKey(),
                                                                              Coin::RedeemScriptHash::fromRawHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671"))));
     f.invalidPieceRequest = event::Recv<protocol_wire::RequestFullPiece>(protocol_wire::RequestFullPiece(9999));
     f.validPieceRequest = event::Recv<protocol_wire::RequestFullPiece>(protocol_wire::RequestFullPiece(1));
-    f.badPayment = event::Recv<protocol_wire::Payment>(protocol_wire::Payment(Coin::Signature("8185781409579048901234890234")));
+    f.badPayment = event::Recv<protocol_wire::Payment>(protocol_wire::Payment(Coin::Signature::fromRawDERHex("8185781409579048901234890234")));
 
     const char * rawData = "datadataajfkdløajdklføasjdklføadsjkfløasdjkfløadata";
     int rawDataLength = strlen(rawData);
@@ -104,15 +107,15 @@ void Test::selling() {
     CBStateMachineCallbackSpy spy;
     CBStateMachine * machine = spy.createMonitoredMachine();
 
-    QVERIFY(machine->inState<ChooseMode>());
+    EXPECT_TRUE(machine->inState<ChooseMode>());
 
     // Issue client event to change to sell mode
     machine->processEvent(f.sellModeStarted);
 
     // Check that sell message was sent with correct terms
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::sell);
-    QCOMPARE(spy.sellMessage().terms(), f.sellModeStarted.terms());
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::sell);
+    EXPECT_EQ(spy.sellMessage().terms(), f.sellModeStarted.terms());
 
     spy.reset();
 
@@ -125,13 +128,13 @@ void Test::selling() {
     machine->processEvent(event::UpdateTerms<protocol_wire::SellerTerms>(newSellTerms));
 
     // Check that mode message was sent
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::sell);
-    QCOMPARE(spy.sellMessage().terms(), newSellTerms);
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::sell);
+    EXPECT_EQ(spy.sellMessage().terms(), newSellTerms);
 
     // Peer invites us (seller), with valid index, but before announcing being in any mode
     // Check that this causes exception
-    QVERIFY_EXCEPTION_THROWN(machine->processEvent(f.validJoinContract), exception::InvitedToJoinContractByNonBuyer);
+    EXPECT_THROW(machine->processEvent(f.validJoinContract), exception::InvitedToJoinContractByNonBuyer);
 
     spy.reset();
 
@@ -150,7 +153,7 @@ void Test::selling() {
     machine->processEvent(f.invalidJoinContract);
 
     // Check that failure callback is made
-    QVERIFY(spy.hasBeenInvitedToOutdatedContract());
+    EXPECT_TRUE(spy.hasBeenInvitedToOutdatedContract());
 
     spy.reset();
 
@@ -158,8 +161,8 @@ void Test::selling() {
     machine->processEvent(f.validJoinContract);
 
     // Check that we are getting right invitation
-    QVERIFY(spy.hasBeenInvitedToJoinContract());
-    QVERIFY(machine->inState<Invited>());
+    EXPECT_TRUE(spy.hasBeenInvitedToJoinContract());
+    EXPECT_TRUE(machine->inState<Invited>());
 
     spy.reset();
 
@@ -169,10 +172,10 @@ void Test::selling() {
     machine->processEvent(f.joinedContract);
 
     // Check that joining_contract message was sent with correct rsvp
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::joining_contract);
-    QCOMPARE(spy.joiningContractMessage().contractPk(), f.joinedContract.contractKeys().pk());
-    QCOMPARE(spy.joiningContractMessage().finalPkHash(), f.joinedContract.finalPkHash());
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::joining_contract);
+    EXPECT_EQ(spy.joiningContractMessage().contractPk(), f.joinedContract.contractKeys().pk());
+    EXPECT_EQ(spy.joiningContractMessage().finalPkHash(), f.joinedContract.finalPkHash());
 
     spy.reset();
 
@@ -182,11 +185,11 @@ void Test::selling() {
     machine->processEvent(f.contractReady);
 
     // Check that callback is made with correct anchor,
-    QVERIFY(spy.contractHasBeenPrepared());
-    QCOMPARE(spy.anchor(), f.contractReady.message().anchor());
-    QCOMPARE(spy.value(), f.contractReady.message().value());
-    QCOMPARE(spy.contractPk(), f.contractReady.message().contractPk());
-    QCOMPARE(spy.finalPkHash(), f.contractReady.message().finalPkHash());
+    EXPECT_TRUE(spy.contractHasBeenPrepared());
+    EXPECT_EQ(spy.anchor(), f.contractReady.message().anchor());
+    EXPECT_EQ(spy.value(), f.contractReady.message().value());
+    EXPECT_EQ(spy.contractPk(), f.contractReady.message().contractPk());
+    EXPECT_EQ(spy.finalPkHash(), f.contractReady.message().finalPkHash());
     //QCOMPARE(machine->getInnerStateName(), typeid(ReadyForPieceRequest).name());
 
     spy.reset();
@@ -197,7 +200,7 @@ void Test::selling() {
     machine->processEvent(f.invalidPieceRequest);
 
     // Check that invalid piece callback was made
-    QVERIFY(spy.invalidPieceHasBeenRequested());
+    EXPECT_TRUE(spy.invalidPieceHasBeenRequested());
 
     spy.reset();
 
@@ -215,8 +218,8 @@ void Test::selling() {
 
     // Check that callback is made with correct piece index,
     // and we are in ServicingPieceRequest
-    QVERIFY(spy.pieceHasBeenRequested());
-    QCOMPARE(spy.piece(), f.validPieceRequest.message().pieceIndex());
+    EXPECT_TRUE(spy.pieceHasBeenRequested());
+    EXPECT_EQ(spy.piece(), f.validPieceRequest.message().pieceIndex());
 
     spy.reset();
 
@@ -224,7 +227,7 @@ void Test::selling() {
 
     // Check that peer announcing mode terminates machine
     peerToBuyMode(machine, f.peerToBuyMode);
-    QVERIFY(spy.paymentInterrupted());
+    EXPECT_TRUE(spy.paymentInterrupted());
 
     // Check that peer announcing mode terminates machine
     // Last transition terminates machine, so
@@ -237,7 +240,7 @@ void Test::selling() {
     spy.reset();
 
     peerToBuyMode(machine, f.peerToBuyMode);
-    QVERIFY(spy.paymentInterrupted());
+    EXPECT_TRUE(spy.paymentInterrupted());
 
     // Check that peer announcing mode terminates machine
     // Last transition terminates machine, so
@@ -250,7 +253,7 @@ void Test::selling() {
     spy.reset();
 
     peerToObserveMode(machine);
-    QVERIFY(spy.paymentInterrupted());
+    EXPECT_TRUE(spy.paymentInterrupted());
 
     // Last transition terminates machine, so
     // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
@@ -263,9 +266,9 @@ void Test::selling() {
 
     machine->processEvent(f.fullPiece);
 
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::full_piece);
-    QCOMPARE(spy.fullPieceMessage().pieceData(), f.fullPiece.pieceData());
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::full_piece);
+    EXPECT_EQ(spy.fullPieceMessage().pieceData(), f.fullPiece.pieceData());
 
     spy.reset();
 
@@ -275,8 +278,8 @@ void Test::selling() {
     machine->processEvent(f.badPayment);
 
     // Check that invalid piece callback was made
-    QVERIFY(spy.receivedInvalidPayment());
-    QCOMPARE(spy.invalidPaymentSignature(), f.badPayment.message().sig());
+    EXPECT_TRUE(spy.receivedInvalidPayment());
+    EXPECT_EQ(spy.invalidPaymentSignature(), f.badPayment.message().sig());
 
     // Have peer send valid payment
     // Last transition terminates machine, so
@@ -293,8 +296,8 @@ void Test::selling() {
     machine->processEvent(e);
 
     // Check that invalid piece callback was made
-    QVERIFY(spy.receivedValidPayment());
-    QCOMPARE(spy.validPaymentSignature(), e.message().sig());
+    EXPECT_TRUE(spy.receivedValidPayment());
+    EXPECT_EQ(spy.validPaymentSignature(), e.message().sig());
 
     spy.reset();
 
@@ -305,24 +308,24 @@ void Test::selling() {
     machine->processEvent(event::BuyModeStarted(newBuyerTerms));
 
     // Check that mode message was sent
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::buy);
-    QCOMPARE(spy.buyMessage().terms(), newBuyerTerms);
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::buy);
+    EXPECT_EQ(spy.buyMessage().terms(), newBuyerTerms);
 
     // Clean up machine
     delete machine;
 }
 
-void Test::buying() {
-
+TEST(statemachineTest, buying)
+{
     BuyingNavigator::Fixture f;
     f.peerToSellMode = event::Recv<protocol_wire::Sell>(protocol_wire::Sell(protocol_wire::SellerTerms(11,22,33,44,55), 5));
     f.buyModeStarted = event::BuyModeStarted(protocol_wire::BuyerTerms(88,77,66,99));
     f.inviteSeller = event::InviteSeller();
-    f.joiningContract = event::Recv<protocol_wire::JoiningContract>(protocol_wire::JoiningContract(Coin::PublicKey(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8")),
+    f.joiningContract = event::Recv<protocol_wire::JoiningContract>(protocol_wire::JoiningContract(Coin::PublicKey::fromCompressedRawHex("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"),
                                                                                                    Coin::RedeemScriptHash::fromRawHash(uchar_vector("892131b6cbf303692785db2c607fb915ae622203"))));
     f.contractPrepared = event::ContractPrepared(Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("eee2b334dd735dac60ae57893c2528087fd3d386b57cac42f4e6ace6403f16b3")), 78),
-                                                 Coin::KeyPair(Coin::PrivateKey("153213303DA61F20BD67FC233AA33262")),
+                                                 Coin::KeyPair(Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY)),
                                                  Coin::RedeemScriptHash::fromRawHash(uchar_vector("3457b36d53494fb1ce39a4500d76373da994585e")),
                                                  2222);
     f.requestPiece = event::RequestPiece(1);
@@ -337,15 +340,15 @@ void Test::buying() {
     CBStateMachineCallbackSpy spy;
     CBStateMachine * machine = spy.createMonitoredMachine();
 
-    QVERIFY(machine->inState<ChooseMode>());
+    EXPECT_TRUE(machine->inState<ChooseMode>());
 
     // Client changes to buy mode
     navigator.toBuyMode(machine);
 
     // Check that sell message was sent with correct terms
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::buy);
-    QCOMPARE(spy.buyMessage().terms(), f.buyModeStarted.terms());
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::buy);
+    EXPECT_EQ(spy.buyMessage().terms(), f.buyModeStarted.terms());
 
     spy.reset();
 
@@ -356,7 +359,7 @@ void Test::buying() {
     // Client, incorrectly, tries to invite peer
     // which is in buy mode, which should result in exception
     peerToBuyMode(machine, event::Recv<protocol_wire::Buy>(protocol_wire::BuyerTerms(0,0,0,0)));
-    QVERIFY_EXCEPTION_THROWN(machine->processEvent(f.inviteSeller), exception::CannotInviteNonSeller);
+    EXPECT_THROW(machine->processEvent(f.inviteSeller), exception::CannotInviteNonSeller);
 
     // Recreate fresh machine in sell mode,
     // the prior exception destroys machine state
@@ -370,8 +373,8 @@ void Test::buying() {
     // Invite seller peer
     machine->processEvent(f.inviteSeller);
 
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::join_contract);
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::join_contract);
     //QCOMPARE(spy.joinContractMessage().index(), machine->pe
 
     spy.reset();
@@ -381,7 +384,7 @@ void Test::buying() {
     // Peer joins contract
     machine->processEvent(f.joiningContract);
 
-    QVERIFY(spy.sellerHasJoined());
+    EXPECT_TRUE(spy.sellerHasJoined());
 
     spy.reset();
 
@@ -390,7 +393,7 @@ void Test::buying() {
     // Peer interrupts contract by announcing sell mode
     peerToSellMode(machine, f.peerToSellMode);
 
-    QVERIFY(spy.sellerHasInterruptedContract());
+    EXPECT_TRUE(spy.sellerHasInterruptedContract());
 
     spy.reset();
 
@@ -400,7 +403,7 @@ void Test::buying() {
 
     peerToBuyMode(machine, event::Recv<protocol_wire::Buy>(protocol_wire::BuyerTerms()));
 
-    QVERIFY(spy.sellerHasInterruptedContract());
+    EXPECT_TRUE(spy.sellerHasInterruptedContract());
 
     spy.reset();
 
@@ -410,7 +413,7 @@ void Test::buying() {
 
     peerToObserveMode(machine);
 
-    QVERIFY(spy.sellerHasInterruptedContract());
+    EXPECT_TRUE(spy.sellerHasInterruptedContract());
 
     spy.reset();
 
@@ -420,12 +423,12 @@ void Test::buying() {
 
     machine->processEvent(f.contractPrepared);
 
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::ready);
-    QCOMPARE(spy.readyMessage().anchor(), f.contractPrepared.anchor());
-    QCOMPARE(spy.readyMessage().value(), f.contractPrepared.value());
-    QCOMPARE(spy.readyMessage().contractPk(), f.contractPrepared.contractKeyPair().pk());
-    QCOMPARE(spy.readyMessage().finalPkHash(), f.contractPrepared.finalPkHash());
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::ready);
+    EXPECT_EQ(spy.readyMessage().anchor(), f.contractPrepared.anchor());
+    EXPECT_EQ(spy.readyMessage().value(), f.contractPrepared.value());
+    EXPECT_EQ(spy.readyMessage().contractPk(), f.contractPrepared.contractKeyPair().pk());
+    EXPECT_EQ(spy.readyMessage().finalPkHash(), f.contractPrepared.finalPkHash());
 
     spy.reset();
 
@@ -434,9 +437,9 @@ void Test::buying() {
     // Client requests a piece
     machine->processEvent(f.requestPiece);
 
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::request_full_piece);
-    QCOMPARE(spy.requestFullPieceMessage().pieceIndex(), f.requestPiece.pieceIndex());
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::request_full_piece);
+    EXPECT_EQ(spy.requestFullPieceMessage().pieceIndex(), f.requestPiece.pieceIndex());
 
     spy.reset();
 
@@ -445,8 +448,8 @@ void Test::buying() {
     // Peer sends piece back to client
     machine->processEvent(f.fullPiece);
 
-    QVERIFY(spy.hasReceivedFullPiece());
-    QCOMPARE(spy.pieceData(), f.fullPiece.message().pieceData());
+    EXPECT_TRUE(spy.hasReceivedFullPiece());
+    EXPECT_EQ(spy.pieceData(), f.fullPiece.message().pieceData());
 
     spy.reset();
 
@@ -455,9 +458,9 @@ void Test::buying() {
     // Client says piece was valid, and payment is sent
     machine->processEvent(event::SendPayment());
 
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::payment);
-    QVERIFY(f.validatePayment(spy.paymentMessage().sig(), 0));
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::payment);
+    EXPECT_TRUE(f.validatePayment(spy.paymentMessage().sig(), 0));
 
     spy.reset();
 
@@ -465,9 +468,9 @@ void Test::buying() {
     protocol_wire::BuyerTerms testTerms(4123,65436,1432,652);
     machine->processEvent(event::UpdateTerms<protocol_wire::BuyerTerms>(testTerms));
 
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.messageType(), protocol_wire::MessageType::buy);
-    QCOMPARE(spy.buyMessage().terms(), testTerms);
+    EXPECT_TRUE(spy.messageSent());
+    EXPECT_EQ(spy.messageType(), MessageType::buy);
+    EXPECT_EQ(spy.buyMessage().terms(), testTerms);
 
     spy.reset();
 
@@ -476,5 +479,8 @@ void Test::buying() {
 
 }
 
-QTEST_MAIN(Test)
-#include "moc_Test.cpp"
+int main(int argc, char *argv[])
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

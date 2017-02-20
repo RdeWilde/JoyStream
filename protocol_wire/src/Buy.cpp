@@ -6,9 +6,6 @@
  */
 
 #include <protocol_wire/Buy.hpp>
-#include <protocol_wire/MessageType.hpp>
-
-#include <QDataStream>
 
 namespace joystream {
 namespace protocol_wire {
@@ -24,29 +21,17 @@ namespace protocol_wire {
         return _terms == o.terms();
     }
 
-    Buy::Buy(QDataStream & stream) {
-        stream >> _terms;
-    }
-
-    MessageType Buy::messageType() const {
-        return MessageType::buy;
-    }
-
-    quint32 Buy::length() const {
-        return _terms.length();
-    }
-
-    void Buy::write(QDataStream & stream) const {
-        stream << _terms;
-    }
-    
     BuyerTerms Buy::terms() const {
         return _terms;
     }
-    
+
     void Buy::setTerms(const BuyerTerms & terms) {
         _terms = terms;
     }
 
+    std::ostream& operator<<(std::ostream &os, const Buy &obj)
+    {
+        return os << "Buyer Terms = " << obj.terms();
+    }
 }
 }

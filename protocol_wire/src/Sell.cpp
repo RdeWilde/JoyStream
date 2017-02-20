@@ -6,9 +6,6 @@
  */
 
 #include <protocol_wire/Sell.hpp>
-#include <protocol_wire/MessageType.hpp>
-
-#include <QDataStream>
 
 namespace joystream {
 namespace protocol_wire {
@@ -22,25 +19,9 @@ namespace protocol_wire {
         , _index(index) {
     }
 
-    Sell::Sell(QDataStream & stream) {
-        stream >> _terms >> _index;
-    }
-
-    MessageType Sell::messageType() const {
-        return MessageType::sell;
-    }
-
     bool Sell::operator==(const Sell & rhs) const {
         return _terms == rhs.terms() &&
                _index == rhs.index();
-    }
-
-    quint32 Sell::length() const {
-        return _terms.length() + sizeof(_index);
-    }
-
-    void Sell::write(QDataStream & stream) const {
-        stream << _terms << _index;
     }
 
     SellerTerms Sell::terms() const  {
@@ -57,6 +38,11 @@ namespace protocol_wire {
 
     void Sell::setIndex(uint32_t index) {
         _index = index;
+    }
+
+    std::ostream& operator<<(std::ostream &os, const Sell &obj)
+    {
+        return os << "Sales terms = " << obj.terms() << "\tTerms index = " << obj.index();
     }
 }
 }

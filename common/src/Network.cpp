@@ -8,7 +8,7 @@
 #include <common/Network.hpp>
 
 #include <string.h> // strcmp
-#include <QtGlobal> // Q_ASSERT
+#include <cassert>
 
 namespace Coin {
 
@@ -19,7 +19,7 @@ const char * nameFromNetwork(Network network) {
         case Network::testnet3: return "testnet3";
         case Network::regtest: return "regtest";
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 
 }
@@ -33,7 +33,7 @@ Network networkFromName(const char * name) {
     else if(strcmp(name, "regtest") == 0)
         return Network::regtest;
     else
-        Q_ASSERT(false);
+        assert(false);
 
 }
 

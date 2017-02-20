@@ -60,7 +60,7 @@ uchar_vector UnspentP2PKHOutput::scriptSig(const Transaction & tx, const SigHash
     scriptSig += transactionSignature(tx, sigHashType).opPushForScriptSigSerialized();
 
     scriptSig += opPushData(0x21);
-    scriptSig += keyPair().pk().toUCharVector();
+    scriptSig += keyPair().pk().toCompressedRawVector();
 
     return scriptSig;
 }

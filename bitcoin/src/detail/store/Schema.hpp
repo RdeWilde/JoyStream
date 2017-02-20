@@ -3,8 +3,6 @@
 
 #include <CoinQ/CoinQ_blocks.h>
 #include <CoinCore/CoinNodeData.h>
-#include <CoinCore/typedefs.h> //bytes_t
-#include <stdutils/uchar_vector.h> //uchar_vector
 
 #include <common/Network.hpp>
 #include <common/Seed.hpp>
@@ -181,7 +179,7 @@ public:
     BlockHeader(const ChainMerkleBlock &header);
 
     std::string id() const { return id_; }
-    uint32_t height() const { return height_; }
+    int32_t height() const { return height_; }
 
 private:
     friend class odb::access;
@@ -190,7 +188,7 @@ private:
     std::string id_; //block hash hex-string
 
     #pragma db index unique readonly
-    uint32_t height_;
+    int32_t height_;
 };
 
 /*

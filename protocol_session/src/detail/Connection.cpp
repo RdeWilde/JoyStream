@@ -50,45 +50,9 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    void Connection<ConnectionIdType>::processMessage(const protocol_wire::ExtendedMessagePayload & message) {
-
-        // Get message type
-        protocol_wire::MessageType messageType = message.messageType();
-
-        // Call relevant message handler
-        switch(messageType) {
-
-            case protocol_wire::MessageType::observe:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::Observe>(static_cast<const protocol_wire::Observe &>(message)));
-                break;
-            case protocol_wire::MessageType::buy:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::Buy>(static_cast<const protocol_wire::Buy &>(message)));
-                break;
-            case protocol_wire::MessageType::sell:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::Sell>(static_cast<const protocol_wire::Sell &>(message)));
-                break;
-            case protocol_wire::MessageType::join_contract:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::JoinContract>(static_cast<const protocol_wire::JoinContract &>(message)));
-                break;
-            case protocol_wire::MessageType::joining_contract:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::JoiningContract>(static_cast<const protocol_wire::JoiningContract &>(message)));
-                break;
-            case protocol_wire::MessageType::ready:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::Ready>(static_cast<const protocol_wire::Ready &>(message)));
-                break;
-            case protocol_wire::MessageType::request_full_piece:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::RequestFullPiece>(static_cast<const protocol_wire::RequestFullPiece &>(message)));
-                break;
-            case protocol_wire::MessageType::full_piece:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::FullPiece>(static_cast<const protocol_wire::FullPiece &>(message)));
-                break;
-            case protocol_wire::MessageType::payment:
-                processEvent(protocol_statemachine::event::Recv<protocol_wire::Payment>(static_cast<const protocol_wire::Payment &>(message)));
-                break;
-
-            default:
-                assert(false);
-        }
+    template <class M>
+    void Connection<ConnectionIdType>::processMessage(const M & message) {
+        processEvent(protocol_statemachine::event::Recv<M>(message));
     }
 
     template <class ConnectionIdType>

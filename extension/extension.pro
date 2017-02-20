@@ -11,8 +11,7 @@ TEMPLATE = lib
 CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
-
-QT      += core
+CONFIG  -= core
 
 INCLUDEPATH += $$PWD/include
 
@@ -36,7 +35,9 @@ HEADERS += \
     include/extension/interface/PeerInterface.hpp \
     include/extension/interface/SessionInterface.hpp \
     include/extension/interface/TorrentInterface.hpp \
-    include/extension/Common.hpp
+    include/extension/Common.hpp \
+    include/extension/MessageType.hpp \
+    include/extension/ExtendedMessage.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
@@ -47,7 +48,9 @@ SOURCES += \
     src/Peer.cpp \
     src/Torrent.cpp \
     src/Session.cpp \
-    src/AlertManager.cpp
+    src/AlertManager.cpp \
+    src/MessageType.cpp \
+    src/ExtendedMessage.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

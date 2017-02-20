@@ -6,7 +6,7 @@
  */
 
 #include <protocol_wire/Ready.hpp>
-#include <protocol_wire/MessageType.hpp>
+
 #include <CoinCore/CoinNodeData.h> // Coin::OutPoint
 
 namespace joystream {
@@ -16,15 +16,11 @@ namespace protocol_wire {
         : Ready(0, Coin::typesafeOutPoint(), Coin::PublicKey(), Coin::PubKeyHash()) {
     }
 
-    Ready::Ready(quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash &finalPkHash)
+    Ready::Ready(uint64_t value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash &finalPkHash)
         : _value(value)
         , _anchor(anchor)
         , _contractPk(contractPk)
         , _finalPkHash(finalPkHash) {
-    }
-
-    Ready::Ready(QDataStream & stream) {
-        stream >> _value >> _anchor >> _contractPk >> _finalPkHash;
     }
 
     bool Ready::operator==(const Ready & rhs) const {
@@ -34,19 +30,7 @@ namespace protocol_wire {
                _finalPkHash == rhs.finalPkHash();
     }
 
-    MessageType Ready::messageType() const {
-        return MessageType::ready;
-    }
-
-    quint32 Ready::length() const {
-        return sizeof(quint64) + Coin::typesafeOutPoint::length() + Coin::PublicKey::length() + Coin::PubKeyHash::length();
-    }
-
-    void Ready::write(QDataStream & stream) const {
-        stream << _value << _anchor << _contractPk << _finalPkHash;
-    }
-
-    quint64 Ready::value() const {
+    uint64_t Ready::value() const {
         return _value;
     }
 
@@ -62,5 +46,20 @@ namespace protocol_wire {
         return _finalPkHash;
     }
 
+    void Ready::setAnchor(const Coin::typesafeOutPoint &anchor) {
+        _anchor = anchor;
+    }
+
+    void Ready::setContractPk(const Coin::PublicKey & contractPk) {
+        _contractPk = contractPk;
+    }
+
+    void Ready::setFinalPkHash(const Coin::PubKeyHash & finalPkHash) {
+        _finalPkHash = finalPkHash;
+    }
+
+    void Ready::setValue(uint64_t value) {
+        _value = value;
+    }
 }
 }

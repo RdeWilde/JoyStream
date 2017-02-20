@@ -8,16 +8,11 @@
 #ifndef JOYSTREAM_WIRE_OBSERVE_HPP
 #define JOYSTREAM_WIRE_OBSERVE_HPP
 
-#include <protocol_wire/NoPayloadMessage.hpp>
-
 namespace joystream {
 namespace protocol_wire {
 
-    class Observe : public NoPayloadMessage {
+    class Observe {
 
-    public:
-        virtual ~Observe() {}
-        virtual MessageType messageType() const;
     };
 
 }

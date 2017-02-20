@@ -48,10 +48,10 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    uint Selling<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
+    uint Selling<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnectionCallbacks &callbacks) {
 
         // Create connection
-        detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callback);
+        detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callbacks);
 
         // Set max piece index
         connection->setMaxPieceIndex(_MAX_PIECE_INDEX);
@@ -161,7 +161,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
+    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, uint64_t value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);

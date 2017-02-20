@@ -14,7 +14,7 @@
 
 namespace joystream {
 namespace protocol_wire {
-    class ExtendedMessagePayload;
+    class Message;
 }
 namespace protocol_session {
 namespace status {
@@ -44,7 +44,8 @@ namespace detail {
                    const protocol_statemachine::ReceivedFullPiece &);
 
         // Processes given message
-        void processMessage(const protocol_wire::ExtendedMessagePayload &);
+        template<class M>
+        void processMessage(const M &);
 
         // Process given event
         void processEvent(const boost::statechart::event_base &);

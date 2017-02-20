@@ -28,8 +28,15 @@ public:
     // Defualt constructor
     PublicKey();
 
-    // Constructor from raw compressed key
-    PublicKey(const uchar_vector & rawCompressedKey);
+    // Named constructor from raw hex encoded string
+    static PublicKey fromCompressedRawHex(const std::string &);
+
+    // Named constructors from raw key
+    static PublicKey fromCompressedRaw(const std::vector<unsigned char>&);
+
+    static size_t compressedLength();
+
+    std::vector<unsigned char> toCompressedRawVector() const;
 
     // Whether signature <sig> is valid for the private key corresponding
     // public key <pk> on message <message>
@@ -42,7 +49,7 @@ public:
     PubKeyHash toPubKeyHash() const;
 
     // Generate corresponding ntwork
-    P2PKHAddress toP2PKHAddress(Network network) const;    
+    P2PKHAddress toP2PKHAddress(Network network) const;
 };
 
 class InvalidPublicKeyException : std::runtime_error {

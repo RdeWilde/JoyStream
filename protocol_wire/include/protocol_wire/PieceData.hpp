@@ -8,9 +8,8 @@
 #ifndef JOYSTREAM_WIRE_PIECEDATA_HPP
 #define JOYSTREAM_WIRE_PIECEDATA_HPP
 
+#include <iostream>
 #include <boost/shared_array.hpp>
-
-class QDataStream;
 
 namespace joystream {
 namespace protocol_wire {
@@ -25,11 +24,7 @@ namespace protocol_wire {
 
         static PieceData fromHex(const char *);
 
-        PieceData(QDataStream &, unsigned int);
-
         bool operator==(const PieceData &) const;
-
-        int write(QDataStream &) const;
 
         boost::shared_array<char> piece() const;
 

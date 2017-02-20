@@ -34,7 +34,15 @@ namespace protocol_statemachine {
         , _peerAnnouncedMode(_queuedCallbacks, peerAnnouncedMode)
         , _invitedToOutdatedContract(_queuedCallbacks, invitedToOutdatedContract)
         , _invitedToJoinContract(_queuedCallbacks, invitedToJoinContract)
-        , _sendMessage(_queuedCallbacks, send)
+        , _sendObserveMessage(_queuedCallbacks, send.observe)
+        , _sendBuyMessage(_queuedCallbacks, send.buy)
+        , _sendSellMessage(_queuedCallbacks, send.sell)
+        , _sendJoinContractMessage(_queuedCallbacks, send.join_contract)
+        , _sendJoiningContractMessage(_queuedCallbacks, send.joining_contract)
+        , _sendReadyMessage(_queuedCallbacks, send.ready)
+        , _sendRequestFullPieceMessage(_queuedCallbacks, send.request_full_piece)
+        , _sendFullPieceMessage(_queuedCallbacks, send.full_piece)
+        , _sendPaymentMessage(_queuedCallbacks, send.payment)
         , _contractIsReady(_queuedCallbacks, contractIsReady)
         , _pieceRequested(_queuedCallbacks, pieceRequested)
         , _invalidPieceRequested(_queuedCallbacks, invalidPieceRequested)
@@ -134,7 +142,7 @@ namespace protocol_statemachine {
     }
 
     void CBStateMachine::clientToObserveMode() {
-        _sendMessage(new protocol_wire::Observe());
+        _sendObserveMessage(protocol_wire::Observe());
     }
 
     void CBStateMachine::clientToSellMode(const protocol_wire::SellerTerms & t, uint32_t index) {
@@ -147,13 +155,13 @@ namespace protocol_statemachine {
         _payee.setSettlementFee(t.settlementFee());
 
         // Send mode message
-        _sendMessage(new protocol_wire::Sell(t, _index));
+        _sendSellMessage(protocol_wire::Sell(t, _index));
     }
 
     void CBStateMachine::clientToBuyMode(const protocol_wire::BuyerTerms & t) {
 
         // Send mode message
-        _sendMessage(new protocol_wire::Buy(t));
+        _sendBuyMessage(protocol_wire::Buy(t));
     }
 
     void CBStateMachine::peerAnnouncedMode() {

@@ -23,7 +23,7 @@ uchar_vector TransactionSignature::combinedSignatureAndSighashCode() const {
 
     uchar_vector combined;
 
-    combined += _sig.toUCharVector();
+    combined += _sig.rawDER();
     combined.push_back(_type.hashCode());
 
     return combined;
@@ -47,7 +47,7 @@ uchar_vector TransactionSignature::opPushForScriptSigSerialized() const {
 }
 
 uint32_t TransactionSignature::maxLength() {
-    return TransactionSignature(Signature(Signature::maxLength), SigHashType()).opPushForScriptSigSerialized().size();
+    return TransactionSignature(Signature(), SigHashType()).opPushForScriptSigSerialized().size();
 }
 
 Signature TransactionSignature::sig() const {

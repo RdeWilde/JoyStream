@@ -18,13 +18,25 @@ namespace protocol_wire {
 
     class BuyerTerms;
     class SellerTerms;
-    class ExtendedMessagePayload;
+    class Message;
 
 }
 }
 
 using namespace joystream;
 using namespace joystream::protocol_statemachine;
+
+enum class MessageType {
+    observe,
+    buy,
+    sell,
+    join_contract,
+    joining_contract,
+    ready,
+    request_full_piece,
+    full_piece,
+    payment
+};
 
 class CBStateMachineCallbackSpy {
 
@@ -50,7 +62,7 @@ public:
 
     protocol_wire::PieceData pieceData() const;
 
-    protocol_wire::MessageType messageType() const;
+    MessageType messageType() const;
 
     protocol_wire::Buy buyMessage() const;
 
@@ -72,7 +84,7 @@ public:
 
     bool contractHasBeenPrepared() const;
     Coin::typesafeOutPoint anchor() const;
-    quint64 value() const;
+    uint64_t value() const;
     Coin::PublicKey contractPk() const;
     Coin::PubKeyHash finalPkHash() const;
 
@@ -112,9 +124,8 @@ private:
 
     // Send
     bool _messageSent;
-    const protocol_wire::ExtendedMessagePayload * _message;
-    /**
-    protocol_wire::MessageType _messageType;
+
+    MessageType _messageType;
     protocol_wire::Buy _buyMessage;
     protocol_wire::FullPiece _fullPieceMessage;
     protocol_wire::JoinContract _joinContractMessage;
@@ -122,16 +133,13 @@ private:
     protocol_wire::Observe _observeMessage;
     protocol_wire::Payment _paymentMessage;
     protocol_wire::Ready _readyMessage;
-    protocol_wire::RefundSigned _refundSignedMessage;
     protocol_wire::RequestFullPiece _requestFullPieceMessage;
     protocol_wire::Sell _sellMessage;
-    protocol_wire::SignRefund _signRefundMessage;
-    */
 
     // ContractIsReady
     bool _contractHasBeenPrepared;
     Coin::typesafeOutPoint _anchor;
-    quint64 _value;
+    uint64_t _value;
     Coin::PublicKey _contractPk;
     Coin::PubKeyHash _finalPkHash;
 

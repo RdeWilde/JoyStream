@@ -32,65 +32,46 @@ TransactionId::TransactionId(const Coin::Transaction & tx)
 }
 */
 
-TransactionId TransactionId::fromInternalByteOrder(const uchar_vector & vector) {
-
-    // Check length
-    if(vector.size() != TXID_BYTE_LENGTH)
-        throw std::runtime_error("Incorrect size...");
-
-    // Make copy so we can modify it
-    uchar_vector copy(vector);
-
-    // Convert to RPC byte order
-    copy.reverse();
+TransactionId TransactionId::fromInternalByteOrder(const std::vector<unsigned char> & vector) {
 
     // Create blank txid
     TransactionId id;
 
-    // Fill id with copy
-    id.fill(copy.data());
+    id.setRaw(vector);
+
+    // reverse the byte order
+    id.reverse();
 
     return id;
 }
 
 TransactionId TransactionId::fromRPCByteOrder(const std::string & str) {
 
-    // Turn std::string into QByteArray
-    QByteArray hexArray = QByteArray::fromStdString(str);
-
-    // Use QbyteArray factory
-    return TransactionId::fromRPCByteOrder(QByteArray::fromHex(hexArray));
-}
-
-TransactionId TransactionId::fromRPCByteOrder(const QByteArray & array) {
-
-    // Check length
-    if(array.size() != TXID_BYTE_LENGTH)
-        throw std::runtime_error("Incorrect size..");
-
     // Create blank txid
     TransactionId id;
 
-    // Fill id with copy
-    id.fill((const unsigned char *)array.data());
+    id.setRawHex(str);
 
     return id;
 }
 
-TransactionId TransactionId::fromRPCByteOrder(const uchar_vector & vector) {
+TransactionId TransactionId::fromRPCByteOrder(const std::vector<unsigned char> & vector) {
 
-    QByteArray array((const char *)vector.data(), (int)(vector.size()));
+    // Create blank txid
+    TransactionId id;
 
-    return TransactionId::fromRPCByteOrder(array);
+    id.setRaw(vector);
+
+    return id;
 }
 
 std::string TransactionId::toRPCByteOrder() const {
 
-    // Copy raw into buffer
-    uchar_vector tmp = toUCharVector();
+    return getRawHex();
+}
 
-    // Turn into hex string
-    return tmp.getHex();
+std::vector<unsigned char> TransactionId::toRPCByteOrderVector() const {
+    return getRawVector();
 }
 
 }

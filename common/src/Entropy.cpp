@@ -20,21 +20,20 @@ namespace Coin {
 Entropy::Entropy() {
 }
 
-Entropy::Entropy(const char * raw)
-    : Entropy(QByteArray(raw, WALLET_ENTROPY_BYTE_LENGTH)) {
+Entropy Entropy::fromRaw(const std::vector<unsigned char> &raw) {
+    Entropy e;
+    e.setRaw(raw);
+    return e;
 }
 
-Entropy::Entropy(const QByteArray & raw)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
+Entropy Entropy::fromRawHex(const std::string & hexEncoded) {
+    Entropy e;
+    e.setRawHex(hexEncoded);
+    return e;
 }
 
-Entropy::Entropy(const uchar_vector &raw)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
-
-}
-
-Entropy::Entropy(const std::string & hexEncoded)
-    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(hexEncoded) {
+std::vector<unsigned char> Entropy::toRawVector() const {
+    return getRawVector();
 }
 
 Entropy::~Entropy(){
@@ -54,13 +53,13 @@ Entropy Entropy::generate() {
 
 Seed Entropy::seed(std::string passphrase) const {
     // Convert entropy to mnemonic phrase
-    std::string wordlistString = Coin::BIP39::toWordlist(this->toUCharVector());
+    std::string wordlistString = Coin::BIP39::toWordlist(this->toRawVector());
     const char * password = wordlistString.c_str();
 
     std::string saltString = "mnemonic" + passphrase;
     const char * salt = saltString.c_str();
 
-    unsigned char digest[WALLET_SEED_BYTE_LENGTH];
+    std::vector<unsigned char> digest(WALLET_SEED_BYTE_LENGTH);
 
     /* https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
      * To create a binary seed from the mnemonic, we use the PBKDF2 function with a mnemonic sentence
@@ -68,27 +67,19 @@ Seed Entropy::seed(std::string passphrase) const {
      * used as the salt. The iteration count is set to 2048 and HMAC-SHA512 is used as the pseudo-random function.
      * The length of the derived key is 512 bits (= 64 bytes).
      */
-    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, strlen(salt), 2048, EVP_sha512(), sizeof(digest), digest)){
+    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, strlen(salt), 2048, EVP_sha512(), digest.size(), digest.data())){
         throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
     }
 
-    // Construct Seed from raw bytes
-    QByteArray seed((char*)digest, WALLET_SEED_BYTE_LENGTH);
-
-    return Seed(seed);
+    return Seed::fromRaw(digest);
 }
 
 Entropy Entropy::fromMnemonic(std::string wordList) {
-    uchar_vector raw(Coin::BIP39::fromWordlist(wordList));
-    return Entropy(raw.getHex());
+    return Entropy::fromRaw(Coin::BIP39::fromWordlist(wordList));
 }
 
 std::string Entropy::mnemonic() const {
-    return Coin::BIP39::toWordlist(this->toUCharVector());
-}
-
-std::string Entropy::getHex() const {
-    return this->toUCharVector().getHex();
+    return Coin::BIP39::toWordlist(this->toRawVector());
 }
 
 }

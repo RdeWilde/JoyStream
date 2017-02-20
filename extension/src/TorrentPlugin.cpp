@@ -534,17 +534,74 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
     // but it must not already be added in session
     assert(!_session.hasConnection(endPoint));
 
-    // Create callback which asserts presence of plugin
+    // Create callbacks which asserts presence of plugin
     boost::weak_ptr<PeerPlugin> wPeerPlugin = it->second;
 
-    protocol_session::SendMessageOnConnection send = [wPeerPlugin] (const protocol_wire::ExtendedMessagePayload * m) -> void {
+    protocol_session::SendMessageOnConnectionCallbacks send;
 
+    send.observe = [wPeerPlugin] (const protocol_wire::Observe &m) -> void {
         boost::shared_ptr<PeerPlugin> plugin;
         plugin = wPeerPlugin.lock();
         assert(plugin);
-        plugin->send(m);
-        delete m;
+        plugin->send<>(m);
     };
+
+    send.buy = [wPeerPlugin] (const protocol_wire::Buy &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.sell = [wPeerPlugin] (const protocol_wire::Sell &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.join_contract = [wPeerPlugin] (const protocol_wire::JoinContract &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.joining_contract = [wPeerPlugin] (const protocol_wire::JoiningContract &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.ready = [wPeerPlugin] (const protocol_wire::Ready &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.request_full_piece = [wPeerPlugin] (const protocol_wire::RequestFullPiece &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.full_piece = [wPeerPlugin] (const protocol_wire::FullPiece &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.payment = [wPeerPlugin] (const protocol_wire::Payment &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
 
     // add peer to sesion
     _session.addConnection(endPoint, send);
@@ -606,7 +663,8 @@ void TorrentPlugin::drop(const libtorrent::tcp::endpoint & endPoint, const libto
         _peers.erase(it);
 }
 
-void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage){
+template<class M>
+void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const M &extendedMessage){
 
     if(_session.mode() == protocol_session::SessionMode::not_set) {
         std::clog << "Ignoring extended message - session mode not set" << std::endl;
@@ -618,7 +676,7 @@ void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & end
         return;
     }
     // Have session process message
-    _session.processMessageOnConnection(endPoint, extendedMessage);
+    _session.processMessageOnConnection<M>(endPoint, extendedMessage);
 }
 
 protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> TorrentPlugin::removeConnection() {
@@ -731,7 +789,7 @@ protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anch
     libtorrent::alert_manager & manager = t->alerts();
     libtorrent::torrent_handle h = t->get_handle();
 
-    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
+    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, uint64_t value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
 
         manager.emplace_alert<alert::AnchorAnnounced>(h, endPoint, value, anchor, contractPk, finalPkHash);
     };

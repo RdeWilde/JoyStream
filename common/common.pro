@@ -9,9 +9,7 @@ TEMPLATE = lib
 CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
-
-QT      += core
-QT      += network # used by blockcypher module
+CONFIG  -= core
 
 INCLUDEPATH += $$PWD/include
 
@@ -36,15 +34,12 @@ HEADERS += \
     include/common/Utilities.hpp \
     include/common/TimeTools.hpp \
     include/common/Bitcoin.hpp \
-    include/common/BitcoinDisplaySettings.hpp \
-    include/common/BitcoinRepresentation.hpp \
     include/common/UCharArray.hpp \
     include/common/typesafeOutPoint.hpp \
     include/common/P2SHAddress.hpp \
     include/common/PubKeyHash.hpp \
     include/common/Seed.hpp \
     include/common/Entropy.hpp \
-    include/common/LibtorrentUtilities.hpp \
     include/common/RedeemScriptHash.hpp \
     include/common/SigHashType.hpp \
     include/common/MultisigScriptPubKey.hpp \
@@ -74,13 +69,10 @@ SOURCES += \
     src/UnspentP2PKHOutput.cpp \
     src/Utilities.cpp \
     src/TimeTools.cpp \
-    src/BitcoinDisplaySettings.cpp \
-    src/BitcoinRepresentation.cpp \
     src/typesafeOutPoint.cpp \
     src/P2SHAddress.cpp \
     src/Seed.cpp \
     src/Entropy.cpp \
-    src/LibtorrentUtilities.cpp \
     src/Network.cpp \
     src/SigHashType.cpp \
     src/MultisigScriptPubKey.cpp \

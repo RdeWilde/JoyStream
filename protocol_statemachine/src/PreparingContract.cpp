@@ -27,7 +27,7 @@ namespace protocol_statemachine {
         context<CBStateMachine>()._payor.setAnchor(e.anchor());
 
         // Send ready message
-        context<CBStateMachine>()._sendMessage(new joystream::protocol_wire::Ready(e.value(), e.anchor(), e.contractKeyPair().pk(), e.finalPkHash()));
+        context<CBStateMachine>()._sendReadyMessage(joystream::protocol_wire::Ready(e.value(), e.anchor(), e.contractKeyPair().pk(), e.finalPkHash()));
 
         // Now ready to request first piece
         return transit<ReadyToRequestPiece>();

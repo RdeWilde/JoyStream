@@ -6,9 +6,6 @@
  */
 
 #include <protocol_wire/FullPiece.hpp>
-#include <protocol_wire/MessageType.hpp>
-
-#include <QDataStream>
 
 namespace joystream {
 namespace protocol_wire {
@@ -20,28 +17,16 @@ namespace protocol_wire {
         : _pieceData(pieceData) {
     }
 
-    FullPiece::FullPiece(QDataStream & stream, int length)
-        : _pieceData(stream, length) {
-    }
-
     bool FullPiece::operator==(const FullPiece & rhs) const {
         return _pieceData == rhs.pieceData();
     }
 
-    MessageType FullPiece::messageType() const {
-        return MessageType::full_piece;
-    }
-
-    quint32 FullPiece::length() const {
-        return _pieceData.length();
-    }
-
-    void FullPiece::write(QDataStream & stream) const {
-        _pieceData.write(stream);
-    }
-
     PieceData FullPiece::pieceData() const {
         return _pieceData;
+    }
+
+    void FullPiece::setPieceData(const PieceData & pieceData) {
+        _pieceData = pieceData;
     }
 }
 }

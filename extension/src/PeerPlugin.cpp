@@ -5,12 +5,21 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
+#include <cassert>
+
+#include <boost/iostreams/stream.hpp>
+
 #include <extension/PeerPlugin.hpp>
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Exception.hpp>
 #include <extension/Status.hpp>
 #include <extension/Alert.hpp>
+#include <extension/detail.hpp>
+#include <extension/ExtendedMessage.hpp>
+
 #include <protocol_wire/protocol_wire.hpp>
+#include <protocol_wire/char_array_buffer.hpp>
+
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
 #include <libtorrent/peer_info.hpp>
@@ -444,13 +453,13 @@ namespace extension {
         assert(_peerPaymentBEPSupportStatus == BEPSupportStatus::supported);
 
         // Length of extended message, excluding the bep 10 id and extended message id.
-        int lengthOfExtendedMessagePayload = body.left();
+        int lengthOfMessage = body.left();
 
         // Do we have full message
-        if(length != lengthOfExtendedMessagePayload) {
+        if(length != lengthOfMessage) {
 
             // Output progress
-            std::clog << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length << std::endl;
+            std::clog << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfMessage))/length << std::endl;
 
             // No other plugin should look at this
             return true;
@@ -468,7 +477,7 @@ namespace extension {
         }
 
         // Is it a message for this extension?
-        joystream::protocol_wire::MessageType messageType;
+        MessageType messageType;
 
         try {
             messageType = _peerMapping.messageType(msg);
@@ -491,64 +500,62 @@ namespace extension {
         }
         */
 
-        // WRAP in QByteAray: No copying is done, and no ownership is taken!
-        // http://doc.qt.io/qt-4.8/qbytearray.html#fromRawData
-        QByteArray byteArray = QByteArray::fromRawData(body.begin, lengthOfExtendedMessagePayload);
 
-        // Wrap data in byte array in stream
-        QDataStream stream(&byteArray, QIODevice::ReadOnly);
-
-        // Explicitly set endianness
-        stream.setByteOrder(QDataStream::BigEndian);
+        char* begin = const_cast<char *>(body.begin);
+        char_array_buffer buffer(begin, begin + lengthOfMessage);
+        protocol_wire::InputWireStream stream(&buffer);
 
         // Parse message
-        qint64 preReadPosition = stream.device()->pos();
-        joystream::protocol_wire::ExtendedMessagePayload * m = joystream::protocol_wire::ExtendedMessagePayload::fromRaw(messageType, stream, lengthOfExtendedMessagePayload);
-        qint64 postReadPosition = stream.device()->pos();
-
-        qint64 totalReadLength = postReadPosition - preReadPosition;
-
-        // Check that the full extended payload was parsed
-        if(totalReadLength != lengthOfExtendedMessagePayload) {
-
-            std::stringstream s;
-
-            // MAKE PROPER TYPED EXCEPTION AT SOME POINT
-            s << "Extended message payload was expected to have length of"
-              << lengthOfExtendedMessagePayload << "bytes"
-              << ", however full valid message was parsed to be of length "
-              << totalReadLength << "bytes"
-              << " and of type "
-              << joystream::protocol_wire::messageName(m->messageType());
-
-            // Remove this peer
-            libtorrent::error_code ec; // <- s
-            drop(ec);
-
-            return true;
-        }
-
-        // Was message malformed
-        if(m == NULL) {
-
-            std::clog << "Extended Message was Malformed" << std::endl;
-            // Remove this peer
-            libtorrent::error_code ec; // <-- "Malformed extended message received, removing."
-            drop(ec);
-
-        } else {
-
-            // Process message
-            try {
-                _plugin->processExtendedMessage(_endPoint, *m);
-            } catch(std::exception &e) {
-                std::clog << "Error processing Extended Message "<< e.what() << std::endl;
-                libtorrent::error_code ec;
-                drop(ec);
+        try {
+            switch(messageType) {
+                case MessageType::observe : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readObserve());
+                    break;
+                }
+                case MessageType::buy : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readBuy());
+                    break;
+                }
+                case MessageType::sell : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readSell());
+                    break;
+                }
+                case MessageType::join_contract : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readJoinContract());
+                    break;
+                }
+                case MessageType::joining_contract : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readJoiningContract());
+                    break;
+                }
+                case MessageType::ready : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readReady());
+                    break;
+                }
+                case MessageType::request_full_piece : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readRequestFullPiece());
+                    break;
+                }
+                case MessageType::full_piece : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readFullPiece());
+                    break;
+                }
+                case MessageType::payment : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readPayment());
+                    break;
+                }
+                default:
+                    assert(false);
             }
 
-            // Delete message
-            delete m;
+        } catch (std::exception & e) {
+
+            std::clog << "Extended Message was Malformed" << std::endl;
+
+            // Remove this peer
+            libtorrent::error_code ec; // <-- "Malformed extended message received, removing."
+
+            drop(ec);
         }
 
         // No other plugin should process message
@@ -590,72 +597,34 @@ namespace extension {
             return false; // allow sending request
     }
 
-    void PeerPlugin::send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessagePayload) {
+    template<class T>
+    void PeerPlugin::send(const T& payload) {
+        const auto size = protocol_wire::OutputWireStream::sizeOf(payload);
 
-        // Get length of
-        quint32 extendedMessagePayloadLength = extendedMessagePayload->length();
+        auto messageType = getMessageType(payload);
 
-        // Length of message full message
-        quint32 fullMessageLength = 4 + 1 + 1 + extendedMessagePayloadLength;
+        ExtendedMessage m(size, _peerMapping.id(messageType));
 
-        // Length value in outer BitTorrent header
-        quint32 fullMessageLengthFieldValue = 1 + 1 + extendedMessagePayloadLength;
+        protocol_wire::OutputWireStream writer(m.payloadBuf());
 
-        // Allocate message array buffer
-        QByteArray byteArray(fullMessageLength, 0);
+        std::streamsize written = 0;
 
-        // Wrap buffer in stream
-        QDataStream stream(&byteArray, QIODevice::WriteOnly);
-
-        // Set byte order explicitly
-        stream.setByteOrder(QDataStream::BigEndian);
-
-        /**
-         * Write both headers to stream:
-         * [messageLength():uint32_t][(bt_peer_connection::msg_extended):uint8_t][id:uint8_t]
-         */
-
-        // Message length
-        stream << fullMessageLengthFieldValue;
-
-        // BEP10 message id: should always be 20 according to BEP10 spec
-        stream << static_cast<quint8>(libtorrent::bt_peer_connection::msg_extended);
-
-        // Extended message id
-        stream << static_cast<quint8>(_peerMapping.id(extendedMessagePayload->messageType()));
-
-        // Write message into buffer through stream
-        qint64 preWritePosition = stream.device()->pos();
-        extendedMessagePayload->write(stream);
-        qint64 postWritePosition = stream.device()->pos();
-
-        qint64 written = postWritePosition - preWritePosition;
-
-        Q_ASSERT(written == extendedMessagePayloadLength);
-
-        std::clog << "SENT:" << joystream::protocol_wire::messageName(extendedMessagePayload->messageType()) << " = " << written << "bytes" << std::endl;
-
-        // If message was written properly buffer, then send buffer to peer
-        if(stream.status() != QDataStream::Status::Ok)
-            std::clog << "Output stream in bad state after message write, message not sent." << std::endl;
-        else {
-
-            // Get raw buffer
-            const char * constData = byteArray.constData(); // is zero terminated, but we dont care
-
-            // Send message buffer
-            _connection.send_buffer(constData, byteArray.length());
-
-            // Do some sort of catching of error if sending did not work??
-
-            /**
-            // Start/Restart timer
-            if(_timeSinceLastMessageSent.isNull())
-                _timeSinceLastMessageSent.start();
-            else
-                _timeSinceLastMessageSent.restart();
-            */
+        try {
+            written = writer.write(payload);
+        } catch(std::exception &e) {
+            std::clog << "Error writing message payload, message not sent." << std::endl;
+            return;
         }
+
+        if(size != written) {
+            std::clog << "Error payload not fully written, message not sent." << std::endl;
+            return;
+        }
+
+        // Send message buffer
+        m.send(_connection);
+
+        std::clog << "SENT:" << getMessageName(messageType) << " = " << written << "bytes" << std::endl;
     }
 
     status::PeerPlugin PeerPlugin::status(const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections) const {

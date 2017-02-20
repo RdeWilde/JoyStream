@@ -14,10 +14,10 @@
 #include <common/P2PKHAddress.hpp>
 #include <CoinCore/CoinNodeData.h>
 
+//#include <protocol_statemachine/CBStateMachine.hpp> // send message callbacks
+
 #include <functional>
 #include <vector>
-
-#include <QtGlobal> // quint64
 
 namespace Coin {
     class typesafeOutPoint;
@@ -29,6 +29,10 @@ namespace paymentchannel {
     class Payee;
     class ContractTransactionBuilder;
 }
+namespace protocol_statemachine {
+    struct Send;
+}
+
 namespace protocol_session {
 
 // NB: In the future one can separete into two different callbacks,
@@ -75,8 +79,8 @@ typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateReceiveAddre
 typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateChangeAddressesCallbackHandler;
 */
 
-// Send a message to be sent
-typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendMessageOnConnection;
+// Send message callbacks
+typedef protocol_statemachine::Send SendMessageOnConnectionCallbacks;
 
 //// Buying
 
@@ -112,7 +116,7 @@ using ClaimLastPayment = std::function<void(const ConnectionIdType &, const joys
 
 // Buyer with given connection id announced anchor
 template <class ConnectionIdType>
-using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
+using AnchorAnnounced = std::function<void(const ConnectionIdType &, uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
 
 // Buyer with givne connection id send a valid payment
 template <class ConnectionIdType>

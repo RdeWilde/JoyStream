@@ -10,7 +10,9 @@
 
 #include <extension/Alert.hpp>
 #include <extension/Request.hpp>
+
 #include <boost/variant.hpp>
+
 #include <exception>
 #include <functional>
 
@@ -20,6 +22,8 @@ namespace extension {
 class Plugin;
 
 namespace detail {
+
+typedef std::char_traits<char>::int_type int_type;
 
 // Variant used to allow a single request queue
 typedef boost::variant<request::Start,
@@ -88,6 +92,7 @@ private:
     // Alert manager for posting messages
     libtorrent::alert_manager * _alertManager;
 };
+
 
 }
 }
