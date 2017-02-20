@@ -8,18 +8,17 @@
 #ifndef JOYSTREAM_PROTOCOL_WIRE_JOINCONTRACT_HPP
 #define JOYSTREAM_PROTOCOL_WIRE_JOINCONTRACT_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class JoinContract : public ExtendedMessagePayload {
+    class JoinContract : public Message {
 
     public:
 
         JoinContract();
         JoinContract(uint32_t index);
-        JoinContract(QDataStream & stream);
 
         virtual ~JoinContract() {}
 
@@ -27,17 +26,16 @@ namespace protocol_wire {
 
         // Virtual methods that subclassing messages have to implement
         MessageType messageType() const;
-        quint32 length() const;
-        void write(QDataStream & stream) const;
 
         // Getters
         uint32_t index() const;
 
+        void setIndex(uint32_t);
     private:
 
         // Seller terms index
         // cant be uint32_t, due to qdatastream not supporting it
-        quint32 _index;
+        uint32_t _index;
     };
 
 }

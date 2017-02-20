@@ -1,3 +1,3 @@
 #!/bin/bash
 
-node-gyp configure && node-gyp rebuild && sh post_build.sh
+node-gyp configure && node-gyp rebuild

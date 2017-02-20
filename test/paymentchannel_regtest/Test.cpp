@@ -22,6 +22,8 @@
 using namespace joystream::test::bitcoin;
 using namespace joystream::paymentchannel;
 
+#define TEST_PRIVATE_KEY "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
+
 void Test::initTestCase() {
 
     QVERIFY(regtest::init() == 0);
@@ -57,11 +59,11 @@ Coin::typesafeOutPoint getOutpointFromAddress(std::string &txid, Coin::P2PKHAddr
 Coin::UnspentOutputSet getFunds(int64_t amount) {
     std::stringstream amount_ss;
     amount_ss << (float)amount / 100000000;
-    Coin::PrivateKey sk = Coin::PrivateKey::generate();
+    Coin::PrivateKey sk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
     Coin::P2PKHAddress address(Coin::Network::regtest, sk.toPublicKey().toPubKeyHash());
 
     std::string fundsTxId;
-    if(regtest::send_to_address(address.toBase58CheckEncoding().toStdString(), amount_ss.str(), fundsTxId) != 0) {
+    if(regtest::send_to_address(address.toBase58CheckEncoding(), amount_ss.str(), fundsTxId) != 0) {
         return Coin::UnspentOutputSet();
     }
 
@@ -84,8 +86,8 @@ void Test::RefundLocking() {
     QCOMPARE(funding.size(), (size_t)1);
 
     // Generate Keys for the payment channel commitment
-    auto buyerSk = Coin::PrivateKey::generate();
-    auto sellerSk = Coin::PrivateKey::generate();
+    auto buyerSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
+    auto sellerSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
 
     // For easy regtesting we will use locktime in block units
     const uint lockTimeBlocks = 20;
@@ -124,7 +126,7 @@ void Test::RefundLocking() {
     refundTx.version = 2;
 
     // Send the refund to a bitcoind wallet controlled address
-    auto refundDestination = Coin::P2PKHAddress::fromBase58CheckEncoding(QString::fromStdString(regtest::getnewaddress()));
+    auto refundDestination = Coin::P2PKHAddress::fromBase58CheckEncoding(regtest::getnewaddress());
     auto refundOutput = Coin::TxOut(refundAmount, Coin::P2PKHScriptPubKey(refundDestination.pubKeyHash()).serialize());
     refundTx.addOutput(refundOutput);
 
@@ -164,8 +166,8 @@ void Test::Settlement() {
     QCOMPARE(funding.size(), (size_t)1);
 
     // Generate Keys for the payment channel commitment
-    auto buyerSk = Coin::PrivateKey::generate();
-    auto sellerSk = Coin::PrivateKey::generate();
+    auto buyerSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
+    auto sellerSk = Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY);
 
     // For easy regtesting we will use locktime in block units
     const uint lockTimeBlocks = 20;
@@ -189,8 +191,8 @@ void Test::Settlement() {
     // Broadcast the contract
     QCOMPARE(regtest::send_raw_transaction(rawContractTransaction), 0);
 
-    Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
-    Coin::KeyPair payeeFinalPair = Coin::KeyPair::generate();
+    Coin::KeyPair payorFinalPair = Coin::KeyPair(Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY));
+    Coin::KeyPair payeeFinalPair = Coin::KeyPair(Coin::PrivateKey::fromRawHex(TEST_PRIVATE_KEY));
 
     Coin::Payment toPayor(commitmentAmount - settlementFee - paymentAmount, payorFinalPair.pk().toP2PKHAddress(Coin::Network::regtest));
     Coin::Payment toPayee(paymentAmount, payeeFinalPair.pk().toP2PKHAddress(Coin::Network::regtest));

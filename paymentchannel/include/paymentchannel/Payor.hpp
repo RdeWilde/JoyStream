@@ -40,10 +40,10 @@ namespace paymentchannel {
 
         Payor();
 
-        Payor(quint64 price,
-                quint64 numberOfPaymentsMade,
-                quint64 funds,
-                quint64 settlementFee,
+        Payor(uint64_t price,
+                uint64_t numberOfPaymentsMade,
+                uint64_t funds,
+                uint64_t settlementFee,
                 Coin::RelativeLockTime refundLockTime,
                 const Coin::typesafeOutPoint & anchor,
                 const Coin::KeyPair & payorContractKeyPair,
@@ -68,20 +68,20 @@ namespace paymentchannel {
         Coin::Signature makePayment();
 
         // Amount of funds paid
-        quint64 amountPaid() const;
+        uint64_t amountPaid() const;
 
         // Getters and setters
-        quint64 price() const;
-        void setPrice(quint64 price);
+        uint64_t price() const;
+        void setPrice(uint64_t price);
 
-        quint64 numberOfPaymentsMade() const;
-        void setNumberOfPaymentsMade(quint64);
+        uint64_t numberOfPaymentsMade() const;
+        void setNumberOfPaymentsMade(uint64_t);
 
-        quint64 funds() const;
-        void setFunds(quint64 funds);
+        uint64_t funds() const;
+        void setFunds(uint64_t funds);
 
-        quint64 settlementFee() const;
-        void setSettlementFee(quint64);
+        uint64_t settlementFee() const;
+        void setSettlementFee(uint64_t);
 
         Coin::RelativeLockTime refundLockTime() const;
         void setRefundLockTime(Coin::RelativeLockTime);
@@ -104,16 +104,16 @@ namespace paymentchannel {
     private:
 
         // Size of single payment
-        quint64 _price;
+        uint64_t _price;
 
         // Number of payments made
-        quint64 _numberOfPaymentsMade;
+        uint64_t _numberOfPaymentsMade;
 
         // Funds allocated to output
-        quint64 _funds;
+        uint64_t _funds;
 
         // Settlement fee
-        quint64 _settlementFee;
+        uint64_t _settlementFee;
 
         // Lock time of refund, received in
         Coin::RelativeLockTime _refundLockTime;

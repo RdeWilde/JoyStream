@@ -11,7 +11,7 @@ CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-us
 CONFIG  += c++11
 CONFIG  += testcase
 
-QT      += core network
+QT      += core
 QT      += testlib
 
 HEADERS += \

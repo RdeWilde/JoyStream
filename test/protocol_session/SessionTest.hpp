@@ -8,7 +8,7 @@
 #ifndef TEST_HPP
 #define TEST_HPP
 
-#include <QtTest/QtTest>
+#include <gtest/gtest.h>
 
 #include <SessionSpy.hpp>
 #include <common/P2PKScriptPubKey.hpp>
@@ -20,43 +20,15 @@ using namespace joystream::protocol_session;
 // Id type used to identify connections
 typedef uint ID;
 
-class Test : public QObject {
-
-    Q_OBJECT
-
+class SessionTest : public ::testing::Test {
 public:
-
-    Test();
-
-private slots:
+    SessionTest();
 
     // Runs before & after each unit, creates/deletes up session and spy
     void init();
     void cleanup();
 
-    //// Cases
-
-    // Test observe mode transitions
-    void observing();
-
-    // Test sell mode transitions
-    void selling_basic();
-    void selling();
-    //void selling_buyer_invited_with_bad_terms();
-    void selling_buyer_requested_invalid_piece();
-    void selling_buyer_interrupted_payment();
-    void selling_buyer_sent_invalid_payment();
-    void selling_buyer_disappears();
-
-    // Test buy mode transitions
-    void buying_basic();
-    void buying();
-    void buying_seller_has_interrupted_contract();
-    //void buying_seller_servicing_piece_has_timed_out();
-    void buying_seller_sent_invalid_piece();
-
-private:
-
+//private:
     //// NB: None of these routines can return values, as they use QTest macroes which dont return this value.
 
     // Variable shared across all units tests
@@ -158,7 +130,6 @@ private:
 
     // perhaps this should subclass, or include, a connection spy?
     struct SellerPeer {
-
         ID id;
         protocol_wire::SellerTerms terms;
         uint32_t sellerTermsIndex;
@@ -171,7 +142,6 @@ private:
 
         // Announced ready message
         protocol_wire::Ready ready;
-
         paymentchannel::Payee payee;
 
         SellerPeer(ID id, protocol_wire::SellerTerms terms, uint32_t sellerTermsIndex)
@@ -180,9 +150,7 @@ private:
             , sellerTermsIndex(sellerTermsIndex)
             , spy(nullptr) {
         }
-
         protocol_wire::JoiningContract setJoiningContract() {
-
             contractKeys = Coin::KeyPair::generate();
             finalKeys = Coin::KeyPair::generate();
             Coin::RedeemScriptHash scriptHash(Coin::P2PKScriptPubKey(finalKeys.pk()));
@@ -192,21 +160,17 @@ private:
         }
 
         void contractAnnounced() {
-
             SendMessageOnConnectionCallbackSlot & slot = spy->sendMessageOnConnectionCallbackSlot;
 
-            QVERIFY((int)slot.size() > 0);
-            const protocol_wire::ExtendedMessagePayload * m = std::get<0>(slot.front());
+            EXPECT_TRUE((int)slot.size() > 0);
+            const protocol_wire::Message * m = std::get<0>(slot.front());
 
-            QCOMPARE(m->messageType(), protocol_wire::MessageType::ready);
+            EXPECT_EQ(m->messageType(), protocol_wire::MessageType::ready);
 
             if(m->messageType() == protocol_wire::MessageType::ready) {
-
                 const protocol_wire::Ready * m2 = dynamic_cast<const protocol_wire::Ready *>(m);
-
                 ready = *m2;
                 payee = getPayee();
-
                 // Remove message at front
                 slot.pop_front();
                 delete m2;
@@ -214,29 +178,26 @@ private:
         }
 
         void assertNoContractAnnounced() {
-            QCOMPARE((int)spy->sendMessageOnConnectionCallbackSlot.size(), 0);
+            EXPECT_EQ((int)spy->sendMessageOnConnectionCallbackSlot.size(), 0);
         }
 
         void assertContractValidity(const Coin::Transaction & tx) {
-            QVERIFY(payee.isContractValid(tx));
+            EXPECT_TRUE(payee.isContractValid(tx));
         }
 
         void validatePayment(const Coin::Signature & sig) {
-            QVERIFY(payee.registerPayment(sig));
+            EXPECT_TRUE(payee.registerPayment(sig));
         }
 
         bool hasPendingFullPieceRequest() {
-
             if(spy->sendMessageOnConnectionCallbackSlot.size() != 1)
                 return false;
 
-            const protocol_wire::ExtendedMessagePayload * m = std::get<0>(spy->sendMessageOnConnectionCallbackSlot.front());
-
+            const protocol_wire::Message * m = std::get<0>(spy->sendMessageOnConnectionCallbackSlot.front());
             return m->messageType() == protocol_wire::MessageType::request_full_piece;
         }
 
         paymentchannel::Payee getPayee() {
-
             return paymentchannel::Payee(0,
                                          Coin::RelativeLockTime::fromTimeUnits(terms.minLock()),
                                          terms.minPrice(),
@@ -249,22 +210,16 @@ private:
                                          ready.finalPkHash(),
                                          Coin::Signature());
         }
-
     };
 
     typedef std::pair<StartDownloadConnectionInformation, SellerPeer> BuyerSellerRelationship;
 
     static Coin::Transaction simpleContract(const std::vector<BuyerSellerRelationship> & v) {
-
         paymentchannel::ContractTransactionBuilder::Commitments commitments;
-
         for(auto s : v) {
-
             StartDownloadConnectionInformation inf = s.first;
             SellerPeer peer = s.second;
-
             paymentchannel::Commitment c(inf.value, inf.buyerContractKeyPair.pk(), peer.joiningContract.contractPk(), Coin::RelativeLockTime::fromTimeUnits(peer.terms.minLock()));
-
             commitments.push_back(c);
         }
 
@@ -275,14 +230,10 @@ private:
     }
 
     static PeerToStartDownloadInformationMap<ID> downloadInformationMap(const std::vector<BuyerSellerRelationship> & v) noexcept {
-
         PeerToStartDownloadInformationMap<ID> map;
-
         for(auto s : v) {
-
             StartDownloadConnectionInformation inf = s.first;
             SellerPeer peer = s.second;
-
             map.insert(std::make_pair(peer.id, inf));
         }
 
@@ -290,19 +241,11 @@ private:
     }
 
     void add(SellerPeer &);
-
     //void join(const SellerPeer &);
-
     void completeExchange(SellerPeer &);
-
     bool hasPendingFullPieceRequest(const std::vector<SellerPeer> &);
-
     void takeSingleSellerToExchange(SellerPeer &);
-
-    ////
-
     void assertSellerInvited(const SellerPeer &);
-
 };
 
 #endif // TEST_HPP

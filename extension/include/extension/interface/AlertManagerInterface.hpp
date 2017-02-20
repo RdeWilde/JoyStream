@@ -23,7 +23,7 @@ public:
     virtual void request_emplace_alert(extension::alert::LoadedCallBack &c) = 0;
     virtual void anchorAnnounced_emplace_alert(
         libtorrent::torrent_handle h, libtorrent::tcp::endpoint &endpoint,
-        quint64 value, const Coin::typesafeOutPoint &anchor,
+        uint64_t value, const Coin::typesafeOutPoint &anchor,
         const Coin::PublicKey &contractPk, const Coin::PubKeyHash &finalPkHash
     ) = 0;
 };

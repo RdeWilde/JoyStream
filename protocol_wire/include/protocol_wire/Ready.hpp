@@ -8,20 +8,19 @@
 #ifndef JOYSTREAM_WIRE_READY_HPP
 #define JOYSTREAM_WIRE_READY_HPP
 
-#include <protocol_wire/ExtendedMessagePayload.hpp>
+#include <protocol_wire/Message.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/PublicKey.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Ready : public ExtendedMessagePayload {
+    class Ready : public Message {
 
     public:
 
         Ready();
-        Ready(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
-        Ready(QDataStream &);
+        Ready(uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
 
         virtual ~Ready() {}
 
@@ -29,11 +28,9 @@ namespace protocol_wire {
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
-        virtual quint32 length() const;
-        virtual void write(QDataStream &) const;
 
         // Getters
-        quint64 value() const;
+        uint64_t value() const;
 
         Coin::typesafeOutPoint anchor() const;
 
@@ -41,11 +38,20 @@ namespace protocol_wire {
 
         Coin::PubKeyHash finalPkHash() const;
 
+        // Getters
+        void setValue(uint64_t);
+
+        void setAnchor(const Coin::typesafeOutPoint&);
+
+        void setContractPk(const Coin::PublicKey&);
+
+        void setFinalPkHash(const Coin::PubKeyHash&);
+
     private:
 
         // Value locked up
         // NB: May be dropped later
-        quint64 _value;
+        uint64_t _value;
 
         // Anchor for contract
         Coin::typesafeOutPoint _anchor;

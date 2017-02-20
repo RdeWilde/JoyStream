@@ -21,7 +21,7 @@
 
 namespace joystream {
 namespace protocol_wire {
-    class ExtendedMessagePayload;
+    class Message;
 }
 namespace protocol_session {
 namespace detail {
@@ -129,7 +129,7 @@ namespace detail {
         std::set<ConnectionIdType> connectionIds() const;
 
         // Process given message on given connection with given ID
-        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload &);
+        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::Message &);
 
         //// Buying
 
@@ -234,7 +234,7 @@ namespace detail {
         void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
         void invitedToOutdatedContract(const ConnectionIdType &);
         void invitedToJoinContract(const ConnectionIdType &);
-        void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &payorFinalPkHash);
+        void contractPrepared(const ConnectionIdType &, uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &payorFinalPkHash);
         void pieceRequested(const ConnectionIdType &, int i);
         void invalidPieceRequested(const ConnectionIdType &);
         void paymentInterrupted(const ConnectionIdType &);

@@ -38,11 +38,11 @@ namespace paymentchannel {
 
         Payee();
 
-        Payee(quint64 numberOfPaymentsMade,
+        Payee(uint64_t numberOfPaymentsMade,
               Coin::RelativeLockTime lockTime,
-              quint64 price,
-              quint64 funds,
-              quint64 settlementFee,
+              uint64_t price,
+              uint64_t funds,
+              uint64_t settlementFee,
               const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::KeyPair & payeeContractKeys,
               const Coin::PubKeyHash & payeeFinalPkHash,
@@ -74,23 +74,23 @@ namespace paymentchannel {
         Settlement settlement(int) const;
 
         // Amount of funds paid
-        quint64 amountPaid() const;
+        uint64_t amountPaid() const;
 
         // Getters and setters
-        quint64 numberOfPaymentsMade() const;
-        void setNumberOfPaymentsMade(quint64);
+        uint64_t numberOfPaymentsMade() const;
+        void setNumberOfPaymentsMade(uint64_t);
 
         Coin::RelativeLockTime lockTime() const;
         void setLockTime(Coin::RelativeLockTime);
 
-        quint64 price() const;
-        void setPrice(quint64);
+        uint64_t price() const;
+        void setPrice(uint64_t);
 
-        quint64 funds() const;
-        void setFunds(quint64);
+        uint64_t funds() const;
+        void setFunds(uint64_t);
 
-        quint64 settlementFee() const;
-        void setSettlementFee(quint64);
+        uint64_t settlementFee() const;
+        void setSettlementFee(uint64_t);
 
         Coin::typesafeOutPoint contractOutPoint() const;
         void setContractOutPoint(const Coin::typesafeOutPoint &);
@@ -113,19 +113,19 @@ namespace paymentchannel {
     private:
 
         // The number of payments which have been successfully made
-        quint64 _numberOfPaymentsMade;
+        uint64_t _numberOfPaymentsMade;
 
         // Payment channel lock time
         Coin::RelativeLockTime _lockTime;
 
         // Price (#satoshies) increment per payment
-        quint64 _price;
+        uint64_t _price;
 
         // Amount (#satoshies) assigned to contract output
-        quint64 _funds;
+        uint64_t _funds;
 
         // Amount (#satoshies) used in fee for settlement
-        quint64 _settlementFee;
+        uint64_t _settlementFee;
 
         // Contract outpoint from which payments originate
         Coin::typesafeOutPoint _contractOutPoint;

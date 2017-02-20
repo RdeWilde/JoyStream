@@ -26,11 +26,11 @@ namespace paymentchannel {
         , _settlementFee(0){
     }
 
-    Payee::Payee(quint64 numberOfPaymentsMade,
+    Payee::Payee(uint64_t numberOfPaymentsMade,
                  Coin::RelativeLockTime lockTime,
-                 quint64 price,
-                 quint64 funds,
-                 quint64 settlementFee,
+                 uint64_t price,
+                 uint64_t funds,
+                 uint64_t settlementFee,
                  const Coin::typesafeOutPoint & contractOutPoint,
                  const Coin::KeyPair & payeeContractKeys,
                  const Coin::PubKeyHash &payeeFinalPkHash,
@@ -91,7 +91,7 @@ namespace paymentchannel {
 
     Settlement Payee::settlement(int numberOfPayments) const {
 
-        quint64 amountPaid = numberOfPayments * _price;
+        uint64_t amountPaid = numberOfPayments * _price;
 
         return Settlement::dustLimitAndFeeAwareSettlement(contractOutPoint(),
                                                           commitment(),
@@ -105,15 +105,15 @@ namespace paymentchannel {
         return true; // throw std::runtime_error("Not yet implemented");
     }
 
-    quint64 Payee::amountPaid() const {
+    uint64_t Payee::amountPaid() const {
         return _price*_numberOfPaymentsMade;
     }
 
-    quint64 Payee::numberOfPaymentsMade() const {
+    uint64_t Payee::numberOfPaymentsMade() const {
         return _numberOfPaymentsMade;
     }
 
-    void Payee::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
+    void Payee::setNumberOfPaymentsMade(uint64_t numberOfPaymentsMade) {
         _numberOfPaymentsMade = numberOfPaymentsMade;
     }
 
@@ -125,27 +125,27 @@ namespace paymentchannel {
         _lockTime = lockTime;
     }
 
-    quint64 Payee::price() const {
+    uint64_t Payee::price() const {
         return _price;
     }
 
-    void Payee::setPrice(quint64 price) {
+    void Payee::setPrice(uint64_t price) {
         _price = price;
     }
 
-    quint64 Payee::funds() const {
+    uint64_t Payee::funds() const {
         return _funds;
     }
 
-    void Payee::setFunds(quint64 funds) {
+    void Payee::setFunds(uint64_t funds) {
         _funds = funds;
     }
 
-    quint64 Payee::settlementFee() const {
+    uint64_t Payee::settlementFee() const {
         return _settlementFee;
     }
 
-    void Payee::setSettlementFee(quint64 settlementFee) {
+    void Payee::setSettlementFee(uint64_t settlementFee) {
         _settlementFee = settlementFee;
     }
 

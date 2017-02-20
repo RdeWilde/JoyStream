@@ -35,8 +35,8 @@ uchar_vector MultisigScriptPubKey::serialized() const {
 
     // Add each valid raw key
     for(std::vector<PublicKey>::const_iterator i = _keys.cbegin(), end = _keys.cend(); i != end; i++) {
-        serialized += opPushData(PublicKey::length());
-        serialized += (*i).toUCharVector();
+        serialized += opPushData(PublicKey::compressedLength());
+        serialized += (*i).toCompressedRawVector();
     }
 
     // Add n

@@ -244,7 +244,7 @@ void SPVWallet::sync(std::string host, int port, unsigned int timeout) {
         return;
     }
 
-    Q_ASSERT(_store.connected());
+    assert(_store.connected());
 
     if(!_blockTreeLoaded) {
         loadBlockTree();
@@ -485,7 +485,7 @@ void SPVWallet::updateStatus(wallet_status_t status) {
         case wallet_status_t::SYNCHING_BLOCKS: emit synchingBlocks(); break;
         case wallet_status_t::SYNCHED: emit synched(); break;
         default:
-            Q_ASSERT(false);
+            assert(false);
     }
 
 }
@@ -518,7 +518,15 @@ void SPVWallet::onSynchingHeaders() {
 
 void SPVWallet::onHeadersSynched() {
 
+    // ~ average time to mine 2 blocks
+    const uint32_t backTrack(2 * 10 * 60 * 1000);
+
     uint32_t startTime = _store.created();
+
+    // make sure we don't miss first block of interest for our wallet
+    // this can happen because our clocks are not in sync with clock
+    // that timestamped the block
+    startTime -= startTime > backTrack ? backTrack : 0;
 
     std::vector<bytes_t> locatorHashes;
 
@@ -527,7 +535,7 @@ void SPVWallet::onHeadersSynched() {
     if(hashes.size() > 1) {
         std::vector<std::string>::iterator i = hashes.begin();
         i++; // skip first so we can resync last block
-        for(;i != hashes.end(); i++){
+        for(;i != hashes.end(); i++) {
             locatorHashes.push_back(uchar_vector(*i));
         }
     }
@@ -585,6 +593,8 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
         emit storeUpdateFailed(e.what());
         _networkSync.stop();
     }
+
+    recalculateBalance();
 }
 
 // This method will get called for each transaction when a merkleblock is received
@@ -604,6 +614,8 @@ void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin:
         emit storeUpdateFailed(e.what());
         _networkSync.stop();
     }
+
+    recalculateBalance();
 }
 
 // On receiving a merkle block without any transactions that match the bloom filter
@@ -616,6 +628,8 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
         emit storeUpdateFailed(e.what());
         _networkSync.stop();
     }
+
+    recalculateBalance();
 }
 
 void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts, const std::vector<Coin::PublicKey> publicKeys) {
@@ -640,7 +654,7 @@ void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts,
 
         // For capturing outputs: script hash
         Coin::P2SHAddress address = Coin::P2SHAddress(_network, Coin::RedeemScriptHash::fromRawScript(script));
-        filter.insert(address.redeemScriptHash().toUCharVector());
+        filter.insert(address.redeemScriptHash().getRawVector());
 
         // Generate output scripts for direct comparison in createsWalletOutput() routine
         _scriptPubKeys.insert(address.toP2SHScriptPubKey().serialize());
@@ -648,10 +662,10 @@ void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts,
 
     for(const Coin::PublicKey & pubKey : _bloomFilterPubKeys) {
         // For capturing inputs: input scriptSig will have full public Key
-        filter.insert(pubKey.toUCharVector());
+        filter.insert(pubKey.toCompressedRawVector());
 
         // For capturing outputs: pubkey hash
-        filter.insert(pubKey.toPubKeyHash().toUCharVector());
+        filter.insert(pubKey.toPubKeyHash().getRawVector());
 
         // Generate output scripts for direct comparison in createsWalletOutput() routine
         Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey(pubKey);
@@ -685,7 +699,7 @@ bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
     }
 
     try{
-        uchar_vector pubkey = Coin::P2PKHScriptSig::deserialize(txin.scriptSig).pk().toUCharVector();
+        Coin::PublicKey pubkey = Coin::P2PKHScriptSig::deserialize(txin.scriptSig).pk();
 
         if(_bloomFilterPubKeys.find(pubkey) != _bloomFilterPubKeys.end()) {
             return true;
@@ -710,7 +724,7 @@ void SPVWallet::recalculateBalance() {
 
     uint64_t confirmed = 0;
 
-    if(_store.getBestHeaderHeight() != 0) {
+    if(_store.getBestHeaderHeight() > 0) {
         confirmed = _store.getWalletBalance(1);
     }
 

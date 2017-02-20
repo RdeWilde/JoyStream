@@ -14,8 +14,9 @@ namespace joystream {
 namespace node {
 namespace signature {
 
-v8::Local<v8::Object> encode(const Coin::Signature & hash) {
-    return UCharVectorBasedToV8Value<Coin::Signature>(hash);
+v8::Local<v8::Object> encode(const Coin::Signature & sig) {
+    auto raw = sig.rawDER();
+    return UCharVectorToNodeBuffer(raw);
 }
 
 }

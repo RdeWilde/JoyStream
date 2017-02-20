@@ -8,10 +8,10 @@
 #ifndef JOYSTREAM_WIRE_SELLERTERMS_HPP
 #define JOYSTREAM_WIRE_SELLERTERMS_HPP
 
-//#include <stdint.h>
-
+#include <cstdint>
+#include <iostream>
 #include <functional>
-#include <QtGlobal>
+
 #include <common/RelativeLockTime.hpp>
 
 namespace joystream {
@@ -32,14 +32,14 @@ namespace protocol_wire {
 
         SellerTerms();
 
-        SellerTerms(quint64 minPrice, uint16_t minLock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee);
+        SellerTerms(uint64_t minPrice, uint16_t minLock, uint32_t maxSellers, uint64_t minContractFeePerKb, uint64_t settlementFee);
 
         bool operator==(const SellerTerms & rhs) const;
 
         bool operator!=(const SellerTerms & rhs) const;
 
         // Read from stream: is friend to write directly to private SellerTerms members, simpler than using setters
-        friend QDataStream & operator >>(QDataStream &, SellerTerms &);
+        friend std::istream & operator >>(std::istream &, SellerTerms &);
 
         // Policy contingent comparison of terms
         static bool compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs);
@@ -50,46 +50,46 @@ namespace protocol_wire {
         bool satisfiedBy(const BuyerTerms & terms) const;
 
         // Lenght of wire encoding
-        static quint32 length();
+        static uint32_t length();
 
-        quint64 minPrice() const;
-        void setMinPrice(quint64 minPrice);
+        uint64_t minPrice() const;
+        void setMinPrice(uint64_t minPrice);
 
         uint16_t minLock() const;
         void setMinLock(const uint16_t & minLock);
 
-        quint32 maxSellers() const;
-        void setMaxSellers(quint32 maxSellers);
+        uint32_t maxSellers() const;
+        void setMaxSellers(uint32_t maxSellers);
 
-        quint64 minContractFeePerKb() const;
-        void setMinContractFeePerKb(quint64 minContractFeePerKb);
+        uint64_t minContractFeePerKb() const;
+        void setMinContractFeePerKb(uint64_t minContractFeePerKb);
 
-        quint64 settlementFee() const;
-        void setSettlementFee(quint64 settlementFee);
+        uint64_t settlementFee() const;
+        void setSettlementFee(uint64_t settlementFee);
 
     private:
 
         // Piece price (satoshies)
         //int64_t _price;
-        quint64 _minPrice;
+        uint64_t _minPrice;
 
         // Minimum Relative LockTime (unit is defined at the protocol session layer)
         uint16_t _minLock;
 
         // Maximum number of sellers accepted in contract
         //uint32_t _maxSellers;
-        quint32 _maxSellers;
+        uint32_t _maxSellers;
 
         // Maximum fee (satoshies) per byte in contract transaction
         //int64_t _maxFeePerKb;
-        quint64 _minContractFeePerKb;
+        uint64_t _minContractFeePerKb;
 
         // Total fee (satoshies) for settlement of contract
-        quint64 _settlementFee;
+        uint64_t _settlementFee;
     };
 
     // Write terms to stream
-    QDataStream & operator <<(QDataStream &, const SellerTerms &);
+    std::ostream & operator <<(std::ostream &, const SellerTerms &);
 }
 }
 

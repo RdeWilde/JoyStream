@@ -2,56 +2,34 @@
 #define JOYSTREAM_NODE_BUFFERS_HPP
 
 #include <nan.h>
-#include <stdutils/uchar_vector.h>
 
 namespace joystream {
 namespace node {
 
-// Utility Methods to convert between node Buffer and uchar_vector
+// Utility Methods to convert between node Buffer and std::vector<unsigned char>
 
 /**
- * @brief Copies data from a node Buffer into a new uchar_vector
+ * @brief Copies data from a node Buffer into a new std::vector<unsigned char>
  * @param {v8::Local<v8::Value>} value
  * @throws std::runtime_error if value not a node buffer
- * @return uchar_vector
+ * @return std::vector<unsigned char>
  */
-uchar_vector NodeBufferToUCharVector(v8::Local<v8::Value>);
+std::vector<unsigned char> NodeBufferToUCharVector(v8::Local<v8::Value>);
 
 /**
- * @brief Converts hex encoded data into a uchar_vector
+ * @brief Converts hex encoded data into a std::vector<unsigned char>
  * @param {v8::Local<v8::Value>} value
  * @throws std::runtime_error if value not a string
- * @return uchar_vector
+ * @return std::vector<unsigned char>
  */
- uchar_vector StringToUCharVector(v8::Local<v8::Value>);
+ std::vector<unsigned char> StringToUCharVector(v8::Local<v8::Value>);
 
 /**
  * @brief Copies data from a uchar_vector into a new node Buffer
- * @param uchar_vector data
+ * @param std::vector<unsigned char> data
  * @return {v8::Local<v8::Value>} node Buffer
  */
-v8::Local<v8::Object> UCharVectorToNodeBuffer(uchar_vector&);
-
-
-/* @brief Convert types derived from Coin::UCharArray<> to a Node Buffer.
- * @param  {Coin::UCharArray<>&} data
- * @return {v8::Local<v8::Value>} node Buffer
- */
-template<class T>
-v8::Local<v8::Object> UCharVectorBasedToV8Value(const T &t) {
-    uchar_vector data = t.toUCharVector();
-    auto buf = UCharVectorToNodeBuffer(data);
-    return buf;
-}
-
-/* Converts a node Buffer to a native type that can be constructed from
- * a uchar_vector.
- */
-template<class T>
-T V8ValueToUCharVectorBased(const v8::Local<v8::Value>& buffer) {
-    uchar_vector data = NodeBufferToUCharVector(buffer);
-    return T(data);
-}
+v8::Local<v8::Object> UCharVectorToNodeBuffer(std::vector<unsigned char>&);
 
 }
 }

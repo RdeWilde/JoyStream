@@ -8,16 +8,13 @@
 #include <common/typesafeOutPoint.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::OutPoint
 
-#include <QStringList>
-#include <QHash>
-
 namespace Coin {
 
 typesafeOutPoint::typesafeOutPoint()
     : _index(0){
 }
 
-typesafeOutPoint::typesafeOutPoint(const TransactionId & txId, quint32 index)
+typesafeOutPoint::typesafeOutPoint(const TransactionId & txId, uint32_t index)
     : _txId(txId)
     , _index(index) {
 }
@@ -55,24 +52,24 @@ bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
 }
 
-QDataStream & operator<<(QDataStream & stream, const typesafeOutPoint & o) {
+std::ostream & operator<<(std::ostream & stream, const typesafeOutPoint & o) {
     stream << o._txId << o._index;
 
     return stream;
 }
 
-QDataStream & operator>>(QDataStream & stream, typesafeOutPoint & o) {
+std::istream & operator>>(std::istream & stream, typesafeOutPoint & o) {
     stream >> o._txId >> o._index;
 
     return stream;
 }
 
-QString typesafeOutPoint::toLittleEndianTxIdString() const {
-    return QString::fromStdString(_txId.toRPCByteOrder()) + "-" + QString::number(_index);
+std::string typesafeOutPoint::toLittleEndianTxIdString() const {
+    return _txId.toRPCByteOrder() + "-" + std::to_string(_index);
 }
 
 Coin::OutPoint typesafeOutPoint::getClassicOutPoint() const {
-    return Coin::OutPoint(_txId.toUCharVector(), _index); // TransactionId uses same byte order as coincore
+    return Coin::OutPoint(_txId.toRPCByteOrderVector(), _index); // TransactionId uses same byte order as coincore
 }
 
 TransactionId typesafeOutPoint::transactionId() const {
@@ -83,11 +80,11 @@ void typesafeOutPoint::setTransactionId(const TransactionId & txId){
     _txId = txId;
 }
 
-quint32 typesafeOutPoint::index() const {
+uint32_t typesafeOutPoint::index() const {
     return _index;
 }
 
-void typesafeOutPoint::setIndex(quint32 index) {
+void typesafeOutPoint::setIndex(uint32_t index) {
     _index = index;
 }
 
@@ -95,8 +92,9 @@ void typesafeOutPoint::setIndex(quint32 index) {
 
 uint qHash(const Coin::typesafeOutPoint & o) {
 
-    QByteArray total = o.transactionId().toByteArray();
-    total.push_back(QByteArray::number(o.index()));
+    uchar_vector total = o.transactionId().toRPCByteOrderVector();
+    total.push_back((unsigned char)o.index());
 
-    return qHash(total);
+    std::hash<std::string> hexHash;
+    return hexHash(total.getCharsAsString());
 }

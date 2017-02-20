@@ -23,7 +23,7 @@ namespace event {
     public:
 
         ContractPrepared();
-        ContractPrepared(const Coin::typesafeOutPoint &, const Coin::KeyPair &, const Coin::PubKeyHash &, quint64);
+        ContractPrepared(const Coin::typesafeOutPoint &, const Coin::KeyPair &, const Coin::PubKeyHash &, uint64_t);
 
         // Getters
         Coin::typesafeOutPoint anchor() const;
@@ -32,7 +32,7 @@ namespace event {
 
         Coin::PubKeyHash finalPkHash() const;
 
-        quint64 value() const;
+        uint64_t value() const;
 
     private:
 
@@ -46,7 +46,7 @@ namespace event {
         Coin::PubKeyHash _finalPkHash;
 
         // NB: may be temporary
-        quint64 _value;
+        uint64_t _value;
     };
 
 }

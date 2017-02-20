@@ -2,7 +2,7 @@
   "name": "joystream",
   "main": "index.js",
   "scripts": {
-    "preinstall" : "sh link_qt_headers.sh",
+    "preinstall" : "",
     "postinstall" : "sh build_node_module.sh",
     "build-node": "sh build_node_module.sh",
     "build-electron" : "sh build_electron_module.sh",

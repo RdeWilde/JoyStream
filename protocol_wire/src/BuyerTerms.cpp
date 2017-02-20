@@ -7,8 +7,6 @@
 #include <protocol_wire/BuyerTerms.hpp>
 #include <protocol_wire/SellerTerms.hpp>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -16,7 +14,7 @@ namespace protocol_wire {
         : BuyerTerms(0,0,0,0) {
     }
 
-    BuyerTerms::BuyerTerms(quint64 maxPrice, uint16_t maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb)
+    BuyerTerms::BuyerTerms(uint64_t maxPrice, uint16_t maxLock, uint32_t minNumberOfSellers, uint64_t maxContractFeePerKb)
         : _maxPrice(maxPrice)
         , _maxLock(maxLock)
         , _minNumberOfSellers(minNumberOfSellers)
@@ -34,7 +32,7 @@ namespace protocol_wire {
         return !(*this == rhs);
     }
 
-    QDataStream & operator >>(QDataStream & stream, BuyerTerms & rhs) {
+    std::istream & operator >>(std::istream & stream, BuyerTerms & rhs) {
 
         stream >> rhs._maxPrice >> rhs._maxLock >> rhs._minNumberOfSellers >> rhs._maxContractFeePerKb;
 
@@ -45,15 +43,15 @@ namespace protocol_wire {
         return terms.satisfiedBy(*this);
     }
 
-    quint32 BuyerTerms::length() {
+    uint32_t BuyerTerms::length() {
         return sizeof(_maxPrice) + sizeof(_maxLock) + sizeof(_minNumberOfSellers) + sizeof(_maxContractFeePerKb);
     }
 
-    quint64 BuyerTerms::maxPrice() const {
+    uint64_t BuyerTerms::maxPrice() const {
         return _maxPrice;
     }
 
-    void BuyerTerms::setMaxPrice(quint64 maxPrice) {
+    void BuyerTerms::setMaxPrice(uint64_t maxPrice) {
         _maxPrice = maxPrice;
     }
 
@@ -65,23 +63,23 @@ namespace protocol_wire {
         _maxLock = maxLock;
     }
 
-    quint32 BuyerTerms::minNumberOfSellers() const {
+    uint32_t BuyerTerms::minNumberOfSellers() const {
         return _minNumberOfSellers;
     }
 
-    void BuyerTerms::setMinNumberOfSellers(quint32 minNumberOfSellers) {
+    void BuyerTerms::setMinNumberOfSellers(uint32_t minNumberOfSellers) {
         _minNumberOfSellers = minNumberOfSellers;
     }
 
-    quint64 BuyerTerms::maxContractFeePerKb() const {
+    uint64_t BuyerTerms::maxContractFeePerKb() const {
         return _maxContractFeePerKb;
     }
 
-    void BuyerTerms::setMaxContractFeePerKb(quint64 maxContractFeePerKb) {
+    void BuyerTerms::setMaxContractFeePerKb(uint64_t maxContractFeePerKb) {
         _maxContractFeePerKb = maxContractFeePerKb;
     }
 
-    QDataStream & operator <<(QDataStream & stream, const BuyerTerms & rhs) {
+    std::ostream & operator <<(std::ostream & stream, const BuyerTerms & rhs) {
 
         stream << rhs.maxPrice() << rhs.maxLock() << rhs.minNumberOfSellers() << rhs.maxContractFeePerKb();
         return stream;

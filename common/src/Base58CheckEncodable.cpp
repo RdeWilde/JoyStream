@@ -10,8 +10,7 @@
 #include <CoinCore/Base58Check.h>
 #include <stdutils/uchar_vector.h>
 
-#include <QtGlobal> // Q_ASSERT
-
+#include <cassert>
 #include <sstream> // stringstream
 
 //#include <CoinCore/CoinNodeData.h>
@@ -34,7 +33,7 @@ uint32_t toVersionValue(Base58CheckEncodable encodable, Network network) {
             case Base58CheckEncodable::EXTENDED_PRIVATE_KEY:    return EXTENDED_PRIVATE_KEY_TESTNET3_VERSION_VALUE;
             case Base58CheckEncodable::EXTENDED_PUBLIC_KEY:     return EXTENDED_PUBLIC_KEY_TESTNET3_VERSION_VALUE;
             default:
-                Q_ASSERT(false);
+                assert(false);
         }
 
     } else if (network == Network::mainnet) {
@@ -47,11 +46,11 @@ uint32_t toVersionValue(Base58CheckEncodable encodable, Network network) {
             case Base58CheckEncodable::EXTENDED_PRIVATE_KEY:    return EXTENDED_PRIVATE_KEY_MAINNET_VERSION_VALUE;
             case Base58CheckEncodable::EXTENDED_PUBLIC_KEY:     return EXTENDED_PUBLIC_KEY_MAINNET_VERSION_VALUE;
             default:
-                Q_ASSERT(false);
+                assert(false);
         }
 
     } else
-        Q_ASSERT(false);
+        assert(false);
 }
 
 std::vector<unsigned char> toVersionBytes(Base58CheckEncodable encodable, Network network) {
@@ -59,7 +58,7 @@ std::vector<unsigned char> toVersionBytes(Base58CheckEncodable encodable, Networ
     // Recover version value
     uint32_t versionValue = toVersionValue(encodable, network);
 
-    // Encode as bytes: could have use QByteArray here?
+    // Encode as bytes
     unsigned char * p = (unsigned char *)(&versionValue);
 
     std::vector<unsigned char> versionBytes;
@@ -178,11 +177,11 @@ void decodeBase58CheckEncoding(const std::string & encoded, Base58CheckEncodable
 
             case Base58CheckEncodable::P2PKH_ADDRESS:           expectedPayLoadLength = P2PKH_ADDRESS_PAYLOAD_LENGTH; break;
             case Base58CheckEncodable::P2SH_ADDRESS:            expectedPayLoadLength = P2SH_ADDRESS_PAYLOAD_LENGTH; break;
-            case Base58CheckEncodable::WIF_PRIVATE_KEY:         Q_ASSERT(false); // should not be here, treated as sepecial case above
+            case Base58CheckEncodable::WIF_PRIVATE_KEY:         assert(false); // should not be here, treated as sepecial case above
             case Base58CheckEncodable::EXTENDED_PRIVATE_KEY:    expectedPayLoadLength = EXTENDED_PRIVATE_KEY_PAYLOAD_LENGTH; break;
             case Base58CheckEncodable::EXTENDED_PUBLIC_KEY:     expectedPayLoadLength = EXTENDED_PUBLIC_KEY_PAYLOAD_LENGTH; break;
             default:
-                Q_ASSERT(false);
+                assert(false);
         }
 
         // Check that it is correct

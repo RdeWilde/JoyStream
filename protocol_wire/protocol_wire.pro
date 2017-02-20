@@ -9,19 +9,17 @@ TEMPLATE = lib
 CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum, std::array
-
-QT      += core # !!!!!!!!!remove later when QDataStream is gone!!!!!!!!!!!!!!!!!
+CONFIG  -= core
 
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-    include/protocol_wire/ExtendedMessagePayload.hpp \
+    include/protocol_wire/Message.hpp \
     include/protocol_wire/Sell.hpp \
     include/protocol_wire/RequestFullPiece.hpp \
     include/protocol_wire/Ready.hpp \
     include/protocol_wire/Payment.hpp \
     include/protocol_wire/Observe.hpp \
-    include/protocol_wire/NoPayloadMessage.hpp \
     include/protocol_wire/MessageType.hpp \
     include/protocol_wire/JoiningContract.hpp \
     include/protocol_wire/JoinContract.hpp \
@@ -31,15 +29,17 @@ HEADERS += \
     include/protocol_wire/SellerTerms.hpp \
     include/protocol_wire/BuyerTerms.hpp \
     include/protocol_wire/PieceData.hpp \
-    include/protocol_wire/protocol_wire.hpp
+    include/protocol_wire/protocol_wire.hpp \
+    include/protocol_wire/NetworkInt.hpp \
+    include/protocol_wire/OutputWireStream.hpp \
+    include/protocol_wire/InputWireStream.hpp \
+    include/protocol_wire/char_array_buffer.hpp
 
 SOURCES += \
-    src/ExtendedMessagePayload.cpp \
     src/Sell.cpp \
     src/RequestFullPiece.cpp \
     src/Ready.cpp \
     src/Payment.cpp \
-    src/NoPayloadMessage.cpp \
     src/MessageType.cpp \
     src/JoiningContract.cpp \
     src/JoinContract.cpp \
@@ -48,7 +48,11 @@ SOURCES += \
     src/Observe.cpp \
     src/SellerTerms.cpp \
     src/BuyerTerms.cpp \
-    src/PieceData.cpp
+    src/PieceData.cpp \
+    src/NetworkInt.cpp \
+    src/OutputWireStream.cpp \
+    src/InputWireStream.cpp \
+    src/char_array_buffer.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

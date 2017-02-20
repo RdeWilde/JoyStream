@@ -18,7 +18,7 @@ namespace protocol_wire {
 
     class BuyerTerms;
     class SellerTerms;
-    class ExtendedMessagePayload;
+    class Message;
 
 }
 }
@@ -72,7 +72,7 @@ public:
 
     bool contractHasBeenPrepared() const;
     Coin::typesafeOutPoint anchor() const;
-    quint64 value() const;
+    uint64_t value() const;
     Coin::PublicKey contractPk() const;
     Coin::PubKeyHash finalPkHash() const;
 
@@ -112,7 +112,7 @@ private:
 
     // Send
     bool _messageSent;
-    const protocol_wire::ExtendedMessagePayload * _message;
+    const protocol_wire::Message * _message;
     /**
     protocol_wire::MessageType _messageType;
     protocol_wire::Buy _buyMessage;
@@ -131,7 +131,7 @@ private:
     // ContractIsReady
     bool _contractHasBeenPrepared;
     Coin::typesafeOutPoint _anchor;
-    quint64 _value;
+    uint64_t _value;
     Coin::PublicKey _contractPk;
     Coin::PubKeyHash _finalPkHash;
 

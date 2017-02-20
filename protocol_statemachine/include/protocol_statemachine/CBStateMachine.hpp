@@ -28,7 +28,7 @@ namespace Coin {
 
 namespace joystream {
 namespace protocol_wire {
-    class ExtendedMessagePayload;
+    class Message;
     class SellerTerms;
     class BuyerTerms;
     class Ready;
@@ -46,7 +46,7 @@ namespace protocol_statemachine {
     typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
 
     // Client requires a message to be sent
-    typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> Send;
+    typedef std::function<void(const protocol_wire::Message *)> Send;
 
     //// Selling Notifications
 
@@ -57,7 +57,7 @@ namespace protocol_statemachine {
     typedef NoPayloadNotification InvitedToJoinContract;
 
     // Peer announced that contract is now ready, should contract be included? it was available
-    typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
+    typedef std::function<void(uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
 
     // Peer requested piece
     typedef std::function<void(int)> PieceRequested;
@@ -226,8 +226,8 @@ namespace protocol_statemachine {
         CallbackQueuer<const protocol_statemachine::AnnouncedModeAndTerms &> _peerAnnouncedMode;
         CallbackQueuer<> _invitedToOutdatedContract;
         CallbackQueuer<> _invitedToJoinContract;
-        CallbackQueuer<const protocol_wire::ExtendedMessagePayload *> _sendMessage;
-        CallbackQueuer<quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &> _contractIsReady;
+        CallbackQueuer<const protocol_wire::Message *> _sendMessage;
+        CallbackQueuer<uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &> _contractIsReady;
         CallbackQueuer<int> _pieceRequested;
         CallbackQueuer<> _invalidPieceRequested;
         CallbackQueuer<> _peerInterruptedPayment;

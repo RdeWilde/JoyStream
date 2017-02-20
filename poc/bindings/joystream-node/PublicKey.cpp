@@ -7,11 +7,13 @@ namespace node {
 namespace public_key {
 
 v8::Local<v8::Object> encode(const Coin::PublicKey &pk) {
-    return UCharVectorBasedToV8Value<Coin::PublicKey>(pk);
+    auto raw = pk.toCompressedRawVector();
+    auto buffer = UCharVectorToNodeBuffer(raw);
+    return buffer;
 }
 
 Coin::PublicKey decode(const v8::Local<v8::Value>& value) {
-    return V8ValueToUCharVectorBased<Coin::PublicKey>(value);
+    return Coin::PublicKey::fromCompressedRaw(NodeBufferToUCharVector(value));
 }
 
 }

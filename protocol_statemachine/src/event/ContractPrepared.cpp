@@ -14,7 +14,7 @@ namespace event {
     ContractPrepared::ContractPrepared() {
     }
 
-    ContractPrepared::ContractPrepared(const Coin::typesafeOutPoint & anchor, const Coin::KeyPair & buyerContractKeyPair, const Coin::PubKeyHash &finalPkHash, quint64 value)
+    ContractPrepared::ContractPrepared(const Coin::typesafeOutPoint & anchor, const Coin::KeyPair & buyerContractKeyPair, const Coin::PubKeyHash &finalPkHash, uint64_t value)
         : _anchor(anchor)
         , _buyerContractKeyPair(buyerContractKeyPair)
         , _finalPkHash(finalPkHash)
@@ -33,7 +33,7 @@ namespace event {
         return _finalPkHash;
     }
 
-    quint64 ContractPrepared::value() const {
+    uint64_t ContractPrepared::value() const {
         return _value;
     }
 }

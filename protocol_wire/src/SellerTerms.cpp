@@ -10,8 +10,6 @@
 #include <cassert>
 #include <stdexcept>
 
-#include <QDataStream>
-
 namespace joystream {
 namespace protocol_wire {
 
@@ -19,7 +17,7 @@ namespace protocol_wire {
         : SellerTerms(0,0,0,0,0) {
     }
 
-    SellerTerms::SellerTerms(quint64 price, uint16_t minLock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee)
+    SellerTerms::SellerTerms(uint64_t price, uint16_t minLock, uint32_t maxSellers, uint64_t minContractFeePerKb, uint64_t settlementFee)
         : _minPrice(price)
         , _minLock(minLock)
         , _maxSellers(maxSellers)
@@ -39,7 +37,7 @@ namespace protocol_wire {
         return !(*this == rhs);
     }
 
-    QDataStream & operator >>(QDataStream & stream, SellerTerms & rhs) {
+    std::istream & operator >>(std::istream & stream, SellerTerms & rhs) {
 
         stream >> rhs._minPrice >> rhs._minLock >> rhs._maxSellers >> rhs._minContractFeePerKb >> rhs._settlementFee;
 
@@ -72,15 +70,15 @@ namespace protocol_wire {
     }
 
     // Lenght of wire encoding
-    quint32 SellerTerms::length() {
+    uint32_t SellerTerms::length() {
         return sizeof(_minPrice) + sizeof(_minLock)+ sizeof(_maxSellers) + sizeof(_minContractFeePerKb) + sizeof(_settlementFee);
     }
 
-    quint64 SellerTerms::minPrice() const {
+    uint64_t SellerTerms::minPrice() const {
         return _minPrice;
     }
 
-    void SellerTerms::setMinPrice(quint64 price) {
+    void SellerTerms::setMinPrice(uint64_t price) {
         _minPrice = price;
     }
 
@@ -92,31 +90,31 @@ namespace protocol_wire {
         _minLock = minLock;
     }
 
-    quint32 SellerTerms::maxSellers() const {
+    uint32_t SellerTerms::maxSellers() const {
         return _maxSellers;
     }
 
-    void SellerTerms::setMaxSellers(quint32 maxSellers) {
+    void SellerTerms::setMaxSellers(uint32_t maxSellers) {
         _maxSellers = maxSellers;
     }
 
-    quint64 SellerTerms::minContractFeePerKb() const {
+    uint64_t SellerTerms::minContractFeePerKb() const {
         return _minContractFeePerKb;
     }
 
-    void SellerTerms::setMinContractFeePerKb(quint64 minContractFeePerKb) {
+    void SellerTerms::setMinContractFeePerKb(uint64_t minContractFeePerKb) {
         _minContractFeePerKb = minContractFeePerKb;
     }
 
-    quint64 SellerTerms::settlementFee() const {
+    uint64_t SellerTerms::settlementFee() const {
         return _settlementFee;
     }
 
-    void SellerTerms::setSettlementFee(quint64 settlementFee) {
+    void SellerTerms::setSettlementFee(uint64_t settlementFee) {
         _settlementFee = settlementFee;
     }
 
-    QDataStream & operator <<(QDataStream & stream, const SellerTerms & rhs) {
+    std::ostream & operator <<(std::ostream & stream, const SellerTerms & rhs) {
 
         stream << rhs.minPrice() << rhs.minLock() << rhs.maxSellers() << rhs.minContractFeePerKb() << rhs.settlementFee();
         return stream;
