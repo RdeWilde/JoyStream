@@ -5,6 +5,10 @@ function PoolMock() {
 
 }
 
+PoolMock.prototype.forceSync = function forceSync(){
+
+}
+
 PoolMock.prototype.setFilter = function setFilter(filter){
   this.spvFilter = filter
 }
@@ -14,6 +18,10 @@ PoolMock.prototype.watch = function watch(txid) {
 }
 
 let pool = new PoolMock();
+
+pool.network = {
+  requestMempool: false
+}
 
 PoolMock.prototype.on = function on(ev, callback){
    if(ev == "tx") {
@@ -52,4 +60,5 @@ p.then(function(tx){
 }).catch(function(err){
   console.log('rejected')
   console.log(err)
+  assert(false)
 })
