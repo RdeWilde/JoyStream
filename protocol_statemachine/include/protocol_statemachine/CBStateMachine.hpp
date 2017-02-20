@@ -46,15 +46,15 @@ namespace protocol_statemachine {
     typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
 
     // Client requires a message to be sent
-    typedef std::function<void(protocol_wire::Observe)> SendObserveMessage;
-    typedef std::function<void(protocol_wire::Buy)> SendBuyMessage;
-    typedef std::function<void(protocol_wire::Sell)> SendSellMessage;
-    typedef std::function<void(protocol_wire::JoinContract)> SendJoinContractMessage;
-    typedef std::function<void(protocol_wire::JoiningContract)> SendJoiningContractMessage;
-    typedef std::function<void(protocol_wire::Ready)> SendReadyMessage;
-    typedef std::function<void(protocol_wire::RequestFullPiece)> SendRequestFullPieceMessage;
-    typedef std::function<void(protocol_wire::FullPiece)> SendFullPieceMessage;
-    typedef std::function<void(protocol_wire::Payment)> SendPaymentMessage;
+    typedef std::function<void(const protocol_wire::Observe&)> SendObserveMessage;
+    typedef std::function<void(const protocol_wire::Buy&)> SendBuyMessage;
+    typedef std::function<void(const protocol_wire::Sell&)> SendSellMessage;
+    typedef std::function<void(const protocol_wire::JoinContract&)> SendJoinContractMessage;
+    typedef std::function<void(const protocol_wire::JoiningContract&)> SendJoiningContractMessage;
+    typedef std::function<void(const protocol_wire::Ready&)> SendReadyMessage;
+    typedef std::function<void(const protocol_wire::RequestFullPiece&)> SendRequestFullPieceMessage;
+    typedef std::function<void(const protocol_wire::FullPiece&)> SendFullPieceMessage;
+    typedef std::function<void(const protocol_wire::Payment&)> SendPaymentMessage;
 
     struct Send {
         SendObserveMessage observe;
