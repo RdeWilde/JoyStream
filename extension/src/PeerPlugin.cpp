@@ -15,6 +15,8 @@
 #include <extension/Status.hpp>
 #include <extension/Alert.hpp>
 #include <extension/detail.hpp>
+#include <extension/ExtendedMessage.hpp>
+
 #include <protocol_wire/protocol_wire.hpp>
 #include <protocol_wire/char_array_buffer.hpp>
 
@@ -475,7 +477,7 @@ namespace extension {
         }
 
         // Is it a message for this extension?
-        joystream::protocol_wire::MessageType messageType;
+        MessageType messageType;
 
         try {
             messageType = _peerMapping.messageType(msg);
@@ -503,12 +505,48 @@ namespace extension {
         char_array_buffer buffer(begin, begin + lengthOfMessage);
         protocol_wire::InputWireStream stream(&buffer);
 
-        std::shared_ptr<protocol_wire::Message> m;
-
         // Parse message
         try {
-
-            m = stream.readMessage(messageType);
+            switch(messageType) {
+                case MessageType::observe : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readObserve());
+                    break;
+                }
+                case MessageType::buy : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readBuy());
+                    break;
+                }
+                case MessageType::sell : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readSell());
+                    break;
+                }
+                case MessageType::join_contract : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readJoinContract());
+                    break;
+                }
+                case MessageType::joining_contract : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readJoiningContract());
+                    break;
+                }
+                case MessageType::ready : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readReady());
+                    break;
+                }
+                case MessageType::request_full_piece : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readRequestFullPiece());
+                    break;
+                }
+                case MessageType::full_piece : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readFullPiece());
+                    break;
+                }
+                case MessageType::payment : {
+                    _plugin->processExtendedMessage<>(_endPoint, stream.readPayment());
+                    break;
+                }
+                default:
+                    assert(false);
+            }
 
         } catch (std::exception & e) {
 
@@ -518,21 +556,6 @@ namespace extension {
             libtorrent::error_code ec; // <-- "Malformed extended message received, removing."
 
             drop(ec);
-            return true;
-        }
-
-        assert(m);
-
-        // Process message
-        try {
-            _plugin->processExtendedMessage(_endPoint, *m);
-        } catch(std::exception &e) {
-
-            std::clog << "Error processing Extended Message "<< e.what() << std::endl;
-
-            libtorrent::error_code ec;
-            drop(ec);
-            return true;
         }
 
         // No other plugin should process message
@@ -574,73 +597,34 @@ namespace extension {
             return false; // allow sending request
     }
 
-    void PeerPlugin::send(const joystream::protocol_wire::Message * Message) {
+    template<class T>
+    void PeerPlugin::send(const T& payload) {
+        const auto size = protocol_wire::OutputWireStream::sizeOf(payload);
 
-        // Get length of
-        std::streamsize protocolMessageLength = protocol_wire::OutputWireStream::sizeOf(Message);
+        auto messageType = getMessageType(payload);
 
-        assert(protocolMessageLength != -1);
+        ExtendedMessage m(size, _peerMapping.id(messageType));
 
-        // Length of message full message
-        uint32_t extendedMessageLength = protocol_wire::NetworkInt<uint32_t>::size()
-                                        +protocol_wire::NetworkInt<uint8_t>::size()
-                                        +protocol_wire::NetworkInt<uint8_t>::size()
-                                        +protocolMessageLength;
+        protocol_wire::OutputWireStream writer(m.payloadBuf());
 
-        // Length value in outer BitTorrent header
-        uint32_t extendedPayloadLength = extendedMessageLength - protocol_wire::NetworkInt<uint32_t>::size();
-        /**
-         * Write both headers to stream:
-         * [messageLength():uint32_t][(bt_peer_connection::msg_extended):uint8_t][id:uint8_t]
-         */
-
-        // Allocate message array buffer
-        std::vector<char> msgBuffer(extendedMessageLength);
-        char_array_buffer buffer(msgBuffer);
-
-        protocol_wire::OutputWireStream stream(&buffer);
-
-        // Message length
-        stream << static_cast<uint32_t>(extendedPayloadLength);
-
-        // BEP10 message id: should always be 20 according to BEP10 spec
-        stream << static_cast<uint8_t>(libtorrent::bt_peer_connection::msg_extended);
-
-        // Extended message id
-        stream << static_cast<uint8_t>(_peerMapping.id(Message->messageType()));
-
-        // Write message into buffer through stream
         std::streamsize written = 0;
+
         try {
-
-            written = stream.writeMessage(Message);
-
+            written = writer.write(payload);
         } catch(std::exception &e) {
-            std::clog << "Output stream in bad state after message write, message not sent." << std::endl;
+            std::clog << "Error writing message payload, message not sent." << std::endl;
             return;
         }
 
-        if(written != protocolMessageLength) {
-            std::clog << "Message payload not fully written, message not sent." << std::endl;
+        if(size != written) {
+            std::clog << "Error payload not fully written, message not sent." << std::endl;
             return;
         }
-
-        std::clog << "SENT:" << joystream::protocol_wire::messageName(Message->messageType()) << " = " << written << "bytes" << std::endl;
-
-        // If message was written properly into buffer, then send buffer to peer
 
         // Send message buffer
-        _connection.send_buffer(msgBuffer.data(), msgBuffer.size());
+        m.send(_connection);
 
-        // Do some sort of catching of error if sending did not work??
-
-        /**
-        // Start/Restart timer
-        if(_timeSinceLastMessageSent.isNull())
-            _timeSinceLastMessageSent.start();
-        else
-            _timeSinceLastMessageSent.restart();
-        */
+        std::clog << "SENT:" << getMessageName(messageType) << " = " << written << "bytes" << std::endl;
     }
 
     status::PeerPlugin PeerPlugin::status(const boost::optional<protocol_session::status::Connection<libtorrent::tcp::endpoint>> & connections) const {

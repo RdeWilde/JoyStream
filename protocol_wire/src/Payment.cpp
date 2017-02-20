@@ -6,7 +6,6 @@
  */
 
 #include <protocol_wire/Payment.hpp>
-#include <protocol_wire/MessageType.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -20,10 +19,6 @@ namespace protocol_wire {
 
     bool Payment::operator==(const Payment & rhs) const {
         return _sig == rhs.sig();
-    }
-
-    MessageType Payment::messageType() const {
-        return MessageType::payment;
     }
 
     Coin::Signature Payment::sig() const {

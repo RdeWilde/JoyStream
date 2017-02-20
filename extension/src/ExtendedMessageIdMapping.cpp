@@ -6,22 +6,24 @@
  */
 
 #include <extension/ExtendedMessageIdMapping.hpp>
+#include <extension/MessageType.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 #include <extension/Exception.hpp>
 #include <libtorrent/bdecode.hpp>
 
 namespace joystream {
 namespace extension {
 
-    const std::set<protocol_wire::MessageType> ExtendedMessageIdMapping::messages = {
-        protocol_wire::MessageType::observe,
-        protocol_wire::MessageType::buy,
-        protocol_wire::MessageType::sell,
-        protocol_wire::MessageType::join_contract,
-        protocol_wire::MessageType::joining_contract,
-        protocol_wire::MessageType::ready,
-        protocol_wire::MessageType::request_full_piece,
-        protocol_wire::MessageType::full_piece,
-        protocol_wire::MessageType::payment
+    const std::set<MessageType> ExtendedMessageIdMapping::messages = {
+        MessageType::observe,
+        MessageType::buy,
+        MessageType::sell,
+        MessageType::join_contract,
+        MessageType::joining_contract,
+        MessageType::ready,
+        MessageType::request_full_piece,
+        MessageType::full_piece,
+        MessageType::payment
     };
 
     ExtendedMessageIdMapping::ExtendedMessageIdMapping() {
@@ -65,7 +67,7 @@ namespace extension {
                 continue;
 
             // Try to convert string to message type
-            joystream::protocol_wire::MessageType message;
+            MessageType message;
 
             try {
 
@@ -73,7 +75,7 @@ namespace extension {
                 std::string messageName = key.substr(clientPrefixLength, key.length() - clientPrefixLength);
 
                 // Decode type
-                message = joystream::protocol_wire::messageType(messageName);
+                message = getMessageType(messageName);
 
             } catch(const std::exception &) {
                 continue;
@@ -170,7 +172,7 @@ namespace extension {
         _mapping.clear();
     }
 
-    uint8_t ExtendedMessageIdMapping::id(joystream::protocol_wire::MessageType messageType) const {
+    uint8_t ExtendedMessageIdMapping::id(MessageType messageType) const {
 
         if(empty())
             throw exception::InvalidOperationOnEmptyMappingException();
@@ -180,7 +182,7 @@ namespace extension {
         return _mapping.find(messageType)->second;
     }
 
-    joystream::protocol_wire::MessageType ExtendedMessageIdMapping::messageType(uint8_t id) const {
+    MessageType ExtendedMessageIdMapping::messageType(uint8_t id) const {
 
         if(empty())
             throw exception::InvalidOperationOnEmptyMappingException();
@@ -205,7 +207,7 @@ namespace extension {
         for(auto i : mapping) {
 
             // Derive message name
-            std::string name = std::string(CLIENT_PREFIX_STRING) + std::string(joystream::protocol_wire::messageName(i.first));
+            std::string name = std::string(CLIENT_PREFIX_STRING) + std::string(getMessageName(i.first));
 
             // Lookup and
             if(m.count(name) != 0)

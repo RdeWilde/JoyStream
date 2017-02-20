@@ -8,13 +8,12 @@
 #ifndef JOYSTREAM_WIRE_PAYMENT_HPP
 #define JOYSTREAM_WIRE_PAYMENT_HPP
 
-#include <protocol_wire/Message.hpp>
 #include <common/Signature.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Payment : public Message {
+    class Payment {
 
     public:
 
@@ -24,12 +23,7 @@ namespace protocol_wire {
         // Constructor from members
         Payment(const Coin::Signature & sig);
 
-        virtual ~Payment() {}
-
         bool operator==(const Payment &) const;
-
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
 
         // Getters and setters
         Coin::Signature sig() const;

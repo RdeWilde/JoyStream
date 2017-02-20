@@ -8,25 +8,19 @@
 #ifndef JOYSTREAM_PROTOCOL_WIRE_FULLPIECE_HPP
 #define JOYSTREAM_PROTOCOL_WIRE_FULLPIECE_HPP
 
-#include <protocol_wire/Message.hpp>
 #include <protocol_wire/PieceData.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class FullPiece : public Message {
+    class FullPiece {
 
     public:
 
         FullPiece();
         FullPiece(const PieceData &);
 
-        virtual ~FullPiece() {}
-
         bool operator==(const FullPiece &) const;
-
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
 
         // Getters
         PieceData pieceData() const;

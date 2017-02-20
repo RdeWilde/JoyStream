@@ -41,7 +41,7 @@ TEST(commonTest, UCharArrayTest)
 
     // Set Raw Bytes from unsigned char*
     {
-        Coin::UCharArray<16> array((unsigned char*)uchar_vector(16, 'A').data()); //16 0x41 bytes
+        Coin::UCharArray<16> array(uchar_vector(16, 'A')); //16 0x41 bytes
 
         for (unsigned int i = 0; i < 16; i++) {
             EXPECT_EQ(array.at(i), 0x41);
@@ -81,7 +81,7 @@ TEST(commonTest, UCharArrayTest)
             Coin::UCharArray<1> array("0@"); //invalid hex character
             FAIL();
         } catch(std::exception &e) {
-            ASSERT_STREQ("Invalid characters in hex string", e.what());
+            ASSERT_STREQ("not a hex digit", e.what());
         }
     }
 
@@ -108,10 +108,9 @@ TEST(commonTest, UCharArrayTest)
         } catch(std::exception &e) { }
     }
 
-    // 0 padding
+    // hex string must be even length
     {
-        Coin::UCharArray<2> array("000");
-        EXPECT_EQ(std::string("0000"), array.getRawHex());
+        EXPECT_THROW(new Coin::UCharArray<3>("000"), std::runtime_error);
     }
 
     // toHex
@@ -119,6 +118,17 @@ TEST(commonTest, UCharArrayTest)
         std::string str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
         Coin::UCharArray<32> array(str);
         EXPECT_EQ(str, array.getRawHex());
+    }
+
+    // fromHex - allows capital and lowercase letters
+    {
+        std::string str1 = "ABCDEF";
+        Coin::UCharArray<3> array1(str1);
+
+        std::string str2 = "abcdef";
+        Coin::UCharArray<3> array2(str2);
+
+        EXPECT_EQ(array1, array2);
     }
 }
 

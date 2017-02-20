@@ -10,22 +10,22 @@
 using namespace joystream::protocol_wire;
 
 template <class MESSAGE_TYPE>
-MESSAGE_TYPE writeAndReadFromStream(const MESSAGE_TYPE &msg)
-{
-    std::vector<char> raw(OutputWireStream::sizeOf(&msg));
+struct Stream {
+    Stream(const MESSAGE_TYPE &msg):
+        message(msg),
+        raw(OutputWireStream::sizeOf(msg)),
+        buffer(raw) {
 
-    char_array_buffer buff(raw);
+        auto written = OutputWireStream(&buffer).write(msg);
 
-    OutputWireStream writeStream(&buff);
+        EXPECT_EQ(written, OutputWireStream::sizeOf(msg));
+    }
 
-    writeStream.writeMessage(&msg);
-
-    InputWireStream readStream(&buff);
-
-    auto m2 = readStream.readMessage(msg.messageType());
-    MESSAGE_TYPE* m2_ = dynamic_cast<MESSAGE_TYPE*>(m2.get());
-    return *m2_;
-}
+    MESSAGE_TYPE message;
+    std::vector<char> raw;
+    char_array_buffer buffer;
+    InputWireStream reader() { return InputWireStream(&buffer); }
+};
 
 TEST(protocol_wire_test, char_array_buffer) {
     char data[] = {0, 0, 0, 0, 0};
@@ -109,20 +109,20 @@ TEST(protocol_wire_test, observe)
 {
     Observe m;
 
-    EXPECT_EQ(MessageType::observe, m.messageType());
+    Stream<Observe> stream(m);
 
-    Observe m2 = writeAndReadFromStream<Observe>(m);
-
+    stream.reader().readObserve();
 }
 
 TEST(protocol_wire_test, buy)
 {
     BuyerTerms terms(2,4,5,6);
     Buy m(terms);
-    Buy m2 = writeAndReadFromStream<Buy>(m);
 
     EXPECT_EQ(terms, m.terms());
-    EXPECT_EQ(MessageType::buy, m.messageType());
+
+    Stream<Buy> stream(m);
+    auto m2 = stream.reader().readBuy();
     EXPECT_EQ(m, m2);
 }
 
@@ -132,11 +132,12 @@ TEST(protocol_wire_test, sell)
     SellerTerms terms(2,4,5,6,7);
     uint32_t index = 44;
     Sell m(terms, index);
-    Sell m2 = writeAndReadFromStream<Sell>(m);
 
     EXPECT_EQ(terms, m.terms());
     EXPECT_EQ(index, m.index());
-    EXPECT_EQ(MessageType::sell, m.messageType());
+
+    Stream<Sell> stream(m);
+    auto m2 = stream.reader().readSell();
     EXPECT_EQ(m, m2);
 }
 
@@ -146,10 +147,9 @@ TEST(protocol_wire_test, fullPiece)
     FullPiece m(data);
 
     EXPECT_EQ(data, m.pieceData());
-    EXPECT_EQ(MessageType::full_piece, m.messageType());
 
-    FullPiece m2 = writeAndReadFromStream<FullPiece>(m);
-
+    Stream<FullPiece> stream(m);
+    auto m2 = stream.reader().readFullPiece();
     EXPECT_EQ(m, m2);
 }
 
@@ -157,21 +157,22 @@ TEST(protocol_wire_test, invalid_fullPiece) {
 
     const std::string raw(4, 0);
     std::stringbuf msgBuf(raw);
-    OutputWireStream writeStream(&msgBuf);
-    writeStream << (uint32_t)20;
+    BinaryStreamWriter writeStream(&msgBuf);
+    writeStream.writeInt((uint32_t)20);
 
     InputWireStream readStream(&msgBuf);
-    EXPECT_THROW(readStream.readMessage(MessageType::full_piece), std::exception);
+    EXPECT_THROW(readStream.readFullPiece(), std::exception);
 }
 
 TEST(protocol_wire_test, joinContract)
 {
     uint32_t index = 32;
     JoinContract m(index);
-    JoinContract m2 = writeAndReadFromStream<JoinContract>(m);
 
     EXPECT_EQ(index, m.index());
-    EXPECT_EQ(MessageType::join_contract, m.messageType());
+
+    Stream<JoinContract> stream(m);
+    auto m2 = stream.reader().readJoinContract();
     EXPECT_EQ(m, m2);
 }
 
@@ -181,11 +182,12 @@ TEST(protocol_wire_test, joiningContract)
     Coin::PubKeyHash finalPkHash(uchar_vector("31149292f8ba11da4aeb833f6cd8ae0650a82340"));
 
     JoiningContract m(contractPk, finalPkHash);
-    JoiningContract m2 = writeAndReadFromStream<JoiningContract>(m);
 
     EXPECT_EQ(m.contractPk(), contractPk);
     EXPECT_EQ(m.finalPkHash(), finalPkHash);
-    EXPECT_EQ(m.messageType(), MessageType::joining_contract);
+
+    Stream<JoiningContract> stream(m);
+    auto m2 = stream.reader().readJoiningContract();
     EXPECT_EQ(m, m2);
 }
 
@@ -195,10 +197,9 @@ TEST(protocol_wire_test, payment)
     Payment m(sig);
 
     EXPECT_EQ(m.sig(), sig);
-    EXPECT_EQ(m.messageType(), MessageType::payment);
 
-    Payment m2 = writeAndReadFromStream<Payment>(m);
-
+    Stream<Payment> stream(m);
+    auto m2 = stream.reader().readPayment();
     EXPECT_EQ(m, m2);
 }
 
@@ -211,14 +212,14 @@ TEST(protocol_wire_test, ready)
     Coin::PubKeyHash finalPkHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
 
     Ready m(value, anchor, contractPk, finalPkHash);
-    Ready m2 = writeAndReadFromStream<Ready>(m);
 
     EXPECT_EQ(m.value(), value);
     EXPECT_EQ(m.anchor(), anchor);
     EXPECT_EQ(m.contractPk(), contractPk);
     EXPECT_EQ(m.finalPkHash(), finalPkHash);
 
-    EXPECT_EQ(m.messageType(), MessageType::ready);
+    Stream<Ready> stream(m);
+    auto m2 = stream.reader().readReady();
     EXPECT_EQ(m, m2);
 }
 
@@ -226,10 +227,11 @@ TEST(protocol_wire_test, requestFullPiece)
 {
     int pieceIndex = 89;
     RequestFullPiece m(pieceIndex);
-    RequestFullPiece m2 = writeAndReadFromStream<RequestFullPiece>(m);
 
     EXPECT_EQ(m.pieceIndex(), pieceIndex);
-    EXPECT_EQ(m.messageType(), MessageType::request_full_piece);
+
+    Stream<RequestFullPiece> stream(m);
+    auto m2 = stream.reader().readRequestFullPiece();
     EXPECT_EQ(m, m2);
 }
 

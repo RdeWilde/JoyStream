@@ -14,6 +14,8 @@
 #include <common/P2PKHAddress.hpp>
 #include <CoinCore/CoinNodeData.h>
 
+//#include <protocol_statemachine/CBStateMachine.hpp> // send message callbacks
+
 #include <functional>
 #include <vector>
 
@@ -27,6 +29,10 @@ namespace paymentchannel {
     class Payee;
     class ContractTransactionBuilder;
 }
+namespace protocol_statemachine {
+    struct Send;
+}
+
 namespace protocol_session {
 
 // NB: In the future one can separete into two different callbacks,
@@ -73,8 +79,8 @@ typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateReceiveAddre
 typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateChangeAddressesCallbackHandler;
 */
 
-// Send a message to be sent
-typedef std::function<void(const protocol_wire::Message *)> SendMessageOnConnection;
+// Send message callbacks
+typedef protocol_statemachine::Send SendMessageOnConnectionCallbacks;
 
 //// Buying
 

@@ -48,10 +48,10 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    uint Selling<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
+    uint Selling<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnectionCallbacks &callbacks) {
 
         // Create connection
-        detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callback);
+        detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callbacks);
 
         // Set max piece index
         connection->setMaxPieceIndex(_MAX_PIECE_INDEX);

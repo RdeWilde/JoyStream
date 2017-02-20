@@ -6,7 +6,6 @@
  */
 
 #include <protocol_wire/JoiningContract.hpp>
-#include <protocol_wire/MessageType.hpp>
 
 #include <common/PublicKey.hpp>
 
@@ -24,10 +23,6 @@ namespace protocol_wire {
     bool JoiningContract::operator==(const JoiningContract & rhs) const {
         return rhs.contractPk() == rhs.contractPk() &&
                rhs.finalPkHash() == rhs.finalPkHash();
-    }
-
-    MessageType JoiningContract::messageType() const {
-        return MessageType::joining_contract;
     }
 
     Coin::PublicKey JoiningContract::contractPk() const {

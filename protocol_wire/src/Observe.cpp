@@ -6,14 +6,10 @@
  */
 
 #include <protocol_wire/Observe.hpp>
-#include <protocol_wire/MessageType.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    MessageType Observe::messageType() const {
-        return MessageType::observe;
-    }
 
 }
 }

@@ -6,7 +6,6 @@
  */
 
 #include <protocol_wire/JoinContract.hpp>
-#include <protocol_wire/MessageType.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -21,10 +20,6 @@ namespace protocol_wire {
 
     bool JoinContract::operator==(const JoinContract & rhs) const {
         return _index == rhs.index();
-    }
-
-    MessageType JoinContract::messageType() const {
-        return MessageType::join_contract;
     }
 
     uint32_t JoinContract::index() const {

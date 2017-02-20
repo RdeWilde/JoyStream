@@ -19,7 +19,7 @@ namespace Coin {
 Seed::Seed() : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>() {
 }
 
-Seed Seed::fromRaw(const unsigned char * raw) {
+Seed Seed::fromRaw(const std::vector<unsigned char> &raw) {
     Seed s;
     s.setRaw(raw);
     return s;

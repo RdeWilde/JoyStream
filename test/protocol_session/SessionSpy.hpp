@@ -65,16 +65,21 @@ private:
 template <class ConnectionIdType>
 using RemovedConnectionCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, DisconnectCause>;
 
-//template <class ConnectionIdType>
-//using GenerateKeyPairCallbackSlot = FunctionCallbackSlot<Coin::KeyPair, const P2SHScriptGeneratorFromPubKey&, const uchar_vector&>;
-
 template <class ConnectionIdType>
 using GenerateReceiveAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
 
 template <class ConnectionIdType>
 using GenerateChangeAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
 
-typedef SubroutineCallbackSlot<const protocol_wire::Message *> SendMessageOnConnectionCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::Observe> SendObserveCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::Buy> SendBuyCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::Sell> SendSellCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::JoinContract> SendJoinContractCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::JoiningContract> SendJoiningContractCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::Ready> SendReadyCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::RequestFullPiece> SendRequestFullPieceCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::FullPiece> SendFullPieceCallbackSlot;
+typedef SubroutineCallbackSlot< protocol_wire::Payment> SendPaymentCallbackSlot;
 
 template <class ConnectionIdType>
 using FullPieceArrivedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, protocol_wire::PieceData, int>;
@@ -91,39 +96,76 @@ using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, uin
 template <class ConnectionIdType>
 struct ConnectionSpy {
 
-    ConnectionSpy(const ConnectionIdType & x) :id(x) { }
+    ConnectionSpy(const ConnectionIdType & x) :id(x) {
+        createCallbacks();
+    }
 
     ~ConnectionSpy() {
-        deleteMessagesInSendMessageOnConnectionCallbackSlot();
+
     }
 
     void reset() {
 
-        // Clear memory for each message
-        deleteMessagesInSendMessageOnConnectionCallbackSlot();
-
-        // Clear queue
-        sendMessageOnConnectionCallbackSlot.clear();
+        // Clear queues
+        sendObserveCallbackSlot.clear();
+        sendBuyCallbackSlot.clear();
+        sendSellCallbackSlot.clear();
+        sendJoinContractCallbackSlot.clear();
+        sendJoiningContractCallbackSlot.clear();
+        sendReadyCallbackSlot.clear();
+        sendRequestFullPieceCallbackSlot.clear();
+        sendFullPieceCallbackSlot.clear();
+        sendPaymentCallbackSlot.clear();
     }
 
-    bool blank() const { return sendMessageOnConnectionCallbackSlot.empty(); }
+    bool blank() const { return sendObserveCallbackSlot.empty() &&
+                                sendBuyCallbackSlot.empty() &&
+                                sendSellCallbackSlot.empty() &&
+                                sendJoinContractCallbackSlot.empty() &&
+                                sendJoiningContractCallbackSlot.empty() &&
+                                sendReadyCallbackSlot.empty() &&
+                                sendRequestFullPieceCallbackSlot.empty() &&
+                                sendFullPieceCallbackSlot.empty() &&
+                                sendPaymentCallbackSlot.empty();
+                       }
+
+    void createCallbacks() {
+        callbacks.observe = sendObserveCallbackSlot.hook();
+        callbacks.buy = sendBuyCallbackSlot.hook();
+        callbacks.sell = sendSellCallbackSlot.hook();
+        callbacks.join_contract = sendJoinContractCallbackSlot.hook();
+        callbacks.joining_contract = sendJoiningContractCallbackSlot.hook();
+        callbacks.ready = sendReadyCallbackSlot.hook();
+        callbacks.request_full_piece = sendRequestFullPieceCallbackSlot.hook();
+        callbacks.full_piece = sendFullPieceCallbackSlot.hook();
+        callbacks.payment = sendPaymentCallbackSlot.hook();
+    }
+
+    int callbackCallCount() const {
+        return sendObserveCallbackSlot.size() +
+               sendBuyCallbackSlot.size() +
+               sendSellCallbackSlot.size() +
+               sendJoinContractCallbackSlot.size() +
+               sendJoiningContractCallbackSlot.size() +
+               sendReadyCallbackSlot.size() +
+               sendRequestFullPieceCallbackSlot.size() +
+               sendFullPieceCallbackSlot.size() +
+               sendPaymentCallbackSlot.size();
+    }
 
     ConnectionIdType id;
 
-    SendMessageOnConnectionCallbackSlot sendMessageOnConnectionCallbackSlot;
+    protocol_statemachine::Send callbacks;
 
-private:
-
-    void deleteMessagesInSendMessageOnConnectionCallbackSlot() {
-
-        for(auto f : sendMessageOnConnectionCallbackSlot) {
-
-            const protocol_wire::Message * c = std::get<0>(f);
-
-            delete c;
-        }
-
-    }
+    SendObserveCallbackSlot sendObserveCallbackSlot;
+    SendBuyCallbackSlot sendBuyCallbackSlot;
+    SendSellCallbackSlot sendSellCallbackSlot;
+    SendJoinContractCallbackSlot sendJoinContractCallbackSlot;
+    SendJoiningContractCallbackSlot sendJoiningContractCallbackSlot;
+    SendReadyCallbackSlot sendReadyCallbackSlot;
+    SendRequestFullPieceCallbackSlot sendRequestFullPieceCallbackSlot;
+    SendFullPieceCallbackSlot sendFullPieceCallbackSlot;
+    SendPaymentCallbackSlot sendPaymentCallbackSlot;
 
 };
 

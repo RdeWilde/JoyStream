@@ -23,7 +23,7 @@ std::vector<unsigned char> NodeBufferToUCharVector(v8::Local<v8::Value> buffer) 
 
 std::vector<unsigned char> StringToUCharVector(v8::Local<v8::Value> value) {
     std::string hex = ToNative<std::string>(value);
-    return Coin::hexToUCharVector(hex);
+    return Coin::fromHex(hex);
 }
 
 v8::Local<v8::Object> UCharVectorToNodeBuffer(std::vector<unsigned char> &data) {

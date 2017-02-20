@@ -8,13 +8,12 @@
 #ifndef JOYSTREAM_WIRE_SELL_HPP
 #define JOYSTREAM_WIRE_SELL_HPP
 
-#include <protocol_wire/Message.hpp>
 #include <protocol_wire/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol_wire {
 
-    class Sell : public Message {
+    class Sell {
 
     public:
 
@@ -24,12 +23,7 @@ namespace protocol_wire {
         // Constructor based on members
         Sell(const SellerTerms & terms, uint32_t index);
 
-        virtual ~Sell() {}
-
         bool operator==(const Sell &) const;
-
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
 
         // Getters and setters
         SellerTerms terms() const;

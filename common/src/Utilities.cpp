@@ -17,35 +17,84 @@
 #include <common/P2PKHScriptSig.hpp>
 #include <common/typesafeOutPoint.hpp>
 
+#include <algorithm>
+#include <stdexcept>
+#include <string>
+#include <cassert>
+
 namespace Coin {
 
-    std::vector<unsigned char> hexToUCharVector(std::string hexString) {
-        const static std::string HEXCHARS("0123456789abcdefABCDEF");
+    std::string toHex(const std::vector<unsigned char> &input) {
+        return toHex(input.data(), input.size());
+    }
 
-        std::vector<unsigned char> vector;
+    std::string toHex(const unsigned char * input, size_t length) {
+        static const char* const lut = "0123456789abcdef";
 
-        // pad on the left if hex contains an odd number of digits.
-        if (hexString.size() % 2 == 1)
-            hexString = "0" + hexString;
+        std::string output;
 
-        unsigned char byte;
-        std::string nibbles;
-        const auto length = hexString.size();
+        output.reserve(2 * length);
 
-        for(unsigned int i = 0, j = 0; i < length; i += 2, j++) {
-           nibbles = hexString.substr(i, 2);
-
-          // verify we have valid hex characters
-          if(HEXCHARS.find(nibbles[0]) == std::string::npos ||
-             HEXCHARS.find(nibbles[1]) == std::string::npos) {
-            throw std::runtime_error("Invalid characters in hex string");
-          }
-
-          sscanf(nibbles.c_str(), "%x", &byte);
-          vector.push_back(byte);
+        for (size_t i = 0; i < length; ++i)
+        {
+            const unsigned char c = input[i];
+            output.push_back(lut[c >> 4]);
+            output.push_back(lut[c & 15]);
         }
 
-        return vector;
+        return output;
+    }
+
+    std::vector<unsigned char> fromHex(const std::string& hex) {
+        // the order of the characters must match their order as per their ascii value
+        // for std::lower_bound to work as expected
+        static const char* hex_chars_begin = "0123456789abcdef";
+
+        static const char* hex_chars_end = hex_chars_begin + strlen(hex_chars_begin);
+
+        assert(strlen(hex_chars_begin) == 16);
+
+        size_t length = hex.length();
+
+        // Hex string must already be 0 padded - only even length string allowed
+        if (length % 2 == 1) throw std::runtime_error("odd length");
+
+        // make a copy to convert to lowercase
+        std::string input = hex;
+
+        // convert to lowercase to support both cases
+        std::transform(input.begin(), input.end(), input.begin(), tolower);
+
+        // byte array to store result
+        std::vector<unsigned char> output;
+
+        // process two hex digits at a time
+        for (size_t i = 0; i < length; i += 2)
+        {
+            char c;
+
+            // verify first hex digit (4 most significant bits in byte)
+            // is in valid range of characters
+            c = input[i];
+            const char* n1 = std::lower_bound(hex_chars_begin, hex_chars_end, c);
+
+            // if c was not found in the hex chars range, the last value in the array is returned
+            // 'f' so if the character at n1 is not c the character was not found
+            if (*n1 != c) throw std::runtime_error("not a hex digit");
+
+            // verify second hex digit (4 least significant bits)
+            // is in valid range of characters
+            c = input[i + 1];
+            const char* n2 = std::lower_bound(hex_chars_begin, hex_chars_end, c);
+            if (*n2 != c) throw std::runtime_error("not a hex digit");
+
+            // convert both pointers to decimal value (position in
+            output.push_back(((n1 - hex_chars_begin) << 4) | (n2 - hex_chars_begin));
+        }
+
+        assert(output.size() * 2 == length);
+
+        return output;
     }
 
     const unsigned char * networkToAddressVersions(Network network) {

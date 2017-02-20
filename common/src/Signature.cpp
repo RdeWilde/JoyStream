@@ -23,7 +23,7 @@ Signature Signature::fromRawDER(const std::vector<unsigned char> & raw) {
 }
 
 Signature Signature::fromRawDERHex(const std::string& hex) {
-    auto raw = Coin::hexToUCharVector(hex);
+    auto raw = Coin::fromHex(hex);
     Signature sig;
     sig.setRawDER(raw);
     return sig;

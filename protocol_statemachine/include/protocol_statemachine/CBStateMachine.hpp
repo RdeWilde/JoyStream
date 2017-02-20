@@ -46,7 +46,27 @@ namespace protocol_statemachine {
     typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
 
     // Client requires a message to be sent
-    typedef std::function<void(const protocol_wire::Message *)> Send;
+    typedef std::function<void(const protocol_wire::Observe&)> SendObserveMessage;
+    typedef std::function<void(const protocol_wire::Buy&)> SendBuyMessage;
+    typedef std::function<void(const protocol_wire::Sell&)> SendSellMessage;
+    typedef std::function<void(const protocol_wire::JoinContract&)> SendJoinContractMessage;
+    typedef std::function<void(const protocol_wire::JoiningContract&)> SendJoiningContractMessage;
+    typedef std::function<void(const protocol_wire::Ready&)> SendReadyMessage;
+    typedef std::function<void(const protocol_wire::RequestFullPiece&)> SendRequestFullPieceMessage;
+    typedef std::function<void(const protocol_wire::FullPiece&)> SendFullPieceMessage;
+    typedef std::function<void(const protocol_wire::Payment&)> SendPaymentMessage;
+
+    struct Send {
+        SendObserveMessage observe;
+        SendBuyMessage buy;
+        SendSellMessage sell;
+        SendJoinContractMessage join_contract;
+        SendJoiningContractMessage joining_contract;
+        SendReadyMessage ready;
+        SendRequestFullPieceMessage request_full_piece;
+        SendFullPieceMessage full_piece;
+        SendPaymentMessage payment;
+    };
 
     //// Selling Notifications
 
@@ -226,7 +246,16 @@ namespace protocol_statemachine {
         CallbackQueuer<const protocol_statemachine::AnnouncedModeAndTerms &> _peerAnnouncedMode;
         CallbackQueuer<> _invitedToOutdatedContract;
         CallbackQueuer<> _invitedToJoinContract;
-        CallbackQueuer<const protocol_wire::Message *> _sendMessage;
+        CallbackQueuer<const protocol_wire::Observe&> _sendObserveMessage;
+        CallbackQueuer<const protocol_wire::Buy&> _sendBuyMessage;
+        CallbackQueuer<const protocol_wire::Sell&> _sendSellMessage;
+        CallbackQueuer<const protocol_wire::JoiningContract&> _sendJoiningContractMessage;
+        CallbackQueuer<const protocol_wire::JoinContract&> _sendJoinContractMessage;
+        CallbackQueuer<const protocol_wire::Ready&> _sendReadyMessage;
+        CallbackQueuer<const protocol_wire::RequestFullPiece&> _sendRequestFullPieceMessage;
+        CallbackQueuer<const protocol_wire::FullPiece&> _sendFullPieceMessage;
+        CallbackQueuer<const protocol_wire::Payment&> _sendPaymentMessage;
+
         CallbackQueuer<uint64_t, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &> _contractIsReady;
         CallbackQueuer<int> _pieceRequested;
         CallbackQueuer<> _invalidPieceRequested;

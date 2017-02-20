@@ -1,0 +1,52 @@
+  // using the transaction watcher is not reliable way for buyer to
+  // get notification when contract was broadcast
+  // as buyer if we wait too long we seem to miss it?
+  // its broadcasted but we don't get a tx even from pool sometimes.. why?
+  // another observation if we already recived it (tx event) and we update the filter too late,
+  // it will not be resent by peers
+  // and in spvmode we don't have a mempool so we cannot look there.
+  // try {
+  //   console.log('waiting for transaction')
+  //   let tx = yield wallet.awaitTransaction(contract.hash(), 5000)
+  //   console.log('saw contract', tx)
+  // } catch(e) {
+  //   console.log(e)
+  //   if(e == 'timeout') {
+  //     //try to resend
+  //     yield wallet.broadcast(contract)
+  //     let tx = yield wallet.awaitTransaction(contract.hash(), 5000)
+  //     console.log('saw contract', tx)
+  //   }
+  // }
+
+  //maybe as sender we are only seeing it after first confirmation? we dont do get inventory after broadcast
++// attemtp to construct a valid refund transaction from data savedin buyer paychan store
++// required pieces of data: commitment value, locktime payee public key
++//                        : contract hash and output index for commitment
++//                        : buyer privateKey for this commitment
++function getRefundTransaction(contractHash, outputIndex, commitment, channelPrivateKey, destinationAddress, fee) {
++  let txrecord = yield buyer.getTX(contract.hash('hex'))
++  txrecord.getBlock() // get block metadata (height and timestamp) to determine if refund can be claimed
++  // at least determine if tx is mined..
++                      // to determine if it has already been settled we need to use getCoin
++                      // which returns unspent outputs/credits
++                      // but to be able to do that we need to have added the p2sh addresses to a paychan account in
++                      // the wallet
++                      // and if we do that we can no longer use the wallet.sign/ and hence wallet.send method!
++                      // implement our own which only uses coins from the default p2pkh account
++
++                      // alternatively just let SPVWallet watch for settlements, on start add paychan commitments
++                      // which have not been settled to bloom filter
++  let coin = buyer.getCoin(contractHash, outputIndex)
++  console.log(txrecord)
++}
++
+
+namespace test {
+  NAN_METHOD(CreateSettlementTransaction) {
+    //expecting object with value for: amount, settlement fee, payor and payee final pubkeyhashes
+    //                               : commitment, contract outpoint (txid, index)
+    //                               : payor and payee secret keys
+
+  }
+}

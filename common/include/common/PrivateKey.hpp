@@ -33,7 +33,6 @@ public:
     static PrivateKey fromRawHex(const std::string &);
 
     // Named constructors from raw key
-    static PrivateKey fromRaw(const unsigned char*);
     static PrivateKey fromRaw(const std::vector<unsigned char>&);
 
     std::vector<unsigned char> toRawVector() const;
