@@ -8,7 +8,6 @@
 #ifndef JOYSTREAM_EXTENSION_EXTENDED_MESSAGE_ID_MAPPING_HPP
 #define JOYSTREAM_EXTENSION_EXTENDED_MESSAGE_ID_MAPPING_HPP
 
-#include <protocol_wire/protocol_wire.hpp>
 #include <libtorrent/bdecode.hpp>
 #include <libtorrent/entry.hpp>
 
@@ -18,6 +17,8 @@
 
 namespace joystream {
 namespace extension {
+
+    enum class MessageType;
 
     // A BEP10 handshake message id mapping for the crypto currency extension.
     // Mapping is either empty or bijective (one-to-one + onto)
@@ -60,17 +61,17 @@ namespace extension {
 
         // Returns id of given message
         // * InvalidOperationOnEmptyMappingException: if mapping is empty
-        uint8_t id(protocol_wire::MessageType) const;
+        uint8_t id(MessageType) const;
 
         // Returns the message with the givne id
         // Throws:
         // * InvalidOperationOnEmptyMappingException: if mapping is empty
         // * NoSuchIdException: if there is no message with given id
-        protocol_wire::MessageType messageType(uint8_t) const;
+        MessageType messageType(uint8_t) const;
 
     private:
 
-        typedef std::map<joystream::protocol_wire::MessageType, uint8_t> RawMapping;
+        typedef std::map<MessageType, uint8_t> RawMapping;
 
         // Write raw mapping to m dictionary entry
         static void writeMappingToMDictionary(const RawMapping &, libtorrent::entry::dictionary_type &);
@@ -79,7 +80,7 @@ namespace extension {
         ExtendedMessageIdMapping(const RawMapping &);
 
         // Full set of messages used in ma
-        const static std::set<protocol_wire::MessageType> messages;
+        const static std::set<MessageType> messages;
 
         // Message to id mapping
         // Invariant: _mapping.size() == messages.size()

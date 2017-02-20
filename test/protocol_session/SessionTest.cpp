@@ -166,7 +166,7 @@ void SessionTest::basic() {
 
 void SessionTest::addConnection(ID id) {
     ConnectionSpy<ID> * c = spy->addConnection(id);
-    assertTermsSentToPeer(c->sendMessageOnConnectionCallbackSlot);
+    assertTermsSentToPeer(c);
 
     // Check the state of session
     EXPECT_TRUE(session->hasConnection(id));
@@ -201,7 +201,7 @@ void SessionTest::firstStart() {
 
     // iterate peers and check that correct mode message had been sent to whatever
     for(auto mapping : spy->connectionSpies)
-        assertTermsSentToPeer(mapping.second->sendMessageOnConnectionCallbackSlot);
+        assertTermsSentToPeer(mapping.second);
 
     spy->reset();
 }
@@ -287,11 +287,10 @@ void SessionTest::assertConnectionRemoved(ID expectedId, DisconnectCause expecte
     // notice that we dont clear spy
 }
 
-void SessionTest::assertTermsSentToPeer(const SendMessageOnConnectionCallbackSlot & slot) const {
+void SessionTest::assertTermsSentToPeer(const ConnectionSpy<ID> *connection) const {
 
-    EXPECT_EQ((int)slot.size(), 1);
-    auto f = slot.front();
-    const protocol_wire::Message * m = std::get<0>(f);
+    // only one message should have been sent
+    EXPECT_EQ((int)connection->callbackCallCount(), 1);
 
     // having a hard time comparing terms, as they cannot be recovered
     // from session easily
@@ -299,17 +298,17 @@ void SessionTest::assertTermsSentToPeer(const SendMessageOnConnectionCallbackSlo
     switch(session->mode()) {
         case SessionMode::not_set: assert(false);
         case SessionMode::buying:
-        EXPECT_EQ(m->messageType(), protocol_wire::MessageType::buy);
-        //QCOMPARE(session->)
-
-        break;
+          EXPECT_EQ(connection->sendBuyCallbackSlot.size(), 1);
+          //auto f = connection->sendBuyCallbackSlot.front();
+          //auto m = std::get<0>(f); // buy message
+          //howto compare sent buy message with terms in session?
+          break;
         case SessionMode::selling:
-        EXPECT_EQ(m->messageType(), protocol_wire::MessageType::sell);
-
-        break;
+          EXPECT_EQ(connection->sendSellCallbackSlot.size(), 1);
+          break;
         case SessionMode::observing:
-        EXPECT_EQ(m->messageType(), protocol_wire::MessageType::observe);
-        break;
+          EXPECT_EQ(connection->sendObserveCallbackSlot.size(), 1);
+          break;
         default:
             assert(false);
     }
@@ -318,20 +317,16 @@ void SessionTest::assertTermsSentToPeer(const SendMessageOnConnectionCallbackSlo
 void SessionTest::assertTermsSentToAllPeers() const {
 
     for(auto mapping : spy->connectionSpies)
-        assertTermsSentToPeer(mapping.second->sendMessageOnConnectionCallbackSlot);
+        assertTermsSentToPeer(mapping.second);
 }
 
 void SessionTest::assertFullPieceSent(ID peer, const protocol_wire::PieceData & data) const {
     ConnectionSpy<ID> * c = spy->connectionSpies.at(peer);
 
-    EXPECT_EQ((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
-    const protocol_wire::Message * m;
-    std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+    EXPECT_EQ((int)c->sendFullPieceCallbackSlot.size(), 1);
+    auto m2 = std::get<0>(c->sendFullPieceCallbackSlot.front());
 
-    EXPECT_EQ(m->messageType(), protocol_wire::MessageType::full_piece);
-    const protocol_wire::FullPiece * m2 = dynamic_cast<const protocol_wire::FullPiece *>(m);
-
-    EXPECT_EQ(m2->pieceData(), data);
+    EXPECT_EQ(m2.pieceData(), data);
 }
 
 ////
@@ -357,16 +352,12 @@ void SessionTest::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire
     // client joined contract
     ConnectionSpy<ID> * cSpy = spy->connectionSpies.at(id);
 
-    EXPECT_EQ((int)cSpy->sendMessageOnConnectionCallbackSlot.size(), 1);
-    const protocol_wire::Message * m;
-    std::tie(m) = cSpy->sendMessageOnConnectionCallbackSlot.front();
-
-    EXPECT_EQ(m->messageType(), protocol_wire::MessageType::joining_contract);
-    const protocol_wire::JoiningContract * m2 = dynamic_cast<const protocol_wire::JoiningContract *>(m);
+    EXPECT_EQ((int)cSpy->sendJoiningContractCallbackSlot.size(), 1);
+    auto m2 = std::get<0>(cSpy->sendJoiningContractCallbackSlot.front());
 
     // copy out return values which payee sent
-    payeeContractPk = m2->contractPk();
-    payeeFinalPkHash = m2->finalPkHash();
+    payeeContractPk = m2.contractPk();
+    payeeFinalPkHash = m2.finalPkHash();
 
     spy->reset();
 
@@ -417,14 +408,10 @@ void SessionTest::sendFullPiece(ID id, const protocol_wire::PieceData & data, in
 
     ConnectionSpy<ID> * c = spy->connectionSpies.at(id);
 
-    EXPECT_EQ((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
-    const protocol_wire::Message * m;
-    std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+    EXPECT_EQ((int)c->sendFullPieceCallbackSlot.size(), 1);
+    auto m2 = std::get<0>(c->sendFullPieceCallbackSlot.front());
 
-    EXPECT_EQ(m->messageType(), protocol_wire::MessageType::full_piece);
-    const protocol_wire::FullPiece * m2 = dynamic_cast<const protocol_wire::FullPiece *>(m);
-
-    EXPECT_EQ(m2->pieceData(), data);
+    EXPECT_EQ(m2.pieceData(), data);
 
     spy->reset();
 }
@@ -457,24 +444,20 @@ void SessionTest::add(SellerPeer & peer) {
 void SessionTest::completeExchange(SellerPeer & peer) {
     ConnectionSpy<ID> * c = peer.spy;
 
-    // is there a bending full piece request?
-    if(c->sendMessageOnConnectionCallbackSlot.size() == 0)
+    // is there a pending full piece request?
+    if(c->callbackCallCount() == 0)
         return;
 
     int requestedPiece = 0;
 
     {
-        EXPECT_EQ((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
-        const protocol_wire::Message * m;
-        std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+        EXPECT_EQ((int)c->sendRequestFullPieceCallbackSlot.size(), 1);
+        auto m2 = std::get<0>(c->sendRequestFullPieceCallbackSlot.front());
 
-        EXPECT_EQ(m->messageType(), protocol_wire::MessageType::request_full_piece);
-        const protocol_wire::RequestFullPiece * m2 = dynamic_cast<const protocol_wire::RequestFullPiece *>(m);
-
-        requestedPiece = m2->pieceIndex();
+        requestedPiece = m2.pieceIndex();
 
         // Remove message from slot
-        c->sendMessageOnConnectionCallbackSlot.clear();
+        c->sendRequestFullPieceCallbackSlot.clear();
     }
 
     // if so respond with some data
@@ -504,19 +487,14 @@ void SessionTest::completeExchange(SellerPeer & peer) {
     // check that a payment was sent to the peer
     // message should be: payment, full_piece_request
     {
-        EXPECT_TRUE((int)c->sendMessageOnConnectionCallbackSlot.size() > 0);
-        const protocol_wire::Message * m;
-        std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
-
-        EXPECT_EQ(m->messageType(), protocol_wire::MessageType::payment);
-        const protocol_wire::Payment * m2 = dynamic_cast<const protocol_wire::Payment *>(m);
+        EXPECT_TRUE((int)c->sendPaymentCallbackSlot.size() > 0);
+        auto m2 = std::get<0>(c->sendPaymentCallbackSlot.front());
 
         // validate payment
-        peer.validatePayment(m2->sig());
+        peer.validatePayment(m2.sig());
 
         // Ditch payment message
-        delete m2;
-        c->sendMessageOnConnectionCallbackSlot.pop_front();
+        c->sendPaymentCallbackSlot.pop_front();
     }
 }
 
@@ -565,13 +543,9 @@ void Test::join(const SellerPeer & peer) {
 
 void SessionTest::assertSellerInvited(const SellerPeer & peer) {
     // client joined contract
-    EXPECT_EQ((int)peer.spy->sendMessageOnConnectionCallbackSlot.size(), 1);
-    const protocol_wire::Message * m;
-    std::tie(m) = peer.spy->sendMessageOnConnectionCallbackSlot.front();
+    EXPECT_EQ((int)peer.spy->sendJoinContractCallbackSlot.size(), 1);
+    auto m2 = std::get<0>(peer.spy->sendJoinContractCallbackSlot.front());
 
-    EXPECT_EQ(m->messageType(), protocol_wire::MessageType::join_contract);
-    const protocol_wire::JoinContract * m2 = dynamic_cast<const protocol_wire::JoinContract *>(m);
-
-    EXPECT_EQ(m2->index(), peer.sellerTermsIndex);
+    EXPECT_EQ(m2.index(), peer.sellerTermsIndex);
 
 }

@@ -43,7 +43,7 @@ public:
     //// Connection level client events
 
     // Adds connection, and return the current number of connections
-    uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
+    uint addConnection(const ConnectionIdType &, const SendMessageOnConnectionCallbacks &);
 
     // Connection with given id is to be removed
     void removeConnection(const ConnectionIdType &);

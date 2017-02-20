@@ -11,13 +11,13 @@ namespace protocol_wire {
 namespace detail {
 
 template<class IntType>
-Coin::UCharArray<sizeof(IntType)> Serialize(IntType value);
+Coin::UCharArray<sizeof(IntType)> SerializeInt(IntType value);
 
 template<class IntType>
-IntType Deserialize(const Coin::UCharArray<sizeof(IntType)> &array);
+IntType DeserializeInt(const Coin::UCharArray<sizeof(IntType)> &array);
 
 template<class IntType>
-IntType Deserialize(const char* array);
+IntType DeserializeInt(const char* array);
 
 template<class IntType>
 IntType hton(IntType);
@@ -77,14 +77,8 @@ uint8_t ntoh(uint8_t v);
 template<>
 int8_t ntoh(int8_t v);
 
-template<>
-Coin::UCharArray<1> Serialize(int8_t value);
-
-template<>
-Coin::UCharArray<1> Serialize(uint8_t value);
-
 template<class IntType>
-Coin::UCharArray<sizeof(IntType)> Serialize(IntType value) {
+Coin::UCharArray<sizeof(IntType)> SerializeInt(IntType value) {
     // convert the value to network byte order
     IntType nboInt = hton<IntType>(value);
 
@@ -103,8 +97,14 @@ Coin::UCharArray<sizeof(IntType)> Serialize(IntType value) {
     return array;
 }
 
+template<>
+Coin::UCharArray<1> SerializeInt(int8_t);
+
+template<>
+Coin::UCharArray<1> SerializeInt(uint8_t);
+
 template<class IntType>
-IntType Deserialize(const Coin::UCharArray<sizeof(IntType)> &array) {
+IntType DeserializeInt(const Coin::UCharArray<sizeof(IntType)> &array) {
 
     IntType nboInt;
 
@@ -122,7 +122,7 @@ IntType Deserialize(const Coin::UCharArray<sizeof(IntType)> &array) {
 }
 
 template<class IntType>
-IntType Deserialize(const char* array) {
+IntType DeserializeInt(const char* array) {
 
     IntType nboInt;
 
@@ -138,6 +138,18 @@ IntType Deserialize(const char* array) {
 
     return ntoh<IntType>(nboInt);
 }
+
+template<>
+int8_t DeserializeInt(const Coin::UCharArray<1>&);
+
+template<>
+uint8_t DeserializeInt(const Coin::UCharArray<1>&);
+
+template<>
+int8_t DeserializeInt(const char*);
+
+template<>
+uint8_t DeserializeInt(const char*);
 
 } //detail namespace
 
@@ -151,12 +163,12 @@ public:
 
     IntType value() const;
 
-    static std::streamsize size() { return sizeof(IntType); }
+    constexpr static std::streamsize size() { return sizeof(IntType); }
 };
 
 template<class IntType>
 NetworkInt<IntType>::NetworkInt(IntType v)
-    : Coin::UCharArray<sizeof(IntType)>(detail::Serialize<IntType>(v)) {
+    : Coin::UCharArray<sizeof(IntType)>(detail::SerializeInt<IntType>(v)) {
 }
 
 template<class IntType>
@@ -166,12 +178,12 @@ NetworkInt<IntType>::NetworkInt()
 
 template<class IntType>
 IntType NetworkInt<IntType>::value() const {
-    return detail::Deserialize<IntType>(*this);
+    return detail::DeserializeInt<IntType>(*this);
 }
 
 template<class IntType>
-NetworkInt<IntType>::NetworkInt(const char* raw)
-    : Coin::UCharArray<sizeof(IntType)>(reinterpret_cast<const unsigned char*>(raw)) {
+NetworkInt<IntType>::NetworkInt(const char* raw) {
+    this->setRaw(reinterpret_cast<const unsigned char*>(raw));
 }
 
 }

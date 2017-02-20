@@ -44,7 +44,8 @@ namespace detail {
                    const protocol_statemachine::ReceivedFullPiece &);
 
         // Processes given message
-        void processMessage(const protocol_wire::Message &);
+        template<class M>
+        void processMessage(const M &);
 
         // Process given event
         void processEvent(const boost::statechart::event_base &);

@@ -26,10 +26,10 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    uint Observing<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
+    uint Observing<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnectionCallbacks &callbacks) {
 
         // Create connection
-        detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callback);
+        detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callbacks);
 
         // Choose mode on connection
         connection->processEvent(protocol_statemachine::event::ObserveModeStarted());

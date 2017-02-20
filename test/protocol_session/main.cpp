@@ -133,7 +133,7 @@ TEST_F(SessionTest, selling)
 
     EXPECT_TRUE(spy->blankSession());
     ConnectionSpy<ID> * c = spy->connectionSpies.at(peer);
-    EXPECT_EQ((int)c->sendMessageOnConnectionCallbackSlot.size(), 0);
+    EXPECT_EQ((int)c->callbackCallCount(), 0);
 
     // Start up again
     session->start();
@@ -619,14 +619,10 @@ TEST_F(SessionTest, buying_seller_sent_invalid_piece)
     int requestedPiece;
     {
         ConnectionSpy<ID> * c = first.spy;
-        EXPECT_EQ((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
-        const protocol_wire::Message * m;
-        std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+        EXPECT_EQ((int)c->sendRequestFullPieceCallbackSlot.size(), 1);
+        auto m2 = std::get<0>(c->sendRequestFullPieceCallbackSlot.front());
 
-        EXPECT_EQ(m->messageType(), protocol_wire::MessageType::request_full_piece);
-        const protocol_wire::RequestFullPiece * m2 = dynamic_cast<const protocol_wire::RequestFullPiece *>(m);
-
-        requestedPiece = m2->pieceIndex();
+        requestedPiece = m2.pieceIndex();
     }
 
     // Send piece

@@ -15,6 +15,8 @@
 #include <stdutils/uchar_vector.h>
 #include <sstream> // stringstream
 
+#include <common/Utilities.hpp>
+
 namespace Coin {
 
 // Forward declaration for stream operators
@@ -36,9 +38,9 @@ public:
 
     // Default constructor
     UCharArray();
+
     UCharArray(const std::vector<unsigned char>&);
     UCharArray(const std::string&);
-    UCharArray(const unsigned char*);
 
     std::vector<unsigned char> getRawVector() const;
 
@@ -59,8 +61,7 @@ public:
     friend std::istream & operator>> <array_length> (std::istream & stream, UCharArray<array_length> & o);
 
 protected:
-    // we are taking a copy not a reference to do 0 padding
-    void setRawHex(std::string);
+    void setRawHex(const std::string&);
 
     // Try to fill array with content starting at start
     void setRaw(const unsigned char* start);
@@ -86,11 +87,6 @@ UCharArray<array_length>::UCharArray(const std::vector<unsigned char>& rawBytes)
 template<unsigned int array_length>
 UCharArray<array_length>::UCharArray(const std::string &hexString) {
     setRawHex(hexString);
-}
-
-template<unsigned int array_length>
-UCharArray<array_length>::UCharArray(const unsigned char* rawBytes) {
-    setRaw(rawBytes);
 }
 
 template<unsigned int array_length>
@@ -124,7 +120,7 @@ bool UCharArray<array_length>::isClear() const {
 template<unsigned int array_length>
 std::string UCharArray<array_length>::getRawHex() const {
 
-    return uchar_vector(this->data(), array_length).getHex();
+    return Coin::toHex(this->data(), array_length);
 }
 
 template<unsigned int array_length>
@@ -139,13 +135,7 @@ std::vector<unsigned char> UCharArray<array_length>::getRawVector() const {
 }
 
 template<unsigned int array_length>
-void UCharArray<array_length>::setRawHex(std::string hexString) {
-    static std::string HEXCHARS("0123456789abcdefABCDEF");
-
-
-    // pad on the left if hex contains an odd number of digits.
-    if (hexString.size() % 2 == 1)
-        hexString = "0" + hexString;
+void UCharArray<array_length>::setRawHex(const std::string &hexString) {
 
     // Check that string has correct length - must be zero padded
     if(hexString.size() != 2*array_length) {
@@ -163,21 +153,9 @@ void UCharArray<array_length>::setRawHex(std::string hexString) {
 
     }
 
-    uint byte;
-    std::string nibbles;
+    auto bytes = Coin::fromHex(hexString);
 
-    for(unsigned int i = 0, j = 0; j < array_length; i += 2, j++) {
-       nibbles = hexString.substr(i, 2);
-
-      // verify we have valid hex characters
-      if(HEXCHARS.find(nibbles[0]) == std::string::npos ||
-         HEXCHARS.find(nibbles[1]) == std::string::npos) {
-        throw std::runtime_error("Invalid characters in hex string");
-      }
-
-      sscanf(nibbles.c_str(), "%x", &byte);
-      this->at(j) = byte;
-    }
+    setRaw(bytes);
 }
 
 template<unsigned int array_length>

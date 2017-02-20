@@ -1,8 +1,7 @@
 #ifndef JOYSTREAM_PROTOCOL_WIRE_OUTPUT_WIRE_STREAM_HPP
 #define JOYSTREAM_PROTOCOL_WIRE_OUTPUT_WIRE_STREAM_HPP
 
-
-#include <protocol_wire/NetworkInt.hpp>
+#include <protocol_wire/BinaryStreamWriter.hpp>
 
 #include <common/PubKeyHash.hpp>
 
@@ -16,7 +15,6 @@ namespace Coin {
 namespace joystream {
 namespace protocol_wire {
 
-class Message;
 class Observe;
 class Buy;
 class Sell;
@@ -31,60 +29,30 @@ class PieceData;
 class BuyerTerms;
 class SellerTerms;
 
-class OutputWireStream {
+class OutputWireStream : public BinaryStreamWriter {
 public:
 
     // Construct the stream from streambuf
     OutputWireStream(std::streambuf* buf);
 
-    std::streamsize writeObserve(const Observe&);
-    std::streamsize writeBuy(const Buy&);
-    std::streamsize writeSell(const Sell&);
-    std::streamsize writeJoinContract(const JoinContract&);
-    std::streamsize writeJoiningContract(const JoiningContract&);
-    std::streamsize writeReady(const Ready&);
-    std::streamsize writeRequestFullPiece(const RequestFullPiece&);
-    std::streamsize writeFullPiece(const FullPiece&);
-    std::streamsize writePayment(const Payment&);
+    std::streamsize write(const Observe&);
+    std::streamsize write(const Buy&);
+    std::streamsize write(const Sell&);
+    std::streamsize write(const JoinContract&);
+    std::streamsize write(const JoiningContract&);
+    std::streamsize write(const Ready&);
+    std::streamsize write(const RequestFullPiece&);
+    std::streamsize write(const FullPiece&);
+    std::streamsize write(const Payment&);
 
-    std::streamsize writeMessage(const Message*);
+    template<class T>
+    static std::streamsize sizeOf(const T& msg) {
+        // create stream but do not do any actual writing only count total bytes written
+        OutputWireStream stream(nullptr);
+        return stream.write(msg);
+    }
 
-    virtual OutputWireStream& operator<<(const Observe &obj);
-    virtual OutputWireStream& operator<<(const Buy &obj);
-    virtual OutputWireStream& operator<<(const Sell &obj);
-    virtual OutputWireStream& operator<<(const JoinContract &obj);
-    virtual OutputWireStream& operator<<(const JoiningContract &obj);
-    virtual OutputWireStream& operator<<(const Ready &obj);
-    virtual OutputWireStream& operator<<(const RequestFullPiece &obj);
-    virtual OutputWireStream& operator<<(const FullPiece &obj);
-    virtual OutputWireStream& operator<<(const Payment &obj);
-
-    // remove these later (derived classes and implement them using protected methods)
-    virtual OutputWireStream& operator<<(const uint8_t);
-    virtual OutputWireStream& operator<<(const uint32_t);
-
-    static std::streamsize sizeOfObserve();
-    static std::streamsize sizeOfBuy();
-    static std::streamsize sizeOfSell();
-    static std::streamsize sizeOfJoinContract();
-    static std::streamsize sizeOfJoiningContract();
-    static std::streamsize sizeOfReady();
-    static std::streamsize sizeOfRequestFullPiece();
-    static std::streamsize sizeOfFullPiece(const FullPiece&);
-    static std::streamsize sizeOfPayment(const Payment&);
-
-    static std::streamsize sizeOf(const Message *);
-
-protected:
-
-    // write integers
-    template<class IntType>
-    std::streamsize writeInt(IntType value);
-
-    // write raw data
-    std::streamsize writeBytes(const unsigned char *, std::streamsize);
-    std::streamsize writeBytes(const char *, std::streamsize);
-    std::streamsize writeBytes(const std::vector<unsigned char>&);
+private:
 
     // write bitcoin common types
     std::streamsize writePubKeyHash(const Coin::PubKeyHash&);
@@ -95,19 +63,7 @@ protected:
 
     // write piece data
     std::streamsize writePieceData(const PieceData&);
-
-private:
-    // prevent copy and assignment ?
-
-    // stream buffer we will write to
-    std::streambuf* _buffer;
 };
-
-template<class IntType>
-std::streamsize OutputWireStream::writeInt(IntType value) {
-    NetworkInt<IntType> encodedInt(value);
-    return writeBytes(encodedInt.data(), encodedInt.rawLength());
-}
 
 }
 }

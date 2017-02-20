@@ -94,7 +94,7 @@ public:
     void assertConnectionRemoved(ID expectedId, DisconnectCause expectedCause) const;
 
     // Asserts that mode and terms in session match most recent send message callback
-    void assertTermsSentToPeer(const SendMessageOnConnectionCallbackSlot &) const;
+    void assertTermsSentToPeer(const ConnectionSpy<ID> *) const;
 
     // Assert that mode nd terms in sesson were sent to all peers
     void assertTermsSentToAllPeers() const;
@@ -159,26 +159,17 @@ public:
             return joiningContract;
         }
 
-        void contractAnnounced() {
-            SendMessageOnConnectionCallbackSlot & slot = spy->sendMessageOnConnectionCallbackSlot;
-
+        void contractAnnounced() {            
+            auto slot = spy->sendReadyCallbackSlot;
             EXPECT_TRUE((int)slot.size() > 0);
-            const protocol_wire::Message * m = std::get<0>(slot.front());
-
-            EXPECT_EQ(m->messageType(), protocol_wire::MessageType::ready);
-
-            if(m->messageType() == protocol_wire::MessageType::ready) {
-                const protocol_wire::Ready * m2 = dynamic_cast<const protocol_wire::Ready *>(m);
-                ready = *m2;
-                payee = getPayee();
-                // Remove message at front
-                slot.pop_front();
-                delete m2;
-            }
+            ready = std::get<0>(slot.front());
+            payee = getPayee();
+            // Remove message at front
+            slot.pop_front();
         }
 
         void assertNoContractAnnounced() {
-            EXPECT_EQ((int)spy->sendMessageOnConnectionCallbackSlot.size(), 0);
+            EXPECT_EQ((int)spy->sendReadyCallbackSlot.size(), 0);
         }
 
         void assertContractValidity(const Coin::Transaction & tx) {
@@ -190,11 +181,7 @@ public:
         }
 
         bool hasPendingFullPieceRequest() {
-            if(spy->sendMessageOnConnectionCallbackSlot.size() != 1)
-                return false;
-
-            const protocol_wire::Message * m = std::get<0>(spy->sendMessageOnConnectionCallbackSlot.front());
-            return m->messageType() == protocol_wire::MessageType::request_full_piece;
+            return spy->sendRequestFullPieceCallbackSlot.size() == 1;
         }
 
         paymentchannel::Payee getPayee() {

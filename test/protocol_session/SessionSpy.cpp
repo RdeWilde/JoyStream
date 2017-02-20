@@ -54,7 +54,7 @@ ConnectionSpy<ConnectionIdType> * SessionSpy<ConnectionIdType>::addConnection(co
 
     // Create connection, spied on by spy, and add to underlying session
     // NB*: may cause exception if connecton id already has been added, in which case spy leaks
-    _session->addConnection(id, spy->sendMessageOnConnectionCallbackSlot.hook());
+    _session->addConnection(id, spy->callbacks);
 
     // Insert spy into mapping
     connectionSpies.insert(std::make_pair(id, spy));

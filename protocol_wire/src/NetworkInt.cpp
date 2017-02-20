@@ -136,19 +136,38 @@ int8_t ntoh(int8_t v) {
 }
 
 template<>
-Coin::UCharArray<1> Serialize(int8_t value) {
+Coin::UCharArray<1> SerializeInt(int8_t value) {
     Coin::UCharArray<1> array;
     array.at(0) = value;
     return array;
 }
 
 template<>
-Coin::UCharArray<1> Serialize(uint8_t value) {
+Coin::UCharArray<1> SerializeInt(uint8_t value) {
     Coin::UCharArray<1> array;
     array.at(0) = value;
     return array;
 }
 
+template<>
+uint8_t DeserializeInt(const Coin::UCharArray<1> &array) {
+    return array.at(0);
+}
+
+template<>
+int8_t DeserializeInt(const Coin::UCharArray<1> &array) {
+    return array.at(0);
+}
+
+template<>
+uint8_t DeserializeInt(const char* c) {
+    return *c;
+}
+
+template<>
+int8_t DeserializeInt(const char* c) {
+    return *c;
+}
 
 } // detail namespace
 }

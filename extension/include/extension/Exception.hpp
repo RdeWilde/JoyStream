@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_EXTENSION_EXCEPTION_HPP
 #define JOYSTREAM_EXTENSION_EXCEPTION_HPP
 
-#include <protocol_wire/protocol_wire.hpp>
+#include <extension/MessageType.hpp>
 #include <libtorrent/bdecode.hpp>
 
 #include <exception>
@@ -27,17 +27,17 @@ namespace exception {
     // Thrown in writeMappingToMDictionary if a given message already has a mapping in the dictionary
     struct MessageAlreadyPresentException : std::runtime_error {
 
-        MessageAlreadyPresentException(protocol_wire::MessageType message)
+        MessageAlreadyPresentException(MessageType message)
             : std::runtime_error(toMessage(message))
             , message(message) {
         }
 
-        protocol_wire::MessageType message;
+        MessageType message;
 
     private:
 
-        static std::string toMessage(protocol_wire::MessageType message) {
-            return std::string("Provided dictionary already had key for message: ") + protocol_wire::messageName(message);
+        static std::string toMessage(MessageType message) {
+            return std::string("Provided dictionary already had key for message: ") +getMessageName(message);
         }
     };
 
@@ -90,19 +90,19 @@ namespace exception {
 
         }
 
-        MessageMapsToInvalidValueTypeException(protocol_wire::MessageType message, FoundType valueType)
+        MessageMapsToInvalidValueTypeException(MessageType message, FoundType valueType)
             : std::runtime_error(toMessage(message, valueType))
             , message(message)
             , valueType(valueType) {
         }
 
-        protocol_wire::MessageType message;
+        MessageType message;
         FoundType valueType;
 
     private:
 
-        static std::string toMessage(protocol_wire::MessageType message, FoundType valueType) {
-            return std::string("Message ") + protocol_wire::messageName(message) + " maps to non-integer type " + stringFrom(valueType);
+        static std::string toMessage(MessageType message, FoundType valueType) {
+            return std::string("Message ") +messageName(message) + " maps to non-integer type " + stringFrom(valueType);
         }
 
         static const char * stringFrom(FoundType type) {
@@ -120,13 +120,13 @@ namespace exception {
 
     struct MessageIdNegativeException : std::runtime_error {
 
-        MessageIdNegativeException(protocol_wire::MessageType message, boost::int64_t value)
+        MessageIdNegativeException(MessageType message, boost::int64_t value)
             : std::runtime_error("")
             , message(message)
             , value(value) {
         }
 
-        protocol_wire::MessageType message;
+        MessageType message;
         boost::int64_t value;
     };
 

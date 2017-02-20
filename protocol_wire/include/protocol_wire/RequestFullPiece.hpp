@@ -8,12 +8,10 @@
 #ifndef JOYSTREAM_WIRE_REQUEST_FULL_PIECE_HPP
 #define JOYSTREAM_WIRE_REQUEST_FULL_PIECE_HPP
 
-#include <protocol_wire/Message.hpp>
-
 namespace joystream {
 namespace protocol_wire {
 
-    class RequestFullPiece : public Message {
+    class RequestFullPiece  {
 
     public:
 
@@ -23,12 +21,7 @@ namespace protocol_wire {
         // Constructor based on members
         RequestFullPiece(int pieceIndex);
 
-        virtual ~RequestFullPiece() {}
-
         bool operator==(const RequestFullPiece &) const;
-
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
 
         // Getters and setters
         int pieceIndex() const;

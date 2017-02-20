@@ -14,18 +14,15 @@ CONFIG  -= core
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-    include/protocol_wire/Message.hpp \
     include/protocol_wire/Sell.hpp \
     include/protocol_wire/RequestFullPiece.hpp \
     include/protocol_wire/Ready.hpp \
     include/protocol_wire/Payment.hpp \
     include/protocol_wire/Observe.hpp \
-    include/protocol_wire/MessageType.hpp \
     include/protocol_wire/JoiningContract.hpp \
     include/protocol_wire/JoinContract.hpp \
     include/protocol_wire/FullPiece.hpp \
     include/protocol_wire/Buy.hpp \
-    include/protocol_wire/MessageType.hpp \
     include/protocol_wire/SellerTerms.hpp \
     include/protocol_wire/BuyerTerms.hpp \
     include/protocol_wire/PieceData.hpp \
@@ -33,14 +30,15 @@ HEADERS += \
     include/protocol_wire/NetworkInt.hpp \
     include/protocol_wire/OutputWireStream.hpp \
     include/protocol_wire/InputWireStream.hpp \
-    include/protocol_wire/char_array_buffer.hpp
+    include/protocol_wire/char_array_buffer.hpp \
+    include/protocol_wire/BinaryStreamWriter.hpp \
+    include/protocol_wire/BinaryStreamReader.hpp
 
 SOURCES += \
     src/Sell.cpp \
     src/RequestFullPiece.cpp \
     src/Ready.cpp \
     src/Payment.cpp \
-    src/MessageType.cpp \
     src/JoiningContract.cpp \
     src/JoinContract.cpp \
     src/FullPiece.cpp \
@@ -52,7 +50,9 @@ SOURCES += \
     src/NetworkInt.cpp \
     src/OutputWireStream.cpp \
     src/InputWireStream.cpp \
-    src/char_array_buffer.cpp
+    src/char_array_buffer.cpp \
+    src/BinaryStreamWriter.cpp \
+    src/BinaryStreamReader.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
