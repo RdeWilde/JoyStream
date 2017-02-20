@@ -534,7 +534,7 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
     // but it must not already be added in session
     assert(!_session.hasConnection(endPoint));
 
-    // Create callback which asserts presence of plugin
+    // Create callbacks which asserts presence of plugin
     boost::weak_ptr<PeerPlugin> wPeerPlugin = it->second;
 
     protocol_session::SendMessageOnConnectionCallbacks send;
@@ -560,12 +560,48 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
         plugin->send<>(m);
     };
 
+    send.join_contract = [wPeerPlugin] (const protocol_wire::JoinContract &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
     send.joining_contract = [wPeerPlugin] (const protocol_wire::JoiningContract &m) -> void {
         boost::shared_ptr<PeerPlugin> plugin;
         plugin = wPeerPlugin.lock();
         assert(plugin);
         plugin->send<>(m);
     };
+
+    send.ready = [wPeerPlugin] (const protocol_wire::Ready &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.request_full_piece = [wPeerPlugin] (const protocol_wire::RequestFullPiece &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.full_piece = [wPeerPlugin] (const protocol_wire::FullPiece &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
+    send.payment = [wPeerPlugin] (const protocol_wire::Payment &m) -> void {
+        boost::shared_ptr<PeerPlugin> plugin;
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
+        plugin->send<>(m);
+    };
+
 
     // add peer to sesion
     _session.addConnection(endPoint, send);
