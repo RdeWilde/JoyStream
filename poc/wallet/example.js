@@ -4,7 +4,7 @@ const bcoin = require('bcoin')
 const _ = require('lodash')
 const co =require('co')
 const SPVWallet = require('./SPVWallet')
-const joystream = require('joystream')
+const joystream = require('joystream').Joystream
 
 let logger = new bcoin.logger({
     level: 'info',
@@ -19,7 +19,7 @@ function logExit(e) {
 
 let buyerWallet = new SPVWallet({
       db: 'leveldb',
-      prefix  : '/Users/mokhtar/test-walleta/',
+      prefix: '/home/lola/joystream/test',
       network : 'testnet',
       logger  : logger,
       httpPort: 18332
@@ -27,7 +27,7 @@ let buyerWallet = new SPVWallet({
 
 let sellerWallet = new SPVWallet({
       db: 'leveldb',
-      prefix  : '/Users/mokhtar/test-walletb/',
+      prefix: '/home/lola/joystream/test',
       network : 'testnet',
       logger  : logger,
       httpPort: 18331

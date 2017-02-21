@@ -2,7 +2,12 @@ import React, { Component } from 'react'
 import { Joystream, TorrentInfo, StateT } from '../../../'
 var debug = require('debug')('electron:app')
 
-var joystream = new Joystream()
+
+var joystream = new Joystream({
+  db: 'leveldb',
+  prefix: '/home/lola/joystream/test',
+  network : 'testnet'
+})
 
 class App extends Component {
 

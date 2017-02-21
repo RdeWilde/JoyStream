@@ -15,9 +15,17 @@ class Joystream extends Node {
   constructor (options) {
     super()
     // Init spvwallet
+    options.db = 'leveldb'
     this.wallet = new SPVWallet(options)
 
-    this.wallet.start()
+    this.wallet.start().then(() => {
+      debug('Wallet ready to use')
+      console.log(this.wallet.getAddress().toString())
+      console.log(this.wallet.getAllAddresses().then((addresses) => {
+        console.log(addresses.toString())
+        console.log(this.wallet.getAddress().toString())
+      }))
+    })
   }
 
   addTorrent (addTorrentParams, callback) {
@@ -73,6 +81,14 @@ class Joystream extends Node {
     if (torrent) {
       if (torrent.torrentPlugin) {
         if (torrent.handle.status() === StateT.DOWNLOADING ) {
+          /*
+            TODO:
+            - verify fund in wallet
+            - Lock minimum funds
+            - Get TorrentPlugin
+            - Need paychanKeysGenerator, receiveAddressesGenerator, changeAddressesGenerator ?
+           */
+
           this.plugin.to_buy_mode(infoHash, buyerTerms, callback)
         } else {
           debug('Torrent not in downloading state')
@@ -116,11 +132,11 @@ class Joystream extends Node {
 
   }
 
-  startTorrent () {
+  resumeTorrent () {
 
   }
 
-  stopTorrent () {
+  pauseTorrent () {
 
   }
 
@@ -132,8 +148,12 @@ class Joystream extends Node {
 
   }
 
+  getAddress () {
+    return this.wallet.getAddress()
+  }
+
   getBalance () {
-    this.wallet.getBalance()
+    return this.wallet.getBalance()
   }
 
   shutdown () {
