@@ -21,8 +21,6 @@ class Joystream extends Node {
   addTorrent (addTorrentParams, callback) {
     this.plugin.add_torrent(addTorrentParams, (err, torrentHandle) => {
 
-      debug('Hey')
-
       if (!err) {
         var torrent = this.torrents.get(torrentHandle.infoHash())
         // Verify if torrent not already in torrents list
@@ -105,7 +103,6 @@ class Joystream extends Node {
     if (torrent) {
       if (torrent.torrentPlugin) {
         if (torrent.handle.status() === StateT.SEEDING) {
-          debug('We can start to sell')
           this.plugin.to_sell_mode(infoHash, sellerTerms, callback)
         } else {
           debug('Torrent not in seeding state')

@@ -64,7 +64,6 @@ class Node extends EventEmitter {
       super()
       this.session = new NativeExtension.Session()
       this.plugin = new NativeExtension.Plugin(minimumMessageId)
-      console.log(this.plugin)
       this.torrents = new Map()
       this.torrentsBySecondaryHash = new Map()
 
