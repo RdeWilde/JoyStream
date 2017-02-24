@@ -27,14 +27,11 @@ class SPVWallet {
   }
 
   async start () {
-    console.log('OK')
     assert(!this.node.wallet)
-    console.log('OK 2')
+
     await this.node.open()
-    console.log('OK 3')
 
     assert(this.node.wallet)
-    console.log('OK 4')
 
     await this.node.connect()
 
