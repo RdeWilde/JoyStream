@@ -3,6 +3,7 @@
 var sha1 = require('sha1')
 const EventEmitter = require('events')
 var Peer = require('./peer')
+var debug = require('debug')('torrent')
 
 class Torrent extends EventEmitter {
 
@@ -38,7 +39,7 @@ class Torrent extends EventEmitter {
     }
   }
 
-  removePeer(ip) {
+  removePeer(peerInfo) {
     if (this.peers.get(peerInfo.ip)) {
       this.peers.delete(peerInfo.ip)
       this.emit('peerRemoved', ip)

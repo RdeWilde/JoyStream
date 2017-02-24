@@ -7,6 +7,7 @@
 #include <libtorrent/peer_info.hpp>
 
 #include "torrent_info.h"
+#include "torrent_status.hpp"
 #include "endpoint.hpp"
 #include "peer_info.hpp"
 
@@ -25,9 +26,9 @@ class TorrentHandle : public Nan::ObjectWrap {
 
     static NAN_METHOD(NewInstance);
     static NAN_METHOD(get_peer_info);
-    //static NAN_METHOD(status);
+    static NAN_METHOD(status);
     static NAN_METHOD(get_download_queue);
-    //static NAN_METHOD(file_progress);
+    static NAN_METHOD(file_progress);
     //static NAN_METHOD(trackers);
     //static NAN_METHOD(replace_trackers);
     //static NAN_METHOD(add_tracker);
@@ -37,7 +38,6 @@ class TorrentHandle : public Nan::ObjectWrap {
     static NAN_METHOD(add_http_seed);
     static NAN_METHOD(remove_http_seed);
     static NAN_METHOD(http_seeds);
-    //static NAN_METHOD(get_torrent_info);
     static NAN_METHOD(set_metadata);
     static NAN_METHOD(is_valid);
     //static NAN_METHOD(has_metadata);
@@ -80,7 +80,6 @@ class TorrentHandle : public Nan::ObjectWrap {
   #endif
 
     static NAN_METHOD(scrape_tracker);
-    //static NAN_METHOD(name);
     static NAN_METHOD(set_upload_mode);
     static NAN_METHOD(set_share_mode);
     static NAN_METHOD(flush_cache);

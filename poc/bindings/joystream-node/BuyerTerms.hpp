@@ -19,7 +19,7 @@ namespace buyer_terms {
 
   /**
    * Encoding o
-   * {Number} o.maxPric - maximum unit price in sats.
+   * {Number} o.maxPrice - maximum unit price in sats.
    * {Number} o.maxLock - maximum lock time in seconds.
    * {Number} o.minNumberOfSellers - min. number of sellers.
    * {Number} o.maxContractFeePerKb - max. pr. Kb contract tx fee in stats.

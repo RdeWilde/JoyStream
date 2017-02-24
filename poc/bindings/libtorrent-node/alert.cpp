@@ -6,9 +6,13 @@
  */
 
 #include "alert.hpp"
+#include "address.hpp"
 #include "torrent_handle.h"
+#include "torrent_status.hpp"
 #include "add_torrent_params.hpp"
 #include "endpoint.hpp"
+#include "entry.hpp"
+#include "error_code.hpp"
 #include "sha1_hash.hpp"
 #include "state_t.hpp"
 #include "utils.hpp"
@@ -72,8 +76,10 @@
 #define OBFUCASTED_INFO_HASH_KEY "obfucastedInfoHash"
 #define EVENT_TYPE_KEY "eventType"
 #define LISTEN_INTERFACE_KEY "listenInterface"
+#define ERROR_KEY "error"
 
-#define ENCODE_DEFAULT_ALERT(name, v) if(const libtorrent::name * p = libtorrent::alert_cast<libtorrent::name>(a)) {v = encode(p); return v;}
+#define SET_LIBTORRENT_ALERT_TYPE(o, name) SET_VAL(o, #name, Nan::New<v8::Number>(libtorrent::name::alert_type));
+#define ENCODE_LIBTORRENT_ALERT(name, v) if(const libtorrent::name * p = libtorrent::alert_cast<libtorrent::name>(a)) {v = encode(p); return v;}
 
 namespace libtorrent {
 namespace node {
@@ -85,89 +91,178 @@ boost::optional<v8::Local<v8::Object>> alertEncoder(const libtorrent::alert *a) 
   // Return value
   boost::optional<v8::Local<v8::Object>> v;
 
-  ENCODE_DEFAULT_ALERT(udp_error_alert, v);
-  ENCODE_DEFAULT_ALERT(external_ip_alert, v);
-  ENCODE_DEFAULT_ALERT(listen_failed_alert, v);
-  ENCODE_DEFAULT_ALERT(portmap_error_alert, v);
-  ENCODE_DEFAULT_ALERT(portmap_alert, v);
-  //ENCODE_DEFAULT_ALERT(portmap_log_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_announce_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_get_peers_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_bootstrap_alert, v);
-  ENCODE_DEFAULT_ALERT(incoming_connection_alert, v);
-  ENCODE_DEFAULT_ALERT(session_stats_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_error_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_immutable_item_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_put_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_outgoing_get_peers_alert, v);
-  //ENCODE_DEFAULT_ALERT(log_alert, v);
-  ENCODE_DEFAULT_ALERT(lsd_error_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_stats_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_log_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_pkt_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_direct_response_alert, v);
-  //ENCODE_DEFAULT_ALERT(session_error_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_get_peers_reply_alert, v);
-  ENCODE_DEFAULT_ALERT(listen_succeeded_alert, v);
-  ENCODE_DEFAULT_ALERT(state_update_alert, v);
-  ENCODE_DEFAULT_ALERT(torrent_added_alert, v);
-  ENCODE_DEFAULT_ALERT(metadata_received_alert, v);
-  ENCODE_DEFAULT_ALERT(metadata_failed_alert, v);
-  ENCODE_DEFAULT_ALERT(add_torrent_alert, v);
-  ENCODE_DEFAULT_ALERT(torrent_finished_alert, v);
-  ENCODE_DEFAULT_ALERT(torrent_removed_alert, v);
-  ENCODE_DEFAULT_ALERT(torrent_resumed_alert, v);
-  ENCODE_DEFAULT_ALERT(save_resume_data_alert, v);
-  ENCODE_DEFAULT_ALERT(save_resume_data_failed_alert, v);
-  ENCODE_DEFAULT_ALERT(torrent_paused_alert, v);
-  ENCODE_DEFAULT_ALERT(torrent_checked_alert, v);
-  ENCODE_DEFAULT_ALERT(read_piece_alert, v);
-  ENCODE_DEFAULT_ALERT(piece_finished_alert, v);
-  ENCODE_DEFAULT_ALERT(file_completed_alert, v);
-  ENCODE_DEFAULT_ALERT(file_renamed_alert, v);
-  ENCODE_DEFAULT_ALERT(performance_alert, v);
-  ENCODE_DEFAULT_ALERT(state_changed_alert, v);
-  ENCODE_DEFAULT_ALERT(hash_failed_alert, v);
-  ENCODE_DEFAULT_ALERT(storage_moved_failed_alert, v);
-  ENCODE_DEFAULT_ALERT(torrent_delete_failed_alert, v);
-  ENCODE_DEFAULT_ALERT(url_seed_alert, v);
-  ENCODE_DEFAULT_ALERT(file_error_alert, v);
-  ENCODE_DEFAULT_ALERT(fastresume_rejected_alert, v);
-  ENCODE_DEFAULT_ALERT(stats_alert, v);
-  ENCODE_DEFAULT_ALERT(cache_flushed_alert, v);
-  ENCODE_DEFAULT_ALERT(anonymous_mode_alert, v);
-  ENCODE_DEFAULT_ALERT(torrent_need_cert_alert, v);
-  //ENCODE_DEFAULT_ALERT(torrent_log_alert, v);
-  ENCODE_DEFAULT_ALERT(peer_alert, v);
-  ENCODE_DEFAULT_ALERT(tracker_alert, v);
-  ENCODE_DEFAULT_ALERT(peer_ban_alert, v);
-  ENCODE_DEFAULT_ALERT(peer_unsnubbed_alert, v);
-  ENCODE_DEFAULT_ALERT(peer_snubbed_alert, v);
-  ENCODE_DEFAULT_ALERT(peer_error_alert, v);
-  ENCODE_DEFAULT_ALERT(peer_connect_alert, v);
-  ENCODE_DEFAULT_ALERT(peer_disconnected_alert, v);
-  ENCODE_DEFAULT_ALERT(invalid_request_alert, v);
-  ENCODE_DEFAULT_ALERT(request_dropped_alert, v);
-  ENCODE_DEFAULT_ALERT(block_finished_alert, v);
-  ENCODE_DEFAULT_ALERT(block_timeout_alert, v);
-  ENCODE_DEFAULT_ALERT(block_downloading_alert, v);
-  ENCODE_DEFAULT_ALERT(unwanted_block_alert, v);
-  //ENCODE_DEFAULT_ALERT(peer_blocked_alert, v);
-  ENCODE_DEFAULT_ALERT(lsd_peer_alert, v);
-  //ENCODE_DEFAULT_ALERT(peer_log_alert, v);
-  ENCODE_DEFAULT_ALERT(incoming_request_alert, v);
-  ENCODE_DEFAULT_ALERT(picker_log_alert, v);
-  ENCODE_DEFAULT_ALERT(tracker_error_alert, v);
-  ENCODE_DEFAULT_ALERT(tracker_warning_alert, v);
-  ENCODE_DEFAULT_ALERT(scrape_reply_alert, v);
-  ENCODE_DEFAULT_ALERT(scrape_failed_alert, v);
-  ENCODE_DEFAULT_ALERT(tracker_reply_alert, v);
-  ENCODE_DEFAULT_ALERT(dht_reply_alert, v);
-  ENCODE_DEFAULT_ALERT(tracker_announce_alert, v);
-  ENCODE_DEFAULT_ALERT(trackerid_alert, v);
-
+  ENCODE_LIBTORRENT_ALERT(udp_error_alert, v);
+  ENCODE_LIBTORRENT_ALERT(external_ip_alert, v);
+  ENCODE_LIBTORRENT_ALERT(listen_failed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(portmap_error_alert, v);
+  ENCODE_LIBTORRENT_ALERT(portmap_alert, v);
+  //ENCODE_LIBTORRENT_ALERT(portmap_log_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_announce_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_get_peers_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_bootstrap_alert, v);
+  ENCODE_LIBTORRENT_ALERT(incoming_connection_alert, v);
+  ENCODE_LIBTORRENT_ALERT(session_stats_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_error_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_immutable_item_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_put_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_outgoing_get_peers_alert, v);
+  //ENCODE_LIBTORRENT_ALERT(log_alert, v);
+  ENCODE_LIBTORRENT_ALERT(lsd_error_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_stats_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_log_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_pkt_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_direct_response_alert, v);
+  //ENCODE_LIBTORRENT_ALERT(session_error_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_get_peers_reply_alert, v);
+  ENCODE_LIBTORRENT_ALERT(listen_succeeded_alert, v);
+  ENCODE_LIBTORRENT_ALERT(state_update_alert, v);
+  ENCODE_LIBTORRENT_ALERT(torrent_added_alert, v);
+  ENCODE_LIBTORRENT_ALERT(metadata_received_alert, v);
+  ENCODE_LIBTORRENT_ALERT(metadata_failed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(add_torrent_alert, v);
+  ENCODE_LIBTORRENT_ALERT(torrent_finished_alert, v);
+  ENCODE_LIBTORRENT_ALERT(torrent_removed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(torrent_resumed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(save_resume_data_alert, v);
+  ENCODE_LIBTORRENT_ALERT(save_resume_data_failed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(torrent_paused_alert, v);
+  ENCODE_LIBTORRENT_ALERT(torrent_checked_alert, v);
+  ENCODE_LIBTORRENT_ALERT(read_piece_alert, v);
+  ENCODE_LIBTORRENT_ALERT(piece_finished_alert, v);
+  ENCODE_LIBTORRENT_ALERT(file_completed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(file_renamed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(performance_alert, v);
+  ENCODE_LIBTORRENT_ALERT(state_changed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(hash_failed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(storage_moved_failed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(torrent_delete_failed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(url_seed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(file_error_alert, v);
+  ENCODE_LIBTORRENT_ALERT(fastresume_rejected_alert, v);
+  ENCODE_LIBTORRENT_ALERT(stats_alert, v);
+  ENCODE_LIBTORRENT_ALERT(cache_flushed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(anonymous_mode_alert, v);
+  ENCODE_LIBTORRENT_ALERT(torrent_need_cert_alert, v);
+  //ENCODE_LIBTORRENT_ALERT(torrent_log_alert, v);
+  ENCODE_LIBTORRENT_ALERT(peer_alert, v);
+  ENCODE_LIBTORRENT_ALERT(tracker_alert, v);
+  ENCODE_LIBTORRENT_ALERT(peer_ban_alert, v);
+  ENCODE_LIBTORRENT_ALERT(peer_unsnubbed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(peer_snubbed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(peer_error_alert, v);
+  ENCODE_LIBTORRENT_ALERT(peer_connect_alert, v);
+  ENCODE_LIBTORRENT_ALERT(peer_disconnected_alert, v);
+  ENCODE_LIBTORRENT_ALERT(invalid_request_alert, v);
+  ENCODE_LIBTORRENT_ALERT(request_dropped_alert, v);
+  ENCODE_LIBTORRENT_ALERT(block_finished_alert, v);
+  ENCODE_LIBTORRENT_ALERT(block_timeout_alert, v);
+  ENCODE_LIBTORRENT_ALERT(block_downloading_alert, v);
+  ENCODE_LIBTORRENT_ALERT(unwanted_block_alert, v);
+  //ENCODE_LIBTORRENT_ALERT(peer_blocked_alert, v);
+  ENCODE_LIBTORRENT_ALERT(lsd_peer_alert, v);
+  //ENCODE_LIBTORRENT_ALERT(peer_log_alert, v);
+  ENCODE_LIBTORRENT_ALERT(incoming_request_alert, v);
+  ENCODE_LIBTORRENT_ALERT(picker_log_alert, v);
+  ENCODE_LIBTORRENT_ALERT(tracker_error_alert, v);
+  ENCODE_LIBTORRENT_ALERT(tracker_warning_alert, v);
+  ENCODE_LIBTORRENT_ALERT(scrape_reply_alert, v);
+  ENCODE_LIBTORRENT_ALERT(scrape_failed_alert, v);
+  ENCODE_LIBTORRENT_ALERT(tracker_reply_alert, v);
+  ENCODE_LIBTORRENT_ALERT(dht_reply_alert, v);
+  ENCODE_LIBTORRENT_ALERT(tracker_announce_alert, v);
+  ENCODE_LIBTORRENT_ALERT(trackerid_alert, v);
 
   return v;
+}
+
+NAN_MODULE_INIT(InitAlertTypes) {
+
+  // Export alert types
+  v8::Local<v8::Object> object = Nan::New<v8::Object>();
+
+  SET_LIBTORRENT_ALERT_TYPE(object, udp_error_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, external_ip_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, listen_failed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, portmap_error_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, portmap_alert);
+  //SET_LIBTORRENT_ALERT_TYPE(object, portmap_log_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_announce_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_get_peers_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_bootstrap_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, incoming_connection_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, session_stats_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_error_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_immutable_item_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_put_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_outgoing_get_peers_alert);
+  //SET_LIBTORRENT_ALERT_TYPE(object, log_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, lsd_error_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_stats_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_log_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_pkt_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_direct_response_alert);
+  //SET_LIBTORRENT_ALERT_TYPE(object, session_error_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_get_peers_reply_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, listen_succeeded_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, state_update_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, torrent_added_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, metadata_received_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, metadata_failed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, add_torrent_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, torrent_finished_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, torrent_removed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, torrent_resumed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, save_resume_data_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, save_resume_data_failed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, torrent_paused_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, torrent_checked_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, read_piece_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, piece_finished_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, file_completed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, file_renamed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, performance_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, state_changed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, hash_failed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, storage_moved_failed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, torrent_delete_failed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, url_seed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, file_error_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, fastresume_rejected_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, stats_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, cache_flushed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, anonymous_mode_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, torrent_need_cert_alert);
+  //SET_LIBTORRENT_ALERT_TYPE(object, torrent_log_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, peer_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, tracker_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, peer_ban_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, peer_unsnubbed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, peer_snubbed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, peer_error_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, peer_connect_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, peer_disconnected_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, invalid_request_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, request_dropped_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, block_finished_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, block_timeout_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, block_downloading_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, unwanted_block_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, peer_blocked_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, lsd_peer_alert);
+  //SET_LIBTORRENT_ALERT_TYPE(object, peer_log_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, incoming_request_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, picker_log_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, tracker_error_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, tracker_warning_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, scrape_reply_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, scrape_failed_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, tracker_reply_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, dht_reply_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, tracker_announce_alert);
+  SET_LIBTORRENT_ALERT_TYPE(object, trackerid_alert);
+
+  SET_VAL(target, "AlertType", object);
+
 }
 
 v8::Local<v8::Object> encode(const libtorrent::alert * a) {
@@ -507,6 +602,7 @@ v8::Local<v8::Object> encode(const libtorrent::save_resume_data_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert *>(a));
 
 	//std::shared_ptr<entry> const resume_data;
+  SET_VAL(o, "resumeData", entry::encode(*a->resume_data.get()));
 
   return o;
 }
@@ -606,8 +702,9 @@ v8::Local<v8::Object> encode(const libtorrent::listen_failed_alert * a) {
 v8::Local<v8::Object> encode(const libtorrent::listen_succeeded_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert *>(a));
 
-  //alert.address;
-  // SET_INT32(o, PORT_KEY, a.port);
+  //libtorrent::address const address
+  SET_VAL(o, ENDPOINT_KEY, endpoint::encode(a->endpoint));
+  //SET_INT32(o, PORT_KEY, a->port);
   //alert.socket_type; // libtorrent::socket_type_t
 
   return o;
@@ -648,7 +745,11 @@ v8::Local<v8::Object> encode(const libtorrent::fastresume_rejected_alert * a) {
 
   // 	error_code const error;
   SET_CONST_CHAR(o, FILE_PATH_KEY, a->file_path());
-  SET_CONST_CHAR(o, OPERATION_KEY, a->operation);
+  if (a->operation) {
+    SET_CONST_CHAR(o, OPERATION_KEY, a->operation);
+  } else {
+    SET_NULL(o, OPERATION_KEY);
+  }
 
   return o;
 }
@@ -753,6 +854,9 @@ v8::Local<v8::Object> encode(const libtorrent::add_torrent_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::torrent_alert *>(a));
 
   SET_VAL(o, ADD_TORRENT_PARAMS_KEY, libtorrent::node::add_torrent_params::encode(a->params));
+  if (a->error) {
+    SET_VAL(o, ERROR_KEY, libtorrent::node::error_code::encode(a->error));
+  }
   //error_code const error;
 
   return o;
@@ -760,6 +864,13 @@ v8::Local<v8::Object> encode(const libtorrent::add_torrent_alert * a) {
 
 v8::Local<v8::Object> encode(const libtorrent::state_update_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert *>(a));
+
+  auto status = Nan::New<v8::Array>();
+
+  for(auto m: a->status) {
+    status->Set(status->Length(), torrent_status::encode(m));
+  }
+
 
   // std::vector<torrent_status> const status;
 
@@ -909,8 +1020,17 @@ v8::Local<v8::Object> encode(const libtorrent::dht_pkt_alert * a) {
 v8::Local<v8::Object> encode(const libtorrent::dht_get_peers_reply_alert * a) {
   v8::Local<v8::Object> o = encode(static_cast<const libtorrent::alert *>(a));
 
+  auto peers = Nan::New<v8::Array>();
+
+  for(auto m: a->peers()) {
+    peers->Set(peers->Length(), libtorrent::node::endpoint::encode(m));
+  }
+
+  SET_VAL(o, "peers", peers);
   SET_VAL(o, INFO_HASH_KEY, sha1_hash::encode(a->info_hash));
   SET_INT32(o, NUM_PEERS_KEY, a->num_peers());
+
+
   // std::vector<tcp::endpoint> peers() const
 
   return o;

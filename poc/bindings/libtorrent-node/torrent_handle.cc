@@ -10,9 +10,9 @@ NAN_MODULE_INIT(TorrentHandle::Init) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "getPeerInfo", get_peer_info);
-  //Nan::SetPrototypeMethod(tpl, "status", status);
+  Nan::SetPrototypeMethod(tpl, "status", status);
   Nan::SetPrototypeMethod(tpl, "getDownloadQueue", get_download_queue);
-  //Nan::SetPrototypeMethod(tpl, "fileProgress", file_progress);
+  Nan::SetPrototypeMethod(tpl, "fileProgress", file_progress);
   //Nan::SetPrototypeMethod(tpl, "trackers", trackers);
   //Nan::SetPrototypeMethod(tpl, "replaceTrackers", replace_trackers);
   //Nan::SetPrototypeMethod(tpl, "addTracker", add_tracker);
@@ -22,7 +22,6 @@ NAN_MODULE_INIT(TorrentHandle::Init) {
   Nan::SetPrototypeMethod(tpl, "addHttpSeed", add_http_seed);
    Nan::SetPrototypeMethod(tpl, "removeHttpSeed", remove_http_seed);
    Nan::SetPrototypeMethod(tpl, "httpSeeds", http_seeds);
-   //Nan::SetPrototypeMethod(tpl, "get_torrent_info", get_torrent_info);
    Nan::SetPrototypeMethod(tpl, "setMetadata", set_metadata);
    Nan::SetPrototypeMethod(tpl, "isValid", is_valid);
    //Nan::SetPrototypeMethod(tpl, "has_metadata", has_metadata);
@@ -65,7 +64,6 @@ NAN_MODULE_INIT(TorrentHandle::Init) {
 #endif
 
    Nan::SetPrototypeMethod(tpl, "scrapeTracker", scrape_tracker);
-   //Nan::SetPrototypeMethod(tpl, "name", name);
    Nan::SetPrototypeMethod(tpl, "setUploadMode", set_upload_mode);
    Nan::SetPrototypeMethod(tpl, "setShareMode", set_share_mode);
    Nan::SetPrototypeMethod(tpl, "flushCache", flush_cache);
@@ -93,7 +91,7 @@ NAN_MODULE_INIT(TorrentHandle::Init) {
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   Nan::Set(target, Nan::New("TorrentHandle").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
-};
+}
 
 Local<Object> TorrentHandle::New(libtorrent::torrent_handle th) {
     Nan::EscapableHandleScope scope;
@@ -104,7 +102,7 @@ Local<Object> TorrentHandle::New(libtorrent::torrent_handle th) {
     Nan::ObjectWrap::Unwrap<TorrentHandle>(obj.ToLocalChecked())->th_ = th;
 
     return scope.Escape(obj.ToLocalChecked());
-};
+}
 
 NAN_METHOD(TorrentHandle::NewInstance) {
   if (!info.IsConstructCall()) {
@@ -132,10 +130,8 @@ NAN_METHOD(TorrentHandle::get_peer_info) {
     RETURN(ret);
 };
 
-/*
-NAN_METHOD(TorrentHandle::status) {
-    Nan::HandleScope scope;
 
+NAN_METHOD(TorrentHandle::status) {
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
     libtorrent::torrent_status st;
 
@@ -144,9 +140,8 @@ NAN_METHOD(TorrentHandle::status) {
     else
         st = th->status();
 
-    info.GetReturnValue().Set(torrent_status_to_object(st));
-};*/
-
+    RETURN(libtorrent::node::torrent_status::encode(st));
+}
 
 NAN_METHOD(TorrentHandle::get_download_queue) {
     std::vector<libtorrent::partial_piece_info> res;
@@ -188,24 +183,23 @@ NAN_METHOD(TorrentHandle::get_download_queue) {
     RETURN(ret);
 };
 
-/*NAN_METHOD(TorrentHandle::file_progress) {
+NAN_METHOD(TorrentHandle::file_progress) {
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
-    std::vector<libtorrent::size_type> res;
+    std::vector<std::int64_t> res;
 
-    res.reserve(th->get_torrent_info().num_files());
+    res.reserve(th->torrent_file()->num_files());
 
-    Local<Array> ret = Nan::New<Array>();
+    v8::Local<v8::Array> ret = Nan::New<v8::Array>();
 
-    if (info.Length() == 1)
-        th->file_progress(res, info[0]->IntegerValue());
-    else
-        th->file_progress(res);
+    // Only calculate file progress at piece granularity. Cheaper.
+    th->file_progress(res, libtorrent::torrent_handle::piece_granularity);
 
-    for (std::vector<libtorrent::size_type>::iterator i(res.begin()), e(res.end()); i != e; ++i)
-        ret->Set(ret->Length(), Nan::New<Number>(*i));
+    for (std::vector<std::int64_t>::iterator i(res.begin()), e(res.end()); i != e; ++i) {
+      ret->Set(ret->Length(), Nan::New<v8::Number>(*i));
+    }
 
-    info.GetReturnValue().Set(ret);
-};*/
+    RETURN(ret);
+}
 
 /*NAN_METHOD(TorrentHandle::trackers) {
     std::vector<libtorrent::announce_entry> const res = TorrentHandle::Unwrap(info.This())->trackers();
@@ -216,7 +210,7 @@ NAN_METHOD(TorrentHandle::get_download_queue) {
         ret->Set(ret->Length(), announce_entry_to_object(*i));
 
     info.GetReturnValue().Set(ret);
-};*/
+}*/
 
 /*NAN_METHOD(TorrentHandle::replace_trackers) {
     Nan::HandleScope scope;
@@ -231,7 +225,7 @@ NAN_METHOD(TorrentHandle::get_download_queue) {
     TorrentHandle::Unwrap(info.This())->replace_trackers(trackers);
 
     info.GetReturnValue().SetUndefined();
-};*/
+}*/
 
 /*NAN_METHOD(TorrentHandle::add_tracker) {
     Nan::HandleScope scope;
@@ -239,7 +233,7 @@ NAN_METHOD(TorrentHandle::get_download_queue) {
     TorrentHandle::Unwrap(info.This())->add_tracker(announce_entry_from_object(info[0]->ToObject()));
 
     info.GetReturnValue().SetUndefined();
-};*/
+}*/
 
 NAN_METHOD(TorrentHandle::add_url_seed) {
 
@@ -251,7 +245,6 @@ NAN_METHOD(TorrentHandle::add_url_seed) {
 NAN_METHOD(TorrentHandle::remove_url_seed) {
 
     TorrentHandle::Unwrap(info.This())->remove_url_seed(std::string(*Nan::Utf8String(info[0])));
-
     RETURN_VOID;
 };
 
@@ -271,12 +264,11 @@ NAN_METHOD(TorrentHandle::add_http_seed) {
     TorrentHandle::Unwrap(info.This())->add_http_seed(std::string(*Nan::Utf8String(info[0])));
 
     info.GetReturnValue().SetUndefined();
-};
+}
 
 NAN_METHOD(TorrentHandle::remove_http_seed) {
 
     TorrentHandle::Unwrap(info.This())->remove_http_seed(std::string(*Nan::Utf8String(info[0])));
-
     RETURN_VOID;
 };
 
@@ -292,20 +284,10 @@ NAN_METHOD(TorrentHandle::http_seeds) {
     RETURN_VOID;
 };
 
-/*NAN_METHOD(TorrentHandle::get_torrent_info) {
-    Nan::HandleScope scope;
-
-    libtorrent::torrent_info ti = TorrentHandle::Unwrap(info.This())->get_torrent_info();
-
-    info.GetReturnValue().Set(TorrentInfo::New(ti));
-};*/
-
 NAN_METHOD(TorrentHandle::set_metadata) {
-
     std::string md(*Nan::Utf8String(info[0]));
 
     TorrentHandle::Unwrap(info.This())->set_metadata(md.c_str(), md.size());
-
     RETURN_VOID;
 };
 
@@ -333,68 +315,58 @@ NAN_METHOD(TorrentHandle::pause) {
 NAN_METHOD(TorrentHandle::resume) {
 
     TorrentHandle::Unwrap(info.This())->resume();
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::clear_error) {
 
     TorrentHandle::Unwrap(info.This())->clear_error();
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::set_priority) {
 
     TorrentHandle::Unwrap(info.This())->set_priority(info[0]->IntegerValue());
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::super_seeding) {
 
     TorrentHandle::Unwrap(info.This())->super_seeding(info[0]->BooleanValue());
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::auto_managed) {
 
     TorrentHandle::Unwrap(info.This())->auto_managed(info[0]->BooleanValue());
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::queue_position) {
-
     RETURN(Nan::New<Integer>(TorrentHandle::Unwrap(info.This())->queue_position()));
 };
 
 NAN_METHOD(TorrentHandle::queue_position_up) {
 
     TorrentHandle::Unwrap(info.This())->queue_position_up();
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::queue_position_down) {
 
     TorrentHandle::Unwrap(info.This())->queue_position_down();
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::queue_position_top) {
 
     TorrentHandle::Unwrap(info.This())->queue_position_top();
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::queue_position_bottom) {
 
     TorrentHandle::Unwrap(info.This())->queue_position_bottom();
-
     RETURN_VOID;
 };
 
@@ -408,7 +380,7 @@ NAN_METHOD(TorrentHandle::resolve_countries) {
     } else {
         info.GetReturnValue().Set(Nan::New<Boolean>(TorrentHandle::Unwrap(info.This())->resolve_countries()));
     }
-};
+}
 #endif*/
 
 NAN_METHOD(TorrentHandle::add_piece) {
@@ -449,14 +421,12 @@ NAN_METHOD(TorrentHandle::set_piece_deadline) {
         th->set_piece_deadline(index, deadline, info[2]->IntegerValue());
     else
         th->set_piece_deadline(index, deadline);
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::reset_piece_deadline) {
 
     TorrentHandle::Unwrap(info.This())->reset_piece_deadline(info[0]->IntegerValue());
-
     RETURN_VOID;
 };
 
@@ -484,7 +454,7 @@ NAN_METHOD(TorrentHandle::piece_priority) {
     } else {
         RETURN(Nan::New<Integer>(th->piece_priority(info[0]->IntegerValue())));
     }
-};
+}
 
 NAN_METHOD(TorrentHandle::prioritize_pieces) {
 
@@ -585,49 +555,37 @@ NAN_METHOD(TorrentHandle::force_reannounce) {
 NAN_METHOD(TorrentHandle::force_dht_announce) {
 
     TorrentHandle::Unwrap(info.This())->force_dht_announce();
-
     RETURN_VOID;
 };
+
 #endif
 
 NAN_METHOD(TorrentHandle::scrape_tracker) {
 
     TorrentHandle::Unwrap(info.This())->scrape_tracker();
-
     RETURN_VOID;
 };
 
-/*NAN_METHOD(TorrentHandle::name) {
-    Nan::HandleScope scope;
-
-    info.GetReturnValue().Set(Nan::New<String>(TorrentHandle::Unwrap(info.This())->name()).ToLocalChecked());
-};*/
-
 NAN_METHOD(TorrentHandle::set_upload_mode) {
-
     TorrentHandle::Unwrap(info.This())->set_upload_mode(info[0]->BooleanValue());
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::set_share_mode) {
 
     TorrentHandle::Unwrap(info.This())->set_share_mode(info[0]->BooleanValue());
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::flush_cache) {
 
     TorrentHandle::Unwrap(info.This())->flush_cache();
-
     RETURN_VOID;
 };
 
 NAN_METHOD(TorrentHandle::apply_ip_filter) {
 
     TorrentHandle::Unwrap(info.This())->apply_ip_filter(info[0]->BooleanValue());
-
     RETURN_VOID;
 };
 
@@ -636,7 +594,6 @@ NAN_METHOD(TorrentHandle::set_upload_limit) {
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
 
     th->set_upload_limit(info[0]->Int32Value());
-
     RETURN_VOID;
 };
 
@@ -652,21 +609,18 @@ NAN_METHOD(TorrentHandle::set_download_limit) {
 NAN_METHOD(TorrentHandle::upload_limit) {
 
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
-
     RETURN(Nan::New<Int32>(th->upload_limit()));
 };
 
 NAN_METHOD(TorrentHandle::download_limit) {
 
     libtorrent::torrent_handle* th = TorrentHandle::Unwrap(info.This());
-
     RETURN(Nan::New<Int32>(th->download_limit()));
 };
 
 NAN_METHOD(TorrentHandle::set_sequential_download) {
 
     TorrentHandle::Unwrap(info.This())->set_sequential_download(info[0]->BooleanValue());
-
     RETURN_VOID;
 };
 
@@ -707,7 +661,7 @@ NAN_METHOD(TorrentHandle::set_sequential_download) {
     }
 
     info.GetReturnValue().Set(Nan::New<String>(ret).ToLocalChecked());
-};*/
+}*/
 
 NAN_METHOD(TorrentHandle::connect_peer) {
 
@@ -721,7 +675,6 @@ NAN_METHOD(TorrentHandle::connect_peer) {
 };
 
 /*NAN_METHOD(TorrentHandle::save_path) {
-    Nan::HandleScope scope;
 
     info.GetReturnValue().Set(Nan::New<String>(TorrentHandle::Unwrap(info.This())->save_path()).ToLocalChecked());
 };*/
@@ -734,14 +687,12 @@ NAN_METHOD(TorrentHandle::set_max_uploads) {
 };
 
 NAN_METHOD(TorrentHandle::max_uploads) {
-
     RETURN(Nan::New<Integer>(TorrentHandle::Unwrap(info.This())->max_uploads()));
 };
 
 NAN_METHOD(TorrentHandle::set_max_connections) {
 
     TorrentHandle::Unwrap(info.This())->set_max_connections(info[0]->IntegerValue());
-
     RETURN_VOID;
 };
 
@@ -757,7 +708,7 @@ NAN_METHOD(TorrentHandle::max_connections) {
         std::string(*Nan::Utf8String(info[1])));
 
     info.GetReturnValue().SetUndefined();
-};*/
+}*/
 
 NAN_METHOD(TorrentHandle::move_storage) {
 
@@ -800,7 +751,6 @@ NAN_METHOD(TorrentHandle::set_ssl_certificate) {
         th->set_ssl_certificate(certificate, private_key, dh_params, std::string(*Nan::Utf8String(info[3])));
     else
         th->set_ssl_certificate(certificate, private_key, dh_params);
-
     RETURN_VOID;
 };
 
@@ -816,5 +766,4 @@ NAN_METHOD(TorrentHandle::torrent_file) {
     } else {
       RETURN_VOID;
     }
-
-};
+}

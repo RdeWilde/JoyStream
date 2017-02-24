@@ -1,40 +1,29 @@
-# electron-quick-start
+# Electron app
 
-**Clone and run for a quick way to see Electron in action.**
+Joystream app in electron.
 
-This is a minimal Electron application based on the [Quick Start Guide](http://electron.atom.io/docs/latest/tutorial/quick-start) within the Electron documentation.
+## Start
 
-**Use this app along with the [Electron API Demos](http://electron.atom.io/#get-started) app for API code examples to help you get started.**
-
-A basic Electron application needs just these files:
-
-- `package.json` - Points to the app's main file and lists its details and dependencies.
-- `main.js` - Starts the app and creates a browser window to render HTML. This is the app's **main process**.
-- `index.html` - A web page to render. This is the app's **renderer process**.
-
-You can learn more about each of these components within the [Quick Start Guide](http://electron.atom.io/docs/latest/tutorial/quick-start).
-
-## To Use
-
-To clone and run this repository you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
-
-```bash
-# Clone this repository
-git clone https://github.com/electron/electron-quick-start
-# Go into the repository
-cd electron-quick-start
-# Install dependencies
-npm install
-# Run the app
+```
 npm start
 ```
 
-Learn more about Electron and its API in the [documentation](http://electron.atom.io/docs/latest).
+## TODO
 
-## Other Example Apps
+- npm install local : `npm install --save ../../`
 
-For more example apps, see the
-[list of boilerplates](http://electron.atom.io/community/#boilerplates)
-created by the awesome electron community.
 
-#### License [CC0 1.0 (Public Domain)](LICENSE.md)
+## Notes
+
+### Where do we start joystream ?
+
+Joystream library could be added in the main process or the rendering process. For now it is located in the rendering process.
+
+
+### levelDB for electron
+
+If using joystream lib in electron you need to recompile leveldown. for electron.
+It supposed you are using the latest version of electron (1.4.15)
+```
+HOME=~/.electron-gyp node-gyp rebuild --target=1.4.15 --arch=x64 --dist-url=https://atom.io/download/electron
+```

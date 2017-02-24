@@ -52,6 +52,8 @@ if(!info.IsConstructCall()) { \
 
 #define SET_UNDEFINED(o, key)   (SET_VAL(o, key, Nan::Undefined()))
 
+#define SET_NULL(o, key) (SET_VAL(o, key, Nan::Null()))
+
 // @param {int} val
 // Based on v8::Local<v8::Int32> Nan::New<T>(int32_t value)
 #define SET_INT32(o, key, val)    (SET_VAL(o, key, Nan::New(val)))
@@ -71,7 +73,6 @@ if(!info.IsConstructCall()) { \
 // @param {const char * | const std::string &} val
 // Based on Nan::MaybeLocal<v8::String> Nan::New<T>(const char * value)
 #define SET_CONST_CHAR(o, key, val)    (Nan::Set(o, Nan::New(key).ToLocalChecked(), Nan::New(val).ToLocalChecked()))
-
 // @param {const char * | const std::string &} val
 // Based on Nan::MaybeLocal<v8::String> Nan::New<T>(std::string const& value);
 #define SET_STD_STRING(o, key, val)    (Nan::Set(o, Nan::New(key).ToLocalChecked(), Nan::New(val).ToLocalChecked()))

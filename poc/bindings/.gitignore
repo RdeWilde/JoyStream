@@ -3,3 +3,4 @@ build/
 qt_headers/
 Frameworks/
 docs/
+dist/

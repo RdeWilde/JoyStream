@@ -7,6 +7,7 @@
                 "NativeExtension.cpp",
                 # libtorrent
                 "libtorrent-node/init.cpp",
+                "libtorrent-node/address.cpp",
                 "libtorrent-node/alert.cpp",
                 "libtorrent-node/sha1_hash.cpp",
                 "libtorrent-node/session.cpp",
@@ -27,7 +28,7 @@
                 "joystream-node/StartDownloadConnectionInformation.cpp",
                 "joystream-node/PluginAlertEncoder.cpp",
                 "joystream-node/Plugin.cpp",
-                "joystream-node/RequestResult.cpp",
+                #"joystream-node/RequestResult.cpp",
                 "joystream-node/TorrentPluginStatus.cpp",
                 "joystream-node/PeerPluginStatus.cpp",
                 "joystream-node/BuyerTerms.cpp",
