@@ -102,7 +102,7 @@ class Joystream extends Node {
 
     if (torrent) {
       if (torrent.torrentPlugin) {
-        if (torrent.handle.status() === StateT.SEEDING) {
+        if (torrent.handle.status().state === StateT.SEEDING) {
           this.plugin.to_sell_mode(infoHash, sellerTerms, callback)
         } else {
           debug('Torrent not in seeding state')

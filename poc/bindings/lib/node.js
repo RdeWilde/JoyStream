@@ -571,8 +571,7 @@ class Node extends EventEmitter {
 
       for (var [infoHash, torrentPluginStatus] of statuses) {
         var torrent = this.torrents.get(infoHash)
-        //torrent.plugin.update(torrentPluginStatus)
-        torrent.plugin.emit('statusUpdated', torrentPluginStatus)
+        torrent.torrentPlugin.update(torrentPluginStatus)
       }
       this.emit('TorrentPluginStatusUpdateAlert', statuses)
     }
@@ -599,15 +598,15 @@ class Node extends EventEmitter {
 
     [_torrentPluginAdded](alert) {
       var torrentHandle = alert.handle
+      var torrent = this.torrents.get(torrentHandle.infoHash())
 
-      if (this.torrents.has(torrentHandle.infoHash())) {
-        debug('Torrent already creates')
+      if (torrent) {
+        debug('Torrent already created')
       } else {
-        var torrent = new Torrent(torrentHandle, '', this.plugin)
+        torrent = new Torrent(torrentHandle, '', this.plugin)
         this.torrents.set(torrentHandle.infoHash(), torrent)
-        this.emit('torrentPluginAdded', torrent)
-        torrent.addTorrentPlugin(alert.torrentPluginStatus)
       }
+      torrent.addTorrentPlugin(alert.torrentPluginStatus)
     }
 
     [_torrentPluginRemoved](alert) {
