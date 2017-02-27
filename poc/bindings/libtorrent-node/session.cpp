@@ -135,7 +135,14 @@ NAN_METHOD(Session::New) {
   libtorrent::settings_pack sett;
   libtorrent::dht_settings dht_settings;
 
-  sett.set_str(libtorrent::settings_pack::listen_interfaces, "0.0.0.0:6881");
+  int64_t port;
+  if (ARGUMENTS_IS_NUMBER(0)) {
+    port = info[0]->IntegerValue();
+  } else {
+    port = 6881;
+  }
+
+  sett.set_str(libtorrent::settings_pack::listen_interfaces, "0.0.0.0:"+ std::to_string(port));
   session = boost::shared_ptr<libtorrent::session>(new libtorrent::session(sett));
 
   session->set_dht_settings(dht_settings);

@@ -4,10 +4,13 @@ var debug = require('debug')('basic')
 debug('Starting basic.js example')
 
 var app = new lib.Joystream({
+    port: 6882,
+    wallet: {
       db: 'leveldb',
       prefix  : '/home/lola/joystream/test/',
       network : 'testnet',
       httpPort: 18332
+    }
     })
 
 console.log(app.isPaused())

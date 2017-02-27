@@ -60,9 +60,9 @@ const minimumMessageId = 60
 
 class Node extends EventEmitter {
 
-    constructor () {
+    constructor (port) {
       super()
-      this.session = new NativeExtension.Session()
+      this.session = new NativeExtension.Session(port)
       this.plugin = new NativeExtension.Plugin(minimumMessageId)
       this.torrents = new Map()
       this.torrentsBySecondaryHash = new Map()

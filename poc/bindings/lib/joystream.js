@@ -13,9 +13,9 @@ var debug = require('debug')('joystream')
 class Joystream extends Node {
 
   constructor (options) {
-    super()
+    super(options.port)
     // Init spvwallet
-    this.wallet = new SPVWallet(options)
+    this.wallet = new SPVWallet(options.wallet)
   }
 
   addTorrent (addTorrentParams, callback) {
