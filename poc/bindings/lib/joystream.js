@@ -71,7 +71,7 @@ class Joystream extends Node {
 
     if (torrent) {
       if (torrent.torrentPlugin) {
-        if (torrent.handle.status() === StateT.DOWNLOADING ) {
+        if (torrent.handle.status().state === StateT.DOWNLOADING ) {
           /*
             TODO:
             - verify fund in wallet
@@ -91,7 +91,6 @@ class Joystream extends Node {
       }
     } else {
       debug('Torrent not present in node !')
-      // Add torrent to node ?
       callback(new Error('Torrent not present in node !'), null)
     }
   }

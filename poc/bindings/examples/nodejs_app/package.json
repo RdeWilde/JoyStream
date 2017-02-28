@@ -5,9 +5,12 @@
   "main": "basic.js",
   "scripts": {
     "start": "DEBUG=* node basic.js",
+    "concurrent": "concurrently \"DEBUG=seller node seller.js\" \"DEBUG=buyer node buyer.js\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Me",
   "license": "ISC",
-  "devDependencies": {}
+  "devDependencies": {
+    "concurrently": "^3.3.0"
+  }
 }
