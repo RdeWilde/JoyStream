@@ -721,7 +721,7 @@ NAN_METHOD(TorrentHandle::info_hash) {
 
     libtorrent::sha1_hash h(TorrentHandle::Unwrap(info.This())->info_hash());
 
-    RETURN(Nan::New<String>(libtorrent::to_hex(h.to_string())).ToLocalChecked());
+    RETURN(libtorrent::node::sha1_hash::encode(h));
 };
 
 NAN_METHOD(TorrentHandle::force_recheck) {
