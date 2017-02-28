@@ -74,7 +74,10 @@ libtorrent::add_torrent_params decode(const v8::Local<v8::Value> & v) {
   } catch(const std::runtime_error &) { }
 
   try {
-    atp.url =  GET_STD_STRING(o, URL_KEY);
+    v8::Local<v8::Value> url_value = GET_VAL(o, URL_KEY);
+    if (!url_value->IsUndefined()) {
+      atp.url =  GET_STD_STRING(o, URL_KEY);
+    }
   } catch(const std::runtime_error &) { }
 
   try {

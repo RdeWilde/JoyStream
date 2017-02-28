@@ -10,6 +10,7 @@
 #include "torrent_status.hpp"
 #include "endpoint.hpp"
 #include "peer_info.hpp"
+#include "sha1_hash.hpp"
 
 class TorrentHandle : public Nan::ObjectWrap {
   public:

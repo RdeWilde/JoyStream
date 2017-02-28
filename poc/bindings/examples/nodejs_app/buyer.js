@@ -12,8 +12,9 @@ var app = new lib.Joystream({
 })
 
 let addTorrentParams = {
-  infoHash: 'd59e6da0de8f5382f067e07375c262f15570a8f1',
-  path: '/home/lola/joystream/test2/'
+  infoHash: '6a9759bffd5c0af65319979fb7832189f4f3c35d',
+  name: 'sintel.mp4',
+  path: '/home/lola/joystream/test/'
 }
 
 app.wallet.start().then(() => {

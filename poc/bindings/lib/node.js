@@ -422,6 +422,7 @@ class Node extends EventEmitter {
         var resumeData = alert.addTorrentParams.resumeData
 
         var torrent = this.torrents.get(torrentHandle.infoHash())
+        console.log(torrentHandle.infoHash())
         // Verify if torrent not already in torrents list
         if (!torrent) {
 

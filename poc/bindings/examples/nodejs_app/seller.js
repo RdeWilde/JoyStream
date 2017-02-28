@@ -15,7 +15,7 @@ app.wallet.start().then(() => {
   debug('Wallet Ready !')
 
   let addTorrentParams = {
-    ti: new lib.TorrentInfo('/home/lola/joystream/test/306497171.torrent'),
+    ti: new lib.TorrentInfo('/home/lola/joystream/test/sintel.torrent'),
     savePath: '/home/lola/joystream/test/'
   }
 
@@ -40,6 +40,9 @@ app.wallet.start().then(() => {
           debug('Torrent state changed')
           if (torrent.handle.status().state === 5) {
             debug('Torrent seeding, we can go to sell mode')
+
+
+
             app.sellTorrent('d59e6da0de8f5382f067e07375c262f15570a8f1', sellerTerm, (err, result) => {
               if (!err) {
                 debug('We are in selling mode')
