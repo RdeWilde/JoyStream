@@ -11,11 +11,7 @@ var app = new lib.Joystream({
       network : 'testnet',
       httpPort: 18332
     }
-    })
-
-console.log(app.isPaused())
-
-console.log(app.listenPort())
+  })
 
 app.wallet.start().then(() => {
 
@@ -41,14 +37,6 @@ app.wallet.start().then(() => {
         maxNumberOfSellers: 10,
         minContractFeePerKb: 15000,
         settlementFee: 5000
-      }
-
-      //100, 5, 1, 20000
-      let buyerTerm = {
-        maxPrice: 100,
-        maxLock: 5,
-        minNumberOfSellers: 1,
-        maxContractFeePerKb: 20000
       }
 
       // we wait for the plugin to be added

@@ -4,6 +4,7 @@ var NativeExtension = require('bindings')('NativeExtension')
 var debug = require('debug')('node')
 const EventEmitter = require('events')
 const Torrent = require('./torrent')
+var _ = require('lodash')
 
 const _processDhtGetPeersReplyAlert = Symbol('processDhtGetPeersReplyAlert')
 const _listenSucceededAlert = Symbol('listenSucceededAlert')
@@ -422,7 +423,6 @@ class Node extends EventEmitter {
         var resumeData = alert.addTorrentParams.resumeData
 
         var torrent = this.torrents.get(torrentHandle.infoHash())
-        console.log(torrentHandle.infoHash())
         // Verify if torrent not already in torrents list
         if (!torrent) {
 
@@ -432,8 +432,6 @@ class Node extends EventEmitter {
 
           // Add torrent to torrents map
           this.torrents.set(torrentHandle.infoHash(),torrent)
-          // Emit event 'addTorrentAlert'
-          this.emit('add_torrent_alert', torrent)
 
           // DHT stuff
           this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash(), torrentHandle.infoHash())
@@ -469,7 +467,6 @@ class Node extends EventEmitter {
         var torrent = this.torrents.get(status[i].infoHash)
 
         if (torrent) {
-          console.log(status[i].state)
           torrent.emit('state_update_alert', status[i].state, status[i].progress)
         } else {
           debug('Torrent not found !')
@@ -579,7 +576,7 @@ class Node extends EventEmitter {
 
       if (torrent) {
         for (var i in peersInfo) {
-          if (peersInfo[i].ip == alert.ip) {
+          if (_.isEqual(peersInfo[i].ip, alert.ip)) {
             torrent.addPeer(peersInfo[i])
           }
         }

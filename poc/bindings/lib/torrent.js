@@ -31,6 +31,8 @@ class Torrent extends EventEmitter {
 
   addPeer(peerInfo) {
 
+    debug('Peer added to torrent')
+
     if (!this.peers.get(peerInfo.ip)) {
       var peer = new Peer(peerInfo)
       this.peers.set(peerInfo.ip, peer)
@@ -42,7 +44,7 @@ class Torrent extends EventEmitter {
   }
 
   removePeer(peerInfo) {
-    if (this.peers.get(peerInfo.ip)) {
+    if (this.peers.has(peerInfo.ip)) {
       this.peers.delete(peerInfo.ip)
       this.emit('peerRemoved', ip)
     } else {
