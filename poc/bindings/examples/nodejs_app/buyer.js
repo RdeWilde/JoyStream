@@ -38,8 +38,6 @@ app.wallet.start().then(() => {
         maxContractFeePerKb: 20000
       }
 
-      console.log(torrent.handle.infoHash() === addTorrentParams.infoHash)
-
       // we wait for the plugin to be added
       torrent.on('torrentPluginAdded', () => {
         debug('Torrent Plugin added')
@@ -51,7 +49,7 @@ app.wallet.start().then(() => {
 
         // Verify if it is on downloading status
         if (torrent.handle.status().state === 2) {
-          app.buyTorrent('d59e6da0de8f5382f067e07375c262f15570a8f1', buyerTerm, (err, result) => {
+          torrent.toBuyMode(buyerTerm, (err, result) => {
             if (!err) {
               debug('We are in buying mode')
             } else {
@@ -65,7 +63,7 @@ app.wallet.start().then(() => {
             // Verify if is downloading state
             if (torrent.handle.status().state === 2) {
               debug('Torrent seeding, we can go to sell mode')
-              app.buyTorrent('d59e6da0de8f5382f067e07375c262f15570a8f1', buyerTerm, (err, result) => {
+              torrent.toBuyMode(buyerTerm, (err, result) => {
                 if (!err) {
                   debug('We are in buying mode')
                 } else {

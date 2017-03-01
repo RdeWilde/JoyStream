@@ -4,6 +4,7 @@ var sha1 = require('sha1')
 const EventEmitter = require('events')
 var Peer = require('./peer')
 var TorrentPlugin = require('./torrentPlugin')
+const StateT = require('./StateT')
 var debug = require('debug')('torrent')
 
 class Torrent extends EventEmitter {
@@ -72,6 +73,73 @@ class Torrent extends EventEmitter {
     }
   }
 
+  toSellMode (sellerTerms, callback) {
+    var infoHash = this.handle.infoHash()
+
+    // Verify if torrentPlugin set
+    if (this.torrentPlugin) {
+      // Verify torrent state
+      if (this.handle.status().state === StateT.SEEDING) {
+        this.plugin.to_sell_mode(infoHash, sellerTerms, (err, result) => {
+          if (!err) {
+            this.plugin.start(infoHash, (err, result) => {
+              if (!err) {
+                debug('Plugin started')
+              } else {
+                debug('Plugin not started')
+              }
+              callback(err, result)
+            })
+          } else {
+            callback(err, result)
+          }
+        })
+      } else {
+        debug('Torrent not in seeding state')
+        callback(new Error('Torrent not in seeding state'), null)
+      }
+    } else {
+      debug('TorrentPlugin not set for this torrent')
+      callback(new Error('TorrentPlugin not set for this torrent'), null)
+    }
+  }
+
+  toBuyMode (buyerTerms, callback) {
+    var infoHash = this.handle.infoHash()
+
+    if (this.torrentPlugin) {
+      if (this.handle.status().state === StateT.DOWNLOADING) {
+        /*
+          TODO:
+          - verify fund in wallet
+          - Lock minimum funds
+          - Get TorrentPlugin
+          - Need paychanKeysGenerator, receiveAddressesGenerator, changeAddressesGenerator ?
+        */
+
+        this.plugin.to_buy_mode(infoHash, buyerTerms, (err, result) => {
+          if (!err) {
+            this.plugin.start(infoHash, callback)
+          } else {
+            callback(err, result)
+          }
+        })
+      } else {
+        debug('Torrent not in downloading state')
+        callback(new Error('Torrent not in downloading state'), null)
+      }
+    } else {
+      debug('TorrentPlugin not set for this torrent')
+      callback(new Error('TorrentPlugin not set for this torrent'), null)
+    }
+  }
+
+  observeTorrent (callback) {
+    // var infoHash = this.handle.infoHash()
+    /*
+      TODO
+    */
+  }
 }
 
 module.exports = Torrent

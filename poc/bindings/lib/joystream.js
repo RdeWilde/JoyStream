@@ -3,8 +3,7 @@
 const Node = require('./node')
 const Torrent = require('./torrent')
 const SPVWallet = require('./SPVWallet')
-const StateT = require('./StateT')
-var debug = require('debug')('joystream')
+const debug = require('debug')('joystream')
 
 /**
  * Joystream class.
@@ -20,10 +19,9 @@ class Joystream extends Node {
 
   addTorrent (addTorrentParams, callback) {
     this.plugin.add_torrent(addTorrentParams, (err, torrentHandle) => {
-
       if (!err) {
         var torrent = this.torrents.get(torrentHandle.infoHash())
-        console.log(torrentHandle.infoHash())
+
         // Verify if torrent not already in torrents list
         if (!torrent) {
 
@@ -32,8 +30,6 @@ class Joystream extends Node {
                                     this.plugin)
           // Add torrent to torrents map
           this.torrents.set(torrentHandle.infoHash(),torrent)
-          // Emit event 'addTorrentAlert'
-          this.emit('add_torrent_alert', torrent)
 
           // DHT stuff
           this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash(), torrentHandle.infoHash())
@@ -64,67 +60,6 @@ class Joystream extends Node {
       debug('Cannot remove torrent : Torrent not found')
       callback(new Error('Cannot remove torrent : Torrent not found'), null)
     }
-
-  }
-
-  buyTorrent (infoHash, buyerTerms, callback) {
-    var torrent = this.torrents.get(infoHash)
-
-    if (torrent) {
-      if (torrent.torrentPlugin) {
-        if (torrent.handle.status().state === StateT.DOWNLOADING ) {
-          /*
-            TODO:
-            - verify fund in wallet
-            - Lock minimum funds
-            - Get TorrentPlugin
-            - Need paychanKeysGenerator, receiveAddressesGenerator, changeAddressesGenerator ?
-           */
-
-          this.plugin.to_buy_mode(infoHash, buyerTerms, callback)
-        } else {
-          debug('Torrent not in downloading state')
-          callback(new Error('Torrent not in downloading state'), null)
-        }
-      } else {
-        debug('TorrentPlugin not set for this torrent')
-        callback(new Error('TorrentPlugin not set for this torrent'), null)
-      }
-    } else {
-      debug('Torrent not present in node !')
-      console.log(infoHash)
-      console.log(this.torrents)
-      callback(new Error('Torrent not present in node !'), null)
-    }
-  }
-
-  // If torrent not find try to add ?
-  sellTorrent (infoHash, sellerTerms, callback) {
-    var torrent = this.torrents.get(infoHash)
-
-    if (torrent) {
-      if (torrent.torrentPlugin) {
-        if (torrent.handle.status().state === StateT.SEEDING) {
-          /*
-
-          */
-          this.plugin.to_sell_mode(infoHash, sellerTerms, callback)
-        } else {
-          debug('Torrent not in seeding state')
-          callback(new Error('Torrent not in seeding state'), null)
-        }
-      } else {
-        debug('TorrentPlugin not set for this torrent')
-        callback(new Error('TorrentPlugin not set for this torrent'), null)
-      }
-    } else {
-      debug('Torrent not present in node !')
-      // Add torrent to node ?
-      callback(new Error('Torrent not present in node !'), null)
-    }
-  }
-
-  observeTorrent () {
 
   }
 
