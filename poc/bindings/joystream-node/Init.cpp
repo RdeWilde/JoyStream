@@ -7,7 +7,7 @@
 
 #include "Init.hpp"
 #include "LibtorrentInteraction.hpp"
-//#include "RequestResult.hpp"
+#include "RequestResult.hpp"
 #include "Connection.hpp"
 #include "Plugin.hpp"
 #include "PeerPluginStatus.hpp"
@@ -21,7 +21,7 @@ namespace node {
 
   NAN_MODULE_INIT(Init) {
     libtorrent_interaction::Init(target);
-    //RequestResult::Init(target);
+    RequestResult::Init(target);
     peer_plugin_status::Init(target);
     torrent_plugin_status::Init(target);
     Plugin::Init(target);
