@@ -13,6 +13,7 @@
 #include "PubKeyHash.hpp"
 #include "Transaction.hpp"
 #include "StartDownloadConnectionInformation.hpp"
+#include "detail/UnhandledCallbackException.hpp"
 #include "libtorrent-node/utils.hpp"
 #include "libtorrent-node/sha1_hash.hpp"
 #include "libtorrent-node/add_torrent_params.hpp"
@@ -411,6 +412,17 @@ NAN_METHOD(Plugin::StartUploading) {
 
 namespace detail {
 
+    void safe_callback_dispatcher(const std::shared_ptr<Nan::Callback> & callback, int argc, v8::Local<v8::Value> argv[]) {
+
+        Nan::TryCatch trap;
+
+        callback->Call(argc, argv);
+
+        // Detect if there was an exception
+        if(trap.HasCaught())
+            throw detail::UnhandledCallbackException(trap.Exception());
+    }
+
   /// Custom handlers
 
   joystream::extension::request::AddTorrent::AddTorrentHandler CreateAddTorrentHandler(const std::shared_ptr<Nan::Callback> & callback) {
@@ -424,13 +436,13 @@ namespace detail {
           Nan::New("<convert error_code to string>").ToLocalChecked(),
           Nan::Undefined()
         };
-        callback->Call(2, argv);
+        safe_callback_dispatcher(callback, 2, argv);
       } else {
         v8::Local<v8::Value> argv[] = {
           Nan::Null(),
           TorrentHandle::New(h)
         };
-        callback->Call(2, argv);
+        safe_callback_dispatcher(callback, 2, argv);
       }
     };
 
@@ -453,7 +465,7 @@ namespace detail {
 
       return [callback, bounded_error_value_generator, bounded_result_value_generator] (const std::exception_ptr & ex) -> void {
         v8::Local<v8::Value> argv[] = { bounded_error_value_generator(ex), bounded_result_value_generator(ex) };
-        callback->Call(2, argv);
+        safe_callback_dispatcher(callback, 2, argv);
       };
     }
 
@@ -484,7 +496,7 @@ namespace detail {
 
         return [callback] (const std::exception_ptr & ex) -> void {
           v8::Local<v8::Value> argv[] = { errorValueGn(ex), resultValueGn(ex) };
-          callback->Call(2, argv);
+          safe_callback_dispatcher(callback, 2, argv);
         };
 
     }
@@ -508,7 +520,7 @@ namespace detail {
 
       return [callback, bounded_error_value_generator, bounded_result_value_generator] () -> void {
         v8::Local<v8::Value> argv[] = { bounded_error_value_generator(), bounded_result_value_generator() };
-        callback->Call(2, argv);
+        safe_callback_dispatcher(callback, 2, argv);
       };
     }
 
@@ -529,7 +541,7 @@ namespace detail {
 
       return [callback] () -> void {
         v8::Local<v8::Value> argv[] = { genericErrorValueGenerator(), genericResultValueGenerator() };
-        callback->Call(2, argv);
+        safe_callback_dispatcher(callback, 2, argv);
       };
     }
 
