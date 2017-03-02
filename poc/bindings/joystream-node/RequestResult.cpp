@@ -20,10 +20,16 @@ namespace node {
    // Create constructor function
    v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
    //tpl->SetClassName(Nan::New("RequestResult").ToLocalChecked());
-   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+   v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
+   itpl->SetInternalFieldCount(1);
+
+   // Accessors are defined on instance
+   Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
+
+   // Methods on prototype
    Nan::SetPrototypeMethod(tpl, "run", Run);
-   Nan::SetPrototypeMethod(tpl, "type", Type);
+
    Nan::SetPrototypeMethod(tpl, "what", What);
    Nan::SetPrototypeMethod(tpl, "message", Message);
    Nan::SetPrototypeMethod(tpl, "category", Category);
@@ -65,12 +71,14 @@ namespace node {
    RETURN_VOID
  }
 
- NAN_METHOD(RequestResult::Type) {
+NAN_GETTER(RequestResult::Type) {
 
-   UNWRAP_THIS(requestResult)
+   RequestResult * requestResult = Nan::ObjectWrap::Unwrap<RequestResult>(info.Holder());
+
    v8::Local<v8::Number> type = Nan::New(requestResult->_type);
+
    RETURN(type)
- }
+}
 
  NAN_METHOD(RequestResult::What) {
 
