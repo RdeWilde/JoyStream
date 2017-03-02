@@ -457,7 +457,6 @@ class Node extends EventEmitter {
       } else {
         debug('Torrent not found')
       }
-
     }
 
     [_stateUpdateAlert](alert) {

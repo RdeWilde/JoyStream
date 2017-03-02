@@ -180,6 +180,14 @@ namespace std_lib_utils {
 }
 
 /**
+ * Verify if key is not undefined
+ * @param {v8::Local<v8::Object>} o
+ * @param {const std::string &} key name
+ */
+#define HAS_KEY(o, key)                                                      \
+  (Nan::Has(o, Nan::New(key).ToLocalChecked()) == Nan::Just(true))
+
+/**
  * Object getters.
  * @param {v8::Local<v8::Object>} o
  * @param {const std::string &} key name

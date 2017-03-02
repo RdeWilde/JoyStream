@@ -21,7 +21,6 @@ app.wallet.start().then(() => {
 
   let addTorrentParams = {
     infoHash: '6a9759bffd5c0af65319979fb7832189f4f3c35d',
-    name: 'sintel.mp4',
     path: '/home/lola/joystream/test/'
   }
 
