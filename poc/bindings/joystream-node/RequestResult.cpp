@@ -6,6 +6,7 @@
  */
 
 #include "RequestResult.hpp"
+#include "detail/UnhandledCallbackException.hpp"
 #include "libtorrent-node/utils.hpp"
 
 #define UNWRAP_THIS(var) RequestResult * var = Nan::ObjectWrap::Unwrap<RequestResult>(info.This());
@@ -67,7 +68,24 @@ namespace node {
  NAN_METHOD(RequestResult::Run) {
 
    UNWRAP_THIS(requestResult)
-   requestResult->_loadedCallback();
+
+    // Make callback, and catch any unhandled exceptions
+    // the developer may have introduced. This is here to
+    // prevent weird stack corruption we were seeing, which made
+    // it near impossible to attribute observed behaviour to an unhandled exception.
+    // The developer should correct code to not have unhandled exceptions.
+    try {
+        requestResult->_loadedCallback();
+    } catch(const detail::UnhandledCallbackException & e) {
+
+        v8::MaybeLocal<v8::String> exception_as_string = e.exception->ToString();
+
+        Nan::ThrowError(exception_as_string.ToLocalChecked());
+
+        //// Rethrow into nodejs environment?
+        //Nan::FatalException(e.trap);
+    }
+
    RETURN_VOID
  }
 
