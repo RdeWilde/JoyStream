@@ -274,6 +274,8 @@ NAN_METHOD(Session::pop_alerts) {
   v8::Local<v8::Array> ret = Nan::New<v8::Array>();
   for(const libtorrent::alert * alert : alerts) {
 
+    std::cout << alert->what() << std::endl;
+
     // Iterate encoders to find match
     for(AlertEncoder encoder : session->_encoders) {
 

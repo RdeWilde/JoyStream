@@ -4,7 +4,6 @@ var NativeExtension = require('bindings')('NativeExtension')
 var debug = require('debug')('node')
 const EventEmitter = require('events')
 const Torrent = require('./torrent')
-var _ = require('lodash')
 
 const _processDhtGetPeersReplyAlert = Symbol('processDhtGetPeersReplyAlert')
 const _listenSucceededAlert = Symbol('listenSucceededAlert')
@@ -569,20 +568,13 @@ class Node extends EventEmitter {
 
     [_peerConnectAlert](alert) {
       var torrentHandle = alert.handle
-      var peersInfo = torrentHandle.getPeerInfo()
-
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
       if (torrent) {
-        for (var i in peersInfo) {
-          if (_.isEqual(peersInfo[i].ip, alert.ip)) {
-            torrent.addPeer(peersInfo[i])
-          }
-        }
+        torrent.addPeer(alert.ip)
       } else {
         debug('Torrent not found')
       }
-
     }
 
     [_peerDisconnectedAlert](alert) {
@@ -629,8 +621,9 @@ class Node extends EventEmitter {
       if (!torrent.plugin) {
         debug('No plugin find')
       } else {
-        torrent.plugin.emit('updatePeerPluginStatuses', statuses)
+        torrent.emit('updatePeerPluginStatuses', statuses)
         for (var [endpoint, peerPluginStatus] of statuses) {
+          console.log(endpoint)
           var peer = torrent.peers.get(endpoint)
           if (peer) {
             peer.plugin.update(peerPluginStatus)
@@ -670,30 +663,37 @@ class Node extends EventEmitter {
     [_peerPluginAdded](alert) {
       var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var peer = torrent.peers.get(alert.ip)
+      var peer = torrent.peers.get(alert.ip.address + ':' + alert.ip.key)
 
-      if (peer) {
-        if (!peer.peerPlugin) {
-          peer.addPeerPlugin(alert.status)
+      if (torrent) {
+        if (peer) {
+          if (!peer.peerPlugin) {
+            peer.addPeerPlugin(alert.status)
+            torrent.emit('peerPluginAdded', alert.ip)
+          } else {
+            debug('PeerPlugin already initialized')
+          }
         } else {
-          debug('PeerPlugin already initialized')
+          debug('Peer not found ! We create peer')
+          var peersInfo = torrentHandle.getPeerInfo()
+          torrent.addPeer(alert.ip, alert.status)
+          torrent.emit('peerPluginAdded', alert.ip)
         }
       } else {
-        debug('Peer not found !')
+        debug('Torrent not found')
       }
-
     }
 
     [_peerPluginRemoved](alert) {
       var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var peer = torrent.peers.get(alert.ip)
+      var peer = torrent.peers.get(alert.ip.address + ':' + alert.ip.key)
 
       if (peer) {
         if (!peer.peerPlugin) {
           peer.removePeerPlugin()
         } else {
-          debug('PeerPlugin already initialized')
+          debug('PeerPlugin already removed')
         }
       } else {
         debug('Peer not found !')
@@ -703,24 +703,24 @@ class Node extends EventEmitter {
     [_connectionAddedToSession](alert) {
       var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var peerPlugin = torrent.peers.get(alert.ip).plugin
+      var peerPlugin = torrent.peers.get(alert.ip.address + ':' + alert.ip.key).plugin
 
-      peerPlugin.emit('connectionAdded', alert.connectionStatus)
+      peer.emit('connectionAdded', alert.connectionStatus)
     }
 
     [_connectionRemovedFromSession](alert) {
       var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
-      var peer = torrent.peers.get(alert.ip)
+      var peer = torrent.peers.get(alert.ip.address + ':' + alert.ip.key)
 
-      peer.plugin.emit('connectionRemoved')
+      peer.emit('connectionRemoved')
     }
 
     [_sessionStarted](alert) {
       var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
-      torrent.plugin.emit('sessionStarted')
+      torrent.torrentPlugin.emit('sessionStarted')
     }
 
     [_sessionPaused](alert) {

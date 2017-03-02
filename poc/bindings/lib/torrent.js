@@ -6,6 +6,8 @@ var Peer = require('./peer')
 var TorrentPlugin = require('./torrentPlugin')
 const StateT = require('./StateT')
 var debug = require('debug')('torrent')
+var _ = require('lodash')
+
 
 class Torrent extends EventEmitter {
 
@@ -29,23 +31,28 @@ class Torrent extends EventEmitter {
     this.announcedJSPeersAtTimestamp.set(address, timestamp)
   }
 
-  addPeer(peerInfo) {
+  addPeer(ip, peerPlugin = null) {
+    var peersInfo = this.handle.getPeerInfo()
 
-    debug('Peer added to torrent')
+    if (!this.peers.has(ip.address + ':' + ip.key)) {
+      for (var i in peersInfo) {
+        // Should happen only once
+        if (_.isEqual(peersInfo[i].ip, ip)) {
+          var peer = new Peer(ip, peerPlugin)
+          this.peers.set(ip.address + ':' + ip.key, peer)
 
-    if (!this.peers.get(peerInfo.ip)) {
-      var peer = new Peer(peerInfo)
-      this.peers.set(peerInfo.ip, peer)
-
-      this.emit('peerAdded', peer)
+          this.emit('peerAdded', peer)
+        }
+      }
     } else {
-      debug('Is already in peers.')
+      debug('Peer already added')
     }
+
   }
 
-  removePeer(peerInfo) {
-    if (this.peers.has(peerInfo.ip)) {
-      this.peers.delete(peerInfo.ip)
+  removePeer(ip) {
+    if (this.peers.has(ip.address + ':' + ip.key)) {
+      this.peers.delete(ip.address + ':' + ip.key)
       this.emit('peerRemoved', ip)
     } else {
       debug('Not in peers list')
@@ -87,8 +94,16 @@ class Torrent extends EventEmitter {
             this.plugin.start(infoHash, (err, result) => {
               if (!err) {
                 debug('Plugin started')
-              } else {
-                debug('Plugin not started')
+
+                this.peers.forEach((peer)=> {
+                  console.log(peer.status)
+                })
+
+                // Regularly request status alerts from peer plugins on this torrent
+                setInterval(() => {
+                  this.plugin.post_peer_plugin_status_updates(infoHash)
+                }, 1000)
+
               }
               callback(err, result)
             })

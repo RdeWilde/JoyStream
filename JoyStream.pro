@@ -6,21 +6,21 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            common \            
+            common \
             paymentchannel \
             protocol_wire \
             protocol_statemachine \
             protocol_session \
             extension \
-            blockcypher \
-            bitcoin \
-            mixpanel \
-            core \
-            views \
-            app \
-            runner \
-            test \
-            demo \
+            #blockcypher \
+            #bitcoin \
+            #mixpanel \
+            #core \
+            #views \
+            #app \
+            #runner \
+            #test \
+            #demo \
 
 # ensure that the subdirectories are built in the order in which they are specified
 CONFIG += ordered

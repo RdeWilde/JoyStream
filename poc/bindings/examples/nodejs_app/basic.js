@@ -20,8 +20,8 @@ app.wallet.start().then(() => {
   debug('Address to fund wallet : ', app.getAddress().toString())
 
   let addTorrentParams = {
-    infoHash: '6a9759bffd5c0af65319979fb7832189f4f3c35d',
-    path: '/home/lola/joystream/test/'
+    ti: new lib.TorrentInfo('/home/lola/joystream/test/306497171.torrent'),
+    savePath: '/home/lola/joystream/test/'
   }
 
   app.addTorrent(addTorrentParams, (err, torrent) => {
