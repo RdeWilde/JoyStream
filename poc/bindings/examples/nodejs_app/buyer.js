@@ -12,8 +12,7 @@ var app = new lib.Joystream({
 })
 
 let addTorrentParams = {
-  infoHash: '6a9759bffd5c0af65319979fb7832189f4f3c35d',
-  name: 'sintel.mp4',
+  ti: new lib.TorrentInfo('/home/lola/joystream/test/306497171.torrent'),
   path: '/home/lola/joystream/test/'
 }
 
@@ -46,9 +45,8 @@ app.wallet.start().then(() => {
           Buy Torrent start here
         */
 
-
         // Verify if it is on downloading status
-        if (torrent.handle.status().state === 2) {
+        if (torrent.handle.status().state === 3) {
           torrent.toBuyMode(buyerTerm, (err, result) => {
             if (!err) {
               debug('We are in buying mode')
@@ -61,13 +59,13 @@ app.wallet.start().then(() => {
           torrent.on('state_changed_alert', () => {
             debug('Torrent state changed')
             // Verify if is downloading state
-            if (torrent.handle.status().state === 2) {
+            if (torrent.handle.status().state === 3) {
               debug('Torrent seeding, we can go to sell mode')
               torrent.toBuyMode(buyerTerm, (err, result) => {
                 if (!err) {
                   debug('We are in buying mode')
                 } else {
-                  console.log(err)
+                  debug(err)
                 }
               })
             }

@@ -146,6 +146,7 @@ namespace status {
         // Sends extended message to peer
         template<class T>
         void send(const T& payload) {
+          
             const auto size = protocol_wire::OutputWireStream::sizeOf(payload);
 
             auto messageType = getMessageType(payload);

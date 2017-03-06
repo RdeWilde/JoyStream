@@ -95,14 +95,20 @@ class Torrent extends EventEmitter {
               if (!err) {
                 debug('Plugin started')
 
+                // Verify first if we have already a connection
                 this.peers.forEach((peer)=> {
-                  console.log(peer.status)
+                  if (peer.status)
+                    console.log(peer.status)
                 })
 
                 // Regularly request status alerts from peer plugins on this torrent
                 setInterval(() => {
                   this.plugin.post_peer_plugin_status_updates(infoHash)
                 }, 1000)
+
+                this.on('newConnection', (connection) => {
+                  console.log(connection)
+                })
 
               }
               callback(err, result)
@@ -135,6 +141,7 @@ class Torrent extends EventEmitter {
         */
 
         this.plugin.to_buy_mode(infoHash, buyerTerms, (err, result) => {
+          debug('IN BUYING MODE !')
           if (!err) {
             this.plugin.start(infoHash, callback)
           } else {

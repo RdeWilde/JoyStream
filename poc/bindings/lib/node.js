@@ -618,19 +618,24 @@ class Node extends EventEmitter {
       var torrent = this.torrents.get(torrentHandle.infoHash())
       var statuses = alert.statuses
 
-      if (!torrent.plugin) {
-        debug('No plugin find')
-      } else {
-        torrent.emit('updatePeerPluginStatuses', statuses)
-        for (var [endpoint, peerPluginStatus] of statuses) {
-          console.log(endpoint)
-          var peer = torrent.peers.get(endpoint)
-          if (peer) {
-            peer.plugin.update(peerPluginStatus)
-          } else {
-            debug('Peer not found !')
+      if (torrent) {
+        if (!torrent.plugin) {
+          debug('No plugin find')
+        } else {
+          for (var status of statuses) {
+            var peer = torrent.peers.get(status.endPoint.address + ':' + status.endPoint.key)
+            if (peer) {
+              peer.peerPlugin.update(status)
+              if (status.connection) {
+                torrent.emit('newConnection', status.connection)
+              }
+            } else {
+              debug('Peer not found !')
+            }
           }
         }
+      } else {
+        debug('Torrent not found')
       }
     }
 
@@ -705,6 +710,8 @@ class Node extends EventEmitter {
       var torrent = this.torrents.get(torrentHandle.infoHash())
       var peerPlugin = torrent.peers.get(alert.ip.address + ':' + alert.ip.key).plugin
 
+      console.log('Connection Added to Session')
+
       peer.emit('connectionAdded', alert.connectionStatus)
     }
 
@@ -720,6 +727,8 @@ class Node extends EventEmitter {
       var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
 
+      console.log('SessionStarted !')
+
       torrent.torrentPlugin.emit('sessionStarted')
     }
 
@@ -733,6 +742,8 @@ class Node extends EventEmitter {
     [_sessionStopped](alert) {
       var torrentHandle = alert.handle
       var torrent = this.torrents.get(torrentHandle.infoHash())
+
+      console.log('SessionStopped !')
 
       torrent.plugin.emit('sessionStopped')
     }
