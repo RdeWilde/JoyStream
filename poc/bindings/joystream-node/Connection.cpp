@@ -165,6 +165,7 @@ namespace connection {
     SET_VAL(o, "innerState", encode(c.machine.innerStateTypeIndex));
     SET_VAL(o, "payor", encode(c.machine.payor));
     SET_VAL(o, "payee", encode(c.machine.payee));
+    SET_VAL(o, " announcedModeAndTermsFromPeer", encode(c.machine.announcedModeAndTermsFromPeer));
 
     //std::queue<uint32_t> downloadedValidPieces;
 

@@ -255,7 +255,6 @@ class Node extends EventEmitter {
           break
 
         // RequestResult
-        // NOTE: we don't need this anymore ?
         case 10003:
           this[_requestResult](alert)
           break
@@ -610,8 +609,9 @@ class Node extends EventEmitter {
     }
 
     [_requestResult](alert) {
-      // This doesn't work like this anymore
-      // alert.loadedCallback()
+      /** IF A CALLBACK DID NOT CATCH ALL EXCEPTIONS,
+       * THEN RESULT IS THROWN OUT HERE **/
+      alert.run();
     }
 
     [_torrentPluginStatusUpdateAlert](alert) {

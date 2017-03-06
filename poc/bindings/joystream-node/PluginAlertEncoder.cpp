@@ -9,6 +9,7 @@
 #include "libtorrent-node/alert.hpp"
 #include "libtorrent-node/endpoint.hpp"
 #include "libtorrent-node/utils.hpp"
+#include "RequestResult.hpp"
 #include "TorrentPluginStatus.hpp"
 #include "PeerPluginStatus.hpp"
 #include "Connection.hpp"
@@ -30,39 +31,38 @@ namespace PluginAlertEncoder {
 
   boost::optional<v8::Local<v8::Object>> alertEncoder(const libtorrent::alert *a) {
 
-    #define PROCESS_REQUEST_RESULT_ALERT if(joystream::extension::alert::RequestResult const * p = libtorrent::alert_cast<joystream::extension::alert::RequestResult>(a)) process(p);
-    #define ENCODE_PLUGIN_ALERT(name) else if(joystream::extension::alert::name const * p = libtorrent::alert_cast<joystream::extension::alert::name>(a)) v = encode(p);
+    #define ENCODE_PLUGIN_ALERT(name) if(joystream::extension::alert::name const * p = libtorrent::alert_cast<joystream::extension::alert::name>(a)) v = encode(p);
     
     boost::optional<v8::Local<v8::Object>> v;
 
-    PROCESS_REQUEST_RESULT_ALERT
-    ENCODE_PLUGIN_ALERT(TorrentPluginStatusUpdateAlert)
-    ENCODE_PLUGIN_ALERT(PeerPluginStatusUpdateAlert)
-    ENCODE_PLUGIN_ALERT(TorrentPluginAdded)
-    ENCODE_PLUGIN_ALERT(TorrentPluginRemoved)
-    ENCODE_PLUGIN_ALERT(PeerPluginAdded)
-    ENCODE_PLUGIN_ALERT(PeerPluginRemoved)
-    ENCODE_PLUGIN_ALERT(ConnectionAddedToSession)
-    ENCODE_PLUGIN_ALERT(SessionStarted)
-    ENCODE_PLUGIN_ALERT(SessionPaused)
-    ENCODE_PLUGIN_ALERT(SessionStopped)
-    ENCODE_PLUGIN_ALERT(SessionToObserveMode)
-    ENCODE_PLUGIN_ALERT(SessionToSellMode)
-    ENCODE_PLUGIN_ALERT(SessionToBuyMode)
-    ENCODE_PLUGIN_ALERT(ValidPaymentReceived)
-    ENCODE_PLUGIN_ALERT(InvalidPaymentReceived)
-    ENCODE_PLUGIN_ALERT(BuyerTermsUpdated)
-    ENCODE_PLUGIN_ALERT(SellerTermsUpdated)
-    ENCODE_PLUGIN_ALERT(ContractConstructed)
-    ENCODE_PLUGIN_ALERT(SentPayment)
-    ENCODE_PLUGIN_ALERT(LastPaymentReceived)
-    ENCODE_PLUGIN_ALERT(InvalidPieceArrived)
-    ENCODE_PLUGIN_ALERT(ValidPieceArrived)
-    ENCODE_PLUGIN_ALERT(DownloadStarted)
-    ENCODE_PLUGIN_ALERT(UploadStarted)
-    ENCODE_PLUGIN_ALERT(SendingPieceToBuyer)
-    ENCODE_PLUGIN_ALERT(PieceRequestedByBuyer)
-    ENCODE_PLUGIN_ALERT(AnchorAnnounced)
+    ENCODE_PLUGIN_ALERT(RequestResult)
+    else ENCODE_PLUGIN_ALERT(TorrentPluginStatusUpdateAlert)
+    else ENCODE_PLUGIN_ALERT(PeerPluginStatusUpdateAlert)
+    else ENCODE_PLUGIN_ALERT(TorrentPluginAdded)
+    else ENCODE_PLUGIN_ALERT(TorrentPluginRemoved)
+    else ENCODE_PLUGIN_ALERT(PeerPluginAdded)
+    else ENCODE_PLUGIN_ALERT(PeerPluginRemoved)
+    else ENCODE_PLUGIN_ALERT(ConnectionAddedToSession)
+    else ENCODE_PLUGIN_ALERT(SessionStarted)
+    else ENCODE_PLUGIN_ALERT(SessionPaused)
+    else ENCODE_PLUGIN_ALERT(SessionStopped)
+    else ENCODE_PLUGIN_ALERT(SessionToObserveMode)
+    else ENCODE_PLUGIN_ALERT(SessionToSellMode)
+    else ENCODE_PLUGIN_ALERT(SessionToBuyMode)
+    else ENCODE_PLUGIN_ALERT(ValidPaymentReceived)
+    else ENCODE_PLUGIN_ALERT(InvalidPaymentReceived)
+    else ENCODE_PLUGIN_ALERT(BuyerTermsUpdated)
+    else ENCODE_PLUGIN_ALERT(SellerTermsUpdated)
+    else ENCODE_PLUGIN_ALERT(ContractConstructed)
+    else ENCODE_PLUGIN_ALERT(SentPayment)
+    else ENCODE_PLUGIN_ALERT(LastPaymentReceived)
+    else ENCODE_PLUGIN_ALERT(InvalidPieceArrived)
+    else ENCODE_PLUGIN_ALERT(ValidPieceArrived)
+    else ENCODE_PLUGIN_ALERT(DownloadStarted)
+    else ENCODE_PLUGIN_ALERT(UploadStarted)
+    else ENCODE_PLUGIN_ALERT(SendingPieceToBuyer)
+    else ENCODE_PLUGIN_ALERT(PieceRequestedByBuyer)
+    else ENCODE_PLUGIN_ALERT(AnchorAnnounced)
 
     return v;
   }
@@ -72,6 +72,7 @@ namespace PluginAlertEncoder {
     // Export extended alert types
     v8::Local<v8::Object> object = Nan::New<v8::Object>();
 
+    SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, RequestResult)
     SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, TorrentPluginStatusUpdateAlert)
     SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, PeerPluginStatusUpdateAlert)
     SET_JOYSTREAM_PLUGIN_ALERT_TYPE(object, TorrentPluginAdded)
@@ -105,10 +106,10 @@ namespace PluginAlertEncoder {
 
   }
 
-  void process(joystream::extension::alert::RequestResult const * p) {
-    // Simply run the loaded callback
-    p->loadedCallback();
-  }
+    v8::Local<v8::Object> encode(joystream::extension::alert::RequestResult const * p) {
+        return joystream::node::RequestResult::NewInstance(p);
+    }
+
 
   v8::Local<v8::Object> encode(joystream::extension::alert::TorrentPluginStatusUpdateAlert const * p) {
     auto v = libtorrent::node::alert_types::encode(static_cast<libtorrent::alert const *>(p));

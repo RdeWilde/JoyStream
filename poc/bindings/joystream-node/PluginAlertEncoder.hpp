@@ -54,7 +54,7 @@ namespace PluginAlertEncoder {
 
   boost::optional<v8::Local<v8::Object>> alertEncoder(const libtorrent::alert *a);
 
-  void process(extension::alert::RequestResult const * p);
+  v8::Local<v8::Object> encode(extension::alert::RequestResult const * p);
   v8::Local<v8::Object> encode(extension::alert::TorrentPluginStatusUpdateAlert const * p);
   v8::Local<v8::Object> encode(extension::alert::PeerPluginStatusUpdateAlert const * p);
   v8::Local<v8::Object> encode(extension::alert::TorrentPluginAdded const * p);

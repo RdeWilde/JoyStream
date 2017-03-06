@@ -36,9 +36,11 @@ private:
 
   // We do not export this constructor
   static NAN_METHOD(New);
+
   static NAN_METHOD(Run);
 
-  static NAN_METHOD(Type);
+  static NAN_GETTER(Type);
+
   static NAN_METHOD(What);
   static NAN_METHOD(Message);
   static NAN_METHOD(Category);

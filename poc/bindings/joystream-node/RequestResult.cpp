@@ -6,6 +6,7 @@
  */
 
 #include "RequestResult.hpp"
+#include "detail/UnhandledCallbackException.hpp"
 #include "libtorrent-node/utils.hpp"
 
 #define UNWRAP_THIS(var) RequestResult * var = Nan::ObjectWrap::Unwrap<RequestResult>(info.This());
@@ -20,10 +21,16 @@ namespace node {
    // Create constructor function
    v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
    //tpl->SetClassName(Nan::New("RequestResult").ToLocalChecked());
-   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+   v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
+   itpl->SetInternalFieldCount(1);
+
+   // Accessors are defined on instance
+   Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
+
+   // Methods on prototype
    Nan::SetPrototypeMethod(tpl, "run", Run);
-   Nan::SetPrototypeMethod(tpl, "type", Type);
+
    Nan::SetPrototypeMethod(tpl, "what", What);
    Nan::SetPrototypeMethod(tpl, "message", Message);
    Nan::SetPrototypeMethod(tpl, "category", Category);
@@ -61,16 +68,35 @@ namespace node {
  NAN_METHOD(RequestResult::Run) {
 
    UNWRAP_THIS(requestResult)
-   requestResult->_loadedCallback();
+
+    // Make callback, and catch any unhandled exceptions
+    // the developer may have introduced. This is here to
+    // prevent weird stack corruption we were seeing, which made
+    // it near impossible to attribute observed behaviour to an unhandled exception.
+    // The developer should correct code to not have unhandled exceptions.
+    try {
+        requestResult->_loadedCallback();
+    } catch(const detail::UnhandledCallbackException & e) {
+
+        v8::MaybeLocal<v8::String> exception_as_string = e.exception->ToString();
+
+        Nan::ThrowError(exception_as_string.ToLocalChecked());
+
+        //// Rethrow into nodejs environment?
+        //Nan::FatalException(e.trap);
+    }
+
    RETURN_VOID
  }
 
- NAN_METHOD(RequestResult::Type) {
+NAN_GETTER(RequestResult::Type) {
 
-   UNWRAP_THIS(requestResult)
+   RequestResult * requestResult = Nan::ObjectWrap::Unwrap<RequestResult>(info.Holder());
+
    v8::Local<v8::Number> type = Nan::New(requestResult->_type);
+
    RETURN(type)
- }
+}
 
  NAN_METHOD(RequestResult::What) {
 

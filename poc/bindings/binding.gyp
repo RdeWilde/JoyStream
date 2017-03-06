@@ -28,7 +28,7 @@
                 "joystream-node/StartDownloadConnectionInformation.cpp",
                 "joystream-node/PluginAlertEncoder.cpp",
                 "joystream-node/Plugin.cpp",
-                #"joystream-node/RequestResult.cpp",
+                "joystream-node/RequestResult.cpp",
                 "joystream-node/TorrentPluginStatus.cpp",
                 "joystream-node/PeerPluginStatus.cpp",
                 "joystream-node/BuyerTerms.cpp",
@@ -45,7 +45,8 @@
                 "joystream-node/payment_channel.cpp",
                 "joystream-node/Session.cpp",
                 "joystream-node/BEPSupportStatus.cpp",
-                "joystream-node/buffers.cpp"
+                "joystream-node/buffers.cpp",
+                "joystream-node/detail/UnhandledCallbackException.cpp"
                 # Others
                 ],
             "cflags": ["-Wall", "-std=c++11", "-fPIC", '-frtti'],
