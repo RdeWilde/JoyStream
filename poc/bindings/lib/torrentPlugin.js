@@ -4,11 +4,10 @@ const EventEmitter = require('events')
 
 class TorrentPlugin extends EventEmitter {
 
-  constructor (infoHash, status, plugin) {
+  constructor (status, plugin) {
     super()
     this.status = status
     this.plugin = plugin
-    this.infoHash = status.infoHash()
   }
 
   update (status) {

@@ -3,6 +3,7 @@
 var sha1 = require('sha1')
 const EventEmitter = require('events')
 var Peer = require('./peer')
+var TorrentPlugin = require('./torrentPlugin')
 var debug = require('debug')('torrent')
 
 class Torrent extends EventEmitter {
@@ -57,8 +58,8 @@ class Torrent extends EventEmitter {
     if (this.torrentPlugin) {
       debug('This torrent already have a torrentPlugin')
     } else {
-      var torrentPlugin = new TorrentPlugin(torrentPluginStatus, this.plugin)
-      this.emit('torrentPluginAdded', torrentPlugin)
+      this.torrentPlugin = new TorrentPlugin(torrentPluginStatus, this.plugin)
+      this.emit('torrentPluginAdded')
     }
   }
 

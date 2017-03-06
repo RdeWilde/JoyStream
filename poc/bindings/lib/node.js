@@ -60,9 +60,9 @@ const minimumMessageId = 60
 
 class Node extends EventEmitter {
 
-    constructor () {
+    constructor (port) {
       super()
-      this.session = new NativeExtension.Session()
+      this.session = new NativeExtension.Session(port)
       this.plugin = new NativeExtension.Plugin(minimumMessageId)
       this.torrents = new Map()
       this.torrentsBySecondaryHash = new Map()
@@ -77,6 +77,54 @@ class Node extends EventEmitter {
           this.process(alerts[i])
         }
       }.bind(this), 1000)
+    }
+
+    addTorrent (addTorrentParams, callback) {
+        this.plugin.add_torrent(addTorrentParams, (err, torrentHandle) => {
+
+            if (!err) {
+            var torrent = this.torrents.get(torrentHandle.infoHash())
+            // Verify if torrent not already in torrents list
+            if (!torrent) {
+
+                var torrent = new Torrent(torrentHandle,
+                    null,
+                    this.plugin)
+                // Add torrent to torrents map
+                this.torrents.set(torrentHandle.infoHash(),torrent)
+                // Emit event 'addTorrentAlert'
+                this.emit('add_torrent_alert', torrent)
+
+                // DHT stuff
+                this.torrentsBySecondaryHash.set(torrent.secondaryInfoHash(), torrentHandle.infoHash())
+                this.session.dhtAnnounce(torrent.secondaryInfoHash(), this.listenPort())
+
+            } else {
+                torrent.resumeData = resumeData
+            }
+            debug('Adding torrent succeeded.')
+            callback(err, torrent)
+        } else {
+            // Need error wrapper for message
+            debug('Adding torrent failed')
+            callback(err, null)
+        }
+    })
+    }
+
+    removeTorrent (infoHash, callback) {
+        var torrent = this.torrents.get(infoHash)
+
+        if (torrent) {
+            this.plugin.remove_torrent(infoHash, (err, result) => {
+                if (!err)
+            this.torrents.delete(infoHash)
+        })
+        } else {
+            debug('Cannot remove torrent : Torrent not found')
+            callback(new Error('Cannot remove torrent : Torrent not found'), null)
+        }
+
     }
 
     /**********************
@@ -571,8 +619,7 @@ class Node extends EventEmitter {
 
       for (var [infoHash, torrentPluginStatus] of statuses) {
         var torrent = this.torrents.get(infoHash)
-        //torrent.plugin.update(torrentPluginStatus)
-        torrent.plugin.emit('statusUpdated', torrentPluginStatus)
+        torrent.torrentPlugin.update(torrentPluginStatus)
       }
       this.emit('TorrentPluginStatusUpdateAlert', statuses)
     }
@@ -599,15 +646,15 @@ class Node extends EventEmitter {
 
     [_torrentPluginAdded](alert) {
       var torrentHandle = alert.handle
+      var torrent = this.torrents.get(torrentHandle.infoHash())
 
-      if (this.torrents.has(torrentHandle.infoHash())) {
-        debug('Torrent already creates')
+      if (torrent) {
+        debug('Torrent already created')
       } else {
-        var torrent = new Torrent(torrentHandle, '', this.plugin)
+        torrent = new Torrent(torrentHandle, '', this.plugin)
         this.torrents.set(torrentHandle.infoHash(), torrent)
-        this.emit('torrentPluginAdded', torrent)
-        torrent.addTorrentPlugin(alert.torrentPluginStatus)
       }
+      torrent.addTorrentPlugin(alert.torrentPluginStatus)
     }
 
     [_torrentPluginRemoved](alert) {

@@ -55,6 +55,8 @@ class App extends Component {
   render () {
     let rows = [];
 
+    console.log(joystream)
+
     this.state.torrents.forEach((torrent, infoHash) => {
       var torrentHandle = torrent.handle
       var torrentInfo = torrentHandle.torrentFile()

@@ -291,7 +291,6 @@ NAN_METHOD(Plugin::AddTorrent) {
   GET_THIS_PLUGIN(plugin)
 
   ARGUMENTS_REQUIRE_DECODED(0, addTorrentParams, libtorrent::add_torrent_params, libtorrent::node::add_torrent_params::decode)
-
   ARGUMENTS_REQUIRE_CALLBACK(1, managedCallback)
 
   joystream::extension::request::AddTorrent::AddTorrentHandler addTorrentHandler = detail::CreateAddTorrentHandler(managedCallback);
@@ -417,7 +416,6 @@ namespace detail {
 
     return [callback] (libtorrent::error_code & ec, libtorrent::torrent_handle & h) -> void {
 
-
       if (ec) {
         v8::Local<v8::Value> argv[] = {
           // Use error_code::encode(ec) when its ready
@@ -472,7 +470,11 @@ namespace detail {
     }
 
     v8::Local<v8::Value> resultValueGn(const std::exception_ptr & ex) {
-      return RESULT_VALUE(ex);
+      if (ex) { // failure
+        return Nan::Undefined();
+      } else {
+        return Nan::True();
+      }
     }
 
     joystream::extension::request::SubroutineHandler CreateGenericHandler(const std::shared_ptr<Nan::Callback> & callback) {

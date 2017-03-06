@@ -4,7 +4,7 @@
   "description": "A minimal Joystream application in electron",
   "main": "main.js",
   "scripts": {
-    "start": "LD_LIBRARY_PATH=/home/lola/Qt/5.7/gcc_64/lib electron ."
+    "start": "electron ."
   },
   "keywords": [
     "Joystream",
@@ -13,6 +13,7 @@
   "author": "Me",
   "license": "MIT",
   "devDependencies": {
+    "babel": "^6.23.0",
     "babel-plugin-transform-async-to-generator": "^6.22.0",
     "electron": "^1.4.1",
     "electron-prebuilt-compile": "^1.4.14"
