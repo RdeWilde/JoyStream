@@ -5,20 +5,18 @@ const PeerPlugin = require('./peerPlugin')
 
 class Peer extends EventEmitter {
 
-  constructor (info, plugin = null) {
+  constructor (info, status = null) {
     super()
     this.peerInformation = info
-    this.peerPlugin = plugin
+    this.peerPlugin = status ? new PeerPlugin(status) : null
   }
 
   addPeerPlugin (status) {
     var peerPlugin = new PeerPlugin(status)
-    this.emit('peerPluginAdded', peerPlugin)
   }
 
   removePeerPlugin () {
     this.peerPlugin = null
-    this.emit('peerPluginRemoved')
   }
 
 }

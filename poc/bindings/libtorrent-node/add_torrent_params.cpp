@@ -62,11 +62,15 @@ libtorrent::add_torrent_params decode(const v8::Local<v8::Value> & v) {
   } catch(const std::runtime_error &) { }
 
   try {
-    atp.name =  GET_STD_STRING(o, NAME_KEY);
+    if (HAS_KEY(o, NAME_KEY)) {
+      atp.name =  GET_STD_STRING(o, NAME_KEY);
+    }
   } catch(const std::runtime_error &) { }
 
   try {
-    atp.save_path =  GET_STD_STRING(o, SAVE_PATH_KEY);
+    if (HAS_KEY(o, SAVE_PATH_KEY)) {
+      atp.save_path =  GET_STD_STRING(o, SAVE_PATH_KEY);
+    }
   } catch(const std::runtime_error &) { }
 
   try {
@@ -74,12 +78,16 @@ libtorrent::add_torrent_params decode(const v8::Local<v8::Value> & v) {
   } catch(const std::runtime_error &) { }
 
   try {
-    atp.url =  GET_STD_STRING(o, URL_KEY);
+    if (HAS_KEY(o, URL_KEY)) {
+      atp.url =  GET_STD_STRING(o, URL_KEY);
+    }
   } catch(const std::runtime_error &) { }
 
   try {
-    std::string str = GET_STD_STRING(o, RESUME_DATA_KEY);
-    std::copy(str.begin(), str.end(), std::back_inserter(atp.resume_data));
+    if (HAS_KEY(o, RESUME_DATA_KEY)) {
+      std::string str = GET_STD_STRING(o, RESUME_DATA_KEY);
+      std::copy(str.begin(), str.end(), std::back_inserter(atp.resume_data));
+    }
   } catch(const std::runtime_error &) { }
 
   try {

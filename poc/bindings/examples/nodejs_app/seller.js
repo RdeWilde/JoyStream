@@ -40,7 +40,8 @@ app.wallet.start().then(() => {
           debug('Torrent state changed')
           if (torrent.handle.status().state === 5) {
             debug('Torrent seeding, we can go to sell mode')
-            app.sellTorrent('d59e6da0de8f5382f067e07375c262f15570a8f1', sellerTerm, (err, result) => {
+
+            torrent.toSellMode(sellerTerm, (err, result) => {
               if (!err) {
                 debug('We are in selling mode')
               } else {
